@@ -49,6 +49,12 @@ class NewDay
         $character->setProperty(self::LastNewDayProperty, $thisNewDay);
     }
 
+    public function resetNewDay(Character $character): void
+    {
+        $this->logger->debug("{$character->id}: Resets last new day.");
+        $character->setProperty(self::LastNewDayProperty, null);
+    }
+
     public function render(Stage $stage, Action $action, Scene $scene): void
     {
         $character = $stage->owner;

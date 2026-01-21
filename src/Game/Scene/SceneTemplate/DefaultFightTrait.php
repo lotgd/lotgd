@@ -102,7 +102,7 @@ trait DefaultFightTrait
     }
 
     /**
-     * Whenever a fight ends (expected or unexpected), the state can be reused to search for the the next fight. This
+     * Whenever a fight ends (expected or unexpected), the state can be reused to search for the next fight. This
      * method offers a hook to add additional default actions (besides the usual scene connections).
      * @param Stage $stage
      * @param Action $action

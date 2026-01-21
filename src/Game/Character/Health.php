@@ -79,6 +79,6 @@ readonly class Health
 
     public function isAlive(): bool
     {
-        return $this->character->getProperty(static::HealthPropertyName) > 0;
+        return $this->getHealth() > 0;
     }
 }

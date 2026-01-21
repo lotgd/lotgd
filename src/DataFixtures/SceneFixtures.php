@@ -8,6 +8,7 @@ use Doctrine\Persistence\ObjectManager;
 use LotGD2\Entity\Mapped\Scene;
 use LotGD2\Entity\Mapped\SceneActionGroup;
 use LotGD2\Game\Scene\SceneTemplate\BankTemplate;
+use LotGD2\Game\Scene\SceneTemplate\DragonTemplate;
 use LotGD2\Game\Scene\SceneTemplate\FightTemplate;
 use LotGD2\Game\Scene\SceneTemplate\HealerTemplate;
 use LotGD2\Game\Scene\SceneTemplate\SimpleShopTemplate;
@@ -62,6 +63,10 @@ class SceneFixtures extends Fixture
                     new SceneActionGroup(
                         title: "Edge of the forest",
                         sorting: 0,
+                    ),
+                    new SceneActionGroup(
+                        title: "Deep in the forest",
+                        sorting: 10,
                     ),
                 ],
             ),
@@ -351,6 +356,28 @@ class SceneFixtures extends Fixture
                     ]
                 ],
             ),
+            "dragon" => new Scene(
+                title: "Seek out the Green Dragon",
+                description: <<<TXT
+                    You approach the blackened entrance of a cave deep in the forest, though the trees are scorched to 
+                    stumps for a hundred yards all around. A thin tendril of smoke escapes the roof of the cave's 
+                    entrance, and is whisked away by a suddenly cold and brisk wind. The mouth of the cave lies up a 
+                    dozen feet from the forest floor, set in the side of a cliff, with debris making a conical ramp 
+                    to the opening. Stalactites and stalagmites near the entrance trigger your imagination to inspire 
+                    thoughts that the opening is really the mouth of a great leech.
+                    
+                    You cautiously approach the entrance of the cave, and as you do, you hear, or perhaps feel a deep 
+                    rumble that lasts thirty seconds or so, before silencing to a breeze of sulfur-air which wafts out 
+                    of the cave. The sound starts again, and stops again in a regular rhythm.
+                    
+                    You clamber up the debris pile leading to the mouth of the cave, your feet crunching on the 
+                    apparent remains of previous heroes, or perhaps hors d'oeuvres.
+                    
+                    Every instinct in your body wants to run, and run quickly, back to the warm inn.
+                    What do you do?
+                TXT,
+                templateClass: DragonTemplate::class,
+            )
         ];
 
         $villageToForestConnection = $scenes["village"]->connectTo($scenes["forest"], sourceLabel: "The forest", targetLabel: "Back to the village");
@@ -367,6 +394,9 @@ class SceneFixtures extends Fixture
 
         $forestToHealerConnection = $scenes["forest"]->connectTo($scenes["healer"], sourceLabel: "Healer's Hut", targetLabel: "Back to the forest");
         $scenes["forest"]->actionGroups->get(0)->addConnection($forestToHealerConnection);
+
+        $forestToDragonConnection = $scenes["forest"]->connectTo($scenes["dragon"], sourceLabel: "The Dragon's Cave", targetLabel: "Back to the forest");
+        $scenes["forest"]->actionGroups->get(1)->addConnection($forestToDragonConnection);
 
         $villageToTrainingConnection = $scenes["village"]->connectTo($scenes["training"], sourceLabel: "Bluspring's Warrior Training", targetLabel: "Back to the village");
         $scenes["village"]->actionGroups->get(1)->addConnection($villageToTrainingConnection);

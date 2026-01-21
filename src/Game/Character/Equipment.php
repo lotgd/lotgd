@@ -30,7 +30,9 @@ readonly class Equipment
 
     public function setItemInSlot(string $slot, EquipmentItem $item): static
     {
-        $this->logger->debug("{$this->character->id} set new item in slot ($slot): {$item->getName()} ({$item->getStrength()})");
+        $this->logger->debug("{$this->character->id}: set new item in slot ($slot): {$item->getName()} ({$item->getStrength()})", [
+            "item" => $item,
+        ]);
 
         $equipment = $this->character->getProperty(self::PropertyName);
         if (is_array($equipment)) {
