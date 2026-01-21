@@ -183,7 +183,7 @@ readonly class TrainingTemplate implements SceneTemplateInterface
             $attachment = $this->attachmentRepository->findOneByAttachmentClass(BattleAttachment::class);
 
             if ($attachment) {
-                $battleState = $this->battle->start($master);
+                $battleState = $this->battle->start($master, allowFlee: false);
                 $params = ["op" => "fight"];
 
                 $healed = false;

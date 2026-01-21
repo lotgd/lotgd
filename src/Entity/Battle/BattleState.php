@@ -52,6 +52,7 @@ class BattleState
         readonly private(set) bool $isLevelAdjustmentEnabled = true,
         readonly private(set) bool $isCriticalHitEnabled = true,
         readonly private(set) bool $isRiposteEnabled = true,
+        readonly private(set) bool $allowFlee = true,
     ) {
     }
 

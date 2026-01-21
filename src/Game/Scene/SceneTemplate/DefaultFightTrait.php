@@ -52,8 +52,6 @@ trait DefaultFightTrait
                 if ($success) {
                     return;
                 }
-
-                $battleTurn = BattleTurn::DamageTurnBadGuy;
             }
 
             $stage->addAttachment($attachment, data: [
@@ -109,9 +107,9 @@ trait DefaultFightTrait
      * @param Action $action
      * @param Scene $scene
      * @param int $battleTurn
-     * @return int
+     * @return bool
      */
-    public function onFightFlee(Stage $stage, Action $action, Scene $scene, int $battleTurn): bool
+    public function onFightFlee(Stage $stage, Action $action, Scene $scene, int &$battleTurn): bool
     {
         if ($action->getParameter("surprise", false) === true || $this->diceBag->chance(0.3333, precision: 4)) {
             $this->logger->critical("Successfully escaped from the enemy.");
@@ -131,6 +129,8 @@ trait DefaultFightTrait
             $stage->setDescription(<<<TEXT
                     You failed to flee your opponent! You are too busy trying to run away like a cowardly dog to try to fight.
                 TEXT);
+
+            $battleTurn = BattleTurn::DamageTurnBadGuy;
 
             return false;
         }

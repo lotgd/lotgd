@@ -10,17 +10,12 @@ use LotGD2\Entity\Battle\BasicFighterInterface;
 use LotGD2\Entity\Battle\BattleState;
 use LotGD2\Entity\Battle\CurrentCharacterFighter;
 use LotGD2\Entity\Battle\Fighter;
-use LotGD2\Entity\Battle\FighterInterface;
 use LotGD2\Entity\Mapped\Character;
-use LotGD2\Entity\Mapped\Creature;
 use LotGD2\Entity\Mapped\Scene;
 use LotGD2\Entity\Mapped\Stage;
-use LotGD2\Game\Battle\BattleEvent\AbstractBattleEvent;
 use LotGD2\Game\Battle\BattleEvent\BattleEventInterface;
-use LotGD2\Game\Battle\BattleEvent\CriticalHitEvent;
 use LotGD2\Game\Battle\BattleEvent\DamageEvent;
 use LotGD2\Game\Battle\BattleEvent\DeathEvent;
-use LotGD2\Game\Random\DiceBagInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\Serializer\Normalizer\DenormalizerInterface;
@@ -46,13 +41,25 @@ class Battle
     ) {
     }
 
-    public function start(BasicFighterInterface $badGuy): BattleState
-    {
+    public function start(
+        BasicFighterInterface $badGuy,
+        bool $isLevelAdjustmentEnabled = true,
+        bool $isCriticalHitEnabled = true,
+        bool $isRiposteEnabled = true,
+        bool $allowFlee = true,
+    ): BattleState {
         $this->logger->debug("Starting Battle");
 
         $badGuy = new Fighter(... $this->normalizer->normalize($badGuy, context: ["groups" => ["fighter"]]));
 
-        $battleState = new BattleState(CurrentCharacterFighter::fromCharacter($this->character), $badGuy);
+        $battleState = new BattleState(
+            CurrentCharacterFighter::fromCharacter($this->character),
+            $badGuy,
+            $isLevelAdjustmentEnabled,
+            $isCriticalHitEnabled,
+            $isRiposteEnabled,
+            $allowFlee,
+        );
         $battleState->setCharacter($this->character);
 
         return $battleState;
@@ -64,10 +71,9 @@ class Battle
      * @param Scene $scene
      * @param BattleState $battleState
      * @param array<string, mixed> $actionParams
-     * @param bool $allowFlee Turn off to remove the flee action
      * @return void
      */
-    public function addFightActions(Stage $stage, Scene $scene, BattleState $battleState, array $actionParams = [], bool $allowFlee = true): void
+    public function addFightActions(Stage $stage, Scene $scene, BattleState $battleState, array $actionParams = []): void
     {
         $this->logger->debug("Adding Battle Actions");
         $actionGroup = new ActionGroup(self::ActionGroupBattle, "Fight", -100);
@@ -76,7 +82,7 @@ class Battle
             new Action($scene, "Attack", [... $actionParams, "how" => "attack", "battleState" => $battleState], reference: self::FightActionAttack),
         ]);
 
-        if ($allowFlee) {
+        if ($battleState->allowFlee) {
             $actionGroup->addAction(new Action($scene, "Flee", [... $actionParams, "how" => "flee", "battleState" => $battleState], reference: self::FightActionFlee));
         }
 
