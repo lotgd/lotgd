@@ -26,7 +26,8 @@ class CurrentCharacterFighterTest extends TestCase
         $character->method("getProperty")->willReturnMap([
             [Health::HealthPropertyName, 10, 10],
             [Stats::AttackPropertyName, 1, 1],
-            [Stats::DefensePropertyName, 1, 2]
+            [Stats::DefensePropertyName, 1, 2],
+            [Health::MaxHealthPropertyName, 10, 10],
         ]);
 
         $fighter = CurrentCharacterFighter::fromCharacter($character);

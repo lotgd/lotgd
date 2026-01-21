@@ -6,6 +6,7 @@ namespace LotGD2\Tests\Game\Character;
 use LotGD2\Entity\Character\EquipmentItem;
 use LotGD2\Entity\Mapped\Character;
 use LotGD2\Game\Character\Equipment;
+use LotGD2\Game\Character\Health;
 use LotGD2\Game\Character\Stats;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
@@ -17,6 +18,7 @@ class StatsTest extends TestCase
     private Stats $stats;
     private Character $character;
     private Equipment $equipment;
+    private Health $health;
     private ?LoggerInterface $logger;
 
     protected function setUp(): void
@@ -24,10 +26,12 @@ class StatsTest extends TestCase
         $this->character = $this->createMock(Character::class);
         $this->equipment = $this->createMock(Equipment::class);
         $this->logger = $this->createMock(LoggerInterface::class);
+        $this->health = $this->createMock(Health::class);
 
         $this->stats = new Stats(
             $this->logger,
             $this->equipment,
+            $this->health,
             $this->character
         );
     }
