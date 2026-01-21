@@ -3,12 +3,34 @@ declare(strict_types=1);
 
 namespace LotGD2\Twig;
 
+use Exception;
+use Psr\Log\LoggerInterface;
 use Symfony\Component\ExpressionLanguage\ExpressionLanguage;
-use Symfony\Component\ExpressionLanguage\SyntaxError;
+use Symfony\Component\ExpressionLanguage\Parser;
+use Twig\Environment;
+use Twig\Error\LoaderError;
+use Twig\Error\RuntimeError;
+use Twig\Error\SyntaxError;
 use Twig\Extension\RuntimeExtensionInterface;
+use Twig\Extension\SandboxExtension;
+use Twig\Loader\ArrayLoader;
+use Twig\Sandbox\SecurityPolicy;
 
 class ParseRuntime implements RuntimeExtensionInterface
 {
+    private Environment $twig;
+
+    public function __construct(
+        private LoggerInterface $logger,
+    ) {
+        $this->twig = new Environment(new ArrayLoader([]), ['cache' => false]);
+        $this->twig->addExtension(new SandboxExtension(new SecurityPolicy(
+            allowedTags: ["if"],
+            allowedFilters: ["abs", "round"],
+            allowedProperties: ["Character" => "name"],
+        )));
+    }
+
     /**
      * @param string $text
      * @param array<string, mixed> $context
@@ -46,6 +68,12 @@ class ParseRuntime implements RuntimeExtensionInterface
 
         $parsedText = "<p>$parsedText</p>";
 
+        try {
+            $parsedText = $this->twig->createTemplate($parsedText)->render($context);
+        } catch (LoaderError|SyntaxError|RuntimeError $e) {
+            $this->logger->warning("Issues parsing scene: {$e->getMessage()}");
+        }
+
         return "<div class='lotgd-parsed'>$parsedText</div>";
     }
 
@@ -66,18 +94,6 @@ class ParseRuntime implements RuntimeExtensionInterface
         ];
 
         $text = str_replace(array_keys($replacements), array_values($replacements), $text);
-
-        $text = preg_replace_callback("#\{(.*?)\}#", function ($matches) use ($context) {
-            [$pattern, $expression] = $matches;
-            $expressionLanguage = new ExpressionLanguage();
-
-            try {
-                $expressionLanguage->lint($pattern, $context);
-                return $expressionLanguage->evaluate($expression, $context);
-            } catch (SyntaxError) {
-                return $pattern;
-            }
-        }, $text);
 
         return $text;
     }
