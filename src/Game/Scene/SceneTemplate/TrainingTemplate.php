@@ -20,6 +20,7 @@ use LotGD2\Game\Stage\ActionService;
 use LotGD2\Repository\AttachmentRepository;
 use LotGD2\Repository\MasterRepository;
 use Psr\Log\LoggerInterface;
+use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\DependencyInjection\Attribute\Autoconfigure;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
@@ -46,6 +47,7 @@ readonly class TrainingTemplate implements SceneTemplateInterface
     const ActionChallenge = "lotgd2.action.trainingTemplate.challenge";
 
     public function __construct(
+        private Security $security,
         private LoggerInterface $logger,
         private AttachmentRepository $attachmentRepository,
         private MasterRepository $masterRepository,
@@ -100,6 +102,10 @@ readonly class TrainingTemplate implements SceneTemplateInterface
         $stage->addContext("requiredExperience", $this->stats->getRequiredExperience());
         $stage->addContext("weapon", $this->equipment->getItemInSlot(Equipment::WeaponSlot)?->getName() ?? "Fists");
         $stage->addContext("armor", $this->equipment->getItemInSlot(Equipment::ArmorSlot)?->getName() ?? "T-Shirt");
+
+        if ($op === "cheat" and $this->security->isGranted("ROLE_CHEATS_ENABLED")) {
+            $this->handleCheats($action->getParameter($stage->getOwner(), "what"));
+        }
 
         match ($op) {
             default => $this->defaultAction($stage, $action, $scene),
@@ -311,5 +317,33 @@ readonly class TrainingTemplate implements SceneTemplateInterface
         ));
 
         $stage->addActionGroup($actionGroup);
+
+
+        if ($this->security->isGranted("ROLE_CHEATS_ENABLED")) {
+            $cheatsGroup = new ActionGroup("lotgd2.actionGroup.fightTemplate.cheats", "Cheats");
+            $cheatsGroup->setActions([
+                new Action(
+                    scene: $scene,
+                    title: "#! Unsee master",
+                    parameters: ["op" => "cheat", "what" => "unseeMaster"],
+                    reference: "lotgd2.action.fightTemplate.cheats.experience",
+                ),
+                new Action(
+                    scene: $scene,
+                    title: "#! Gain 1 level",
+                    parameters: ["op" => "cheat", "what" => "levelUp"],
+                    reference: "lotgd2.action.fightTemplate.cheats.gold",)
+            ]);
+            $stage->addActionGroup($cheatsGroup);
+        }
+    }
+
+    public function handleCheats(Character $character, string $cheat): void
+    {
+        if ($cheat === "unseeMaster") {
+            $this->setSeenMaster($character);
+        } elseif ($cheat === "levelUp") {
+            $this->stats->levelUp();
+        }
     }
 }
