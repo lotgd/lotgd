@@ -82,16 +82,16 @@ readonly class SceneRenderer
     ): Action {
         $action = new Action(diceBag: $this->diceBag);
 
-        if ($sceneConnection->getSourceScene() === $scene) {
-            $action->title = $sceneConnection->getSourceLabel();
-            $action->sceneId = $sceneConnection->getTargetScene();
-        } elseif ($sceneConnection->getTargetScene() === $scene) {
-            $action->title = $sceneConnection->getTargetLabel();
-            $action->sceneId = $sceneConnection->getSourceScene();
+        if ($sceneConnection->sourceScene === $scene) {
+            $action->title = $sceneConnection->sourceLabel;
+            $action->sceneId = $sceneConnection->targetScene;
+        } elseif ($sceneConnection->targetScene === $scene) {
+            $action->title = $sceneConnection->targetLabel;
+            $action->sceneId = $sceneConnection->sourceScene;
         } else {
             // This should never be reached, as $scene must either be the source or the target scene of a connection,
             // otherwise, it should not be in the list.
-            $action->title = "#invalidConnection:{$sceneConnection->getId()}";
+            $action->title = "#invalidConnection:{$sceneConnection->id}";
         }
 
         return $action;
@@ -112,17 +112,17 @@ readonly class SceneRenderer
         $addedConnections = [];
 
         foreach ($scene->getActionGroups() as $sceneActionGroup) {
-            $actionGroup = (new ActionGroup())
-                ->setId("lotgd.actionGroup.custom.{$sceneActionGroup->getId()}")
-                ->setTitle($sceneActionGroup->getTitle())
-                ->setWeight($sceneActionGroup->getSorting())
-            ;
+            $actionGroup = new ActionGroup(
+                id: "lotgd.actionGroup.custom.{$sceneActionGroup->getId()}",
+                title: $sceneActionGroup->getTitle(),
+                weight: $sceneActionGroup->getSorting(),
+            );
 
             foreach ($sceneActionGroup->getConnections() as $connection) {
-                if (!isset($addedConnections[$connection->getId()])) {
+                if (!isset($addedConnections[$connection->id])) {
                     $action = $this->createActionFromConnection($scene, $connection);
                     $actionGroup->addAction($action);
-                    $addedConnections[$connection->getId()] = true;
+                    $addedConnections[$connection->id] = true;
                 }
             }
 
@@ -131,10 +131,10 @@ readonly class SceneRenderer
 
         // Add all other actions
         foreach ($scene->getConnections(visibleOnly: true) as $connection) {
-            if (!isset($addedConnections[$connection->getId()])) {
+            if (!isset($addedConnections[$connection->id])) {
                 $action = $this->createActionFromConnection($scene, $connection);
                 $stage->addAction(ActionGroup::EMPTY, $action);
-                $addedConnections[$connection->getId()] = true;
+                $addedConnections[$connection->id] = true;
             }
         }
     }

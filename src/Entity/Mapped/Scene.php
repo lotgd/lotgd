@@ -142,13 +142,13 @@ class Scene
         ?string $sourceLabel = null,
         ?string $targetLabel = null,
     ): SceneConnection {
-        $connection = new SceneConnection()
-            ->setSourceScene($this)
-            ->setTargetScene($scene)
-            ->setSourceLabel($sourceLabel)
-            ->setTargetLabel($targetLabel)
-            ->setType($connectionType);
-        ;
+        $connection = new SceneConnection(
+            sourceScene: $this,
+            targetScene: $scene,
+            sourceLabel: $sourceLabel,
+            targetLabel: $targetLabel,
+            type: $connectionType,
+        );
 
         $this->addSourcedConnection($connection);
         $scene->addTargetingConnection($connection);
@@ -167,7 +167,7 @@ class Scene
     {
         if (!$this->sourcedConnections->contains($sourcedConnection)) {
             $this->sourcedConnections->add($sourcedConnection);
-            $sourcedConnection->setSourceScene($this);
+            $sourcedConnection->sourceScene = $this;
         }
 
         return $this;
@@ -177,8 +177,8 @@ class Scene
     {
         if ($this->sourcedConnections->removeElement($sourcedConnection)) {
             // set the owning side to null (unless already changed)
-            if ($sourcedConnection->getSourceScene() === $this) {
-                $sourcedConnection->setSourceScene(null);
+            if ($sourcedConnection->sourceScene === $this) {
+                $sourcedConnection->sourceScene = null;
             }
         }
 
@@ -197,7 +197,7 @@ class Scene
     {
         if (!$this->targetingConnections->contains($targetingConnection)) {
             $this->targetingConnections->add($targetingConnection);
-            $targetingConnection->setTargetScene($this);
+            $targetingConnection->targetScene = $this;
         }
 
         return $this;
@@ -207,8 +207,8 @@ class Scene
     {
         if ($this->targetingConnections->removeElement($targetingConnection)) {
             // set the owning side to null (unless already changed)
-            if ($targetingConnection->getTargetScene() === $this) {
-                $targetingConnection->setTargetScene(null);
+            if ($targetingConnection->targetScene === $this) {
+                $targetingConnection->targetScene = null;
             }
         }
 
@@ -224,12 +224,12 @@ class Scene
         if ($visibleOnly) {
             return new ArrayCollection([
                 ...$this->sourcedConnections->filter(fn (SceneConnection $connection) => (
-                    $connection->getType() == SceneConnectionType::BothWays or
-                    $connection->getType() == SceneConnectionType::ForwardOnly
+                    $connection->type == SceneConnectionType::BothWays or
+                    $connection->type == SceneConnectionType::ForwardOnly
                 ))->toArray(),
                 ...$this->targetingConnections->filter(fn (SceneConnection $connection) => (
-                    $connection->getType() == SceneConnectionType::BothWays or
-                    $connection->getType() == SceneConnectionType::ReverseOnly
+                    $connection->type == SceneConnectionType::BothWays or
+                    $connection->type == SceneConnectionType::ReverseOnly
                 ))->toArray()
             ]);
         } else {

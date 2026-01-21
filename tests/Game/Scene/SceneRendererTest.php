@@ -17,6 +17,7 @@ use LotGD2\Repository\SceneRepository;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\UsesClass;
 use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\MockObject\Runtime\PropertyHook;
 use PHPUnit\Framework\TestCase;
 
 #[CoversClass(SceneRenderer::class)]
@@ -110,10 +111,10 @@ class SceneRendererTest extends TestCase
         $otherScene = $this->getSceneMock("Other Scene", "A new scenery");
         $otherScene->method("getId")->willReturn(13);
         $sceneConnection = $this->createMock(SceneConnection::class);
-        $sceneConnection->method("getSourceScene")->willReturn($scene);
-        $sceneConnection->method("getTargetScene")->willReturn($otherScene);
-        $sceneConnection->method("getSourceLabel")->willReturn($otherScene->getTitle());
-        $sceneConnection->method("getTargetLabel")->willReturn($scene->getTitle());
+        $sceneConnection->sourceScene = $scene;
+        $sceneConnection->targetScene = $otherScene;
+        $sceneConnection->sourceLabel = $otherScene->getTitle();
+        $sceneConnection->targetLabel = $scene->getTitle();
 
         $sceneRepository = $this->createMock(SceneRepository::class);
         $diceBag = new DiceBag();
@@ -135,10 +136,10 @@ class SceneRendererTest extends TestCase
         $otherScene = $this->getSceneMock("Other Scene", "A new scenery");
         $otherScene->method("getId")->willReturn(13);
         $sceneConnection = $this->createMock(SceneConnection::class);
-        $sceneConnection->method("getTargetScene")->willReturn($scene);
-        $sceneConnection->method("getSourceScene")->willReturn($otherScene);
-        $sceneConnection->method("getTargetLabel")->willReturn($otherScene->getTitle());
-        $sceneConnection->method("getSourceLabel")->willReturn($scene->getTitle());
+        $sceneConnection->targetScene = $scene;
+        $sceneConnection->sourceScene = $otherScene;
+        $sceneConnection->targetLabel = $otherScene->getTitle();
+        $sceneConnection->sourceLabel = $scene->getTitle();
 
         $sceneRepository = $this->createMock(SceneRepository::class);
         $diceBag = new DiceBag();
@@ -163,10 +164,10 @@ class SceneRendererTest extends TestCase
         $targetScene->method("getId")->willReturn(33);
 
         $sceneConnection = $this->createMock(SceneConnection::class);
-        $sceneConnection->method("getTargetScene")->willReturn($targetScene);
-        $sceneConnection->method("getSourceScene")->willReturn($sourceScene);
-        $sceneConnection->method("getTargetLabel")->willReturn($sourceScene->getTitle());
-        $sceneConnection->method("getSourceLabel")->willReturn($targetScene->getTitle());
+        $sceneConnection->targetScene = $targetScene;
+        $sceneConnection->sourceScene = $sourceScene;
+        $sceneConnection->targetLabel = $sourceScene->getTitle();
+        $sceneConnection->sourceLabel = $targetScene->getTitle();
         $sceneRepository = $this->createMock(SceneRepository::class);
         $diceBag = new DiceBag();
 
@@ -233,14 +234,14 @@ class SceneRendererTest extends TestCase
 
         // Create a mock connection
         $connection = $this->createMock(SceneConnection::class);
-        $connection->method('getId')->willReturn(1);
-        $connection->method('getSourceScene')->willReturn($scene);
-        $connection->method('getSourceLabel')->willReturn('Go North');
+        $connection->method(PropertyHook::get("id"))->willReturn(1);
+        $connection->sourceScene = $scene;
+        $connection->sourceLabel = 'Go North';
 
         // Create target scene
         $targetScene = $this->createMock(Scene::class);
         $targetScene->method('getId')->willReturn(2);
-        $connection->method('getTargetScene')->willReturn($targetScene);
+        $connection->targetScene = $targetScene;
 
         // Create a mock scene action group
         $sceneActionGroup = $this->createMock(SceneActionGroup::class);
@@ -276,13 +277,13 @@ class SceneRendererTest extends TestCase
 
         // Create a mock connection
         $connection = $this->createMock(SceneConnection::class);
-        $connection->method('getId')->willReturn(1);
-        $connection->method('getSourceScene')->willReturn($scene);
-        $connection->method('getSourceLabel')->willReturn('Go North');
+        $connection->method(PropertyHook::get("id"))->willReturn(1);
+        $connection->sourceScene = $scene;
+        $connection->sourceLabel = 'Go North';
 
         $targetScene = $this->createMock(Scene::class);
         $targetScene->method('getId')->willReturn(2);
-        $connection->method('getTargetScene')->willReturn($targetScene);
+        $connection->targetScene = $targetScene;
 
         // Add the same connection to action group
         $sceneActionGroup = $this->createMock(SceneActionGroup::class);
@@ -316,13 +317,13 @@ class SceneRendererTest extends TestCase
 
         // Create a standalone connection (not in any action group)
         $connection = $this->createMock(SceneConnection::class);
-        $connection->method('getId')->willReturn(2);
-        $connection->method('getSourceScene')->willReturn($scene);
-        $connection->method('getSourceLabel')->willReturn('Go South');
+        $connection->method(PropertyHook::get("id"))->willReturn(2);
+        $connection->sourceScene = $scene;
+        $connection->sourceLabel = 'Go South';
 
         $targetScene = $this->createMock(Scene::class);
         $targetScene->method('getId')->willReturn(3);
-        $connection->method('getTargetScene')->willReturn($targetScene);
+        $connection->targetScene = $targetScene;
 
         $scene->method('getActionGroups')->willReturn(new ArrayCollection());
         $scene->method('getConnections')->willReturn(new ArrayCollection([$connection]));
@@ -349,23 +350,23 @@ class SceneRendererTest extends TestCase
 
         // Connection in action group
         $connection1 = $this->createMock(SceneConnection::class);
-        $connection1->method('getId')->willReturn(1);
-        $connection1->method('getSourceScene')->willReturn($scene);
-        $connection1->method('getSourceLabel')->willReturn('Go North');
+        $connection1->method(PropertyHook::get("id"))->willReturn(1);
+        $connection1->sourceScene = $scene;
+        $connection1->sourceLabel = 'Go North';
 
         $targetScene1 = $this->createMock(Scene::class);
         $targetScene1->method('getId')->willReturn(20);
-        $connection1->method('getTargetScene')->willReturn($targetScene1);
+        $connection1->targetScene = $targetScene1;
 
         // Connection in visible connections only
         $connection2 = $this->createMock(SceneConnection::class);
-        $connection2->method('getId')->willReturn(2);
-        $connection2->method('getSourceScene')->willReturn($scene);
-        $connection2->method('getSourceLabel')->willReturn('Go South');
+        $connection2->method(PropertyHook::get("id"))->willReturn(2);
+        $connection2->sourceScene = $scene;
+        $connection2->sourceLabel = 'Go South';
 
         $targetScene2 = $this->createMock(Scene::class);
         $targetScene2->method('getId')->willReturn(30);
-        $connection2->method('getTargetScene')->willReturn($targetScene2);
+        $connection2->targetScene = $targetScene2;
 
         // Scene action group
         $sceneActionGroup = $this->createMock(SceneActionGroup::class);
@@ -402,13 +403,13 @@ class SceneRendererTest extends TestCase
 
         // Connection where current scene is the target
         $connection = $this->createMock(SceneConnection::class);
-        $connection->method('getId')->willReturn(1);
-        $connection->method('getTargetScene')->willReturn($scene);
-        $connection->method('getTargetLabel')->willReturn('Go Back');
+        $connection->method(PropertyHook::get("id"))->willReturn(1);
+        $connection->targetScene = $scene;
+        $connection->targetLabel = 'Go Back';
 
         $sourceScene = $this->createMock(Scene::class);
         $sourceScene->method('getId')->willReturn(21);
-        $connection->method('getSourceScene')->willReturn($sourceScene);
+        $connection->sourceScene = $sourceScene;
 
         $sceneActionGroup = $this->createMock(SceneActionGroup::class);
         $sceneActionGroup->method('getId')->willReturn(13);
