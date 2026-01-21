@@ -1,4 +1,6 @@
-<div {{ attributes }}>
+<div {{ attributes.defaults(
+    stimulus_controller('tooltip'),
+) }}>
     <!-- Loading -->
     <div data-loading="show" class="modal-backdrop">
         <div class="spinner-border" role="status">
@@ -7,7 +9,7 @@
     </div>
 
     <div class="row lotgd-stage">
-        <div class="col-3 bg-primary-subtle lotgd-stage-actions">
+        <div class="col-3 bg-primary-subtle lotgd-stage-actions px-3">
             <div data-loading="">
                 Loading...
             </div>
@@ -24,12 +26,33 @@
                     </li>
 
                     {% for action in actionGroup.actions %}
-                        <li class="nav-item lotgd-stage-action">
+                        <li class="nav-item lotgd-stage-action d-flex justify-content-between align-items-start">
                             <a class="nav-link"
                                {{ live_action("takeAction", {
                                    "actionId": action.id,
                                }) }}
                             >{{ action.title }}</a>
+
+                            {% if is_granted("ROLE_DEBUG") %}
+                                {%- set tooltip -%}
+                                    <div class="p-2 text-white">
+<code class="preserve">
+array {
+    id: {{ action.id }},
+    reference: {{ action.reference ?? 'null' }},
+    parameters: {% if action.parameters|length == 0 %}[]{% else %}[
+{% for param, value in action.parameters %}
+    {{ param }}: {{ value|stringify }},
+{% endfor %}
+]{% endif %}
+</code>
+                                    </div>
+                                {%- endset -%}
+                                <span
+                                    class="btn btn-outline-info"
+                                    data-bs-toggle="tooltip" data-bs-html="true" data-bs-title="{{ tooltip|escape("html_attr") }}"
+                                >!</span>
+                            {% endif %}
                         </li>
                     {% endfor %}
                 {% endfor %}
@@ -45,9 +68,9 @@
 
             {# Attachments #}
             {% for attachment in this.stage.attachments %}
-                {% if is_granted("ROLE_DEBUG") %}
+                {% if is_granted("ROLE_DEBUG") and app.environment == "dev" %}
                     <twig:Debug title="Attachment" name="{{ attachment.attachment.name }}">
-                        {{ dump(attachment) }}
+                        {# {{ dump(attachment) }} #}
                     </twig:Debug>
                 {% endif %}
 
@@ -59,11 +82,15 @@
                         "config": attachment.config,
                     }|merge(attachment.data)) }}
                 {% catch %}
-                    <twig:Debug title="Attachment" name="{{ attachment.attachment.name }}">
-                        This attachment is faulty: {{ e.message }}
+                    {% if is_granted("ROLE_DEBUG") %}
+                        <twig:Debug title="Attachment" name="{{ attachment.attachment.name }}">
+                            This attachment is faulty: {{ e.message }}
 
-                        {{ dump(e) }}
-                    </twig:Debug>
+                            {% if app.environment == "dev" %}
+                                {# {{ dump(e) }} #}
+                            {% endif %}
+                        </twig:Debug>
+                    {% endif %}
                 {% endcatch %}
 
             {% endfor %}

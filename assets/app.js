@@ -12,3 +12,5 @@ import './styles/app.scss';
 import 'bootstrap';
 
 registerVueControllerComponents(require.context('./vue/controllers', true, /\.vue$/));
+
+import './scripts/tooltip'

@@ -21,6 +21,15 @@ class LotGDExtension extends AbstractExtension
     {
         return [
             new TwigFilter("parse", [ParseRuntime::class, "parse"]),
+            new TwigFilter("stringify", function(mixed $value) {
+                if ($value instanceof \Stringable) {
+                    return $value->__toString();
+                } elseif (is_object($value)) {
+                    return get_class($value);
+                } else {
+                    return (string) $value;
+                }
+            })
         ];
     }
 
