@@ -58,8 +58,6 @@ readonly class FightTemplate implements SceneTemplateInterface
         $op = $action->getParameter("op");
         $this->logger->debug("Called FightTemplate::onSceneChange, op={$op}");
 
-        dump($stage->getActionGroups());
-
         match($op) {
             "search" => $this->searchAction($stage, $action, $scene),
             "fight" => $this->fightAction($stage, $action, $scene),
