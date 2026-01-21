@@ -31,13 +31,18 @@
 
             {# Attachments #}
             {% for attachment in this.stage.attachments %}
+                {% if is_granted("ROLE_DEBUG") %}
+                    <twig:Debug title="Attachment" name="{{ attachment.attachment.name }}">
+                        {{ dump(attachment) }}
+                    </twig:Debug>
+                {% endif %}
+
                 {{ component(attachment.attachment.attachmentClass, {
                     "character": character,
                     "stage": stage,
                     "config": attachment.config,
                 }) }}
 
-                {{ attachment.attachment.name }}
             {% endfor %}
         </div>
 
