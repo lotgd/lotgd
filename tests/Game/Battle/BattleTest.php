@@ -107,7 +107,7 @@ class BattleTest extends KernelTestCase
 
         $attackActionGroup = $actionGroups[Battle::ActionGroupBattle];
         $actions = $attackActionGroup->getActions();
-        $this->assertCount(1, $actions);
+        $this->assertCount(2, $actions);
 
         $attackAction = $attackActionGroup->getActionByReference(Battle::FightActionAttack);
 
@@ -133,7 +133,7 @@ class BattleTest extends KernelTestCase
 
         $actionGroup = $actionGroups[Battle::ActionGroupBattle];
         $actions = $actionGroup->getActions();
-        $this->assertCount(1, $actions);
+        $this->assertCount(2, $actions);
 
         $attackAction = $actionGroup->getActionByReference(Battle::FightActionAttack);
 
