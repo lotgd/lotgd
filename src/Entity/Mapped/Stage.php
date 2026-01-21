@@ -95,6 +95,12 @@ class Stage
         return $this;
     }
 
+    public function addDescription(string $description, string $prefix = "\n\n"): static
+    {
+        $this->description .= $prefix . $description;
+        return $this;
+    }
+
     public function getScene(): ?Scene
     {
         return $this->scene;
