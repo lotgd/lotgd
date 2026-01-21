@@ -277,9 +277,9 @@ class SceneFixtures extends Fixture
                     {{ tellerName }} blinks for a moment and then smiles. <<Hmm, {{ character.name }}, let's see .....>> she mutters 
                     as she scans down a page in her ledger.
 
-                    {% if goldinbank > 0 %}
+                    {% if goldInBank > 0 %}
                         <<Ah, yes, here we are. You have {{ goldInBank }} gold in our prestigous bank. Is there anything else I can do for you?>>
-                    {% elseif goldinbank < 0 %}
+                    {% elseif goldInBank < 0 %}
                         <<Ah, yes, here we are. You have a depth of {{ goldInBank|abs }} gold that you own to our prestigous bank. Is there anything else I can do for you?>>
                     {% else %}
                         <<No, I'm afraid you currently do not own an account with our bank. Do you want to open one?>>
