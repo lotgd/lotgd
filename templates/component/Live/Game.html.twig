@@ -35,22 +35,24 @@
 
                             {% if is_granted("ROLE_DEBUG") %}
                                 {%- set tooltip -%}
-                                    <div class="p-2 text-white">
-<code class="preserve">
-array {
-    id: {{ action.id }},
-    reference: {{ action.reference ?? 'null' }},
-    parameters: {% if action.parameters|length == 0 %}[]{% else %}[
-{% for param, value in action.parameters %}
-    {{ param }}: {{ value|stringify }},
-{% endfor %}
-]{% endif %}
-</code>
+                                    <div class="p-2 text-white text-start">
+                                        <dl>
+                                            <dt>id</dt>
+                                            <dd>{{ action.id }}</dd>
+                                            <dt>reference</dt>
+                                            <dd>{{ action.reference ?? 'null' }}</dd>
+                                            <dt>parameters</dt>
+                                            <dd class="font-monospace preserve-breaks">{% if action.parameters|length == 0 %}{}{% else %}{
+                                                {% for param, value in action.parameters -%}
+                                                    &nbsp;- {{ param }}: {{ value|stringify }},
+                                                {% endfor -%}
+                                                }{% endif %}</dd>
+                                        </dl>
                                     </div>
                                 {%- endset -%}
                                 <span
                                     class="btn btn-outline-info"
-                                    data-bs-toggle="tooltip" data-bs-html="true" data-bs-title="{{ tooltip|escape("html_attr") }}"
+                                    data-bs-toggle="tooltip" data-bs-html="true" data-bs-title="{{ tooltip|escape("html") }}"
                                 >!</span>
                             {% endif %}
                         </li>
