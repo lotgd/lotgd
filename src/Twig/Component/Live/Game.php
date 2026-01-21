@@ -40,6 +40,9 @@ class Game extends AbstractController
         return $this->game->getStage($this->character);
     }
 
+    /**
+     * @return array<array{string}|array{string, mixed}|array{string, numeric, numeric}>
+     */
     #[ExposeInTemplate]
     public function getCharStats(): array
     {
