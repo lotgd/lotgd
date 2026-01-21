@@ -58,6 +58,8 @@ readonly class FightTemplate implements SceneTemplateInterface
         $op = $action->getParameter("op");
         $this->logger->debug("Called FightTemplate::onSceneChange, op={$op}");
 
+        dump($stage->getActionGroups());
+
         match($op) {
             "search" => $this->searchAction($stage, $action, $scene),
             "fight" => $this->fightAction($stage, $action, $scene),
@@ -116,7 +118,7 @@ readonly class FightTemplate implements SceneTemplateInterface
                 "battleState" => $battleState,
             ]);
 
-            $this->battle->addFightActions($stage, $scene, $battleState, ["op" => "fight"]);
+            $params = ["op" => "fight"];
 
             if ($this->diceBag->chance(0.25)) {
                 // Player is getting surprised
@@ -124,14 +126,17 @@ readonly class FightTemplate implements SceneTemplateInterface
                 You walk through the forest, looking for a monster to fight against. Suddenly, a <.{{creatureName}}.> appears, ready to fight you with its weapon <.{{creatureWeapon}}.>.
                 TEXT);
 
-                //$this->battle->partialTurn($battleState, );
             } else {
                 $stage->setDescription(<<<TEXT
                 You walk through the forest, looking for a monster to fight against. After a while, you encounter a <.{{creatureName}}.>, wielding its weapon <.{{creatureWeapon}}.>.
                 
                 It has not yet spotted you, allowing you a surprise attack
                 TEXT);
+
+                $params["surprise"] = true;
             }
+
+            $this->battle->addFightActions($stage, $scene, $battleState, $params);
 
             $stage->addContext("creatureName", $creature->name);
             $stage->addContext("creatureWeapon", $creature->weapon);
@@ -161,19 +166,51 @@ readonly class FightTemplate implements SceneTemplateInterface
         if ($attachment) {
             $stage->setDescription(<<<TEXT
                 You are in the middle of the fight against <.{{ creatureName }}.>.
+                
+                
                 TEXT);
             $stage->addContext("creatureName", $battleState->badGuy->name);
+
+            if ($action->getParameter("surprise", false) === true) {
+                $battleTurn = BattleTurn::DamageTurnGoodGuy;
+            } else {
+                $battleTurn = BattleTurn::DamageTurnBoth;
+            }
+
+            if ($how === "flee") {
+                if ($action->getParameter("surprise", false) === true || $this->diceBag->chance(0.3333, precision: 4)) {
+                    $this->logger->critical("Successfully escaped from the enemy.");
+
+                    $stage->setDescription(<<<TEXT
+                        You have successfully fled your opponent!
+                        
+                    TEXT . $scene->getDescription());
+
+                    // Add standard navigation
+                    $this->addSearchNavigation($stage, $scene);
+
+                    return;
+                } else {
+                    // Fleeing failed - meaning only the enemy gets to attack
+                    $battleTurn = BattleTurn::DamageTurnBadGuy;
+
+                    $stage->setDescription(<<<TEXT
+                        You failed to flee your opponent! You are too busy trying to run away like a cowardly dog to try to fight.
+                    TEXT);
+                }
+            }
 
             $stage->addAttachment($attachment, data: [
                 "battleState" => $battleState,
             ]);
 
-            $this->battle->fightOneRound($battleState, BattleTurn::DamageTurnBoth);
+            $this->battle->fightOneRound($battleState, $battleTurn);
 
             if ($battleState->isOver()) {
                 $this->processEndOfBattle($stage, $scene, $battleState);
             } else {
                 // Only add fight actions if the fight is not over
+                $stage->clearActionGroups();
                 $this->battle->addFightActions($stage, $scene, $battleState, ["op" => "fight"]);
             }
         } else {

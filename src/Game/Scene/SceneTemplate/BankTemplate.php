@@ -95,7 +95,7 @@ readonly class BankTemplate implements SceneTemplateInterface
         $actionData = $action->getParameters()[SimpleFormAttachment::ActionParameterName];
         $amount = (int)abs($actionData["amount"] ?? 0);
 
-        if (isset($actionData["withdraw"])) {
+        if (isset($actionData["withdraw"]) and $actionData["withdraw"] === true) {
             if ($amount === 0) {
                 // If amount is 0, we withdraw everything
                 $amount = $this->getGoldInBank($character, $scene->getTemplateConfig());

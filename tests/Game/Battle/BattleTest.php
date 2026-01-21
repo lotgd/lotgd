@@ -109,7 +109,7 @@ class BattleTest extends KernelTestCase
         $actions = $attackActionGroup->getActions();
         $this->assertCount(1, $actions);
 
-        $attackAction = $attackActionGroup->getActionByReference(Battle::ActionAttack);
+        $attackAction = $attackActionGroup->getActionByReference(Battle::FightActionAttack);
 
         $this->assertNotNull($attackAction);
         // Assert required parameters are set
@@ -135,11 +135,11 @@ class BattleTest extends KernelTestCase
         $actions = $actionGroup->getActions();
         $this->assertCount(1, $actions);
 
-        $attackAction = $actionGroup->getActionByReference(Battle::ActionAttack);
+        $attackAction = $actionGroup->getActionByReference(Battle::FightActionAttack);
 
         $this->assertNotNull($attackAction);
         // Assert required parameters are set
-        $this->assertSame("attack", $actionGroup->getActionByReference(Battle::ActionAttack)->getParameters()["how"]);
+        $this->assertSame("attack", $actionGroup->getActionByReference(Battle::FightActionAttack)->getParameters()["how"]);
         // Assert battle state is transferred correctly
         $this->assertSame($battleState, $attackAction->getParameters()["battleState"]);
         // Assert custom params are still there

@@ -34,7 +34,8 @@ use function round;
 class Battle
 {
     const string ActionGroupBattle = "lotgd2.actionGroup.battle";
-    const string ActionAttack = "lotgd2.action.attack";
+    const string FightActionAttack = "lotgd2.action.attack";
+    const string FightActionFlee = "lotgd2.action.flee";
 
     public function __construct(
         private LoggerInterface $logger,
@@ -63,16 +64,21 @@ class Battle
      * @param Scene $scene
      * @param BattleState $battleState
      * @param array<string, mixed> $actionParams
+     * @param bool $allowFlee Turn off to remove the flee action
      * @return void
      */
-    public function addFightActions(Stage $stage, Scene $scene, BattleState $battleState, array $actionParams = []): void
+    public function addFightActions(Stage $stage, Scene $scene, BattleState $battleState, array $actionParams = [], bool $allowFlee = true): void
     {
         $this->logger->debug("Adding Battle Actions");
         $actionGroup = new ActionGroup(self::ActionGroupBattle, "Fight", -100);
 
         $actionGroup->setActions([
-            new Action($scene, "Attack", [... $actionParams, "how" => "attack", "battleState" => $battleState], reference: self::ActionAttack),
+            new Action($scene, "Attack", [... $actionParams, "how" => "attack", "battleState" => $battleState], reference: self::FightActionAttack),
         ]);
+
+        if ($allowFlee) {
+            $actionGroup->addAction(new Action($scene, "Flee", [... $actionParams, "how" => "flee", "battleState" => $battleState], reference: self::FightActionFlee));
+        }
 
         $stage->addActionGroup($actionGroup);
     }

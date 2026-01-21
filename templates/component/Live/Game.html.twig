@@ -2,9 +2,11 @@
     <div class="row lotgd-stage">
         <div class="col-3 bg-primary-subtle lotgd-stage-actions">
             <ul class="nav flex-column py-3">
-                {% for action in this.stage.actionGroups["lotgd.actionGroup.empty"].actions %}
-                    <twig:Action :action="action" :character="character" />
-                {% endfor %}
+                {% if this.stage.actionGroups["lotgd.actionGroup.empty"] is defined %}
+                    {% for action in this.stage.actionGroups["lotgd.actionGroup.empty"].actions %}
+                        <twig:Action :action="action" :character="character" />
+                    {% endfor %}
+                {% endif %}
 
                 {% for actionGroup in this.stage.actionGroups|filter(g => g.id not in ["lotgd.actionGroup.empty", "lotgd.actionGroup.hidden"])|sort(g => g.weight) %}
                     <li class="nav-item">
