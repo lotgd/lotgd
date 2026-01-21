@@ -269,7 +269,7 @@ readonly class FightTemplate implements SceneTemplateInterface
             $this->stats->addExperience($experience);
 
             $stage->setDescription(<<<TEXT
-            You have slain <.{{ creatureName }}.>. {% if textDefeated %}<<{{ textDefeated }}>{% endif %}
+            You have slain <.{{ creatureName }}.>. {% if textDefeated %}<<{{ textDefeated }}>>{% endif %}
             
             You earn {{ gold }} gold.
             
@@ -286,7 +286,7 @@ readonly class FightTemplate implements SceneTemplateInterface
             $stage->addContext("experienceLost", round(0.1 * $this->stats->getExperience()));
 
             $stage->setDescription(<<<TEXT
-            You have been slain by <.{{ creatureName }}.>. {% if textLost %}<<{{ textLost }}>{% endif %}
+            You have been slain by <.{{ creatureName }}.>. {% if textLost %}<<{{ textLost }}>>{% endif %}
             
             You lost all your {{ goldLost}} gold, and {{ experienceLost }} experience points. Try better next time.
             TEXT);
