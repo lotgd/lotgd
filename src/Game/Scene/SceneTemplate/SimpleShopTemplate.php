@@ -179,9 +179,9 @@ readonly class SimpleShopTemplate implements SceneTemplateInterface
                 value: $item["price"],
             );
 
-            if ($this->gold->getGold() >= $equipmentItem->getValue()) {
-                $oldItem = $this->equipment->getItemInSlot($slot);
+            $oldItem = $this->equipment->getItemInSlot($slot);
 
+            if ($this->gold->getGold() + $this->getTradeInValue($oldItem?->getValue() ?? 0) >= $equipmentItem->getValue()) {
                 $this->equipment->setItemInSlot($slot, $equipmentItem);
                 $this->gold->addGold(-($equipmentItem->getValue() - $this->getTradeInValue($oldItem?->getValue() ?? 0)));
             } else {
