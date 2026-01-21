@@ -80,8 +80,13 @@ readonly class FightTemplate implements SceneTemplateInterface
      */
     public function defaultAction(Stage $stage, Action $action, Scene $scene): void
     {
-        $this->logger->debug("Called BankTemplate::defaultAction");
-        $this->addSearchNavigation($stage, $scene);
+        $this->logger->debug("Called FightTemplate::defaultAction");
+
+        if ($this->health->getHealth() > 0) {
+            $this->addSearchNavigation($stage, $scene);
+        } else {
+            $stage->addDescription("You are too tired to delve deeper into the woods.");
+        }
     }
 
     /**
@@ -95,10 +100,10 @@ readonly class FightTemplate implements SceneTemplateInterface
     {
         // Adjust level
         $level = intval($action->getParameter("level", 0));
-        $this->logger->debug("Called BankTemplate::searchAction, with level={$level}");
+        $this->logger->debug("Called FightTemplate::searchAction, with level={$level}");
         $level += $this->getRandomLevelChange();
         $level = $this->experience->getLevel() + $level;
-        $this->logger->debug("BankTemplate::searchAction, level adjusted to {$level}");
+        $this->logger->debug("FightTemplate::searchAction, level adjusted to {$level}");
 
         // Find creature
         $creature = $this->creatureRepository->getRandomCreature($level);
@@ -301,9 +306,6 @@ readonly class FightTemplate implements SceneTemplateInterface
             $this->gold->setGold(0);
             $this->stats->setExperience((int)round(0.9 * $this->stats->getExperience()));
         }
-
-        // For now, heal completely
-        $this->health->heal(null);
 
         // Add standard navigation if battle is over
         $this->addSearchNavigation($stage, $scene);
