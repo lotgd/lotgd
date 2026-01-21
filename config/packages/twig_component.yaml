@@ -1,0 +1,5 @@
+twig_component:
+    anonymous_template_directory: 'component/'
+    defaults:
+        # Namespace & directory for components
+        LotGD2\Twig\Component\: 'component/'

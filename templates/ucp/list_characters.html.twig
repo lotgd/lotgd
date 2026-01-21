@@ -1,0 +1,20 @@
+<turbo-frame id="lotgd-characters-list">
+    <div class="row">
+    {% for char in characters %}
+        <div class="col-6 mb-3" id="lotgd-entity-character-{{ char.id }}">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-start">
+                    {{ char.name }} <span class="badge bg-primary">{{ char.level }}</span>
+                </div>
+
+                <div class="card-body">
+                    <h5 class="card-title">{{ char.title }}</h5>
+                    <p class="card-text">A character</p>
+
+                    <a href="{{ path("lotgd_game_stage", {"character": char.id}) }}" class="btn btn-primary">Play</a>
+                </div>
+            </div>
+        </div>
+    {% endfor %}
+    </div>
+</turbo-frame>

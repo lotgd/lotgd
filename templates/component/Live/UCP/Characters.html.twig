@@ -1,0 +1,20 @@
+<div {{ attributes }}>
+    <div class="row row-cols-2">
+        {% for character in computed.characters %}
+            <div class="col mb-3" id="lotgd-entity-character-{{ character.id }}">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-start">
+                        {{ character.name }} <span class="badge bg-primary">{{ character.level }}</span>
+                    </div>
+
+                    <div class="card-body">
+                        <h5 class="card-title">{{ character.title }}</h5>
+                        <p class="card-text">A character</p>
+
+                        <a href="{{ path("lotgd_game_stage", {"character": character.id}) }}" class="btn btn-primary">Play</a>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+</div>

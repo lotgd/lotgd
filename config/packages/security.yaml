@@ -5,13 +5,25 @@ security:
     # https://symfony.com/doc/current/security.html#loading-the-user-the-user-provider
     providers:
         users_in_memory: { memory: null }
+        users:
+            entity:
+                class: LotGD2\Entity\User
+                property: email
+
     firewalls:
         dev:
             pattern: ^/(_(profiler|wdt)|css|images|js)/
             security: false
         main:
             lazy: true
-            provider: users_in_memory
+            provider: users
+            form_login:
+                login_path: lotgd_login
+                check_path: lotgd_login
+                enable_csrf: true
+            remember_me:
+                secret: '%kernel.secret%' # required
+                lifetime: 604800
 
             # activate different ways to authenticate
             # https://symfony.com/doc/current/security.html#the-firewall

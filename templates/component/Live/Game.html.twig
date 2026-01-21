@@ -1,0 +1,34 @@
+<div {{ attributes }}>
+    <div class="row">
+        <div class="col-3 bg-primary-subtle">
+            <ul class="nav flex-column">
+                {% for actionGroup in this.stage.actionGroups %}
+                    <li class="nav-item">
+                        {{ actionGroup.title }}
+                    </li>
+
+                    {% for action in actionGroup.actions %}
+                        <li class="nav-item">
+                            <a class="nav-link"
+                               data-action="live#action"
+                               data-live-action-param="takeAction"
+                               data-live-character-param="{{ character.id }}"
+                               data-live-action-id-param="{{ action.id }}"
+                            >{{ action.title }}</a>
+                        </li>
+                    {% endfor %}
+                {% endfor %}
+            </ul>
+        </div>
+
+        <div class="col-6 p-3">
+            <h2>{{ this.stage.title }}</h2>
+
+            {{ this.stage.description }}
+        </div>
+
+        <div class="col-3 bg-primary-subtle">
+
+        </div>
+    </div>
+</div>

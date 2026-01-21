@@ -1,0 +1,12 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+    <div class="row">
+        <div class="col-4 col-xl-3 col-xxl-2 bg-primary-subtle">
+
+        </div>
+        <div class="col-8 col-xl-9 col-xxl-10 p-3">
+            {{ component(component, props ?? {}) }}
+        </div>
+    </div>
+{% endblock %}

@@ -1,0 +1,120 @@
+<?php
+declare(strict_types=1);
+
+namespace LotGD2\Game\Scene;
+
+use LotGD2\Entity\Action;
+use LotGD2\Entity\ActionGroup;
+use LotGD2\Entity\Character;
+use LotGD2\Entity\Scene;
+use LotGD2\Entity\SceneConnection;
+use LotGD2\Entity\Stage;
+use LotGD2\Game\Random\DiceBag;
+use LotGD2\Game\Random\DiceBagInterface;
+use LotGD2\Repository\SceneRepository;
+use Symfony\Component\DependencyInjection\ParameterBag\ContainerBagInterface;
+
+readonly class SceneRenderer
+{
+    public function __construct(
+        private ContainerBagInterface $containerBag,
+        private SceneRepository $sceneRepository,
+        private DiceBagInterface $diceBag,
+    ) {
+
+    }
+
+    public function renderDefault(
+        Character $character
+    ): Stage {
+        // For now: Get Scene with id=1
+        $defaultScene = $this->sceneRepository->find(1);
+
+        $newStage = new Stage();
+        $character->setStage($newStage);
+
+        return $this->render($newStage, $defaultScene);
+    }
+
+    public function render(
+        Stage $stage,
+        Scene $scene,
+    ): Stage
+    {
+        $stage->setScene($scene);
+        $stage->setTitle($scene->getTitle());
+        $stage->setDescription($scene->getDescription());
+
+        $stage->clearActionGroups();
+        $this->addActions($stage, $scene);
+
+        return $stage;
+    }
+
+    private function createActionFromConnection(
+        Scene $scene,
+        SceneConnection $sceneConnection
+    ): Action {
+        $action = new Action();
+        $action->setId($this->diceBag->getRandomString(8));
+
+        if ($sceneConnection->getSourceScene() === $scene) {
+            $action->setTitle($sceneConnection->getSourceLabel());
+            $action->setSceneId($sceneConnection->getTargetScene()->getId());
+        } elseif ($sceneConnection->getTargetScene() === $scene) {
+            $action->setTitle($sceneConnection->getTargetLabel());
+            $action->setSceneId($sceneConnection->getSourceScene()->getId());
+        } else {
+            $action->setTitle("#invalidConnection:{$sceneConnection->getId()}");
+        }
+
+        return $action;
+    }
+
+    private function addActions(
+        Stage $stage,
+        Scene $scene,
+    ): void {
+        $allKnownConnection = $scene->getConnections();
+        $addedConnections = [];
+
+        foreach ($scene->getActionGroups() as $sceneActionGroup) {
+            $actionGroup = (new ActionGroup())
+                ->setId("lotgd.actionGroup.custom.{$sceneActionGroup->getId()}")
+                ->setTitle($sceneActionGroup->getTitle())
+                ->setWeight($sceneActionGroup->getSorting())
+            ;
+
+            foreach ($sceneActionGroup->getConnections() as $connection) {
+                if (!isset($addedConnections[$connection->getId()])) {
+                    $action = $this->createActionFromConnection($scene, $connection);
+                    $actionGroup->addAction($action);
+                    $addedConnections[$connection->getId()] = true;
+                }
+            }
+
+            $stage->addActionGroup($actionGroup);
+        }
+
+        $emptyActionGroup = (new ActionGroup())
+            ->setId("lotgd.actionGroup.empty")
+            ->setTitle("Others");
+
+        $stage->addActionGroup($emptyActionGroup);
+
+        $stage->addActionGroup(
+            (new ActionGroup())
+                ->setId("lotgd.actionGroup.hidden")
+                ->setTitle("Hidden")
+        );
+
+        // Add all other actions
+        foreach ($scene->getConnections(visibleOnly: true) as $connection) {
+            if (!isset($addedConnections[$connection->getId()])) {
+                $action = $this->createActionFromConnection($scene, $connection);
+                $emptyActionGroup->addAction($action);
+                $addedConnections[$connection->getId()] = true;
+            }
+        }
+    }
+}
