@@ -97,11 +97,14 @@ class BattleTest extends KernelTestCase
     public function testAddsFightActionWithoutParams(BattleState $battleState): void
     {
         $scene = $this->createMock(Scene::class);
-        $stage = new Stage()->setOwner($this->character)->setScene($scene);
+        $stage = new Stage(
+            owner: $this->character,
+            scene: $scene,
+        );
 
         $this->battle->addFightActions($stage, $scene, $battleState);
 
-        $actionGroups = $stage->getActionGroups();
+        $actionGroups = $stage->actionGroups;
         $this->assertCount(2, $actionGroups);
         $this->assertArrayHasKey(Battle::ActionGroupBattle, $actionGroups);
         $this->assertArrayHasKey(Battle::ActionGroupAutoBattle, $actionGroups);
@@ -127,12 +130,15 @@ class BattleTest extends KernelTestCase
     public function testAddsFightActionWithParams(BattleState $battleState): void
     {
         $scene = $this->createMock(Scene::class);
-        $stage = new Stage()->setOwner($this->character)->setScene($scene);
+        $stage = new Stage(
+            owner: $this->character,
+            scene: $scene,
+        );
         $params = ["op" => "fight"];
 
         $this->battle->addFightActions($stage, $scene, $battleState, $params);
 
-        $actionGroups = $stage->getActionGroups();
+        $actionGroups = $stage->actionGroups;
         $this->assertCount(2, $actionGroups);
         $this->assertArrayHasKey(Battle::ActionGroupBattle, $actionGroups);
         $this->assertArrayHasKey(Battle::ActionGroupAutoBattle, $actionGroups);

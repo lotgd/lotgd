@@ -11,7 +11,7 @@ class ActionService
 {
     public function getActionById(Stage $stage, string $action): ?Action
     {
-        $currentActionGroups = $stage->getActionGroups();
+        $currentActionGroups = $stage->actionGroups;
         $selectedAction = null;
 
         foreach ($currentActionGroups as $actionGroup) {

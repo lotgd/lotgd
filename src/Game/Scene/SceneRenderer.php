@@ -55,9 +55,9 @@ readonly class SceneRenderer
         Stage $stage,
         Scene $scene,
     ): Stage {
-        $stage->setScene($scene);
-        $stage->setTitle($scene->title);
-        $stage->setDescription($scene->description);
+        $stage->scene = $scene;
+        $stage->title = $scene->title;
+        $stage->description = $scene->description;
         $stage->clearAttachments();
         $stage->clearContext();
 

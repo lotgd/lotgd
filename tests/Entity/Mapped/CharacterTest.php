@@ -6,6 +6,7 @@ namespace LotGD2\Tests\Entity\Mapped;
 use LotGD2\Entity\Mapped\Character;
 use LotGD2\Entity\Mapped\Stage;
 use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\MockObject\Runtime\PropertyHook;
 use PHPUnit\Framework\TestCase;
 
 #[CoversClass(Character::class)]
@@ -139,12 +140,12 @@ class CharacterTest extends TestCase
         
         // Configure mock to return the character when getOwner() is called
         $stage->expects($this->once())
-              ->method('getOwner')
+              ->method(PropertyHook::get("owner"))
               ->willReturn(null);
         
         // Configure mock to expect setOwner to be called with the character
         $stage->expects($this->once())
-              ->method('setOwner')
+              ->method(PropertyHook::set("owner"))
               ->with($character);
         
         $character->stage = $stage;
@@ -158,12 +159,12 @@ class CharacterTest extends TestCase
         
         // Configure mock to return the same character when getOwner() is called
         $stage->expects($this->once())
-              ->method('getOwner')
+              ->method(PropertyHook::get("owner"))
               ->willReturn($character);
         
         // setOwner should not be called since it's already set correctly
         $stage->expects($this->never())
-              ->method('setOwner');
+              ->method(PropertyHook::set("owner"));
         
         $character->stage = $stage;
         $this->assertSame($stage, $character->stage);
@@ -303,8 +304,8 @@ class CharacterTest extends TestCase
     {
         // Test a more complex scenario combining all functionality
         $stage = $this->createMock(Stage::class);
-        $stage->method('getOwner')->willReturn(null);
-        $stage->expects($this->once())->method('setOwner');
+        $stage->method(PropertyHook::get("owner"))->willReturn(null);
+        $stage->expects($this->once())->method(PropertyHook::set("owner"));
         
         $character = new Character(
             name: "Aragorn",

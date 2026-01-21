@@ -60,8 +60,8 @@ class Character
                 }
 
                 // set the owning side of the relation if necessary
-                if ($value->getOwner() !== $this) {
-                    $value->setOwner($this);
+                if ($value->owner !== $this) {
+                    $value->owner = $this;
                 }
 
                 $this->stage = $value;

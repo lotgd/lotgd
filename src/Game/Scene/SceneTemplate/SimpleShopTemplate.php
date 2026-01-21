@@ -129,7 +129,7 @@ readonly class SimpleShopTemplate implements SceneTemplateInterface
     {
         $this->logger->debug("Called SimpleShopTemplate::peruseAction");
 
-        $character = $stage->getOwner();
+        $character = $stage->owner;
         $slot = $scene->templateConfig["type"] === "armor" ? Equipment::ArmorSlot : Equipment::WeaponSlot;
 
         $attachment = $this->attachmentRepository->findOneByAttachmentClass(SimpleShopAttachment::class);
@@ -140,19 +140,17 @@ readonly class SimpleShopTemplate implements SceneTemplateInterface
 
         $oldItem = $this->equipment->getItemInSlot($slot);
 
-        $stage
-            ->setDescription($scene->templateConfig["text"]["peruse"])
-            ->setContext([
-                "amount" => $this->getTradeInValue($oldItem?->getValue() ?? 0),
-                "item" => $oldItem?->getName() ?? "Fists",
-            ])
-            ->addAttachment(
-                $attachment, [
-                    "buyActionId" => $buyAction->id,
-                    "inventory" => $scene->templateConfig["items"],
-                ]
-            )
-        ;
+        $stage->description = $scene->templateConfig["text"]["peruse"];
+        $stage->context = [
+            "amount" => $this->getTradeInValue($oldItem?->getValue() ?? 0),
+            "item" => $oldItem?->getName() ?? "Fists",
+        ];
+        $stage->addAttachment(
+            $attachment, [
+                "buyActionId" => $buyAction->id,
+                "inventory" => $scene->templateConfig["items"],
+            ]
+        );
     }
 
     public function buyAction(Stage $stage, Action $action, Scene $scene): void
@@ -162,7 +160,7 @@ readonly class SimpleShopTemplate implements SceneTemplateInterface
         $itemId = $action->getParameters()[SimpleShopAttachment::ActionParameterName] ?? -1;
         $inventory = $scene->templateConfig["items"];
         $item = $inventory[$itemId] ?? null;
-        $character = $stage->getOwner();
+        $character = $stage->owner;
 
         if (!isset($inventory[$itemId])) {
             $this->logger->debug("Buying item with number {$itemId}, but does not exist.");
@@ -189,10 +187,10 @@ readonly class SimpleShopTemplate implements SceneTemplateInterface
             }
         }
 
-        $stage->setDescription($description);
-        $stage->setContext([
+        $stage->description = $description;
+        $stage->context = [
             "newitem" => $item["name"] ?? "Unknown item",
-        ]);
+        ];
         $this->addDefaultActions($stage, $scene);
     }
 

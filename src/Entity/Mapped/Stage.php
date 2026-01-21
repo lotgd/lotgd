@@ -9,9 +9,14 @@ use Dunglas\DoctrineJsonOdm\Type\JsonDocumentType;
 use LotGD2\Entity\Action;
 use LotGD2\Entity\ActionGroup;
 use LotGD2\Repository\StageRepository;
+use TypeError;
 
 /**
- * @phpstan-type AttachmentType array{attachment: Attachment, config: array<mixed>, data: array<string ,mixed>}
+ * @phpstan-type AttachmentType array{
+ *     attachment: Attachment,
+ *     config: array<mixed>,
+ *     data: array<string ,mixed>,
+ * }
  */
 #[ORM\Entity(repositoryClass: StageRepository::class)]
 #[ORM\HasLifecycleCallbacks()]
@@ -20,79 +25,84 @@ class Stage
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    private ?int $id = null;
+    public ?int $id = null {
+        get {
+            return $this->id;
+        }
+    }
 
-    #[ORM\OneToOne(inversedBy: 'stage', cascade: ['persist'])]
-    #[ORM\JoinColumn(nullable: false, onDelete: "CASCADE")]
-    private ?Character $owner = null;
+    /**
+     * @param array<string, ActionGroup> $actionGroups
+     * @param null|array<int, AttachmentType> $attachments
+     * @param null|array<string, mixed> $context
+     */
+    public function __construct(
+        #[ORM\OneToOne(inversedBy: 'stage', cascade: ['persist'])]
+        #[ORM\JoinColumn(nullable: false, onDelete: "CASCADE")]
+        public ?Character $owner = null {
+            get => $this->owner;
+            set => $value;
+        },
 
-    #[ORM\Column(length: 255)]
-    private ?string $title = null;
+        #[ORM\Column(length: 255)]
+        public ?string $title = null {
+            get => $this->title;
+            set => $value;
+        },
 
-    #[ORM\Column(type: Types::TEXT)]
-    private ?string $description = null;
+        #[ORM\Column(type: Types::TEXT)]
+        public ?string $description = null {
+            get => $this->description;
+            set => $value;
+        },
 
-    #[ORM\ManyToOne]
-    #[ORM\JoinColumn(nullable: true, onDelete: "SET NULL")]
-    private ?Scene $scene = null;
+        #[ORM\ManyToOne]
+        #[ORM\JoinColumn(nullable: true, onDelete: "SET NULL")]
+        public ?Scene $scene = null {
+            get => $this->scene;
+            set => $value;
+        },
 
-    /** @var array<string, ActionGroup> */
-    #[ORM\Column(type: JsonDocumentType::NAME, nullable: true)]
-    private array $actionGroups = [];
+        #[ORM\Column(type: JsonDocumentType::NAME, nullable: true)]
+        public array $actionGroups = [] {
+            get => $this->actionGroups;
+            set => $value;
+        },
 
-    /** @var null|array<int, AttachmentType> */
-    #[ORM\Column(type: JsonDocumentType::NAME, nullable: true)]
-    private ?array $attachments = null;
+        #[ORM\Column(type: JsonDocumentType::NAME, nullable: true)]
+        public ?array $attachments = null {
+            get => $this->attachments;
+            set {
+                if (!is_null($value)) {
+                    foreach ($value as $attachment) {
+                        if (!$attachment["attachment"] instanceof Attachment) {
+                            throw new TypeError("Attachment argument must be an instance of Attachment");
+                        }
+                    }
+                }
 
-    /** @var null|array<string, mixed> */
-    #[ORM\Column(type: JsonDocumentType::NAME, nullable: true)]
-    private ?array $context = null;
+                $this->attachments = $value;
+            }
+        },
 
+        #[ORM\Column(type: JsonDocumentType::NAME, nullable: true)]
+        public ?array $context = null {
+            get => $this->context;
+            set => $value;
+        },
+    ) {
+
+    }
+
+    /**
+     * This preUpdate hook is necessary to make copies of all objects. Only then doctrine
+     * realizes that these are new - and should be changed accordingly.
+     * @return void
+     */
     #[ORM\PreFlush()]
     public function preUpdate(): void
     {
         $this->actionGroups = array_map(fn ($x) => clone $x, $this->actionGroups);
-    }
-
-    public function getId(): ?int
-    {
-        return $this->id;
-    }
-
-    public function getOwner(): ?Character
-    {
-        return $this->owner;
-    }
-
-    public function setOwner(Character $owner): static
-    {
-        $this->owner = $owner;
-
-        return $this;
-    }
-
-    public function getTitle(): ?string
-    {
-        return $this->title;
-    }
-
-    public function setTitle(string $title): static
-    {
-        $this->title = $title;
-
-        return $this;
-    }
-
-    public function getDescription(): ?string
-    {
-        return $this->description;
-    }
-
-    public function setDescription(string $description): static
-    {
-        $this->description = $description;
-
-        return $this;
     }
 
     public function addDescription(string $description, string $prefix = "\n\n"): static
@@ -101,29 +111,11 @@ class Stage
         return $this;
     }
 
-    public function getScene(): ?Scene
-    {
-        return $this->scene;
-    }
-
-    public function setScene(?Scene $scene): static
-    {
-        $this->scene = $scene;
-
-        return $this;
-    }
-
-    /**
-     * @return array<string, ActionGroup>
-     */
-    public function getActionGroups(): array
-    {
-        return $this->actionGroups;
-    }
-
     public function addActionGroup(ActionGroup $actionGroup): self
     {
-        $this->actionGroups[$actionGroup->getId()] = $actionGroup;
+        $actionGroups = $this->actionGroups;
+        $actionGroups[$actionGroup->getId()] = $actionGroup;
+        $this->actionGroups = $actionGroups;
         return $this;
     }
 
@@ -156,35 +148,13 @@ class Stage
      */
     public function addAttachment(Attachment $attachment, array $config = [], array $data = []): static
     {
-        $this->attachments[] = [
+        $attachments = $this->attachments;
+        $attachments[] = [
             "attachment" => $attachment,
             "config" => $config,
             "data" => $data,
         ];
-        return $this;
-    }
-
-    /**
-     * @return null|array<int, AttachmentType>
-     */
-    public function getAttachments(): ?array
-    {
-        return $this->attachments;
-    }
-
-    /**
-     * @param null|array<int, AttachmentType> $attachments
-     * @return $this
-     */
-    public function setAttachments(?array $attachments): static
-    {
-        foreach ($attachments as $attachment) {
-            if (!$attachment instanceof Attachment) {
-                throw new \TypeError("Attachment argument must be an instance of Attachment");
-            }
-        }
         $this->attachments = $attachments;
-
         return $this;
     }
 
@@ -194,31 +164,16 @@ class Stage
         return $this;
     }
 
-    /**
-     * @return array<string, mixed>|null
-     */
-    public function getContext(): ?array
-    {
-        return $this->context;
-    }
-
-    /**
-     * @param array<string, mixed>|null $context
-     * @return $this
-     */
-    public function setContext(?array $context): static
-    {
-        $this->context = $context;
-        return $this;
-    }
-
     public function addContext(string $key, mixed $value): self
     {
         if (!is_array($this->context)) {
             $this->context = [];
         }
 
-        $this->context[$key] = $value;
+        $context = $this->context;
+        $context[$key] = $value;
+
+        $this->context = $context;
         return $this;
     }
 

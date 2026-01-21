@@ -104,7 +104,7 @@ readonly class TrainingTemplate implements SceneTemplateInterface
         $stage->addContext("armor", $this->equipment->getItemInSlot(Equipment::ArmorSlot)?->getName() ?? "T-Shirt");
 
         if ($op === "cheat" and $this->security->isGranted("ROLE_CHEATS_ENABLED")) {
-            $this->handleCheats($stage->getOwner(), $action->getParameter("what"));
+            $this->handleCheats($stage->owner, $action->getParameter("what"));
         }
 
         match ($op) {
@@ -117,18 +117,16 @@ readonly class TrainingTemplate implements SceneTemplateInterface
 
     public function defaultAction(Stage $stage, Action $action, Scene $scene): void
     {
-        $character = $stage->getOwner();
+        $character = $stage->owner;
         $master = $this->masterRepository->getByLevel($character->level);
 
         // If this returns null, the max level has been reached.
         if ($master === null) {
-            $stage->setDescription(
-                $scene->templateConfig["text"]["maxLevelReached"],
-            );
+            $stage->description = $scene->templateConfig["text"]["maxLevelReached"];
 
-            $stage->setContext([
+            $stage->context = [
                 "campLeader" => $scene->templateConfig["campLeader"],
-            ]);
+            ];
         } else {
             $this->addDefaultActions($stage, $action, $scene);
             $stage->addContext("master", $master->name);
@@ -137,53 +135,41 @@ readonly class TrainingTemplate implements SceneTemplateInterface
 
     public function askAction(Stage $stage, Action $action, Scene $scene): void
     {
-        $character = $stage->getOwner();
+        $character = $stage->owner;
         $master = $this->masterRepository->getByLevel($character->level);
 
-        $stage
-            ->setDescription(
-                $scene->templateConfig["text"]["askExperience"],
-            )
-            ->setContext([
-                "campLeader" => $scene->templateConfig["campLeader"],
-                "master" => $master,
-                "experience" => $this->stats->getExperience(),
-                "requiredExperience" => $this->stats->getRequiredExperience(),
-            ])
-        ;
+        $stage->description = $scene->templateConfig["text"]["askExperience"];
+        $stage->context = [
+            "campLeader" => $scene->templateConfig["campLeader"],
+            "master" => $master,
+            "experience" => $this->stats->getExperience(),
+            "requiredExperience" => $this->stats->getRequiredExperience(),
+        ];
 
         $this->addDefaultActions($stage, $action, $scene);
     }
 
     public function challengeAction(Stage $stage, Action $action, Scene $scene): void
     {
-        $character = $stage->getOwner();
+        $character = $stage->owner;
         $master = $this->masterRepository->getByLevel($character->level);
 
         if ($this->getSeenMaster($character)) {
-            $stage
-                ->setDescription(
-                    $scene->templateConfig["text"]["seenMaster"],
-                )
-                ->setContext([
-                    "campLeader" => $scene->templateConfig["campLeader"],
-                    "master" => $master,
-                    "weapon" => $this->equipment->getName(Equipment::WeaponSlot),
-                    "armor" => $this->equipment->getName(Equipment::WeaponSlot),
-                ])
-            ;
+            $stage->description = $scene->templateConfig["text"]["seenMaster"];
+            $stage->context = [
+                "campLeader" => $scene->templateConfig["campLeader"],
+                "master" => $master,
+                "weapon" => $this->equipment->getName(Equipment::WeaponSlot),
+                "armor" => $this->equipment->getName(Equipment::WeaponSlot),
+            ];
         } elseif ($this->stats->getExperience() < $this->stats->getRequiredExperience()) {
-            $stage
-                ->setDescription(
-                    $scene->templateConfig["text"]["absoluteDefeat"],
-                )
-                ->setContext([
-                    "campLeader" => $scene->templateConfig["campLeader"],
-                    "master" => $master,
-                    "weapon" => $this->equipment->getName(Equipment::WeaponSlot),
-                    "armor" => $this->equipment->getName(Equipment::ArmorSlot),
-                ])
-            ;
+            $stage->description = $scene->templateConfig["text"]["absoluteDefeat"];
+            $stage->context = [
+                "campLeader" => $scene->templateConfig["campLeader"],
+                "master" => $master,
+                "weapon" => $this->equipment->getName(Equipment::WeaponSlot),
+                "armor" => $this->equipment->getName(Equipment::ArmorSlot),
+            ];
 
             $this->setSeenMaster($character);
         } elseif($master) {
@@ -200,37 +186,33 @@ readonly class TrainingTemplate implements SceneTemplateInterface
                     $healed = true;
                 }
 
-                $stage
-                    ->setDescription(<<<TEXT
-                        {% if healed %} {{ master.name }} offers you a healing potion before the fight. You are back to 
-                        full health. {% endif %}
-                        
-                        You ready your {{ weapon }} and {{ armor }} and bow to {{ master.name }}. He bows, too, and draws 
-                        his {{ master.weapon }}.
-                    TEXT)
-                    ->setContext([
-                        "weapon" => $this->equipment->getName(Equipment::WeaponSlot),
-                        "armor" => $this->equipment->getName(Equipment::ArmorSlot),
-                        "master" => $master,
-                        "healed" => $healed,
-                    ])
-                    ->clearActionGroups()
-                ;
+                $stage->description = <<<TEXT
+                    {% if healed %} {{ master.name }} offers you a healing potion before the fight. You are back to 
+                    full health. {% endif %}
+                    
+                    You ready your {{ weapon }} and {{ armor }} and bow to {{ master.name }}. He bows, too, and draws 
+                    his {{ master.weapon }}.
+                    TEXT;
+                $stage->context = [
+                    "weapon" => $this->equipment->getName(Equipment::WeaponSlot),
+                    "armor" => $this->equipment->getName(Equipment::ArmorSlot),
+                    "master" => $master,
+                    "healed" => $healed,
+                ];
+                $stage->actionGroups = [];
 
                 $this->battle->addFightActions($stage, $scene, $battleState, $params);
             } else {
-                $stage->setDescription("Your maser suddenly sheats his weapon and disappears, his intentions unclear. 
-                    Maybe prey to the gods and ask for why that was?");
+                $stage->description = "Your maser suddenly sheats his weapon and disappears, his intentions unclear. 
+                    Maybe prey to the gods and ask for why that was?";
                 $this->logger->critical("Cannot attach attachment " . BattleAttachment::class . ": Not installed.");
             }
         } else {
-            $stage->setDescription(
-                $scene->templateConfig["text"]["maxLevelReached"],
-            );
+            $stage->description = $scene->templateConfig["text"]["maxLevelReached"];
 
-            $stage->setContext([
+            $stage->context = [
                 "campLeader" => $scene->templateConfig["campLeader"],
-            ]);
+            ];
         }
     }
 
@@ -246,26 +228,25 @@ readonly class TrainingTemplate implements SceneTemplateInterface
      */
     public function onFightWon(Stage $stage, Action $action, Scene $scene, BattleState $battleState): void
     {
-        $character = $stage->getOwner();
+        $character = $stage->owner;
 
         $this->stats->levelUp();
         $this->health->heal();
 
+        $stage->description = <<<TEXT
+            You have defeated your master, <.{{ badGuy.name }}.>. {% if textDefeated %}<<{{ textDefeated }}>>{% endif %}
+            
+            You level up! You are now on level {{ character.level }}.
+            
+            Your max health is now {{ maxHealth }}. Your attack and defense both increase by one.
+            
+            {% if character.level < 15 %}
+                You now have a new master.
+            {% else %}
+                Nobody is stronger than you.
+            {% endif %}
+            TEXT;
         $stage
-            ->setDescription(<<<TEXT
-                You have defeated your master, <.{{ badGuy.name }}.>. {% if textDefeated %}<<{{ textDefeated }}>>{% endif %}
-                
-                You level up! You are now on level {{ character.level }}.
-                
-                Your max health is now {{ maxHealth }}. Your attack and defense both increase by one.
-                
-                {% if character.level < 15 %}
-                    You now have a new master.
-                 {% else %}
-                    Nobody is stronger than you.
-                 {% endif %}
-                TEXT
-            )
             ->addContext("maxHealth", $this->health->getMaxHealth())
         ;
 
@@ -286,16 +267,15 @@ readonly class TrainingTemplate implements SceneTemplateInterface
      */
     public function onFightLost(Stage $stage, Action $action, Scene $scene, BattleState $battleState): void
     {
-        $stage->setDescription(<<<TEXT
+        $stage->description = <<<TEXT
             You have been defeated by <.{{ badGuy.name }}.>. They halt just before delivering the final blow, and instead 
             extend a hand to help you to your feet, and hand you a complementary healing potion.
             
             {% if textLost %}<<{{ textLost }}>>{% endif %}
-            TEXT
-        );
+            TEXT;
 
         $this->health->heal();
-        $this->setSeenMaster($stage->getOwner());
+        $this->setSeenMaster($stage->owner);
     }
 
     public function getSeenMaster(Character $character): bool

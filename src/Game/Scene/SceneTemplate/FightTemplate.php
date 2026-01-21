@@ -133,8 +133,8 @@ readonly class FightTemplate implements SceneTemplateInterface
 
         if (!$creature) {
             $this->addDefaultActions($stage, $action, $scene);
-            $stage->setDescription("This place looks very peaceful.");
-            $this->logger->critical("Character {$stage->getOwner()->id} did not find any creatures");
+            $stage->description = "This place looks very peaceful.";
+            $this->logger->critical("Character {$stage->owner->id} did not find any creatures");
             return;
         }
 
@@ -154,16 +154,16 @@ readonly class FightTemplate implements SceneTemplateInterface
 
             if ($this->diceBag->chance(0.25)) {
                 // Player is getting surprised
-                $stage->setDescription(<<<TEXT
+                $stage->description = <<<TEXT
                 You walk through the forest, looking for a monster to fight against. Suddenly, a <.{{creatureName}}.> appears, ready to fight you with its weapon <.{{creatureWeapon}}.>.
-                TEXT);
+                TEXT;
 
             } else {
-                $stage->setDescription(<<<TEXT
+                $stage->description = <<<TEXT
                 You walk through the forest, looking for a monster to fight against. After a while, you encounter a <.{{creatureName}}.>, wielding its weapon <.{{creatureWeapon}}.>.
                 
                 It has not yet spotted you, allowing you a surprise attack
-                TEXT);
+                TEXT;
 
                 $params["surprise"] = true;
             }
@@ -174,7 +174,7 @@ readonly class FightTemplate implements SceneTemplateInterface
             $stage->addContext("creatureName", $creature->name);
             $stage->addContext("creatureWeapon", $creature->weapon);
         } else {
-            $stage->setDescription("You are too blind to see any monsters. Maybe prey to the gods and ask for why that is?");
+            $stage->description = "You are too blind to see any monsters. Maybe prey to the gods and ask for why that is?";
             $this->logger->critical("Cannot attach attachment " . BattleAttachment::class . ": Not installed.");
 
             $this->addDefaultActions($stage, $action, $scene);
@@ -205,7 +205,7 @@ readonly class FightTemplate implements SceneTemplateInterface
 
             // Only allow searching for easy battles if level is larger than 1. Enemies can only be level 1 or higher, so
             //  it wouldn't make sense to offer this option on level 1.
-            if ($stage->getOwner()->level > 1) {
+            if ($stage->owner->level > 1) {
                 $actionGroup->addAction(
                     new Action(
                         scene: $scene,

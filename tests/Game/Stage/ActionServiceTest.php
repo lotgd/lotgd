@@ -11,6 +11,7 @@ use LotGD2\Game\Random\DiceBag;
 use LotGD2\Game\Stage\ActionService;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\UsesClass;
+use PHPUnit\Framework\MockObject\Runtime\PropertyHook;
 use PHPUnit\Framework\TestCase;
 
 #[CoversClass(ActionService::class)]
@@ -36,12 +37,12 @@ class ActionServiceTest extends TestCase
         $action1->id = 'action-1';
         $action2->id = 'action-2';
 
-        $actionGroup->expects($this->any())
+        $actionGroup->expects($this->atLeastOnce())
             ->method('getActions')
             ->willReturn([$action1, $action2]);
 
-        $stage->expects($this->any())
-            ->method('getActionGroups')
+        $stage->expects($this->atLeastOnce())
+            ->method(PropertyHook::get("actionGroups"))
             ->willReturn([$actionGroup]);
 
         // Act
@@ -60,12 +61,12 @@ class ActionServiceTest extends TestCase
 
         $action1->id = 'action-1';
 
-        $actionGroup->expects($this->any())
+        $actionGroup->expects($this->atLeastOnce())
             ->method('getActions')
             ->willReturn([$action1]);
 
-        $stage->expects($this->any())
-            ->method('getActionGroups')
+        $stage->expects($this->atLeastOnce())
+            ->method(PropertyHook::get("actionGroups"))
             ->willReturn([$actionGroup]);
 
         // Act
@@ -87,16 +88,16 @@ class ActionServiceTest extends TestCase
         $action1->id = "action-1";
         $action2->id = "action-2";
 
-        $actionGroup1->expects($this->any())
+        $actionGroup1->expects($this->atLeastOnce())
             ->method('getActions')
             ->willReturn([$action1]);
 
-        $actionGroup2->expects($this->any())
+        $actionGroup2->expects($this->atLeastOnce())
             ->method('getActions')
             ->willReturn([$action2]);
 
-        $stage->expects($this->any())
-            ->method('getActionGroups')
+        $stage->expects($this->atLeastOnce())
+            ->method(PropertyHook::get("actionGroups"))
             ->willReturn([$actionGroup1, $actionGroup2]);
 
         // Act
@@ -127,8 +128,8 @@ class ActionServiceTest extends TestCase
         $actionGroup->expects($this->never())
             ->method('getActions');
 
-        $stage->expects($this->any())
-            ->method('getActionGroups')
+        $stage->expects($this->atLeastOnce())
+            ->method(PropertyHook::get("actionGroups"))
             ->willReturn([$actionGroup]);
 
         // Act
@@ -160,8 +161,8 @@ class ActionServiceTest extends TestCase
             ->method('getActions')
             ->willReturn([$action1, $action2]);
 
-        $stage->expects($this->any())
-            ->method('getActionGroups')
+        $stage->expects($this->once())
+            ->method(PropertyHook::get("actionGroups"))
             ->willReturn([$actionGroup]);
 
         // Act
@@ -193,8 +194,8 @@ class ActionServiceTest extends TestCase
         $actionGroup2->expects($this->never())
             ->method('getActionByReference');
 
-        $stage->expects($this->any())
-            ->method('getActionGroups')
+        $stage->expects($this->atLeastOnce())
+            ->method(PropertyHook::get("actionGroups"))
             ->willReturn([$actionGroup1, $actionGroup2]);
 
         // Act
@@ -228,8 +229,8 @@ class ActionServiceTest extends TestCase
             ->with('target-reference')
             ->willReturn($action2);
 
-        $stage->expects($this->any())
-            ->method('getActionGroups')
+        $stage->expects($this->atLeastOnce())
+            ->method(PropertyHook::get("actionGroups"))
             ->willReturn([$actionGroup1, $actionGroup2]);
 
         // Act
@@ -261,19 +262,19 @@ class ActionServiceTest extends TestCase
     {
         // Arrange
         $stage = $this->createMock(Stage::class);
-        $action1 = new Action();;
-        $action2 = new Action();;
+        $action1 = new Action();
+        $action2 = new Action();
         $actionGroup = $this->createMock(ActionGroup::class);
 
         $action1->id = "action-1";
         $action2->id = "action-2";
 
-        $actionGroup->expects($this->any())
+        $actionGroup->expects($this->atLeastOnce())
             ->method('getActions')
             ->willReturn([$action1, $action2]);
 
-        $stage->expects($this->any())
-            ->method('getActionGroups')
+        $stage->expects($this->atLeastOnce())
+            ->method(PropertyHook::get("actionGroups"))
             ->willReturn([$actionGroup]);
 
         // Act
@@ -289,7 +290,7 @@ class ActionServiceTest extends TestCase
         $stage = $this->createMock(Stage::class);
         
         $stage->expects($this->once())
-            ->method('getActionGroups')
+            ->method(PropertyHook::get("actionGroups"))
             ->willReturn([]);
 
         // Act
@@ -314,8 +315,8 @@ class ActionServiceTest extends TestCase
             ->method('getActions')
             ->willReturn([]);
 
-        $stage->expects($this->any())
-            ->method('getActionGroups')
+        $stage->expects($this->atLeastOnce())
+            ->method(PropertyHook::get("actionGroups"))
             ->willReturn([$actionGroup]);
 
         // Act

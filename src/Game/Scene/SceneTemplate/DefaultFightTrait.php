@@ -34,9 +34,9 @@ trait DefaultFightTrait
         $attachment = $this->attachmentRepository->findOneByAttachmentClass(BattleAttachment::class);
 
         if ($attachment) {
-            $stage->setDescription(<<<TEXT
+            $stage->description = <<<TEXT
                 You are in the middle of the fight against <.{{ badGuy.name }}.>.
-                TEXT);
+                TEXT;
 
             $stage->addContext("badGuy", $battleState->badGuy);
 
@@ -98,7 +98,7 @@ trait DefaultFightTrait
     public function onBattleStateDisappeared(Stage $stage, Action $action, Scene $scene): void
     {
         $this->addDefaultActions($stage, $action, $scene);
-        $stage->setDescription("The battle suddenly ended.");
+        $stage->description = "The battle suddenly ended.";
     }
 
     /**
@@ -130,10 +130,10 @@ trait DefaultFightTrait
         if ($action->getParameter("surprise", false) === true || $this->diceBag->chance(0.3333, precision: 4)) {
             $this->logger->critical("Successfully escaped from the enemy.");
 
-            $stage->setDescription(<<<TEXT
+            $stage->description = <<<TEXT
                     You have successfully fled your opponent!
                     
-                TEXT . $scene->description);
+                    TEXT . $scene->description;
 
             // Add standard navigation
             $this->addDefaultActions($stage, $action, $scene);
@@ -142,9 +142,9 @@ trait DefaultFightTrait
         } else {
             // Fleeing failed - meaning only the enemy gets to attack
 
-            $stage->setDescription(<<<TEXT
-                    You failed to flee your opponent! You are too busy trying to run away like a cowardly dog to try to fight.
-                TEXT);
+            $stage->description = <<<TEXT
+                You failed to flee your opponent! You are too busy trying to run away like a cowardly dog to try to fight.
+                TEXT;
 
             $battleTurn = BattleTurn::DamageTurnBadGuy;
 
@@ -207,7 +207,7 @@ trait DefaultFightTrait
         $stage->addContext("bonusExperience", $expBonus);
         $this->stats->addExperience($experience);
 
-        $stage->setDescription(<<<TEXT
+        $stage->description = <<<TEXT
             You have slain <.{{ badGuy.name }}.>. {% if textDefeated %}<<{{ textDefeated }}>>{% endif %}
             
             You earn {{ gold }} gold.
@@ -219,8 +219,7 @@ trait DefaultFightTrait
             {% else %}
                 You earn {{ experience }} experience points!
             {% endif %}
-            TEXT
-        );
+            TEXT;
     }
 
     /**
@@ -242,14 +241,13 @@ trait DefaultFightTrait
         $stage->addContext("goldLost", $this->gold->getGold());
         $stage->addContext("experienceLost", round(0.1 * $this->stats->getExperience()));
 
-        $stage->setDescription(<<<TEXT
+        $stage->description = <<<TEXT
             You have been slain by <.{{ badGuy.name }}.>. {% if textLost %}<<{{ textLost }}>>{% endif %}
             
             You lost all your {{ goldLost}} gold, and {{ experienceLost }} experience points. Try better next time.
-            TEXT
-        );
+            TEXT;
 
-        $this->logger->debug("Character {$stage->getOwner()->id} has been slain and lost {$this->gold->getGold()}.");
+        $this->logger->debug("Character {$stage->owner->id} has been slain and lost {$this->gold->getGold()}.");
         $this->gold->setGold(0);
         $this->stats->setExperience((int)round(0.9 * $this->stats->getExperience()));
     }

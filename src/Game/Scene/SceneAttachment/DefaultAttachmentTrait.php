@@ -25,7 +25,7 @@ trait DefaultAttachmentTrait
     private function checkAttachment(): void
     {
         if (count(array_filter(
-                $this->stage->getAttachments(),
+                $this->stage->attachments,
                 fn ($attachment) => $attachment["attachment"]->attachmentClass === self::class
             )) === 0) {
 

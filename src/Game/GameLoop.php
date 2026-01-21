@@ -73,7 +73,7 @@ class GameLoop
         $this->logger->debug("Take action{$action} for character with id={$character->id}");
 
         $stage = $character->stage;
-        $currentScene = $stage->getScene();
+        $currentScene = $stage->scene;
         $renderDefault = true;
 
         $selectedAction = $this->actionService->getActionById($stage, $action);

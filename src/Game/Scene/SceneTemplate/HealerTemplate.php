@@ -101,7 +101,7 @@ readonly class HealerTemplate implements SceneTemplateInterface
 
         if ($this->health->getHealth() < $this->health->getMaxHealth()) {
             $stage->addDescription($scene->templateConfig["text"]["onEntryAndDamaged"]);
-            $stage->addContext("price", $this->getPrice($stage->getOwner()));
+            $stage->addContext("price", $this->getPrice($stage->owner));
             $this->addPotionActions($stage, $scene);
         } elseif ($this->health->getHealth() > $this->health->getMaxHealth() && ($scene->templateConfig["stealHealth"] ?? true) === true) {
             $stage->addDescription($scene->templateConfig["text"]["onEntryAndOverhealed"]);
@@ -114,21 +114,21 @@ readonly class HealerTemplate implements SceneTemplateInterface
     {
         $this->logger->debug("Called HealerTemplate::defaultAction");
 
-        $character = $stage->getOwner();
+        $character = $stage->owner;
         $amount = $action->getParameter("amount") ?? 0;
         $price = $action->getParameter("price") ?? 0;
 
         if ($price === 0 or $this->gold->getGold() >= $price) {
             $this->logger->debug("{$character->id}: Healed by $amount for $price gold.");
 
-            $stage->setDescription($scene->templateConfig["text"]["onHealEnoughGold"]);
+            $stage->description = $scene->templateConfig["text"]["onHealEnoughGold"];
             $stage->addContext("price", $price);
             $stage->addContext("amount", $amount);
 
             $this->health->heal($amount);
             $this->gold->addGold(-$price);
         } else {
-            $stage->setDescription($scene->templateConfig["text"]["onHealNotEnoughGold"]);
+            $stage->description = $scene->templateConfig["text"]["onHealNotEnoughGold"];
             $stage->addContext("price", $price);
         }
     }
@@ -149,7 +149,7 @@ readonly class HealerTemplate implements SceneTemplateInterface
         );
 
         $healthDelta = $this->health->getMaxHealth() - $this->health->getHealth();
-        $price = $this->getPrice($stage->getOwner());
+        $price = $this->getPrice($stage->owner);
 
         $actionGroup->addAction(new Action(
             scene: $scene,

@@ -78,9 +78,9 @@ readonly class BankTemplate implements SceneTemplateInterface
         $op = $action->getParameters()["op"] ?? "";
         $this->logger->debug("Called BankTemplate::onSceneChange, op={$op}");
 
-        $stage->setContext([
+        $stage->context = [
             "tellerName" => $scene->templateConfig["tellerName"],
-        ]);
+        ];
 
         match ($op) {
             "depositOrWithdraw" => $this->depositOrWithdrawAction($stage, $action, $scene),
@@ -92,7 +92,7 @@ readonly class BankTemplate implements SceneTemplateInterface
     {
         $this->logger->debug("Called BankTemplate::depositOrWithdrawAction");
 
-        $character = $stage->getOwner();
+        $character = $stage->owner;
         $actionData = $action->getParameters()[SimpleFormAttachment::ActionParameterName];
         $amount = (int)abs($actionData["amount"] ?? 0);
 
@@ -109,7 +109,7 @@ readonly class BankTemplate implements SceneTemplateInterface
 
             $this->logger->debug("Withdrew {$amount} gold from the bank (bank account name: {$scene->templateConfig['accountName']})");
 
-            $stage->setDescription($scene->templateConfig["text"]["withdraw"]);
+            $stage->description = $scene->templateConfig["text"]["withdraw"];
         } else {
             if ($amount === 0) {
                 // If amount is 0, we deposit everything
@@ -123,7 +123,7 @@ readonly class BankTemplate implements SceneTemplateInterface
 
             $this->logger->debug("Deposited {$amount} gold to the bank (bank account name: {$scene->templateConfig['accountName']})");
 
-            $stage->setDescription($scene->templateConfig["text"]["deposit"]);
+            $stage->description = $scene->templateConfig["text"]["deposit"];
         }
 
         $stage
@@ -140,7 +140,7 @@ readonly class BankTemplate implements SceneTemplateInterface
         $attachment = $this->attachmentRepository->findOneByAttachmentClass(SimpleFormAttachment::class);
 
         $stage
-            ->addContext("goldInBank", $this->getGoldInBank($stage->getOwner(), $scene->templateConfig));
+            ->addContext("goldInBank", $this->getGoldInBank($stage->owner, $scene->templateConfig));
 
         if ($attachment) {
             $formAction = new Action($scene, parameters: ["op" => "depositOrWithdraw"]);
