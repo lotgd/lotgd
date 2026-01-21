@@ -13,7 +13,7 @@ readonly class Health
     const string MaxHealthPropertyName = 'maxHealth';
 
     public function __construct(
-        private LoggerInterface $logger,
+        private ?LoggerInterface $logger,
         #[Autowire(expression: "service('lotgd2.game_loop').getCharacter()")]
         private Character $character,
     ) {
@@ -26,7 +26,7 @@ readonly class Health
 
     public function setHealth(int $health): self
     {
-        $this->logger->debug("{$this->character->getId()}: health set to {$health} (was {$this->getHealth()}) before).");
+        $this->logger?->debug("{$this->character->getId()}: health set to {$health} (was {$this->getHealth()}) before).");
         $this->character->setProperty(self::HealthPropertyName, $health);
         return $this;
     }
@@ -36,12 +36,16 @@ readonly class Health
      *
      * If the health surpasses the character's max health, the health is limited to the maximum.
      * If the health is going into negative, the character's health is set to 0 instead.
-     * @param int $health
+     * @param int|null $health The amount to heal the character. If null is given, character is healed completely.
      * @return $this
      */
-    public function heal(int $health): self
+    public function heal(?int $health = null): self
     {
-        $this->logger->debug("{$this->character->getId()}: healed by {$health}.");
+        if ($health === null) {
+            $health = $this->getMaxHealth();
+        }
+
+        $this->logger?->debug("{$this->character->getId()}: healed by {$health}.");
         $this->character->setProperty(
             self::HealthPropertyName,
             min(
@@ -62,7 +66,7 @@ readonly class Health
 
     public function setMaxHealth(int $maxHealth): self
     {
-        $this->logger->debug("{$this->character->getId()}: health set to {$maxHealth} (was {$this->getMaxHealth()}) before).");
+        $this->logger?->debug("{$this->character->getId()}: health set to {$maxHealth} (was {$this->getMaxHealth()}) before).");
         $this->character->setProperty(self::MaxHealthPropertyName, $maxHealth);
         return $this;
     }

@@ -130,7 +130,7 @@ readonly class SimpleShopTemplate implements SceneTemplateInterface
         $stage
             ->setDescription($scene->getTemplateConfig()["text"]["peruse"])
             ->setContext([
-                "amount" => $this->getTradeinValue($oldItem?->getValue() ?? 0),
+                "amount" => $this->getTradeInValue($oldItem?->getValue() ?? 0),
                 "item" => $oldItem?->getName() ?? "Fists",
             ])
             ->addAttachment(
@@ -170,7 +170,7 @@ readonly class SimpleShopTemplate implements SceneTemplateInterface
                 $oldItem = $this->equipment->getItemInSlot($slot);
 
                 $this->equipment->setItemInSlot($slot, $equipmentItem);
-                $this->gold->addGold(-($equipmentItem->getValue() - $this->getTradeinValue($oldItem?->getValue() ?? 0)));
+                $this->gold->addGold(-($equipmentItem->getValue() - $this->getTradeInValue($oldItem?->getValue() ?? 0)));
             } else {
                 $description = $scene->getTemplateConfig()["text"]["notEnoughGold"];
             }
@@ -195,7 +195,7 @@ readonly class SimpleShopTemplate implements SceneTemplateInterface
         );
     }
 
-    private function getTradeinValue($value): int
+    private function getTradeInValue(int $value): int
     {
         return (int)round($value * 0.75);
     }

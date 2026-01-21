@@ -119,6 +119,9 @@ class Character
         return $this;
     }
 
+    /**
+     * @return array<string, mixed>|null
+     */
     public function getProperties(): ?array
     {
         return $this->properties;
@@ -129,6 +132,10 @@ class Character
         return $this->properties[$name] ?? $default;
     }
 
+    /**
+     * @param array<string, mixed> $properties
+     * @return $this
+     */
     public function setProperties(array $properties): static
     {
         $this->properties = $properties;

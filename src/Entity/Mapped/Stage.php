@@ -10,6 +10,9 @@ use LotGD2\Entity\Action;
 use LotGD2\Entity\ActionGroup;
 use LotGD2\Repository\StageRepository;
 
+/**
+ * @phpstan-type AttachmentType array{attachment: Attachment, config: array<mixed>, data: array<string ,mixed>}
+ */
 #[ORM\Entity(repositoryClass: StageRepository::class)]
 #[ORM\HasLifecycleCallbacks()]
 class Stage
@@ -37,7 +40,7 @@ class Stage
     #[ORM\Column(type: JsonDocumentType::NAME, nullable: true)]
     private array $actionGroups = [];
 
-    /** @var null|array<int, array{attachment: Attachment, configuration: array<mixed>}> */
+    /** @var null|array<int, AttachmentType> */
     #[ORM\Column(type: JsonDocumentType::NAME, nullable: true)]
     private ?array $attachments = null;
 
@@ -142,19 +145,21 @@ class Stage
     /**
      * @param Attachment $attachment
      * @param array<mixed> $config
+     * @param array<string, mixed> $data
      * @return $this
      */
-    public function addAttachment(Attachment $attachment, array $config): static
+    public function addAttachment(Attachment $attachment, array $config = [], array $data = []): static
     {
         $this->attachments[] = [
             "attachment" => $attachment,
             "config" => $config,
+            "data" => $data,
         ];
         return $this;
     }
 
     /**
-     * @return null|array<int, array{attachment: Attachment, configuration: array<mixed>}>
+     * @return null|array<int, AttachmentType>
      */
     public function getAttachments(): ?array
     {
@@ -162,7 +167,7 @@ class Stage
     }
 
     /**
-     * @param null|array<int, array{attachment: Attachment, configuration: array<mixed>}> $attachments
+     * @param null|array<int, AttachmentType> $attachments
      * @return $this
      */
     public function setAttachments(?array $attachments): static
@@ -183,11 +188,18 @@ class Stage
         return $this;
     }
 
+    /**
+     * @return array<string, mixed>|null
+     */
     public function getContext(): ?array
     {
         return $this->context;
     }
 
+    /**
+     * @param array<string, mixed>|null $context
+     * @return $this
+     */
     public function setContext(?array $context): static
     {
         $this->context = $context;

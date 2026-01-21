@@ -1,0 +1,46 @@
+<div {{ attributes.defaults({}) }}>
+    <div class="card border-dark">
+        <div class="card-header bg-dark text-white">
+            Fight!
+        </div>
+        <div class="card-body p-0">
+            <div class="row row-cols-2 m-0 pt-2 pb-3 mb-2 border-bottom border-1">
+                <div class="col">
+                    <strong>{{ battleState.goodGuy is instanceof("LotGD2\\Entity\\Battle\\CurrentCharacterFighter") ? "You" : battleState.goodGuy.name }}</strong>
+                    <twig:Bootstrap:Progress :max="battleState.goodGuy.maxHealth" :current="battleState.goodGuy.health" colored="true" displayCurrent="true" />
+                </div>
+                <div class="col">
+                    <strong>{{ battleState.badGuy.name }}</strong>, Level {{ battleState.badGuy.level }}
+                    <twig:Bootstrap:Progress :max="battleState.badGuy.maxHealth" :current="battleState.badGuy.health"  colored="true" displayCurrent="true" />
+                </div>
+            </div>
+
+            <div class="row m-0 pb-3">
+                {% set messageRounds = battleState.messageRounds|reverse %}
+                <dl class="m-0">
+                    {% for round in messageRounds[0:3] %}
+                        <dt>Round {{ round.round }}</dt>
+                        {% for message in round.messages %}
+                            <dd>{{ message.message|parse(message.context, false)|raw }}</dd>
+                        {% endfor %}
+                    {% endfor %}
+                </dl>
+
+                {% if messageRounds|length > 3 %}
+                    <details>
+                        <summary>More</summary>
+
+                        <dl class="m-0">
+                            {% for round in messageRounds[3:] %}
+                                <dt>Round {{ round.round }}</dt>
+                                {% for message in round.messages %}
+                                    <dd>{{ message.message|parse(message.context, false)|raw }}</dd>
+                                {% endfor %}
+                            {% endfor %}
+                        </dl>
+                    </details>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>

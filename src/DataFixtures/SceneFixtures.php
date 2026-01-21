@@ -8,6 +8,7 @@ use Doctrine\Persistence\ObjectManager;
 use LotGD2\Entity\Mapped\Scene;
 use LotGD2\Entity\Mapped\SceneActionGroup;
 use LotGD2\Game\Scene\SceneTemplate\BankTemplate;
+use LotGD2\Game\Scene\SceneTemplate\FightTemplate;
 use LotGD2\Game\Scene\SceneTemplate\SimpleShopTemplate;
 
 class SceneFixtures extends Fixture
@@ -51,7 +52,12 @@ class SceneFixtures extends Fixture
                     to a few meters at most. If not for your trained eyes, the paths would stay hidden. You move as silently
                     a mild breeze over the earth you are walking. You try to avoid to step on little branches or any of the
                     bleached, brittle bones that scatter the floor. You are trying to hide your presence from the things living here.
-                    TXT),
+                    TXT)
+                ->setTemplateClass(FightTemplate::class)
+                ->setTemplateConfig(
+                    FightTemplate::validateConfiguration([
+                    ])
+                ),
             "weapons" => new Scene()
                 ->setTitle("MightyE's weapon shop")
                 ->setDescription(<<<TXT

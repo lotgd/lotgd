@@ -16,7 +16,7 @@ readonly class Equipment
     const string PropertyName = 'equipment';
 
     public function __construct(
-        private LoggerInterface $logger,
+        private ?LoggerInterface $logger,
         #[Autowire(expression: "service('lotgd2.game_loop').getCharacter()")]
         private Character $character,
     ) {

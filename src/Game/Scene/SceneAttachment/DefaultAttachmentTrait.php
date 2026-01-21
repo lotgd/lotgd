@@ -10,7 +10,9 @@ use Symfony\UX\LiveComponent\Attribute\LiveProp;
 
 trait DefaultAttachmentTrait
 {
-    /** @var array<string, mixed>  */
+    /**
+     * @var array<string, mixed>
+     */
     #[LiveProp]
     public array $config;
 

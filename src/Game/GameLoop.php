@@ -20,19 +20,19 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
 
 #[AsAlias(id: "lotgd2.game_loop", public: true)]
 #[Autoconfigure(public: true)]
-readonly class GameLoop
+class GameLoop
 {
     private ContainerInterface $container;
 
-    private readonly ?Character $character;
+    private ?Character $character = null;
 
     public function __construct(
-        private Kernel $kernel,
-        private EntityManagerInterface $entityManager,
-        private LoggerInterface $logger,
-        private SceneRenderer $renderer,
-        private SceneRepository $sceneRepository,
-        private ActionService $actionService,
+        readonly private Kernel $kernel,
+        readonly private EntityManagerInterface $entityManager,
+        readonly private LoggerInterface $logger,
+        readonly private SceneRenderer $renderer,
+        readonly private SceneRepository $sceneRepository,
+        readonly private ActionService $actionService,
     ) {
         $this->container = $this->kernel->getContainer();
     }

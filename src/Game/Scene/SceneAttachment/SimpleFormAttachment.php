@@ -30,6 +30,9 @@ final class SimpleFormAttachment extends AbstractController implements SceneAtta
 
     const string ActionParameterName = "SimpleFormAttachment::FormData";
 
+    /**
+     * @var array<string, mixed>
+     */
     #[LiveProp]
     public ?array $initialFormData = null;
 
@@ -42,7 +45,7 @@ final class SimpleFormAttachment extends AbstractController implements SceneAtta
         ActionService $actionService,
         LoggerInterface $logger,
         EntityManagerInterface $entityManager,
-    ) {
+    ): void {
         $this->submitForm();
 
         $actionId = (string)($this->config["actionId"] ?? "");
@@ -61,6 +64,9 @@ final class SimpleFormAttachment extends AbstractController implements SceneAtta
         $this->emit("takeAction", ["actionId" => $actionId]);
     }
 
+    /**
+     * @return FormInterface<array<string, mixed>>
+     */
     protected function instantiateForm(): FormInterface
     {
         $form = $this->createFormBuilder();

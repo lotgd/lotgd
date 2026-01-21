@@ -39,6 +39,7 @@ class ParseRuntime implements RuntimeExtensionInterface
     public function parse(
         string $text,
         array $context = [],
+        bool $useParagraphs = true,
     ): string {
         $text = $this->normalizeLineBreaks($text);
 
@@ -59,14 +60,16 @@ class ParseRuntime implements RuntimeExtensionInterface
             $part = $part . " ";
 
             if ($emptyParagraph) {
-                $parsedText .= "</p>\n<p>";
+                $parsedText .= $useParagraphs ? "</p>\n<p>" : "";
                 $emptyParagraph = false;
             }
 
             $parsedText .= $this->parsePart($part, $context);
         }
 
-        $parsedText = "<p>$parsedText</p>";
+        if ($useParagraphs) {
+            $parsedText = "<p>$parsedText</p>";
+        }
 
         try {
             $parsedText = $this->twig->createTemplate($parsedText)->render($context);

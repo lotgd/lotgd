@@ -7,6 +7,7 @@ use LotGD2\Entity\Mapped\Character;
 use LotGD2\Game\Character\Health;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\Attributes\TestWith;
 use PHPUnit\Framework\Attributes\UsesClass;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
@@ -89,6 +90,22 @@ final class HealthTest extends TestCase
 
         $health->heal( $healAmount);
         $this->assertEquals($newHealth, $health->getHealth());
+    }
+
+    #[TestWith([0, 200, 200])]
+    #[TestWith([20, 180, 180])]
+    public function testFullHeal(int $isHealth, int $maxHealth, int $expectedHealth): void
+    {
+        $character = new Character();
+        $character->setProperties([
+            Health::HealthPropertyName => $isHealth,
+            Health::MaxHealthPropertyName => $maxHealth,
+        ]);
+
+        $health = new Health($this->createMock(LoggerInterface::class), $character);
+        $health->heal();
+
+        $this->assertEquals($expectedHealth, $health->getHealth());
     }
 
     #[DataProvider("getHealthProvider")]

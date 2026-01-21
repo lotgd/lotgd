@@ -17,6 +17,16 @@ use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
 use Symfony\Component\Form\Extension\Core\Type\IntegerType;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
+/**
+ * @phpstan-type BankTemplateConfiguration array{
+ *     tellerName: string,
+ *     accountName: string,
+ *     text: array{
+ *         deposit: string,
+ *         withdraw: string,
+ *     }
+ * }
+ */
 #[Autoconfigure(public: true)]
 readonly class BankTemplate implements SceneTemplateInterface
 {
@@ -83,9 +93,9 @@ readonly class BankTemplate implements SceneTemplateInterface
 
         $character = $stage->getOwner();
         $actionData = $action->getParameters()[SimpleFormAttachment::ActionParameterName];
-        $amount = abs($actionData["amount"]);
+        $amount = (int)abs($actionData["amount"] ?? 0);
 
-        if ($actionData["withdraw"]) {
+        if (isset($actionData["withdraw"])) {
             if ($amount === 0) {
                 // If amount is 0, we withdraw everything
                 $amount = $this->getGoldInBank($character, $scene->getTemplateConfig());
@@ -127,7 +137,6 @@ readonly class BankTemplate implements SceneTemplateInterface
         $this->logger->debug("Called BankTemplate::defaultAction");
 
         $attachment = $this->attachmentRepository->findOneByAttachmentClass(SimpleFormAttachment::class);
-        $this->logger->debug("Add SimpleFormAttachment (id={$attachment?->getId()})");
 
         $stage
             ->addContext("goldInBank", $this->getGoldInBank($stage->getOwner(), $scene->getTemplateConfig()));
@@ -143,11 +152,18 @@ readonly class BankTemplate implements SceneTemplateInterface
                     ["withdraw", CheckboxType::class, ["label" => "Withdraw", "required" => false]],
                 ],
             ]);
+
+            $this->logger->debug("Add SimpleFormAttachment (id={$attachment->getId()})");
         } else {
             $this->logger->critical("Cannot attach attachment " . SimpleFormAttachment::class . ": Not installed.");
         }
     }
 
+    /**
+     * @param Character $character
+     * @param BankTemplateConfiguration $templateConfig
+     * @return int
+     */
     private function getGoldInBank(Character $character, array $templateConfig): int
     {
         $bankProperties = $character->getProperty("bank", []);
@@ -160,6 +176,12 @@ readonly class BankTemplate implements SceneTemplateInterface
         }
     }
 
+    /**
+     * @param Character $character
+     * @param BankTemplateConfiguration $templateConfig
+     * @param int $amount
+     * @return void
+     */
     private function setGoldInBank(Character $character, array $templateConfig, int $amount): void
     {
         $bankProperties = $character->getProperty("bank", []);
@@ -167,6 +189,12 @@ readonly class BankTemplate implements SceneTemplateInterface
         $character->setProperty("bank", $bankProperties);
     }
 
+    /**
+     * @param Character $character
+     * @param BankTemplateConfiguration $templateConfig
+     * @param int $amount
+     * @return void
+     */
     private function addGoldInBank(Character $character, array $templateConfig, int $amount): void
     {
         $this->setGoldInBank($character, $templateConfig, $this->getGoldInBank($character, $templateConfig) + $amount);
