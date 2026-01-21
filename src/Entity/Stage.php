@@ -17,7 +17,7 @@ class Stage
     private ?int $id = null;
 
     #[ORM\OneToOne(inversedBy: 'stage', cascade: ['persist'])]
-    #[ORM\JoinColumn(nullable: false, onDelete: "REMOVE")]
+    #[ORM\JoinColumn(nullable: false, onDelete: "CASCADE")]
     private ?Character $owner = null;
 
     #[ORM\Column(length: 255)]
@@ -31,10 +31,10 @@ class Stage
     private ?Scene $scene = null;
 
     /** @var ActionGroup[] */
-    #[ORM\Column(type: "json_document")]
+    #[ORM\Column(type: "json_document", nullable: true)]
     private array $actionGroups = [];
 
-    #[ORM\Column(nullable: true)]
+    #[ORM\Column(type: "json_document", nullable: true)]
     private ?array $attachments = null;
 
     public function getId(): ?int
@@ -97,7 +97,15 @@ class Stage
 
     public function addActionGroup(ActionGroup $actionGroup): self
     {
-        $this->actionGroups[] = $actionGroup;
+        $this->actionGroups[$actionGroup->getId()] = $actionGroup;
+        return $this;
+    }
+
+    public function addAction($actionGroupId, Action $action): self
+    {
+        if (array_key_exists($actionGroupId, $this->actionGroups)) {
+            $this->actionGroups[$actionGroupId]->addAction($action);
+        }
         return $this;
     }
 

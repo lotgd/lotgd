@@ -10,8 +10,13 @@ class Action
 {
     public ?string $id = null;
     public ?string $title = null;
-    public array $parameters = [];
+    public ParamBag $parameters;
     public ?int $sceneId = null;
+
+    public function __construct()
+    {
+        $this->parameters = new ParamBag();
+    }
 
     public function getId(): string
     {
@@ -46,12 +51,12 @@ class Action
         return $this->sceneId;
     }
 
-    public function getParameters(): array
+    public function getParameters(): ParamBag
     {
         return $this->parameters;
     }
 
-    public function setParameters(array $parameters): self
+    public function setParameters(ParamBag $parameters): self
     {
         $this->parameters = $parameters;
         return $this;

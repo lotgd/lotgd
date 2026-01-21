@@ -1,8 +1,38 @@
+@use "sass:map";
+
+// Color theme
+$primary: #005000;
+$lotgd-color-1: lighten($primary, 20);
+
+@import "~bootstrap/scss/bootstrap";
+
 body {
     background-color: lightgray;
 }
 
-// Color theme
-$primary: #009900;
+.navbar {
+    background-color: var(--bs-primary);
+    border-bottom: 5px solid $lotgd-color-1;
+}
 
-@import "~bootstrap/scss/bootstrap";
+.lotgd-stage {
+    background-color: var(--bs-white);
+    --bs-gutter-x: 0rem;
+
+    .lotgd-stage-actions {
+        .lotgd-stage-action {
+            padding-left: map.get($spacers, 3);
+            border: 1px solid transparent;
+
+            &:hover {
+                border-style: solid;
+                border-width: 1px;
+                border-color:
+                        darken($primary-bg-subtle, 10);
+                ;
+
+                background-color: darken($primary-bg-subtle, 20);
+            }
+        }
+    }
+}

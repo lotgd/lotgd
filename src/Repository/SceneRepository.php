@@ -21,6 +21,16 @@ class SceneRepository extends ServiceEntityRepository
         parent::__construct($registry, Scene::class);
     }
 
+    public function getDefaultScene()
+    {
+        return $this->createQueryBuilder('s')
+            ->select('s')
+            ->andWhere('s.defaultScene = 1')
+            ->getQuery()
+            ->getOneOrNullResult()
+        ;
+    }
+
 //    /**
 //     * @return Scene[] Returns an array of Scene objects
 //     */

@@ -28,7 +28,7 @@ readonly class SceneRenderer
         Character $character
     ): Stage {
         // For now: Get Scene with id=1
-        $defaultScene = $this->sceneRepository->find(1);
+        $defaultScene = $this->sceneRepository->getDefaultScene();
 
         $newStage = new Stage();
         $character->setStage($newStage);
@@ -46,6 +46,7 @@ readonly class SceneRenderer
         $stage->setDescription($scene->getDescription());
 
         $stage->clearActionGroups();
+        $this->addDefaultActionGroups($stage);
         $this->addActions($stage, $scene);
 
         return $stage;
@@ -96,25 +97,28 @@ readonly class SceneRenderer
             $stage->addActionGroup($actionGroup);
         }
 
-        $emptyActionGroup = (new ActionGroup())
-            ->setId("lotgd.actionGroup.empty")
-            ->setTitle("Others");
-
-        $stage->addActionGroup($emptyActionGroup);
-
-        $stage->addActionGroup(
-            (new ActionGroup())
-                ->setId("lotgd.actionGroup.hidden")
-                ->setTitle("Hidden")
-        );
-
         // Add all other actions
         foreach ($scene->getConnections(visibleOnly: true) as $connection) {
             if (!isset($addedConnections[$connection->getId()])) {
                 $action = $this->createActionFromConnection($scene, $connection);
-                $emptyActionGroup->addAction($action);
+                $stage->addAction(ActionGroup::EMPTY, $action);
                 $addedConnections[$connection->getId()] = true;
             }
         }
+    }
+
+    public function addDefaultActionGroups(Stage $stage): void
+    {
+        $stage->addActionGroup(
+            (new ActionGroup())
+                ->setId(ActionGroup::EMPTY)
+                ->setTitle("Others")
+        );
+
+        $stage->addActionGroup(
+            (new ActionGroup())
+                ->setId(ActionGroup::HIDDEN)
+                ->setTitle("Hidden")
+        );
     }
 }

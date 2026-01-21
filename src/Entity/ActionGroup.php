@@ -7,6 +7,9 @@ use Traversable;
 
 class ActionGroup
 {
+    const HIDDEN = "lotgd.actionGroup.hidden";
+    const EMPTY = "lotgd.actionGroup.empty";
+
     private string $id;
     private ?string $title = null;
     private int $weight = 0;

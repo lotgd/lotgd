@@ -10,6 +10,7 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use LotGD2\Game\Enum\SceneConnectionType;
+use LotGD2\Game\Scene\SceneTemplate\SceneTemplateInterface;
 use LotGD2\Repository\SceneRepository;
 
 #[ORM\Entity(repositoryClass: SceneRepository::class)]
@@ -41,6 +42,9 @@ class Scene
 
     #[ORM\OneToMany(mappedBy: 'scene', targetEntity: SceneActionGroup::class, orphanRemoval: true, cascade: ["persist", "remove"])]
     private Collection $actionGroups;
+
+    #[ORM\Column(type: 'boolean', nullable: true, options: ["default" => false])]
+    private ?bool $defaultScene = false;
 
     public function __construct()
     {
@@ -85,6 +89,10 @@ class Scene
 
     public function setTemplateClass(?string $templateClass): static
     {
+        if (!is_a($templateClass, SceneTemplateInterface::class, true)) {
+            throw new \ValueError("The template class of a scene must implement ".SceneTemplateInterface::class.".");
+        }
+
         $this->templateClass = $templateClass;
 
         return $this;
@@ -232,6 +240,17 @@ class Scene
             }
         }
 
+        return $this;
+    }
+
+    public function isDefaultScene(): bool
+    {
+        return $this->defaultScene === true;
+    }
+
+    public function setDefaultScene(bool $defaultScene): static
+    {
+        $this->defaultScene = $defaultScene;
         return $this;
     }
 }

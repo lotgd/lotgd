@@ -1,14 +1,14 @@
 <div {{ attributes }}>
-    <div class="row">
-        <div class="col-3 bg-primary-subtle">
-            <ul class="nav flex-column">
+    <div class="row lotgd-stage">
+        <div class="col-3 bg-primary-subtle lotgd-stage-actions">
+            <ul class="nav flex-column py-3">
                 {% for actionGroup in this.stage.actionGroups %}
                     <li class="nav-item">
                         {{ actionGroup.title }}
                     </li>
 
                     {% for action in actionGroup.actions %}
-                        <li class="nav-item">
+                        <li class="nav-item lotgd-stage-action">
                             <a class="nav-link"
                                data-action="live#action"
                                data-live-action-param="takeAction"
@@ -21,10 +21,10 @@
             </ul>
         </div>
 
-        <div class="col-6 p-3">
+        <div class="col-6 p-3 lotgd-stage-scene">
             <h2>{{ this.stage.title }}</h2>
 
-            {{ this.stage.description }}
+            {{ this.stage.description|parse|raw }}
         </div>
 
         <div class="col-3 bg-primary-subtle">
