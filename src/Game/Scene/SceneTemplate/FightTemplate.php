@@ -263,12 +263,12 @@ readonly class FightTemplate implements SceneTemplateInterface
         // That would put e_rand(0, 2) as the same as a 50% chance.
 
         // Then, a level increment is done if e_rand(1,5)==1
-        //  This is a 25% chance for 2, 3 and 4, and 12.5% for 1 and 5, making this effectively a 6.25% chance
-        $level += $this->diceBag->chance(0.0625, 4) ? 1 : 0;
+        //  This is a 25% chance for 2, 3 and 4, and 12.5% for 1 and 5, making this effectively a 12.5% chance
+        $level += $this->diceBag->chance(0.125, 4) ? 1 : 0;
 
         // At the same time, a negative level increment is done if e_rand(1,3)==1
-        // This is a 50% chance for 2, and a 25% chance for 1 and 3, making this effectively a 12.5% chance
-        $level += $this->diceBag->chance(0.125, 4) ? 1 : 0;
+        // This is a 50% chance for 2, and a 25% chance for 1 and 3, making this effectively a 25% chance
+        $level -= $this->diceBag->chance(0.25, 4) ? 1 : 0;
 
         // There is are, effectively, 3 outcomes here:
         //  -  5.47% chance for a positive increase (P(plev) * (1-P(nlev))
