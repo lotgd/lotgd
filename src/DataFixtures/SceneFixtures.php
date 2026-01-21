@@ -11,6 +11,7 @@ use LotGD2\Game\Scene\SceneTemplate\BankTemplate;
 use LotGD2\Game\Scene\SceneTemplate\FightTemplate;
 use LotGD2\Game\Scene\SceneTemplate\HealerTemplate;
 use LotGD2\Game\Scene\SceneTemplate\SimpleShopTemplate;
+use LotGD2\Game\Scene\SceneTemplate\TrainingTemplate;
 
 class SceneFixtures extends Fixture
 {
@@ -303,7 +304,48 @@ class SceneFixtures extends Fixture
                             {% endif %}
                             TXT,
                     ]
+                ]),
+            "training" => new Scene()
+                ->setTitle("Bluspring's Warrior Training")
+                ->setDescription(<<<TEXT
+                    The sound of conflict surrounds you. The clang of weapons in grisly battle inspires your warrior heart.
+                    {{ master.name }} stands ready to evaluate you.
+                TEXT)
+                ->setTemplateClass(TrainingTemplate::class)
+                ->setTemplateConfig([
+                    "campLeader" => "Bluspring's Warrior",
+                    "text" => [
+                        "maxLevelReached" => <<<TXT
+                            You stroll into the battle grounds. Younger warriors huddle together and point as you pass by.
+                            You know this place well. {{ campLeader }}  hails you, and you grasp their hand firmly. There 
+                            is nothing left for you here but memories. You remain a moment longer, and look at the warriors 
+                            in training before you turn to return to the village.
+                        TXT,
+                        "askExperience" => <<<TXT
+                            You approach {{ master.name }} timidly and inquire as to your standing in the class.
+                            {% if experience >= requiredExperience %}
+                                They say, <<Gee, your muscles are getting bigger than mine...>>
+                            {% else %}
+                                They state that you will need {{ requiredExperience - experience }} more experience 
+                                before you are ready to challenge him in battle.
+                            {% endif %}
+                        TXT,
+                        "seenMaster" => <<<TXT
+                            You think that, perhaps, you've seen enough of your master for today, the lessons you learned 
+                            earlier prevent you from so willingly subjecting yourself to that sort of humiliation again.
+                        TXT,
+                        "absoluteDefeat" => <<<TXT
+                            You ready your {{ weapon }} and {{ armor }} and approach {{ master.name }}.
+                            
+                            A small crowd of onlookers has gathered, and you briefly notice the smiles on their faces, 
+                            but you feel confident. You bow before them, and execute a perfect spin-attack, only to 
+                            realize that you are holding NOTHING! {{ master.name }} stands before you holding your weapon.
+                            Meekly you retrieve your {{ weapon }} , and slink out of the training grounds to the sound 
+                            of boisterous guffaws.
+                        TXT,
+                    ]
                 ])
+            ,
         ];
 
         $villageToForestConnection = $scenes["village"]->connectTo($scenes["forest"], sourceLabel: "The forest", targetLabel: "Back to the village");
@@ -320,6 +362,9 @@ class SceneFixtures extends Fixture
 
         $forestToHealerConnection = $scenes["forest"]->connectTo($scenes["healer"], sourceLabel: "Healer's Hut", targetLabel: "Back to the forest");
         $scenes["forest"]->getActionGroups()->get(0)->addConnection($forestToHealerConnection);
+
+        $villageToTrainingConnection = $scenes["village"]->connectTo($scenes["training"], sourceLabel: "Bluspring's Warrior Training", targetLabel: "Back to the village");
+        $scenes["village"]->getActionGroups()->get(1)->addConnection($villageToTrainingConnection);
 
         foreach ($scenes as $scene) {
             $manager->persist($scene);

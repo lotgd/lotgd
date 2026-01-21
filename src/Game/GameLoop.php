@@ -86,7 +86,7 @@ class GameLoop
 
         if ($targetScene !== $currentScene) {
             if ($currentScene->getTemplateClass() !== null
-                and (bool)($selectedAction->getParameters()["lotgd.scene.skipOnSceneLeave"] ?? false) === true
+                and (bool)($selectedAction->getParameters()["lotgd.scene.skipOnSceneLeave"] ?? false) === false
             ) {
                 $this->logger->debug("Calling onSceneLeave");
 
@@ -101,25 +101,19 @@ class GameLoop
 
                 /** @var SceneTemplateInterface<array<string, mixed>> $currentSceneTemplate */
                 $currentSceneTemplate = $this->container->get($currentScene->getTemplateClass());
-                $reply = $currentSceneTemplate->onSceneLeave($stage, $selectedAction, $currentScene);
+                $reply = $currentSceneTemplate->onSceneLeave($stage, $selectedAction, $currentScene, $targetScene);
 
-                if ($reply === true) {
-                    $renderDefault = false;
-                }
+                $renderDefault = !$reply;
             } elseif ($targetScene->getTemplateClass() !== null
-                and (bool)($selectedAction->getParameters()["lotgd.scene.skipOnSceneLeave"] ?? false) === true
+                and (bool)($selectedAction->getParameters()["lotgd.scene.skipOnSceneEnter"] ?? false) === false
             ) {
                 $this->logger->debug("Calling onSceneEnter");
 
-                $stage = $this->renderer->render($character->getStage(), $targetScene);
-
                 /** @var SceneTemplateInterface<array<string, mixed>> $currentSceneTemplate */
                 $targetSceneTemplate = $this->container->get($targetScene->getTemplateClass());  // @phpstan-ignore varTag.differentVariable
-                $reply = $targetSceneTemplate->onSceneEnter($stage, $selectedAction, $targetScene);
+                $reply = $targetSceneTemplate->onSceneEnter($stage, $selectedAction, $currentScene, $targetScene);
 
-                if ($reply === true) {
-                    $renderDefault = false;
-                }
+                $renderDefault = !$reply;
             }
         }
 

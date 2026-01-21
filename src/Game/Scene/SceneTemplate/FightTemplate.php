@@ -33,6 +33,7 @@ use Symfony\Component\OptionsResolver\OptionsResolver;
 readonly class FightTemplate implements SceneTemplateInterface
 {
     use DefaultSceneTemplate;
+    use DefaultFightTrait;
 
     public function __construct(
         private LoggerInterface $logger,
@@ -83,7 +84,7 @@ readonly class FightTemplate implements SceneTemplateInterface
         $this->logger->debug("Called FightTemplate::defaultAction");
 
         if ($this->health->getHealth() > 0) {
-            $this->addSearchNavigation($stage, $scene);
+            $this->addDefaultActions($stage, $action, $scene);
         } else {
             $stage->addDescription("You are too tired to delve deeper into the woods.");
         }
@@ -109,7 +110,7 @@ readonly class FightTemplate implements SceneTemplateInterface
         $creature = $this->creatureRepository->getRandomCreature($level);
 
         if (!$creature) {
-            $this->addSearchNavigation($stage, $scene);
+            $this->addDefaultActions($stage, $action, $scene);
             $stage->setDescription("This place looks very peaceful.");
             $this->logger->critical("Character {$stage->getOwner()->getId()} did not find any creatures");
             return;
@@ -154,77 +155,7 @@ readonly class FightTemplate implements SceneTemplateInterface
             $stage->setDescription("You are too blind to see any monsters. Maybe prey to the gods and ask for why that is?");
             $this->logger->critical("Cannot attach attachment " . BattleAttachment::class . ": Not installed.");
 
-            $this->addSearchNavigation($stage, $scene);
-        }
-    }
-
-    public function fightAction(Stage $stage, Action $action, Scene $scene): void
-    {
-        $how = $action->getParameter("how");
-        $battleState = $action->getParameter("battleState");
-
-        if (!$battleState instanceof BattleState) {
-            $this->addSearchNavigation($stage, $scene);
-            $stage->setDescription("The battle suddenly ended.");
-            $this->logger->critical("The BattleState was not transferred correctly", $action->getParameters());
-            return;
-        }
-
-        // Find attachment
-        $attachment = $this->attachmentRepository->findOneByAttachmentClass(BattleAttachment::class);
-
-        if ($attachment) {
-            $stage->setDescription(<<<TEXT
-                You are in the middle of the fight against <.{{ creatureName }}.>.
-                
-                
-                TEXT);
-            $stage->addContext("creatureName", $battleState->badGuy->name);
-
-            if ($action->getParameter("surprise", false) === true) {
-                $battleTurn = BattleTurn::DamageTurnGoodGuy;
-            } else {
-                $battleTurn = BattleTurn::DamageTurnBoth;
-            }
-
-            if ($how === "flee") {
-                if ($action->getParameter("surprise", false) === true || $this->diceBag->chance(0.3333, precision: 4)) {
-                    $this->logger->critical("Successfully escaped from the enemy.");
-
-                    $stage->setDescription(<<<TEXT
-                        You have successfully fled your opponent!
-                        
-                    TEXT . $scene->getDescription());
-
-                    // Add standard navigation
-                    $this->addSearchNavigation($stage, $scene);
-
-                    return;
-                } else {
-                    // Fleeing failed - meaning only the enemy gets to attack
-                    $battleTurn = BattleTurn::DamageTurnBadGuy;
-
-                    $stage->setDescription(<<<TEXT
-                        You failed to flee your opponent! You are too busy trying to run away like a cowardly dog to try to fight.
-                    TEXT);
-                }
-            }
-
-            $stage->addAttachment($attachment, data: [
-                "battleState" => $battleState,
-            ]);
-
-            $this->battle->fightOneRound($battleState, $battleTurn);
-
-            if ($battleState->isOver()) {
-                $this->processEndOfBattle($stage, $scene, $battleState);
-            } else {
-                // Only add fight actions if the fight is not over
-                $stage->clearActionGroups();
-                $this->battle->addFightActions($stage, $scene, $battleState, ["op" => "fight"]);
-            }
-        } else {
-            $this->logger->critical("Cannot attach attachment " . BattleAttachment::class . ": Not installed.");
+            $this->addDefaultActions($stage, $action, $scene);
         }
     }
 
@@ -234,7 +165,7 @@ readonly class FightTemplate implements SceneTemplateInterface
      * @param Scene $scene
      * @return void
      */
-    public function addSearchNavigation(Stage $stage, Scene $scene): void
+    public function addDefaultActions(Stage $stage, Action $action, Scene $scene): void
     {
         $actionGroup = new ActionGroup("lotgd2.actionGroup.fightTemplate.search", $scene->getTitle());
 
@@ -248,68 +179,6 @@ readonly class FightTemplate implements SceneTemplateInterface
 
         $actionGroup->addAction($searchAction);
         $stage->addActionGroup($actionGroup);
-    }
-
-    /**
-     * Processes the end of the battle. Distributes experience, gold, etc
-     * @param Stage $stage
-     * @param Scene $scene
-     * @param BattleState $battleState
-     * @return void
-     */
-    public function processEndOfBattle(Stage $stage, Scene $scene, BattleState $battleState): void
-    {
-        $stage->addContext("textDefeated", $battleState->badGuy->kwargs["textDefeated"] ?? null);
-        $stage->addContext("textLost", $battleState->badGuy->kwargs["textLost"] ?? null);
-
-        if ($battleState->result === BattleStateStatusEnum::GoodGuyWon) {
-            // Calculate how much gold to drop
-            $gold = $this->diceBag->pseudoBell(0, $battleState->badGuy->kwargs["gold"] ?? 1);
-            $stage->addContext("gold", $gold);
-            $this->gold->addGold($gold);
-
-            // Calculate how much experience to earn
-            $experience = $battleState->badGuy->kwargs["experience"] ?? 1;
-            // Add a bit of variation
-            $expFlux = (int)round($experience / 10);
-            $experience += (int)round($this->diceBag->bell(-$expFlux, $experience));
-            // Add level difference bonus
-            $expBonus = max(0, (int)round($experience * (0.25 * ($battleState->badGuy->level - $battleState->goodGuy->level)), 0));
-            $experience += $expBonus;
-            $stage->addContext("experience", $experience);
-            $stage->addContext("bonusExperience", $expBonus);
-            $this->stats->addExperience($experience);
-
-            $stage->setDescription(<<<TEXT
-            You have slain <.{{ creatureName }}.>. {% if textDefeated %}<<{{ textDefeated }}>>{% endif %}
-            
-            You earn {{ gold }} gold.
-            
-            {% if bonusExperience < 0 %}
-                Due to how easy this fight was, you earn {{ bonusExperience|abs }} less. In total, you earn {{ experience }} experience points!
-            {% elseif bonusExperience > 0 %}
-                Due to how difficult this fight was, you earn additional {{ bonusExperience }}. In total, you earn {{ experience }} experience points!
-            {% else %}
-                You earn {{ experience }} experience points!
-            {% endif %}
-            TEXT);
-        } else {
-            $stage->addContext("goldLost", $this->gold->getGold());
-            $stage->addContext("experienceLost", round(0.1 * $this->stats->getExperience()));
-
-            $stage->setDescription(<<<TEXT
-            You have been slain by <.{{ creatureName }}.>. {% if textLost %}<<{{ textLost }}>>{% endif %}
-            
-            You lost all your {{ goldLost}} gold, and {{ experienceLost }} experience points. Try better next time.
-            TEXT);
-
-            $this->logger->debug("Character {$stage->getOwner()->getId()} has been slain and lost {$this->gold->getGold()}.");
-            $this->gold->setGold(0);
-            $this->stats->setExperience((int)round(0.9 * $this->stats->getExperience()));
-        }
-
-        // Add standard navigation if battle is over
-        $this->addSearchNavigation($stage, $scene);
     }
 
     /**

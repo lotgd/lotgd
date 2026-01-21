@@ -41,4 +41,18 @@ readonly class Equipment
         $this->character->setProperty(self::PropertyName, $equipment);
         return $this;
     }
+
+    public function getEmptyName(string $slot): string
+    {
+        return match ($slot) {
+            Equipment::WeaponSlot => "Fists",
+            Equipment::ArmorSlot => "T-Shirt",
+            default => "Nothing",
+        };
+    }
+
+    public function getName(string $slot): string
+    {
+        return $this->getItemInSlot($slot)?->getName() ?? $this->getEmptyName($slot);
+    }
 }

@@ -9,12 +9,12 @@ use LotGD2\Entity\Mapped\Stage;
 
 trait DefaultSceneTemplate
 {
-    public function onSceneLeave(Stage $stage, Action $action, Scene $scene): bool
+    public function onSceneLeave(Stage $stage, Action $action, Scene $leavingScene, Scene $enteringScene): bool
     {
         return false;
     }
 
-    public function onSceneEnter(Stage $stage, Action $action, Scene $scene): bool
+    public function onSceneEnter(Stage $stage, Action $action, Scene $leavingScene, Scene $enteringScene): bool
     {
         return false;
     }

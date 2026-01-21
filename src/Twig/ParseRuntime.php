@@ -27,7 +27,11 @@ class ParseRuntime implements RuntimeExtensionInterface
         $this->twig->addExtension(new SandboxExtension(new SecurityPolicy(
             allowedTags: ["if"],
             allowedFilters: ["abs", "round"],
-            allowedProperties: ["Character" => "name"],
+            allowedProperties: [
+                "Character" => ["name", "level"],
+                "Master" => ["name", "weapon"],
+                "Creature" => ["name", "weapon"],
+            ],
         )));
     }
 
@@ -72,6 +76,7 @@ class ParseRuntime implements RuntimeExtensionInterface
         }
 
         try {
+            $parsedText = $this->twig->createTemplate($parsedText)->render($context);
             $parsedText = $this->twig->createTemplate($parsedText)->render($context);
         } catch (LoaderError|SyntaxError|RuntimeError $e) {
             $this->logger->warning("Issues parsing scene: {$e->getMessage()}");

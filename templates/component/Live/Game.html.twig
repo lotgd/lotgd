@@ -20,9 +20,9 @@
                     {% endfor %}
                 {% endif %}
 
-                {% for actionGroup in this.stage.actionGroups|filter(g => g.id not in ["lotgd.actionGroup.empty", "lotgd.actionGroup.hidden"])|sort(g => g.weight) %}
+                {% for actionGroup in this.stage.actionGroups|filter(g => g.id not in ["lotgd.actionGroup.empty", "lotgd.actionGroup.hidden"])|sort((a, b) => a.weight <=> b.weight) %}
                     <li class="nav-item lotgd-stage-action-group">
-                        {{ actionGroup.title }}
+                        {{ actionGroup.title }} {{ actionGroup.weight }}
                     </li>
 
                     {% for action in actionGroup.actions %}

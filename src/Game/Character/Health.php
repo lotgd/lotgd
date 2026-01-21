@@ -21,13 +21,13 @@ readonly class Health
 
     public function getHealth(): int
     {
-        return $this->character->getProperty(self::HealthPropertyName, 10);
+        return $this->character->getProperty(static::HealthPropertyName, 10);
     }
 
-    public function setHealth(int $health): self
+    public function setHealth(int $health): static
     {
         $this->logger?->debug("{$this->character->getId()}: health set to {$health} (was {$this->getHealth()}) before).");
-        $this->character->setProperty(self::HealthPropertyName, $health);
+        $this->character->setProperty(static::HealthPropertyName, $health);
         return $this;
     }
 
@@ -39,7 +39,7 @@ readonly class Health
      * @param int|null $health The amount to heal the character. If null is given, character is healed completely.
      * @return $this
      */
-    public function heal(?int $health = null): self
+    public function heal(?int $health = null): static
     {
         if ($health === null) {
             $health = $this->getMaxHealth();
@@ -47,9 +47,9 @@ readonly class Health
 
         $this->logger?->debug("{$this->character->getId()}: healed by {$health}.");
         $this->character->setProperty(
-            self::HealthPropertyName,
+            static::HealthPropertyName,
             min(
-                $this->character->getProperty(self::MaxHealthPropertyName),
+                $this->character->getProperty(static::MaxHealthPropertyName),
                 max(
                     $this->getHealth() + $health,
                     0
@@ -61,18 +61,24 @@ readonly class Health
 
     public function getMaxHealth(): int
     {
-        return $this->character->getProperty(self::MaxHealthPropertyName, 10);
+        return $this->character->getProperty(static::MaxHealthPropertyName, 10);
     }
 
-    public function setMaxHealth(int $maxHealth): self
+    public function setMaxHealth(int $maxHealth): static
     {
         $this->logger?->debug("{$this->character->getId()}: health set to {$maxHealth} (was {$this->getMaxHealth()}) before).");
-        $this->character->setProperty(self::MaxHealthPropertyName, $maxHealth);
+        $this->character->setProperty(static::MaxHealthPropertyName, $maxHealth);
+        return $this;
+    }
+
+    public function addMaxHealth(int $maxHealth): static
+    {
+        $this->setMaxHealth($this->getMaxHealth() + $maxHealth);
         return $this;
     }
 
     public function isAlive(): bool
     {
-        return $this->character->getProperty(self::HealthPropertyName) > 0;
+        return $this->character->getProperty(static::HealthPropertyName) > 0;
     }
 }
