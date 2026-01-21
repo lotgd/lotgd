@@ -11,6 +11,7 @@ use Dunglas\DoctrineJsonOdm\Type\JsonDocumentType;
 use LotGD2\Game\Enum\SceneConnectionType;
 use LotGD2\Game\Scene\SceneTemplate\SceneTemplateInterface;
 use LotGD2\Repository\SceneRepository;
+use ValueError;
 
 #[ORM\Entity(repositoryClass: SceneRepository::class)]
 class Scene
@@ -18,122 +19,81 @@ class Scene
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    private ?int $id = null;
-
-    #[ORM\Column(length: 255)]
-    private ?string $title = null;
-
-    #[ORM\Column(type: Types::TEXT)]
-    private ?string $description = null;
-
-    /** @var string|null  */
-    #[ORM\Column(length: 255, nullable: true)]
-    private ?string $templateClass = null;
-
-    /** @var null|array<string, mixed>  */
-    #[ORM\Column(type: JsonDocumentType::NAME, nullable: true)]
-    private ?array $templateConfig = null;
-
-    /** @var Collection<int, SceneConnection>  */
-    #[ORM\OneToMany(targetEntity: SceneConnection::class, mappedBy: 'sourceScene', cascade: ["persist", "remove"], orphanRemoval: true)]
-    private Collection $sourcedConnections;
-
-    /** @var Collection<int, SceneConnection>  */
-    #[ORM\OneToMany(targetEntity: SceneConnection::class, mappedBy: 'targetScene', cascade: ["persist", "remove"], orphanRemoval: true)]
-    private Collection $targetingConnections;
+    public ?int $id = null {
+        get {
+            return $this->id;
+        }
+    }
 
     /** @var Collection<int, SceneActionGroup>  */
     #[ORM\OneToMany(targetEntity: SceneActionGroup::class, mappedBy: 'scene', cascade: ["persist", "remove"], orphanRemoval: true)]
-    private Collection $actionGroups;
-
-    #[ORM\Column(type: 'boolean', nullable: true, options: ["default" => false])]
-    private ?bool $defaultScene = false;
-
-    public function __construct()
-    {
-        $this->sourcedConnections = new ArrayCollection();
-        $this->targetingConnections = new ArrayCollection();
-        $this->actionGroups = new ArrayCollection();
-        $this->templateConfig = [];
-    }
-
-    public function getId(): ?int
-    {
-        return $this->id;
-    }
-
-    public function getTitle(): ?string
-    {
-        return $this->title;
-    }
-
-    public function setTitle(string $title): static
-    {
-        $this->title = $title;
-
-        return $this;
-    }
-
-    public function getDescription(): ?string
-    {
-        return $this->description;
-    }
-
-    public function setDescription(string $description): static
-    {
-        $this->description = $description;
-
-        return $this;
-    }
-
-    /**
-     * @return string|null
-     */
-    public function getTemplateClass(): ?string
-    {
-        return $this->templateClass;
-    }
-
-    /**
-     * @param string|null $templateClass
-     * @return $this
-     */
-    public function setTemplateClass(?string $templateClass): static
-    {
-        if (!is_subclass_of($templateClass, SceneTemplateInterface::class, true)) {
-            throw new \ValueError("The template class of a scene must implement ".SceneTemplateInterface::class.".");
+    public Collection $actionGroups {
+        get {
+            return $this->actionGroups;
         }
-
-        $this->templateClass = $templateClass;
-
-        return $this;
+        /** @var iterable<int, SceneActionGroup> $actionGroups */
+        set(iterable $actionGroups) {
+            $this->actionGroups = new ArrayCollection();
+            foreach ($actionGroups as $actionGroup) {
+                $this->addActionGroup($actionGroup);
+            }
+        }
     }
 
     /**
-     * @return array<string, mixed>
+     * @param iterable<int, SceneActionGroup> $actionGroups
      */
-    public function getTemplateConfig(): array
-    {
-        if (null === $this->templateConfig) {
-            $this->templateConfig = [];
-        }
+    public function __construct(
+        #[ORM\Column(length: 255)]
+        public ?string $title = null,
 
-        return $this->templateConfig;
-    }
+        #[ORM\Column(type: Types::TEXT)]
+        public ?string $description = null,
 
-    /**
-     * @param array<string, mixed> $templateConfig
-     * @return $this
-     */
-    public function setTemplateConfig(array $templateConfig, bool $callValidation = true): static
-    {
-        if ($this->templateClass and is_subclass_of($this->templateClass, SceneTemplateInterface::class, true) and $callValidation) {
-            $this->templateConfig = $this->templateClass::validateConfiguration($templateConfig);
-        } else {
-            $this->templateConfig = $templateConfig;
-        }
+        /** @var string|null  */
+        #[ORM\Column(length: 255, nullable: true)]
+        public ?string $templateClass = null {
+            get => $this->templateClass;
+            set(?string $value) {
+                if (!is_null($value) and !is_subclass_of($value, SceneTemplateInterface::class, true)) {
+                    throw new ValueError("The template class of a scene must implement ".SceneTemplateInterface::class.", {$value} given.");
+                }
 
-        return $this;
+                $this->templateClass = $value;
+            }
+        },
+
+        /** @var null|array<string, mixed>  */
+        #[ORM\Column(type: JsonDocumentType::NAME, nullable: true)]
+        public ?array $templateConfig = [] {
+            get => $this->templateConfig;
+            set {
+                if ($this->templateClass and is_subclass_of($this->templateClass, SceneTemplateInterface::class, true)) {
+                    $this->templateConfig = $this->templateClass::validateConfiguration($value);
+                } else {
+                    $this->templateConfig = $value;
+                }
+            }
+        },
+
+        /** @var Collection<int, SceneConnection>  */
+        #[ORM\OneToMany(targetEntity: SceneConnection::class, mappedBy: 'sourceScene', cascade: ["persist", "remove"], orphanRemoval: true)]
+        public Collection $sourcedConnections = new ArrayCollection() {
+            get => $this->sourcedConnections;
+        },
+
+        /** @var Collection<int, SceneConnection>  */
+        #[ORM\OneToMany(targetEntity: SceneConnection::class, mappedBy: 'targetScene', cascade: ["persist", "remove"], orphanRemoval: true)]
+        public Collection $targetingConnections = new ArrayCollection() {
+            get => $this->targetingConnections;
+        },
+
+        iterable $actionGroups = new ArrayCollection(),
+
+        #[ORM\Column(type: 'boolean', nullable: true, options: ["default" => false])]
+        public ?bool $defaultScene = false,
+    ) {
+        $this->actionGroups = $actionGroups;
     }
 
     public function connectTo(
@@ -153,14 +113,6 @@ class Scene
         $this->addSourcedConnection($connection);
         $scene->addTargetingConnection($connection);
         return $connection;
-    }
-
-    /**
-     * @return Collection<int, SceneConnection>
-     */
-    public function getSourcedConnections(): Collection
-    {
-        return $this->sourcedConnections;
     }
 
     public function addSourcedConnection(SceneConnection $sourcedConnection): static
@@ -183,14 +135,6 @@ class Scene
         }
 
         return $this;
-    }
-
-    /**
-     * @return Collection<int, SceneConnection>
-     */
-    public function getTargetingConnections(): Collection
-    {
-        return $this->targetingConnections;
     }
 
     public function addTargetingConnection(SceneConnection $targetingConnection): static
@@ -240,14 +184,6 @@ class Scene
         }
     }
 
-    /**
-     * @return Collection<int, SceneActionGroup>
-     */
-    public function getActionGroups(): Collection
-    {
-        return $this->actionGroups;
-    }
-
     public function addActionGroup(SceneActionGroup $actionGroup): static
     {
         if (!$this->actionGroups->contains($actionGroup)) {
@@ -273,11 +209,5 @@ class Scene
     public function isDefaultScene(): bool
     {
         return $this->defaultScene === true;
-    }
-
-    public function setDefaultScene(bool $defaultScene): static
-    {
-        $this->defaultScene = $defaultScene;
-        return $this;
     }
 }

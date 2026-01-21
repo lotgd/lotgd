@@ -15,9 +15,7 @@ class SceneConnection
     #[ORM\GeneratedValue]
     #[ORM\Column]
     public ?int $id = null {
-        get {
-            return $this->id;
-        }
+        get => $this->id;
     }
 
     public function __construct(

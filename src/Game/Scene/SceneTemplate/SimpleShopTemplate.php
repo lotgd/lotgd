@@ -130,7 +130,7 @@ readonly class SimpleShopTemplate implements SceneTemplateInterface
         $this->logger->debug("Called SimpleShopTemplate::peruseAction");
 
         $character = $stage->getOwner();
-        $slot = $scene->getTemplateConfig()["type"] === "armor" ? Equipment::ArmorSlot : Equipment::WeaponSlot;
+        $slot = $scene->templateConfig["type"] === "armor" ? Equipment::ArmorSlot : Equipment::WeaponSlot;
 
         $attachment = $this->attachmentRepository->findOneByAttachmentClass(SimpleShopAttachment::class);
         $this->logger->debug("Add SimpleShopAttachment (id={$attachment->getId()})");
@@ -141,7 +141,7 @@ readonly class SimpleShopTemplate implements SceneTemplateInterface
         $oldItem = $this->equipment->getItemInSlot($slot);
 
         $stage
-            ->setDescription($scene->getTemplateConfig()["text"]["peruse"])
+            ->setDescription($scene->templateConfig["text"]["peruse"])
             ->setContext([
                 "amount" => $this->getTradeInValue($oldItem?->getValue() ?? 0),
                 "item" => $oldItem?->getName() ?? "Fists",
@@ -149,7 +149,7 @@ readonly class SimpleShopTemplate implements SceneTemplateInterface
             ->addAttachment(
                 $attachment, [
                     "buyActionId" => $buyAction->id,
-                    "inventory" => $scene->getTemplateConfig()["items"],
+                    "inventory" => $scene->templateConfig["items"],
                 ]
             )
         ;
@@ -160,19 +160,19 @@ readonly class SimpleShopTemplate implements SceneTemplateInterface
         $this->logger->debug("Called SimpleShopTemplate::buyAction");
 
         $itemId = $action->getParameters()[SimpleShopAttachment::ActionParameterName] ?? -1;
-        $inventory = $scene->getTemplateConfig()["items"];
+        $inventory = $scene->templateConfig["items"];
         $item = $inventory[$itemId] ?? null;
         $character = $stage->getOwner();
 
         if (!isset($inventory[$itemId])) {
             $this->logger->debug("Buying item with number {$itemId}, but does not exist.");
 
-            $description = $scene->getTemplateConfig()["text"]["itemNotFound"];
+            $description = $scene->templateConfig["text"]["itemNotFound"];
         } else {
             $this->logger->debug("Buying item with number {$itemId}.");
 
-            $slot = $scene->getTemplateConfig()["type"] === "armor" ? Equipment::ArmorSlot : Equipment::WeaponSlot;
-            $description = $scene->getTemplateConfig()["text"]["buy"];
+            $slot = $scene->templateConfig["type"] === "armor" ? Equipment::ArmorSlot : Equipment::WeaponSlot;
+            $description = $scene->templateConfig["text"]["buy"];
             $equipmentItem = new EquipmentItem(
                 name: $item["name"],
                 strength: $item["strength"],
@@ -185,7 +185,7 @@ readonly class SimpleShopTemplate implements SceneTemplateInterface
                 $this->equipment->setItemInSlot($slot, $equipmentItem);
                 $this->gold->addGold(-($equipmentItem->getValue() - $this->getTradeInValue($oldItem?->getValue() ?? 0)));
             } else {
-                $description = $scene->getTemplateConfig()["text"]["notEnoughGold"];
+                $description = $scene->templateConfig["text"]["notEnoughGold"];
             }
         }
 
@@ -199,7 +199,7 @@ readonly class SimpleShopTemplate implements SceneTemplateInterface
     public function addDefaultActions(Stage $stage, Scene $scene): void
     {
         $stage->addActionGroup(
-            new ActionGroup(self::ActionGroupShop, $scene->getTitle(), -10)
+            new ActionGroup(self::ActionGroupShop, $scene->title, -10)
         );
 
         $stage->addAction(

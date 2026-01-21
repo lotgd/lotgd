@@ -123,11 +123,11 @@ readonly class TrainingTemplate implements SceneTemplateInterface
         // If this returns null, the max level has been reached.
         if ($master === null) {
             $stage->setDescription(
-                $scene->getTemplateConfig()["text"]["maxLevelReached"],
+                $scene->templateConfig["text"]["maxLevelReached"],
             );
 
             $stage->setContext([
-                "campLeader" => $scene->getTemplateConfig()["campLeader"],
+                "campLeader" => $scene->templateConfig["campLeader"],
             ]);
         } else {
             $this->addDefaultActions($stage, $action, $scene);
@@ -142,10 +142,10 @@ readonly class TrainingTemplate implements SceneTemplateInterface
 
         $stage
             ->setDescription(
-                $scene->getTemplateConfig()["text"]["askExperience"],
+                $scene->templateConfig["text"]["askExperience"],
             )
             ->setContext([
-                "campLeader" => $scene->getTemplateConfig()["campLeader"],
+                "campLeader" => $scene->templateConfig["campLeader"],
                 "master" => $master,
                 "experience" => $this->stats->getExperience(),
                 "requiredExperience" => $this->stats->getRequiredExperience(),
@@ -163,10 +163,10 @@ readonly class TrainingTemplate implements SceneTemplateInterface
         if ($this->getSeenMaster($character)) {
             $stage
                 ->setDescription(
-                    $scene->getTemplateConfig()["text"]["seenMaster"],
+                    $scene->templateConfig["text"]["seenMaster"],
                 )
                 ->setContext([
-                    "campLeader" => $scene->getTemplateConfig()["campLeader"],
+                    "campLeader" => $scene->templateConfig["campLeader"],
                     "master" => $master,
                     "weapon" => $this->equipment->getName(Equipment::WeaponSlot),
                     "armor" => $this->equipment->getName(Equipment::WeaponSlot),
@@ -175,10 +175,10 @@ readonly class TrainingTemplate implements SceneTemplateInterface
         } elseif ($this->stats->getExperience() < $this->stats->getRequiredExperience()) {
             $stage
                 ->setDescription(
-                    $scene->getTemplateConfig()["text"]["absoluteDefeat"],
+                    $scene->templateConfig["text"]["absoluteDefeat"],
                 )
                 ->setContext([
-                    "campLeader" => $scene->getTemplateConfig()["campLeader"],
+                    "campLeader" => $scene->templateConfig["campLeader"],
                     "master" => $master,
                     "weapon" => $this->equipment->getName(Equipment::WeaponSlot),
                     "armor" => $this->equipment->getName(Equipment::ArmorSlot),
@@ -225,11 +225,11 @@ readonly class TrainingTemplate implements SceneTemplateInterface
             }
         } else {
             $stage->setDescription(
-                $scene->getTemplateConfig()["text"]["maxLevelReached"],
+                $scene->templateConfig["text"]["maxLevelReached"],
             );
 
             $stage->setContext([
-                "campLeader" => $scene->getTemplateConfig()["campLeader"],
+                "campLeader" => $scene->templateConfig["campLeader"],
             ]);
         }
     }

@@ -100,13 +100,13 @@ readonly class HealerTemplate implements SceneTemplateInterface
         $this->logger->debug("Called HealerTemplate::defaultAction");
 
         if ($this->health->getHealth() < $this->health->getMaxHealth()) {
-            $stage->addDescription($scene->getTemplateConfig()["text"]["onEntryAndDamaged"]);
+            $stage->addDescription($scene->templateConfig["text"]["onEntryAndDamaged"]);
             $stage->addContext("price", $this->getPrice($stage->getOwner()));
             $this->addPotionActions($stage, $scene);
-        } elseif ($this->health->getHealth() > $this->health->getMaxHealth() && ($scene->getTemplateConfig()["stealHealth"] ?? true) === true) {
-            $stage->addDescription($scene->getTemplateConfig()["text"]["onEntryAndOverhealed"]);
+        } elseif ($this->health->getHealth() > $this->health->getMaxHealth() && ($scene->templateConfig["stealHealth"] ?? true) === true) {
+            $stage->addDescription($scene->templateConfig["text"]["onEntryAndOverhealed"]);
         } else {
-            $stage->addDescription($scene->getTemplateConfig()["text"]["onEntryAndHealthy"]);
+            $stage->addDescription($scene->templateConfig["text"]["onEntryAndHealthy"]);
         }
     }
 
@@ -121,14 +121,14 @@ readonly class HealerTemplate implements SceneTemplateInterface
         if ($price === 0 or $this->gold->getGold() >= $price) {
             $this->logger->debug("{$character->getId()}: Healed by $amount for $price gold.");
 
-            $stage->setDescription($scene->getTemplateConfig()["text"]["onHealEnoughGold"]);
+            $stage->setDescription($scene->templateConfig["text"]["onHealEnoughGold"]);
             $stage->addContext("price", $price);
             $stage->addContext("amount", $amount);
 
             $this->health->heal($amount);
             $this->gold->addGold(-$price);
         } else {
-            $stage->setDescription($scene->getTemplateConfig()["text"]["onHealNotEnoughGold"]);
+            $stage->setDescription($scene->templateConfig["text"]["onHealNotEnoughGold"]);
             $stage->addContext("price", $price);
         }
     }
@@ -145,7 +145,7 @@ readonly class HealerTemplate implements SceneTemplateInterface
     {
         $actionGroup = new ActionGroup(
             id: self::ActionGroupPotions,
-            title: $scene->getTemplateConfig()["actionGroupPotionTitle"],
+            title: $scene->templateConfig["actionGroupPotionTitle"],
         );
 
         $healthDelta = $this->health->getMaxHealth() - $this->health->getHealth();
@@ -153,7 +153,7 @@ readonly class HealerTemplate implements SceneTemplateInterface
 
         $actionGroup->addAction(new Action(
             scene: $scene,
-            title: $scene->getTemplateConfig()["actionCompleteHealingTitle"],
+            title: $scene->templateConfig["actionCompleteHealingTitle"],
             parameters: ["op" => "heal", "amount" => $healthDelta, "price" => $price],
             reference: self::ActionCompleteHealing,
         ));

@@ -19,60 +19,56 @@ class SceneFixtures extends Fixture
     {
         /** @var Scene[] $scenes */
         $scenes = [
-            "village" => new Scene()
-                ->setDefaultScene(true)
-                ->setTitle("Village square")
-                ->setDescription(<<<TXT
-                    People are busy going on errands. No one really sees you. There are different 
-                    shops around the square. The village is surrounded by a deep, black forest.
-                    TXT)
-                ->addActionGroup(
-                    new SceneActionGroup()
-                        ->setSorting(0)
-                        ->setTitle("Outside")
-                )
-                ->addActionGroup(
-                    new SceneActionGroup()
-                        ->setSorting(1)
-                        ->setTitle("Blade alley")
-                )
-                ->addActionGroup(
-                    new SceneActionGroup()
-                        ->setSorting(2)
-                        ->setTitle("Market place")
-                )
-                ->addActionGroup(
-                    new SceneActionGroup()
-                        ->setSorting(3)
-                        ->setTitle("Tavern street")
+            "village" => new Scene(
+                    title: "Village square",
+                    description: <<<TXT
+                        People are busy going on errands. No one really sees you. There are different 
+                        shops around the square. The village is surrounded by a deep, black forest.
+                        TXT,
+                    actionGroups: [
+                        new SceneActionGroup()
+                            ->setSorting(0)
+                            ->setTitle("Outside"),
+                        new SceneActionGroup()
+                            ->setSorting(1)
+                            ->setTitle("Blade alley"),
+                        new SceneActionGroup()
+                            ->setSorting(2)
+                            ->setTitle("Market place"),
+                        new SceneActionGroup()
+                            ->setSorting(3)
+                            ->setTitle("Tavern street"),
+                    ],
+                    defaultScene: true,
                 ),
-            "forest" => new Scene()
-                ->setTitle("The forest")
-                ->setDescription(<<<TXT
+            "forest" => new Scene(
+                title: "The forest",
+                description: <<<TXT
                     The forest is home to evil monsters, critters, and people that prefer more 
                     discreet places than a lively village. The dense trees and the shades from the leaves restrict your vision
                     to a few meters at most. If not for your trained eyes, the paths would stay hidden. You move as silently
                     a mild breeze over the earth you are walking. You try to avoid to step on little branches or any of the
                     bleached, brittle bones that scatter the floor. You are trying to hide your presence from the things living here.
-                    TXT)
-                ->addActionGroup(
+                    TXT,
+                templateClass: FightTemplate::class,
+                templateConfig: [
+
+                ],
+                actionGroups: [
                     new SceneActionGroup()
                         ->setSorting(0)
-                        ->setTitle("Edge of the forest")
-                )
-                ->setTemplateClass(FightTemplate::class)
-                ->setTemplateConfig([
-
-                ]),
-            "healer" => new Scene()
-                ->setTitle("Healer's Hut")
-                ->setDescription(<<<TXT
+                        ->setTitle("Edge of the forest"),
+                ],
+            ),
+            "healer" => new Scene(
+                title: "Healer's Hut",
+                description: <<<TXT
                     You duck into the small smoke-filled grass hut. he pungent aroma makes you cough, attracting the attention of a 
                     grizzled old person that does a remarkable job of reminding you of a rock, which probably explains why you didn't 
                     notice them until now. Couldn't be your failure as a warrior. Nope, definitely not.
-                TXT)
-                ->setTemplateClass(HealerTemplate::class)
-                ->setTemplateConfig([
+                TXT,
+                templateClass: HealerTemplate::class,
+                templateConfig: [
                     "stealHealth" => true,
                     "text" => [
                         "onEntryAndDamaged" => <<<TXT
@@ -116,10 +112,11 @@ class SceneFixtures extends Fixture
                             You recall that the creature had asked for {{ price }} gold.
                         TXT,
                     ]
-                ]),
-            "weapons" => new Scene()
-                ->setTitle("MightyE's weapon shop")
-                ->setDescription(<<<TXT
+                ]
+            ),
+            "weapons" => new Scene(
+                title: "MightyE's weapon shop",
+                description: <<<TXT
                     MightyE stands behind a table and doesn't seemingly care when you enter the shop. 
                     From experience, you know that he is aware of every single one of your movements. He might be a humble
                     merchant, but one who still has the aura of a man who used his wares to kill opponents way stronger than
@@ -130,9 +127,9 @@ class SceneFixtures extends Fixture
                     on a certain level of baldness.
                     
                     Finally, MightyE nods at you, stroking his goatee and wishing for an excuse to use one of his weapons.
-                    TXT)
-                ->setTemplateClass(SimpleShopTemplate::class)
-                ->setTemplateConfig([
+                    TXT,
+                templateClass: SimpleShopTemplate::class,
+                templateConfig: [
                     "type" => "weapon",
                     "items" => [
                         ["name" => "Round stone", "strength" => 1, "price" => 49],
@@ -186,10 +183,11 @@ class SceneFixtures extends Fixture
                             You wake up some time later, having been tossed unconscious into the street.
                             TXT,
                     ],
-                ]),
-            "armors" => new Scene()
-                ->setTitle("Pegasus armor")
-                ->setDescription(<<<TXT
+                ]
+            ),
+            "armors" => new Scene(
+                title: "Pegasus armor",
+                description: <<<TXT
                     The fair and beautiful Pegasus greets you with a warm smile as you stroll over 
                     to her brightly colored wagon, which is placed, not out of coincidence, right next to MightyE's weapon
                     shop.
@@ -197,9 +195,9 @@ class SceneFixtures extends Fixture
                     Her outfit is as brightly coloured and outrageous as her wagon, and it is almost (but not quite)
                     enough to make you look away from her huge grey eyes and flashes of her skin between her 
                     not-quite-sufficient clothes.
-                    TXT)
-                ->setTemplateClass(SimpleShopTemplate::class)
-                ->setTemplateConfig([
+                    TXT,
+                templateClass: SimpleShopTemplate::class,
+                templateConfig: [
                     "type" => "armor",
                     "items" => [
                         ["name" => "Fuzzy Slippers", "strength" => 1, "price" => 49],
@@ -258,10 +256,11 @@ class SceneFixtures extends Fixture
                             You wake up some time later, having been tossed unconscious into the street.
                             TXT,
                     ],
-                ]),
-            "bank" => new Scene()
-                ->setTitle("Ye Olde Bank")
-                ->setDescription(<<<'TXT'
+                ]
+            ),
+            "bank" => new Scene(
+                title: "Ye Olde Bank",
+                description: <<<TXT
                     As you approach the pair of impressive carved rock crystal doors, they part to 
                     to allow you entrance into the bank. You find yourself standing in a room of exquisitely vaulted
                     ceilings of carved stone. Light filters through tall windows in shafts of soft radiance. About you,
@@ -285,9 +284,9 @@ class SceneFixtures extends Fixture
                     {% else %}
                         <<No, I'm afraid you currently do not own an account with our bank. Do you want to open one?>>
                     {% endif %}
-                    TXT)
-                ->setTemplateClass(BankTemplate::class)
-                ->setTemplateConfig([
+                    TXT,
+                templateClass: BankTemplate::class,
+                templateConfig: [
                     "tellerName" => "Elessa",
                     "accountName" => "default",
                     "text" => [
@@ -304,15 +303,16 @@ class SceneFixtures extends Fixture
                             {% endif %}
                             TXT,
                     ]
-                ]),
-            "training" => new Scene()
-                ->setTitle("Bluspring's Warrior Training")
-                ->setDescription(<<<TEXT
+                ]
+            ),
+            "training" => new Scene(
+                title: "Bluspring's Warrior Training",
+                description: <<<TXT
                     The sound of conflict surrounds you. The clang of weapons in grisly battle inspires your warrior heart.
                     {{ master.name }} stands ready to evaluate you.
-                TEXT)
-                ->setTemplateClass(TrainingTemplate::class)
-                ->setTemplateConfig([
+                    TXT,
+                templateClass: TrainingTemplate::class,
+                templateConfig: [
                     "campLeader" => "Bluspring's Warrior",
                     "text" => [
                         "maxLevelReached" => <<<TXT
@@ -344,27 +344,27 @@ class SceneFixtures extends Fixture
                             of boisterous guffaws.
                         TXT,
                     ]
-                ])
-            ,
+                ],
+            ),
         ];
 
         $villageToForestConnection = $scenes["village"]->connectTo($scenes["forest"], sourceLabel: "The forest", targetLabel: "Back to the village");
-        $scenes["village"]->getActionGroups()->get(0)->addConnection($villageToForestConnection);
+        $scenes["village"]->actionGroups->get(0)->addConnection($villageToForestConnection);
 
         $villageToWeaponsConnection = $scenes["village"]->connectTo($scenes["weapons"], sourceLabel: "MightyE's weapons", targetLabel: "Back to the village");
-        $scenes["village"]->getActionGroups()->get(2)->addConnection($villageToWeaponsConnection);
+        $scenes["village"]->actionGroups->get(2)->addConnection($villageToWeaponsConnection);
 
         $villageToArmorsConnection = $scenes["village"]->connectTo($scenes["armors"], sourceLabel: "Pegasus armors", targetLabel: "Back to the village");
-        $scenes["village"]->getActionGroups()->get(2)->addConnection($villageToArmorsConnection);
+        $scenes["village"]->actionGroups->get(2)->addConnection($villageToArmorsConnection);
 
         $villageToArmorsConnection = $scenes["village"]->connectTo($scenes["bank"], sourceLabel: "Ye Olde Bank", targetLabel: "Back to the village");
-        $scenes["village"]->getActionGroups()->get(2)->addConnection($villageToArmorsConnection);
+        $scenes["village"]->actionGroups->get(2)->addConnection($villageToArmorsConnection);
 
         $forestToHealerConnection = $scenes["forest"]->connectTo($scenes["healer"], sourceLabel: "Healer's Hut", targetLabel: "Back to the forest");
-        $scenes["forest"]->getActionGroups()->get(0)->addConnection($forestToHealerConnection);
+        $scenes["forest"]->actionGroups->get(0)->addConnection($forestToHealerConnection);
 
         $villageToTrainingConnection = $scenes["village"]->connectTo($scenes["training"], sourceLabel: "Bluspring's Warrior Training", targetLabel: "Back to the village");
-        $scenes["village"]->getActionGroups()->get(1)->addConnection($villageToTrainingConnection);
+        $scenes["village"]->actionGroups->get(1)->addConnection($villageToTrainingConnection);
 
         foreach ($scenes as $scene) {
             $manager->persist($scene);

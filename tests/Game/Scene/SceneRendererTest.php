@@ -49,8 +49,8 @@ class SceneRendererTest extends TestCase
     private function getSceneMock(string $title, string $description): Scene&MockObject
     {
         $scene = $this->createMock(Scene::class);
-        $scene->method('getTitle')->willReturn($title);
-        $scene->method('getDescription')->willReturn($description);
+        $scene->title = $title;
+        $scene->description = $description;
 
         return $scene;
     }
@@ -109,12 +109,12 @@ class SceneRendererTest extends TestCase
     {
         $scene = $this->getSceneMock("Test Scene", "A nice scenery");
         $otherScene = $this->getSceneMock("Other Scene", "A new scenery");
-        $otherScene->method("getId")->willReturn(13);
+        $otherScene->method(PropertyHook::get("id"))->willReturn(13);
         $sceneConnection = $this->createMock(SceneConnection::class);
         $sceneConnection->sourceScene = $scene;
         $sceneConnection->targetScene = $otherScene;
-        $sceneConnection->sourceLabel = $otherScene->getTitle();
-        $sceneConnection->targetLabel = $scene->getTitle();
+        $sceneConnection->sourceLabel = $otherScene->title;
+        $sceneConnection->targetLabel = $scene->title;
 
         $sceneRepository = $this->createMock(SceneRepository::class);
         $diceBag = new DiceBag();
@@ -123,7 +123,7 @@ class SceneRendererTest extends TestCase
 
         $action = $sceneRenderer->createActionFromConnection($scene, $sceneConnection);
 
-        $this->assertSame($otherScene->getTitle(), $action->title);
+        $this->assertSame($otherScene->title, $action->title);
         $this->assertSame(13, $action->sceneId);
     }
 
@@ -134,12 +134,12 @@ class SceneRendererTest extends TestCase
     {
         $scene = $this->getSceneMock("Test Scene", "A nice scenery");
         $otherScene = $this->getSceneMock("Other Scene", "A new scenery");
-        $otherScene->method("getId")->willReturn(13);
+        $otherScene->method(PropertyHook::get("id"))->willReturn(13);
         $sceneConnection = $this->createMock(SceneConnection::class);
         $sceneConnection->targetScene = $scene;
         $sceneConnection->sourceScene = $otherScene;
-        $sceneConnection->targetLabel = $otherScene->getTitle();
-        $sceneConnection->sourceLabel = $scene->getTitle();
+        $sceneConnection->targetLabel = $otherScene->title;
+        $sceneConnection->sourceLabel = $scene->title;
 
         $sceneRepository = $this->createMock(SceneRepository::class);
         $diceBag = new DiceBag();
@@ -148,7 +148,7 @@ class SceneRendererTest extends TestCase
 
         $action = $sceneRenderer->createActionFromConnection($scene, $sceneConnection);
 
-        $this->assertSame($otherScene->getTitle(), $action->title);
+        $this->assertSame($otherScene->title, $action->title);
         $this->assertSame(13, $action->sceneId);
     }
 
@@ -159,15 +159,15 @@ class SceneRendererTest extends TestCase
     {
         $scene = $this->getSceneMock("Test Scene", "A nice scenery");
         $sourceScene = $this->getSceneMock("Source Scene", "The original scenery");
-        $sourceScene->method("getId")->willReturn(13);
+        $sourceScene->method(PropertyHook::get("id"))->willReturn(13);
         $targetScene = $this->getSceneMock("Target Scene", "The target scenery");
-        $targetScene->method("getId")->willReturn(33);
+        $targetScene->method(PropertyHook::get("id"))->willReturn(33);
 
         $sceneConnection = $this->createMock(SceneConnection::class);
         $sceneConnection->targetScene = $targetScene;
         $sceneConnection->sourceScene = $sourceScene;
-        $sceneConnection->targetLabel = $sourceScene->getTitle();
-        $sceneConnection->sourceLabel = $targetScene->getTitle();
+        $sceneConnection->targetLabel = $sourceScene->title;
+        $sceneConnection->sourceLabel = $targetScene->title;
         $sceneRepository = $this->createMock(SceneRepository::class);
         $diceBag = new DiceBag();
 
@@ -187,7 +187,7 @@ class SceneRendererTest extends TestCase
         $stage = new Stage();
         $scene = $this->createMock(Scene::class);
 
-        $scene->method('getActionGroups')->willReturn(new ArrayCollection());
+        $scene->method(PropertyHook::get("actionGroups"))->willReturn(new ArrayCollection());
         $scene->method('getConnections')->willReturn(new ArrayCollection());
 
         $this->renderer->addActions($stage, $scene);
@@ -211,7 +211,7 @@ class SceneRendererTest extends TestCase
         $sceneActionGroup->method('getSorting')->willReturn(10);
         $sceneActionGroup->method('getConnections')->willReturn(new ArrayCollection());
 
-        $scene->method('getActionGroups')->willReturn(new ArrayCollection([$sceneActionGroup]));
+        $scene->method(PropertyHook::get("actionGroups"))->willReturn(new ArrayCollection([$sceneActionGroup]));
         $scene->method('getConnections')->willReturn(new ArrayCollection());
 
         $this->renderer->addActions($stage, $scene);
@@ -240,7 +240,7 @@ class SceneRendererTest extends TestCase
 
         // Create target scene
         $targetScene = $this->createMock(Scene::class);
-        $targetScene->method('getId')->willReturn(2);
+        $targetScene->method(PropertyHook::get("id"))->willReturn(2);
         $connection->targetScene = $targetScene;
 
         // Create a mock scene action group
@@ -250,7 +250,7 @@ class SceneRendererTest extends TestCase
         $sceneActionGroup->method('getSorting')->willReturn(10);
         $sceneActionGroup->method('getConnections')->willReturn(new ArrayCollection([$connection]));
 
-        $scene->method('getActionGroups')->willReturn(new ArrayCollection([$sceneActionGroup]));
+        $scene->method(PropertyHook::get("actionGroups"))->willReturn(new ArrayCollection([$sceneActionGroup]));
         $scene->method('getConnections')->willReturn(new ArrayCollection());
 
         $this->diceBag->method('getRandomString')->willReturn('action-id');
@@ -282,7 +282,7 @@ class SceneRendererTest extends TestCase
         $connection->sourceLabel = 'Go North';
 
         $targetScene = $this->createMock(Scene::class);
-        $targetScene->method('getId')->willReturn(2);
+        $targetScene->method(PropertyHook::get("id"))->willReturn(2);
         $connection->targetScene = $targetScene;
 
         // Add the same connection to action group
@@ -293,7 +293,7 @@ class SceneRendererTest extends TestCase
         $sceneActionGroup->method('getConnections')->willReturn(new ArrayCollection([$connection]));
 
         // And also include it in visible connections
-        $scene->method('getActionGroups')->willReturn(new ArrayCollection([$sceneActionGroup]));
+        $scene->method(PropertyHook::get("actionGroups"))->willReturn(new ArrayCollection([$sceneActionGroup]));
         $scene->method('getConnections')->willReturn(new ArrayCollection([$connection]));
 
         $this->diceBag->method('getRandomString')->willReturn('action-id');
@@ -322,10 +322,10 @@ class SceneRendererTest extends TestCase
         $connection->sourceLabel = 'Go South';
 
         $targetScene = $this->createMock(Scene::class);
-        $targetScene->method('getId')->willReturn(3);
+        $targetScene->method(PropertyHook::get("id"))->willReturn(3);
         $connection->targetScene = $targetScene;
 
-        $scene->method('getActionGroups')->willReturn(new ArrayCollection());
+        $scene->method(PropertyHook::get("actionGroups"))->willReturn(new ArrayCollection());
         $scene->method('getConnections')->willReturn(new ArrayCollection([$connection]));
 
         $this->diceBag->method('getRandomString')->willReturn('action-id-2');
@@ -355,7 +355,7 @@ class SceneRendererTest extends TestCase
         $connection1->sourceLabel = 'Go North';
 
         $targetScene1 = $this->createMock(Scene::class);
-        $targetScene1->method('getId')->willReturn(20);
+        $targetScene1->method(PropertyHook::get("id"))->willReturn(20);
         $connection1->targetScene = $targetScene1;
 
         // Connection in visible connections only
@@ -365,7 +365,7 @@ class SceneRendererTest extends TestCase
         $connection2->sourceLabel = 'Go South';
 
         $targetScene2 = $this->createMock(Scene::class);
-        $targetScene2->method('getId')->willReturn(30);
+        $targetScene2->method(PropertyHook::get("id"))->willReturn(30);
         $connection2->targetScene = $targetScene2;
 
         // Scene action group
@@ -375,7 +375,7 @@ class SceneRendererTest extends TestCase
         $sceneActionGroup->method('getSorting')->willReturn(10);
         $sceneActionGroup->method('getConnections')->willReturn(new ArrayCollection([$connection1]));
 
-        $scene->method('getActionGroups')->willReturn(new ArrayCollection([$sceneActionGroup]));
+        $scene->method(PropertyHook::get("actionGroups"))->willReturn(new ArrayCollection([$sceneActionGroup]));
         $scene->method('getConnections')->willReturn(new ArrayCollection([$connection1, $connection2]));
 
         $this->diceBag->method('getRandomString')->willReturn('action-id');
@@ -408,7 +408,7 @@ class SceneRendererTest extends TestCase
         $connection->targetLabel = 'Go Back';
 
         $sourceScene = $this->createMock(Scene::class);
-        $sourceScene->method('getId')->willReturn(21);
+        $sourceScene->method(PropertyHook::get("id"))->willReturn(21);
         $connection->sourceScene = $sourceScene;
 
         $sceneActionGroup = $this->createMock(SceneActionGroup::class);
@@ -417,7 +417,7 @@ class SceneRendererTest extends TestCase
         $sceneActionGroup->method('getSorting')->willReturn(10);
         $sceneActionGroup->method('getConnections')->willReturn(new ArrayCollection([$connection]));
 
-        $scene->method('getActionGroups')->willReturn(new ArrayCollection([$sceneActionGroup]));
+        $scene->method(PropertyHook::get("actionGroups"))->willReturn(new ArrayCollection([$sceneActionGroup]));
         $scene->method('getConnections')->willReturn(new ArrayCollection([]));
 
         $this->diceBag->method('getRandomString')->willReturn('action-id');
@@ -453,7 +453,7 @@ class SceneRendererTest extends TestCase
         $sceneActionGroup2->method('getSorting')->willReturn(20);
         $sceneActionGroup2->method('getConnections')->willReturn(new ArrayCollection());
 
-        $scene->method('getActionGroups')->willReturn(new ArrayCollection([$sceneActionGroup1, $sceneActionGroup2]));
+        $scene->method(PropertyHook::get("actionGroups"))->willReturn(new ArrayCollection([$sceneActionGroup1, $sceneActionGroup2]));
         $scene->method('getConnections')->willReturn(new ArrayCollection());
 
         $this->renderer->addActions($stage, $scene);

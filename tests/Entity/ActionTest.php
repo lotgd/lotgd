@@ -9,6 +9,7 @@ use LotGD2\Game\Random\DiceBag;
 use LotGD2\Game\Random\DiceBagInterface;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\UsesClass;
+use PHPUnit\Framework\MockObject\Runtime\PropertyHook;
 use PHPUnit\Framework\TestCase;
 
 #[CoversClass(Action::class)]
@@ -45,7 +46,7 @@ class ActionTest extends TestCase
     public function testConstructorWithScene(): void
     {
         $scene = $this->createMock(Scene::class);
-        $scene->method('getId')->willReturn(5);
+        $scene->method(PropertyHook::get("id"))->willReturn(5);
 
         $action = new Action(scene: $scene);
 
@@ -65,7 +66,7 @@ class ActionTest extends TestCase
     public function testConstructorWithAllParameters(): void
     {
         $scene = $this->createMock(Scene::class);
-        $scene->method('getId')->willReturn(42);
+        $scene->method(PropertyHook::get("id"))->willReturn(42);
         
         $parameters = ['level' => 3, 'name' => 'Fireball'];
         $diceBag = $this->createMock(DiceBag::class);
@@ -118,8 +119,8 @@ class ActionTest extends TestCase
 
     public function testSetSceneIdWithScene(): void
     {
-        $scene = $this->createMock(Scene::class);
-        $scene->method("getId")->willReturn(99);
+        $scene = $this->createStub(Scene::class);
+        $scene->method(PropertyHook::get("id"))->willReturn(99);
 
         $action = new Action();
         $action->sceneId = $scene;

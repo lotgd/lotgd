@@ -79,7 +79,7 @@ readonly class BankTemplate implements SceneTemplateInterface
         $this->logger->debug("Called BankTemplate::onSceneChange, op={$op}");
 
         $stage->setContext([
-            "tellerName" => $scene->getTemplateConfig()["tellerName"],
+            "tellerName" => $scene->templateConfig["tellerName"],
         ]);
 
         match ($op) {
@@ -99,17 +99,17 @@ readonly class BankTemplate implements SceneTemplateInterface
         if (isset($actionData["withdraw"]) and $actionData["withdraw"] === true) {
             if ($amount === 0) {
                 // If amount is 0, we withdraw everything
-                $amount = $this->getGoldInBank($character, $scene->getTemplateConfig());
+                $amount = $this->getGoldInBank($character, $scene->templateConfig);
             }
 
-            $amount = min($amount, $this->getGoldInBank($character, $scene->getTemplateConfig()));
+            $amount = min($amount, $this->getGoldInBank($character, $scene->templateConfig));
 
-            $this->addGoldInBank($character, $scene->getTemplateConfig(), -$amount);
+            $this->addGoldInBank($character, $scene->templateConfig, -$amount);
             $this->gold->addGold($amount);
 
-            $this->logger->debug("Withdrew {$amount} gold from the bank (bank account name: {$scene->getTemplateConfig()['accountName']})");
+            $this->logger->debug("Withdrew {$amount} gold from the bank (bank account name: {$scene->templateConfig['accountName']})");
 
-            $stage->setDescription($scene->getTemplateConfig()["text"]["withdraw"]);
+            $stage->setDescription($scene->templateConfig["text"]["withdraw"]);
         } else {
             if ($amount === 0) {
                 // If amount is 0, we deposit everything
@@ -118,17 +118,17 @@ readonly class BankTemplate implements SceneTemplateInterface
 
             $amount = min($amount, $this->gold->getGold());
 
-            $this->addGoldInBank($character, $scene->getTemplateConfig(), $amount);
+            $this->addGoldInBank($character, $scene->templateConfig, $amount);
             $this->gold->addGold(-$amount);
 
-            $this->logger->debug("Deposited {$amount} gold to the bank (bank account name: {$scene->getTemplateConfig()['accountName']})");
+            $this->logger->debug("Deposited {$amount} gold to the bank (bank account name: {$scene->templateConfig['accountName']})");
 
-            $stage->setDescription($scene->getTemplateConfig()["text"]["deposit"]);
+            $stage->setDescription($scene->templateConfig["text"]["deposit"]);
         }
 
         $stage
             ->addContext("amount", $amount)
-            ->addContext("goldInBank", $this->getGoldInBank($character, $scene->getTemplateConfig()))
+            ->addContext("goldInBank", $this->getGoldInBank($character, $scene->templateConfig))
             ->addContext("goldInHand", $this->gold->getGold())
         ;
     }
@@ -140,7 +140,7 @@ readonly class BankTemplate implements SceneTemplateInterface
         $attachment = $this->attachmentRepository->findOneByAttachmentClass(SimpleFormAttachment::class);
 
         $stage
-            ->addContext("goldInBank", $this->getGoldInBank($stage->getOwner(), $scene->getTemplateConfig()));
+            ->addContext("goldInBank", $this->getGoldInBank($stage->getOwner(), $scene->templateConfig));
 
         if ($attachment) {
             $formAction = new Action($scene, parameters: ["op" => "depositOrWithdraw"]);

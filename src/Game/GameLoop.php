@@ -85,7 +85,7 @@ class GameLoop
         $targetScene = $this->sceneRepository->find($selectedAction->sceneId);
 
         if ($targetScene !== $currentScene) {
-            if ($currentScene->getTemplateClass() !== null
+            if ($currentScene->templateClass !== null
                 and (bool)($selectedAction->getParameters()["lotgd.scene.skipOnSceneLeave"] ?? false) === false
             ) {
                 $this->logger->debug("Calling onSceneLeave");
@@ -100,17 +100,17 @@ class GameLoop
                 $stage->addAction(ActionGroup::EMPTY, $selectedAction);
 
                 /** @var SceneTemplateInterface<array<string, mixed>> $currentSceneTemplate */
-                $currentSceneTemplate = $this->container->get($currentScene->getTemplateClass());
+                $currentSceneTemplate = $this->container->get($currentScene->templateClass);
                 $reply = $currentSceneTemplate->onSceneLeave($stage, $selectedAction, $currentScene, $targetScene);
 
                 $renderDefault = !$reply;
-            } elseif ($targetScene->getTemplateClass() !== null
+            } elseif ($targetScene->templateClass !== null
                 and (bool)($selectedAction->getParameters()["lotgd.scene.skipOnSceneEnter"] ?? false) === false
             ) {
                 $this->logger->debug("Calling onSceneEnter");
 
                 /** @var SceneTemplateInterface<array<string, mixed>> $currentSceneTemplate */
-                $targetSceneTemplate = $this->container->get($targetScene->getTemplateClass());  // @phpstan-ignore varTag.differentVariable
+                $targetSceneTemplate = $this->container->get($targetScene->templateClass);  // @phpstan-ignore varTag.differentVariable
                 $reply = $targetSceneTemplate->onSceneEnter($stage, $selectedAction, $currentScene, $targetScene);
 
                 $renderDefault = !$reply;
@@ -123,11 +123,11 @@ class GameLoop
             $stage = $this->renderer->render($character->getStage(), $targetScene);
 
             // Allow the scene template to change the scene
-            if ($targetScene->getTemplateClass()) {
+            if ($targetScene->templateClass) {
                 $this->logger->debug("Calling onSceneChange");
 
                 /** @var SceneTemplateInterface<array<string, mixed>> $currentSceneTemplate */
-                $targetSceneTemplate = $this->container->get($targetScene->getTemplateClass());
+                $targetSceneTemplate = $this->container->get($targetScene->templateClass);
                 $targetSceneTemplate?->onSceneChange($stage, $selectedAction, $targetScene);  // @phpstan-ignore nullsafe.neverNull
             }
         }

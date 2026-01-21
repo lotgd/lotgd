@@ -16,7 +16,7 @@ class Action
         get => $this->sceneId;
         set(null|int|Scene $value) {
             if ($value instanceof Scene) {
-                $this->sceneId = $value->getId();
+                $this->sceneId = $value->id;
             } else {
                 $this->sceneId = $value;
             }

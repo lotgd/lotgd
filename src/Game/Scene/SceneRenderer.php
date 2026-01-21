@@ -56,8 +56,8 @@ readonly class SceneRenderer
         Scene $scene,
     ): Stage {
         $stage->setScene($scene);
-        $stage->setTitle($scene->getTitle());
-        $stage->setDescription($scene->getDescription());
+        $stage->setTitle($scene->title);
+        $stage->setDescription($scene->description);
         $stage->clearAttachments();
         $stage->clearContext();
 
@@ -111,7 +111,7 @@ readonly class SceneRenderer
         $allKnownConnection = $scene->getConnections();
         $addedConnections = [];
 
-        foreach ($scene->getActionGroups() as $sceneActionGroup) {
+        foreach ($scene->actionGroups as $sceneActionGroup) {
             $actionGroup = new ActionGroup(
                 id: "lotgd.actionGroup.custom.{$sceneActionGroup->getId()}",
                 title: $sceneActionGroup->getTitle(),

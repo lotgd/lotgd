@@ -190,12 +190,12 @@ readonly class FightTemplate implements SceneTemplateInterface
     public function addDefaultActions(Stage $stage, Action $action, Scene $scene): void
     {
         if ($this->health->isAlive()) {
-            $actionGroup = new ActionGroup(self::ActionGroupSearch, $scene->getTitle());
+            $actionGroup = new ActionGroup(self::ActionGroupSearch, $scene->title);
 
             $actionGroup->addAction(
                 new Action(
                     scene: $scene,
-                    title: $scene->getTemplateConfig()["searchFightAction"],
+                    title: $scene->templateConfig["searchFightAction"],
                     parameters: [
                         "op" => "search",
                         "level" => 0,
@@ -209,7 +209,7 @@ readonly class FightTemplate implements SceneTemplateInterface
                 $actionGroup->addAction(
                     new Action(
                         scene: $scene,
-                        title: $scene->getTemplateConfig()["searchSlummingAction"] ?? "Go slumming",
+                        title: $scene->templateConfig["searchSlummingAction"] ?? "Go slumming",
                         parameters: [
                             "op" => "search",
                             "level" => -1,
@@ -221,7 +221,7 @@ readonly class FightTemplate implements SceneTemplateInterface
             $actionGroup->addAction(
                 new Action(
                     scene: $scene,
-                    title: $scene->getTemplateConfig()["searchThrillseekingAction"] ?? "Go thrillseeking",
+                    title: $scene->templateConfig["searchThrillseekingAction"] ?? "Go thrillseeking",
                     parameters: [
                         "op" => "search",
                         "level" => 1,
