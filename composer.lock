@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "1196e901c6961ab054b2417590305b45",
+    "content-hash": "7d752b24f4dfbeaa0fb4246d7102d822",
     "packages": [
         {
             "name": "doctrine/collections",
@@ -1269,6 +1269,56 @@
                 }
             ],
             "time": "2025-03-06T22:45:56+00:00"
+        },
+        {
+            "name": "gglnx/twig-try-catch",
+            "version": "1.0.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/gglnx/twig-try-catch.git",
+                "reference": "c791113528f60535a6f4340ddef085ba4b91d548"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/gglnx/twig-try-catch/zipball/c791113528f60535a6f4340ddef085ba4b91d548",
+                "reference": "c791113528f60535a6f4340ddef085ba4b91d548",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=7.2.5",
+                "twig/twig": "^2.14|^3.0"
+            },
+            "require-dev": {
+                "squizlabs/php_codesniffer": "^3.6"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Gglnx\\TwigTryCatch\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Dennis Morhardt",
+                    "email": "info@dennismorhardt.de",
+                    "homepage": "https://dennismorhardt.de/"
+                }
+            ],
+            "description": "Adds exception handling to Twig",
+            "keywords": [
+                "twig",
+                "twig-extension"
+            ],
+            "support": {
+                "docs": "https://github.com/gglnx/twig-try-catch",
+                "issues": "https://github.com/gglnx/twig-try-catch/issues?state=open",
+                "source": "https://github.com/gglnx/twig-try-catch"
+            },
+            "time": "2022-01-05T15:10:12+00:00"
         },
         {
             "name": "monolog/monolog",
