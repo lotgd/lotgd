@@ -129,13 +129,13 @@ readonly class BankTemplate implements SceneTemplateInterface
         $attachment = $this->attachmentRepository->findOneByAttachmentClass(SimpleFormAttachment::class);
         $this->logger->debug("Add SimpleFormAttachment (id={$attachment?->getId()})");
 
-        $formAction = new Action($scene, parameters: ["op" => "depositOrWithdraw"]);
-        $this->actionService->addHiddenAction($stage, $formAction);
-
         $stage
             ->addContext("goldInBank", $this->getGoldInBank($stage->getOwner(), $scene->getTemplateConfig()));
 
         if ($attachment) {
+            $formAction = new Action($scene, parameters: ["op" => "depositOrWithdraw"]);
+            $this->actionService->addHiddenAction($stage, $formAction);
+
             $stage->addAttachment($attachment, [
                 "actionId" => $formAction->getId(),
                 "form" => [
