@@ -6,10 +6,10 @@ namespace LotGD2\DataFixtures;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Persistence\ObjectManager;
 use LotGD2\Entity\Mapped\Creature;
+use LotGD2\Entity\Mapped\Master;
 use Psr\Log\LoggerInterface;
-use SplFileObject;
 
-final class CreatureFixtures extends Fixture
+class MasterFixtures extends Fixture
 {
     use TsvDataReaderTrait;
 
@@ -20,25 +20,22 @@ final class CreatureFixtures extends Fixture
 
     public function load(ObjectManager $manager): void
     {
-        $fileName = implode(DIRECTORY_SEPARATOR, [__DIR__, "data", "creatures.tsv"]);
+        $fileName = implode(DIRECTORY_SEPARATOR, [__DIR__, "data", "masters.tsv"]);
         $statistics = [];
 
         foreach ($this->iterateTsvData($fileName) as $row) {
-            $creature = new Creature(
+            $master = new Master(
                 name: $row["name"],
-                level: (int) $row["level"],
+                level: (int)$row["level"],
                 weapon: $row["weapon"],
-                health: (int) $row["health"],
-                attack: (int) $row["attack"],
-                defense: (int) $row["defense"],
+                health: (int)$row["health"],
+                attack: (int)$row["attack"],
+                defense: (int)$row["defense"],
                 textDefeated: $row["textDefeated"],
                 textLost: $row["textLost"],
-                gold: (int) $row["gold"],
-                experience: (int) $row["experience"],
-                credits: $row["credits"],
             );
 
-            $manager->persist($creature);
+            $manager->persist($master);
 
             if (!isset($statistics[$row["level"]])) {
                 $statistics[$row["level"]] = 0;
@@ -46,13 +43,13 @@ final class CreatureFixtures extends Fixture
 
             $statistics[$row["level"]] += 1;
 
-            $this->logger->debug("Adds creature {$row['name']}'");
+            $this->logger->debug("Adds master {$row['name']}'");
         }
 
         ksort($statistics);
 
         foreach ($statistics as $level => $count) {
-            $this->logger->notice("Added {$count} creatures of level {$level}");
+            $this->logger->notice("Added {$count} master of level {$level}");
         }
 
         $manager->flush();

@@ -1,0 +1,15 @@
+name	level	weapon	textDefeated	textLost	health	attack	defense
+Mireraband	1	Small Dagger	Well done {{ character.name }}, I should have guessed you'd grown some.	As I thought, {{character.name}}, your skills are no match for my own!	12	2	2
+Fie	2	Short Sword	Well done {{ character.name }}, you really know how to use your {{ weaponName }}.	You should have known you were no match for my {{ creatureWeaponName }}!	22	4	4
+Glynyc	3	Hugely Spiked Mace	Aah, defeated by the likes of you!  Next thing you know, Mireraband will be hunting me down!	Haha, maybe you should go back to Mireraband's class.	33	6	6
+Guth	4	Spiked Club	Ha! Hahaha, excellent fight {{ character.name }}!  Haven't had a battle like that since I was in the RAF!	Back in the RAF, we'd have eaten the likes of you alive! Go work on your skills some old boy!	44	8	8
+Unélith	5	Thought Control	Your mind is greater than mine. I concede defeat.	Your mental powers are lacking.  Meditate on this failure and perhaps some day you will defeat me.	55	10	10
+Adwares	6	Dwarven Battle Axe	Ach!  Y' do hold yer {{ weaponName }} with skeel!	Har!  Y' do be needin moore praktise y' wee cub!	66	12	12
+Gerrard	7	Battle Bow	Hmm, mayhaps I underestimated you.	As I thought.	77	14	14
+Ceiloth	8	Orkos Broadsword	Well done {{ character.name }}, I can see that great things lie in the future for you!	You are becoming powerful, but not yet that powerful.	88	16	16
+Dwiredan	9	Twin Swords	Perhaps I should have considered your {{ weaponName }}...	Perhaps you'll reconsider my twin swords before you try that again?	99	18	18
+Sensei Noetha	10	Martial Arts Skills	Your style was superior, your form greater. I bow to you.	Learn to adapt your style, and you shall prevail.	110	20	20
+Celith	11	Throwing Halos	Wow, how did you dodge all those halos?	Watch out for that last halo, it's coming back this way!	121	22	22
+Gadriel the Elven Ranger	12	Elven Long Bow	I can accept that you defeated me, because after all elves are immortal while you are not, so the victory will be mine.	Do not forget that elves are immortal. Mortals will likely never defeat one of the fey.	132	24	24
+Adoawyr	13	Gargantuan Broad Sword	If I could have picked up this sword, I probably would have done better!	Haha, I couldn\'t even pick the sword UP and I still won!	143	26	26
+Yoresh	14	Death Touch	Well, you evaded my touch. I salute you!	Watch out for my touch next time!	154	28	28
