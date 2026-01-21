@@ -3,8 +3,6 @@ declare(strict_types=1);
 
 namespace LotGD2\Twig\Component\Live;
 
-use LotGD2\Entity\Character\CharStats;
-use LotGD2\Entity\Character\CharStatsTitleRow;
 use LotGD2\Entity\Mapped\Character;
 use LotGD2\Entity\Mapped\Stage;
 use LotGD2\Game\Character\Equipment;

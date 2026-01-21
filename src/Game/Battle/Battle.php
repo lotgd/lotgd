@@ -103,7 +103,7 @@ class Battle
             ),
             new Action(
                 $scene,
-                "for all rounds", [
+                "for 10 rounds", [
                 ... $actionParams,
                 "how" => "attack",
                 "rounds" => 10,
