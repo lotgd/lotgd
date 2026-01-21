@@ -11,9 +11,9 @@ trait TsvDataReaderTrait
     private LoggerInterface $logger;
 
     /**
-     * @return iterable<string, mixed>
+     * @return iterable<int, array<string, ?string>>
      */
-    public function iterateTsvData($filename): iterable
+    public function iterateTsvData(string $filename): iterable
     {
         $file = new SplFileObject($filename);
         $file->setFlags(SplFileObject::READ_CSV);
