@@ -3,6 +3,8 @@ declare(strict_types=1);
 
 namespace DoctrineMigrations\Dev;
 
+use Doctrine\DBAL\Schema\PrimaryKeyConstraint;
+use Doctrine\DBAL\Schema\PrimaryKeyConstraintEditor;
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\Migrations\AbstractMigration;
@@ -26,7 +28,7 @@ final class Version20230715095011 extends AbstractMigration
         $schema->dropTable("user");
     }
 
-    private function createCharacterTable(Schema $schema)
+    private function createCharacterTable(Schema $schema): void
     {
         $table = $schema->createTable("character");
         $table->addColumn("id", Types::INTEGER)
@@ -38,11 +40,11 @@ final class Version20230715095011 extends AbstractMigration
         $table->addColumn("suffix", Types::STRING)->setLength(50)->setNotnull(false);
         $table->addColumn("level", Types::SMALLINT)->setDefault(0)->setNotnull(true);
 
-        $table->setPrimaryKey(["id"]);
+        $table->addPrimaryKeyConstraint(PrimaryKeyConstraint::editor()->setUnquotedColumnNames("id")->create());
         $table->addUniqueIndex(["name"], "UNIQ_937AB0345E237E06");
     }
 
-    private function createUserTable(Schema $schema)
+    private function createUserTable(Schema $schema): void
     {
         $table = $schema->createTable("user");
         $table->addColumn("id", Types::INTEGER)
@@ -53,7 +55,7 @@ final class Version20230715095011 extends AbstractMigration
         $table->addColumn("email", Types::STRING)->setLength(255)->setNotnull(true);
         $table->addColumn("password", Types::STRING)->setLength(255)->setNotnull(true);
 
-        $table->setPrimaryKey(["id"]);
+        $table->addPrimaryKeyConstraint(PrimaryKeyConstraint::editor()->setUnquotedColumnNames("id")->create());
         $table->addUniqueIndex(["name"], "UNIQ_8D93D6495E237E06");
         $table->addUniqueIndex(["email"], "UNIQ_8D93D649E7927C74");
     }

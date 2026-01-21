@@ -11,7 +11,7 @@ final class Version20251015164010 extends AbstractMigration
 {
     public function getDescription(): string
     {
-        return 'Adds a context column to the sage.';
+        return 'Adds a context column to the stage.';
     }
 
     public function up(Schema $schema): void

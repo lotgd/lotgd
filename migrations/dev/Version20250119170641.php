@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace DoctrineMigrations\Dev;
 
+use Doctrine\DBAL\Schema\PrimaryKeyConstraint;
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\DBAL\Types\Type;
 use Doctrine\DBAL\Types\Types;
@@ -27,7 +28,7 @@ final class Version20250119170641 extends AbstractMigration
         $table->addColumn("attachment_class", Types::STRING)
             ->setNotnull(true)
             ->setLength(255);
-        $table->setPrimaryKey(["id"]);
+        $table->addPrimaryKeyConstraint(PrimaryKeyConstraint::editor()->setUnquotedColumnNames("id")->create());
         $table->addUniqueIndex(["attachment_class"], "UNIQ_795FD9BB5BD547B6");
 
         $table = $schema->getTable("scene");

@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace DoctrineMigrations\Dev;
 
+use Doctrine\DBAL\Schema\PrimaryKeyConstraint;
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\Migrations\AbstractMigration;
@@ -27,7 +28,7 @@ final class Version20230807160859 extends AbstractMigration
         $stageTable->addColumn("action_groups", Types::JSON)->setComment("(DC2Type:json_object)")->setNotnull(true);
         $stageTable->addColumn("attachments", Types::JSON)->setComment("(DC2Type:json)")->setNotnull(false);
 
-        $stageTable->setPrimaryKey(["id"]);
+        $stageTable->addPrimaryKeyConstraint(PrimaryKeyConstraint::editor()->setUnquotedColumnNames("id")->create());
         $stageTable->addUniqueIndex(["owner_id"], "UNIQ_C27C93697E3C61F9");
         $stageTable->addIndex(["scene_id"], "IDX_C27C9369166053B4");
 
@@ -38,8 +39,8 @@ final class Version20230807160859 extends AbstractMigration
     public function down(Schema $schema): void
     {
         $table = $schema->getTable("stage");
-        $table->removeForeignKey("FK_C27C93697E3C61F9");
-        $table->removeForeignKey("FK_C27C9369166053B4");
+        $table->dropForeignKey("FK_C27C93697E3C61F9");
+        $table->dropForeignKey("FK_C27C9369166053B4");
 
         $schema->dropTable("stage");
     }

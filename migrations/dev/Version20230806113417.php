@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace DoctrineMigrations\Dev;
 
+use Doctrine\DBAL\Schema\PrimaryKeyConstraint;
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\Migrations\AbstractMigration;
@@ -24,7 +25,7 @@ final class Version20230806113417 extends AbstractMigration
         $sceneTable->addColumn("description", Types::TEXT)->setNotnull(true);
         $sceneTable->addColumn("template_class", Types::STRING)->setLength(255)->setNotnull(false);
         $sceneTable->addColumn("template_config", Types::JSON)->setNotnull(false)->setComment("(DC2Type:json)");
-        $sceneTable->setPrimaryKey(["id"]);
+        $sceneTable->addPrimaryKeyConstraint(PrimaryKeyConstraint::editor()->setUnquotedColumnNames("id")->create());
 
         $sceneActionGroupTable = $schema->createTable("scene_action_group");
         $sceneActionGroupTable->addColumn("id", Types::INTEGER)
@@ -33,13 +34,13 @@ final class Version20230806113417 extends AbstractMigration
         $sceneActionGroupTable->addColumn("scene_id", Types::INTEGER)->setNotnull(true);
         $sceneActionGroupTable->addColumn("title", Types::STRING)->setLength(255)->setNotnull(true);
         $sceneActionGroupTable->addColumn("sorting", Types::SMALLINT)->setNotnull(true);
-        $sceneActionGroupTable->setPrimaryKey(["id"]);
+        $sceneActionGroupTable->addPrimaryKeyConstraint(PrimaryKeyConstraint::editor()->setUnquotedColumnNames("id")->create());
         $sceneActionGroupTable->addIndex(["scene_id"], "IDX_5F80CAFC166053B4");
 
         $sceneActionGroupSceneConnectionTable = $schema->createTable("scene_action_group_scene_connection");
         $sceneActionGroupSceneConnectionTable->addColumn("scene_action_group_id", Types::INTEGER)->setNotnull(true);
         $sceneActionGroupSceneConnectionTable->addColumn("scene_connection_id", Types::INTEGER)->setNotnull(true);
-        $sceneActionGroupSceneConnectionTable->setPrimaryKey(["scene_action_group_id", "scene_connection_id"]);
+        $sceneActionGroupSceneConnectionTable->addPrimaryKeyConstraint(PrimaryKeyConstraint::editor()->setUnquotedColumnNames("scene_action_group_id", "scene_connection_id")->create());
         $sceneActionGroupSceneConnectionTable->addIndex(["scene_action_group_id"], "IDX_7F3E4BE8632F33F");
         $sceneActionGroupSceneConnectionTable->addIndex(["scene_connection_id"], "IDX_7F3E4BE890D7C6EC");
 
@@ -52,7 +53,7 @@ final class Version20230806113417 extends AbstractMigration
         $sceneConnectionTable->addColumn("source_label", Types::STRING)->setNotnull(false)->setLength(255);
         $sceneConnectionTable->addColumn("target_label", Types::STRING)->setNotnull(false)->setLength(255);
         $sceneConnectionTable->addColumn("type", Types::STRING)->setNotnull(true)->setLength(255);
-        $sceneConnectionTable->setPrimaryKey(["id"]);
+        $sceneConnectionTable->addPrimaryKeyConstraint(PrimaryKeyConstraint::editor()->setUnquotedColumnNames("id")->create());
         $sceneConnectionTable->addIndex(["source_scene_id"], "IDX_24F77D6455406566");
         $sceneConnectionTable->addIndex(["target_scene_id"], "IDX_24F77D64CCCB83DD");
 
@@ -66,11 +67,11 @@ final class Version20230806113417 extends AbstractMigration
 
     public function down(Schema $schema): void
     {
-        $schema->getTable("scene_action_group")->removeForeignKey("FK_5F80CAFC166053B4");
-        $schema->getTable("scene_action_group_scene_connection")->removeForeignKey("FK_7F3E4BE8632F33F");
-        $schema->getTable("scene_action_group_scene_connection")->removeForeignKey("FK_7F3E4BE890D7C6EC");
-        $schema->getTable("scene_connection")->removeForeignKey("FK_24F77D6455406566");
-        $schema->getTable("scene_connection")->removeForeignKey("FK_24F77D64CCCB83DD");
+        $schema->getTable("scene_action_group")->dropForeignKey("FK_5F80CAFC166053B4");
+        $schema->getTable("scene_action_group_scene_connection")->dropForeignKey("FK_7F3E4BE8632F33F");
+        $schema->getTable("scene_action_group_scene_connection")->dropForeignKey("FK_7F3E4BE890D7C6EC");
+        $schema->getTable("scene_connection")->dropForeignKey("FK_24F77D6455406566");
+        $schema->getTable("scene_connection")->dropForeignKey("FK_24F77D64CCCB83DD");
 
         $schema->dropTable("scene");
         $schema->dropTable("scene_action_group");
