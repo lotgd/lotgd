@@ -26,7 +26,7 @@ class Scene
     #[ORM\Column(type: Types::TEXT)]
     private ?string $description = null;
 
-    /** @var class-string<SceneTemplateInterface>|null  */
+    /** @var string|null  */
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $templateClass = null;
 
@@ -87,7 +87,7 @@ class Scene
     }
 
     /**
-     * @return class-string<SceneTemplateInterface>|null
+     * @return string|null
      */
     public function getTemplateClass(): ?string
     {
@@ -95,12 +95,12 @@ class Scene
     }
 
     /**
-     * @param class-string<SceneTemplateInterface>|null $templateClass
+     * @param string|null $templateClass
      * @return $this
      */
     public function setTemplateClass(?string $templateClass): static
     {
-        if (!is_a($templateClass, SceneTemplateInterface::class, true)) {
+        if (!is_subclass_of($templateClass, SceneTemplateInterface::class, true)) {
             throw new \ValueError("The template class of a scene must implement ".SceneTemplateInterface::class.".");
         }
 
@@ -127,7 +127,7 @@ class Scene
      */
     public function setTemplateConfig(array $templateConfig, bool $callValidation = true): static
     {
-        if ($this->templateClass and $callValidation) {
+        if ($this->templateClass and is_subclass_of($this->templateClass, SceneTemplateInterface::class, true) and $callValidation) {
             $this->templateConfig = $this->templateClass::validateConfiguration($templateConfig);
         } else {
             $this->templateConfig = $templateConfig;
