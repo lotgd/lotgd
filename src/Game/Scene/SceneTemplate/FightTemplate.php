@@ -26,6 +26,8 @@ use Symfony\Component\OptionsResolver\OptionsResolver;
 /**
  * @phpstan-type FightTemplateConfiguration array{
  *     searchFightAction: string,
+ *     searchSlummingAction: string,
+ *     searchThrillseekingAction: string,
  * }
  * @implements SceneTemplateInterface<FightTemplateConfiguration>
  */
@@ -56,6 +58,18 @@ readonly class FightTemplate implements SceneTemplateInterface
             ->required()
             ->allowedTypes("string")
             ->default("Search for a fight");
+
+        $resolver
+            ->define("searchSlummingAction")
+            ->required()
+            ->allowedTypes("string")
+            ->default("Go Slumming");
+
+        $resolver
+            ->define("searchThrillseekingAction")
+            ->required()
+            ->allowedTypes("string")
+            ->default("Go Thrillseeking");
 
         return $resolver->resolve($config);
     }
@@ -169,15 +183,44 @@ readonly class FightTemplate implements SceneTemplateInterface
     {
         $actionGroup = new ActionGroup("lotgd2.actionGroup.fightTemplate.search", $scene->getTitle());
 
-        $searchAction = new Action(
-            scene: $scene,
-            title: $scene->getTemplateConfig()["searchFightAction"],
-            parameters: [
-                "op" => "search",
-                "level" => 0,
-            ]);
+        $actionGroup->addAction(
+            new Action(
+                scene: $scene,
+                title: $scene->getTemplateConfig()["searchFightAction"],
+                parameters: [
+                    "op" => "search",
+                    "level" => 0,
+                ]
+            )
+        );
 
-        $actionGroup->addAction($searchAction);
+        // Only allow searching for easy battles if level is larger than 1. Enemies can only be level 1 or higher, so
+        //  it wouldn't make sense to offer this option on level 1.
+        if ($stage->getOwner()->getLevel() > 1) {
+            $actionGroup->addAction(
+                new Action(
+                    scene: $scene,
+                    title: $scene->getTemplateConfig()["searchSlummingAction"] ?? "Go slumming",
+                    parameters: [
+                        "op" => "search",
+                        "level" => -1,
+                    ]
+                )
+            );
+        }
+
+        $actionGroup->addAction(
+            new Action(
+                scene: $scene,
+                title: $scene->getTemplateConfig()["searchThrillseekingAction"] ?? "Go thrillseeking",
+                parameters: [
+                    "op" => "search",
+                    "level" => 1,
+                ]
+            )
+        );
+
+
         $stage->addActionGroup($actionGroup);
     }
 
