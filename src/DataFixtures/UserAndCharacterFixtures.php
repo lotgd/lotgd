@@ -51,6 +51,11 @@ class UserAndCharacterFixtures extends Fixture
                 ->setEmail("admin@example.com")
                 ->setName("Admin")
                 ->setPlainPassword("CHANGEME")
+                ->setRoles([
+                    "ROLE_ADMIN",
+                    "ROLE_USER",
+                    "ROLE_DEBUG",
+                ])
         ];
     }
 

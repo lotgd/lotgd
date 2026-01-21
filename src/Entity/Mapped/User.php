@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace LotGD2\Entity\Mapped;
 
 use ApiPlatform\Metadata as Api;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use LotGD2\Repository\UserRepository;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
@@ -32,6 +33,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(length: 255)]
     private ?string $password = null;
     private ?string $plainPassword = null;
+
+    #[ORM\Column(type: Types::JSON, options: ["default" => '["ROLE_USER"]'])]
+    private ?array $roles = [];
 
     /**
      * @return int|null
@@ -78,7 +82,31 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     public function getRoles(): array
     {
-        return ["ROLE_USER"];
+        return $this->roles;
+    }
+
+    public function addRole(string $role): static
+    {
+        if (!in_array($role, $this->roles, true)) {
+            $this->roles[] = $role;
+        }
+
+        return $this;
+    }
+
+    public function setRoles(array $roles): static
+    {
+        $this->roles = $roles;
+        return $this;
+    }
+
+    public function removeRole(string $role): static
+    {
+        if (in_array($role, $this->roles, true)) {
+            $this->roles = array_diff($this->roles, [$role]);
+        }
+
+        return $this;
     }
 
     public function eraseCredentials(): void
