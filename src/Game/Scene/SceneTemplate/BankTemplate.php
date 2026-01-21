@@ -26,6 +26,7 @@ use Symfony\Component\OptionsResolver\OptionsResolver;
  *         withdraw: string,
  *     }
  * }
+ * @implements SceneTemplateInterface<BankTemplateConfiguration>
  */
 #[Autoconfigure(public: true)]
 readonly class BankTemplate implements SceneTemplateInterface

@@ -99,7 +99,7 @@ class GameLoop
                 $selectedAction->setParameter("lotgd.loop.skipOnSceneLeave", true);
                 $stage->addAction(ActionGroup::EMPTY, $selectedAction);
 
-                /** @var SceneTemplateInterface $currentSceneTemplate */
+                /** @var SceneTemplateInterface<array<string, mixed>> $currentSceneTemplate */
                 $currentSceneTemplate = $this->container->get($currentScene->getTemplateClass());
                 $reply = $currentSceneTemplate->onSceneLeave($stage, $selectedAction, $currentScene);
 
@@ -113,7 +113,7 @@ class GameLoop
 
                 $stage = $this->renderer->render($character->getStage(), $targetScene);
 
-                /** @var SceneTemplateInterface $currentSceneTemplate */
+                /** @var SceneTemplateInterface<array<string, mixed>> $currentSceneTemplate */
                 $targetSceneTemplate = $this->container->get($targetScene->getTemplateClass());  // @phpstan-ignore varTag.differentVariable
                 $reply = $targetSceneTemplate->onSceneEnter($stage, $selectedAction, $targetScene);
 
@@ -132,7 +132,7 @@ class GameLoop
             if ($targetScene->getTemplateClass()) {
                 $this->logger->debug("Calling onSceneChange");
 
-                /** @var SceneTemplateInterface $currentSceneTemplate */
+                /** @var SceneTemplateInterface<array<string, mixed>> $currentSceneTemplate */
                 $targetSceneTemplate = $this->container->get($targetScene->getTemplateClass());
                 $targetSceneTemplate?->onSceneChange($stage, $selectedAction, $targetScene);  // @phpstan-ignore nullsafe.neverNull
             }

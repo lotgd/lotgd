@@ -23,6 +23,12 @@ use Psr\Log\LoggerInterface;
 use Symfony\Component\DependencyInjection\Attribute\Autoconfigure;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
+/**
+ * @phpstan-type FightTemplateConfiguration array{
+ *     searchFightAction: string,
+ * }
+ * @implements SceneTemplateInterface<FightTemplateConfiguration>
+ */
 #[Autoconfigure(public: true)]
 readonly class FightTemplate implements SceneTemplateInterface
 {

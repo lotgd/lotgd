@@ -17,6 +17,19 @@ use Psr\Log\LoggerInterface;
 use Symfony\Component\DependencyInjection\Attribute\Autoconfigure;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
+/**
+ * @phpstan-type SimpleShopConfiguration array{
+ *     type: "armor"|"weapon",
+ *     items: array<int, array{name: string, price: int, strength: int}>,
+ *     text: array{
+ *         peruse: string,
+ *         itemNotFound: string,
+ *         buy: string,
+ *         notEnoughGold: string,
+ *     },
+ * }
+ * @implements SceneTemplateInterface<SimpleShopConfiguration>
+ */
 #[Autoconfigure(public: true)]
 readonly class SimpleShopTemplate implements SceneTemplateInterface
 {
