@@ -4,38 +4,29 @@ declare(strict_types=1);
 namespace LotGD2\Entity;
 
 use Traversable;
+use TypeError;
 
 class ActionGroup
 {
     const HIDDEN = "lotgd.actionGroup.hidden";
     const EMPTY = "lotgd.actionGroup.empty";
 
-    private string $id;
-    private ?string $title = null;
-    private int $weight = 0;
-
-    /** @var Action[] */
+    /** @var array<string, Action> */
     public array $actions = [];
+
+    /** @var array<string, string> */
+    public array $actionsByReference = [];
 
     /**
      * @param Action[] $actions
      */
     public function __construct(
-        ?string $id = null,
-        ?string $title = null,
-        int $weight = 0,
+        private(set) ?string $id = null,
+        private(set) ?string $title = null,
+        private int $weight = 0,
         array $actions = [],
     ) {
-        if ($id !== null) {
-            $this->id = $id;
-        }
-
-        if ($title !== null) {
-            $this->title = $title;
-        }
-
-        $this->weight = $weight;
-        $this->actions = $actions;
+        $this->setActions($actions);
     }
 
     public function setId(string $id): self
@@ -73,8 +64,32 @@ class ActionGroup
 
     public function addAction(Action $action): self
     {
-        $this->actions[] = $action;
+        $this->actions[$action->id] = $action;
+
+        if ($action->reference) {
+            if (isset($this->actionsByReference[$action->reference])) {
+                throw new TypeError("An action reference must be unique within an action group. The reference {$action->reference} already exists.");
+            }
+
+            $this->actionsByReference[$action->reference] = $action->id;
+        }
+
         return $this;
+    }
+
+    public function getActionByReference(string $reference): ?Action
+    {
+        $actionId = $this->actionsByReference[$reference] ?? null;
+        if ($actionId !== null and isset($this->actions[$actionId])) {
+            return $this->actions[$actionId];
+        }
+
+        return null;
+    }
+
+    public function getActionById(string $id): ?Action
+    {
+        return $this->actions[$id] ?? null;
     }
 
     /**
@@ -83,13 +98,17 @@ class ActionGroup
      */
     public function setActions(array $actions): self
     {
+        $this->actions = [];
+        $this->actionsByReference = [];
+
         foreach ($actions as $action) {
             if (!$action instanceof Action) {
-                throw new \TypeError("All array elements must be an instance of ".Action::class);
+                throw new TypeError("All array elements must be an instance of ".Action::class);
             }
+
+            $this->addAction($action);
         }
 
-        $this->actions = $actions;
         return $this;
     }
 

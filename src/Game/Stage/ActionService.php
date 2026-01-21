@@ -15,10 +15,17 @@ class ActionService
         $selectedAction = null;
 
         foreach ($currentActionGroups as $actionGroup) {
+            $actionEntry = $actionGroup->getActionByReference($action);
+
+            if ($actionEntry !== null) {
+                $selectedAction = $actionEntry;
+                break;
+            }
+
             foreach ($actionGroup->getActions() as $actionEntry) {
-                if ($actionEntry->getId() === $action) {
+                if ($actionEntry->id === $action) {
                     $selectedAction = $actionEntry;
-                    break;
+                    break 2;
                 }
             }
         }

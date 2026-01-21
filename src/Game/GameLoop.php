@@ -82,7 +82,7 @@ class GameLoop
             throw new InvalidActionError("The action with the id {$action} is not valid.");
         }
 
-        $targetScene = $this->sceneRepository->find($selectedAction->getSceneId());
+        $targetScene = $this->sceneRepository->find($selectedAction->sceneId);
 
         if ($targetScene !== $currentScene) {
             if ($currentScene->getTemplateClass() !== null
@@ -95,7 +95,7 @@ class GameLoop
                 $this->renderer->addDefaultActionGroups($stage);
 
                 // Connect stage to target stage
-                $selectedAction->setTitle("Continue");
+                $selectedAction->title = "Continue";
                 $selectedAction->setParameter("lotgd.loop.skipOnSceneLeave", true);
                 $stage->addAction(ActionGroup::EMPTY, $selectedAction);
 

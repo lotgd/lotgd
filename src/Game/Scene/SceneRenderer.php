@@ -80,19 +80,18 @@ readonly class SceneRenderer
         Scene $scene,
         SceneConnection $sceneConnection
     ): Action {
-        $action = new Action();
-        $action->setId($this->diceBag->getRandomString(8));
+        $action = new Action(diceBag: $this->diceBag);
 
         if ($sceneConnection->getSourceScene() === $scene) {
-            $action->setTitle($sceneConnection->getSourceLabel());
-            $action->setSceneId($sceneConnection->getTargetScene()->getId());
+            $action->title = $sceneConnection->getSourceLabel();
+            $action->sceneId = $sceneConnection->getTargetScene();
         } elseif ($sceneConnection->getTargetScene() === $scene) {
-            $action->setTitle($sceneConnection->getTargetLabel());
-            $action->setSceneId($sceneConnection->getSourceScene()->getId());
+            $action->title = $sceneConnection->getTargetLabel();
+            $action->sceneId = $sceneConnection->getSourceScene();
         } else {
             // This should never be reached, as $scene must either be the source or the target scene of a connection,
             // otherwise, it should not be in the list.
-            $action->setTitle("#invalidConnection:{$sceneConnection->getId()}");
+            $action->title = "#invalidConnection:{$sceneConnection->getId()}";
         }
 
         return $action;

@@ -135,7 +135,7 @@ readonly class SimpleShopTemplate implements SceneTemplateInterface
             ])
             ->addAttachment(
                 $attachment, [
-                    "buyActionId" => $buyAction->getId(),
+                    "buyActionId" => $buyAction->id,
                     "inventory" => $scene->getTemplateConfig()["items"],
                 ]
             )

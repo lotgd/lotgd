@@ -122,8 +122,8 @@ class SceneRendererTest extends TestCase
 
         $action = $sceneRenderer->createActionFromConnection($scene, $sceneConnection);
 
-        $this->assertSame($otherScene->getTitle(), $action->getTitle());
-        $this->assertSame(13, $action->getSceneId());
+        $this->assertSame($otherScene->getTitle(), $action->title);
+        $this->assertSame(13, $action->sceneId);
     }
 
     /**
@@ -147,8 +147,8 @@ class SceneRendererTest extends TestCase
 
         $action = $sceneRenderer->createActionFromConnection($scene, $sceneConnection);
 
-        $this->assertSame($otherScene->getTitle(), $action->getTitle());
-        $this->assertSame(13, $action->getSceneId());
+        $this->assertSame($otherScene->getTitle(), $action->title);
+        $this->assertSame(13, $action->sceneId);
     }
 
     /**
@@ -174,8 +174,8 @@ class SceneRendererTest extends TestCase
 
         $action = $sceneRenderer->createActionFromConnection($scene, $sceneConnection);
 
-        $this->assertStringStartsWith("#invalidConnection", $action->getTitle());
-        $this->assertNull($action->getSceneId());
+        $this->assertStringStartsWith("#invalidConnection", $action->title);
+        $this->assertNull($action->sceneId);
     }
 
     /**
@@ -261,9 +261,9 @@ class SceneRendererTest extends TestCase
         $this->assertArrayHasKey("lotgd.actionGroup.custom.13", $actionGroups);
         $this->assertCount(1, $actionGroups["lotgd.actionGroup.custom.13"]->getActions());
 
-        $action = $actionGroups["lotgd.actionGroup.custom.13"]->getActions()[0];
-        $this->assertSame('Go North', $action->getTitle());
-        $this->assertSame(2, $action->getSceneId());
+        $action = array_values($actionGroups["lotgd.actionGroup.custom.13"]->getActions())[0];
+        $this->assertSame('Go North', $action->title);
+        $this->assertSame(2, $action->sceneId);
     }
 
     /**
@@ -333,9 +333,10 @@ class SceneRendererTest extends TestCase
         $this->renderer->addActions($stage, $scene);
 
         $actions = $stage->getActionGroups()[ActionGroup::EMPTY]->getActions();
+        $action = array_values($actions)[0];
         $this->assertCount(1, $actions);
-        $this->assertSame('Go South', $actions[0]->getTitle());
-        $this->assertSame(3, $actions[0]->getSceneId());
+        $this->assertSame('Go South', $action->title);
+        $this->assertSame(3, $action->sceneId);
     }
 
     /**
@@ -388,7 +389,7 @@ class SceneRendererTest extends TestCase
 
         $emptyGroupActions = $stage->getActionGroups()[ActionGroup::EMPTY]->getActions();
         $this->assertCount(1, $emptyGroupActions);
-        $this->assertEquals('Go South', $emptyGroupActions[0]->getTitle());
+        $this->assertEquals('Go South', array_first($emptyGroupActions)->title);
     }
 
     /**
@@ -423,9 +424,9 @@ class SceneRendererTest extends TestCase
         $this->renderer->addActions($stage, $scene);
 
         $actionGroups = $stage->getActionGroups();
-        $action = array_first($actionGroups)->getActions()[0];
-        $this->assertSame('Go Back', $action->getTitle());
-        $this->assertSame(21, $action->getSceneId());
+        $action = array_first(array_first($actionGroups)->getActions());
+        $this->assertSame('Go Back', $action->title);
+        $this->assertSame(21, $action->sceneId);
     }
 
 

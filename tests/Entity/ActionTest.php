@@ -19,20 +19,19 @@ class ActionTest extends TestCase
     {
         $action = new Action();
 
-        $this->assertNotNull($action->getId());
-        $this->assertSame(8, strlen($action->getId()));
-        $this->assertNull($action->getTitle());
+        $this->assertNotNull($action->id);
+        $this->assertSame(8, strlen($action->id));
         $this->assertSame([], $action->getParameters());
-        $this->assertNull($action->getSceneId());
+        $this->assertNull($action->sceneId);
     }
 
     public function testConstructorWithTitle(): void
     {
         $action = new Action(title: 'Attack');
 
-        $this->assertNotNull($action->getId());
-        $this->assertSame('Attack', $action->getTitle());
-        $this->assertNull($action->getSceneId());
+        $this->assertNotNull($action->id);
+        $this->assertSame('Attack', $action->title);
+        $this->assertNull($action->sceneId);
     }
 
     public function testConstructorWithParameters(): void
@@ -50,7 +49,7 @@ class ActionTest extends TestCase
 
         $action = new Action(scene: $scene);
 
-        $this->assertSame(5, $action->getSceneId());
+        $this->assertSame(5, $action->sceneId);
     }
 
     public function testConstructorWithCustomDiceBag(): void
@@ -60,7 +59,7 @@ class ActionTest extends TestCase
 
         $action = new Action(diceBag: $diceBag);
 
-        $this->assertSame('testid12', $action->getId());
+        $this->assertSame('testid12', $action->id);
     }
 
     public function testConstructorWithAllParameters(): void
@@ -79,56 +78,32 @@ class ActionTest extends TestCase
             diceBag: $diceBag
         );
 
-        $this->assertSame('customid1', $action->getId());
-        $this->assertSame('Magic Spell', $action->getTitle());
-        $this->assertSame(42, $action->getSceneId());
+        $this->assertSame('customid1', $action->id);
+        $this->assertSame('Magic Spell', $action->title);
+        $this->assertSame(42, $action->sceneId);
         $this->assertSame($parameters, $action->getParameters());
     }
 
     public function testSetIdAndGetId(): void
     {
         $action = new Action();
-        $action->setId('newid123');
+        $action->id = 'newid123';
 
-        $this->assertSame('newid123', $action->getId());
-    }
-
-    public function testSetIdReturnsInstance(): void
-    {
-        $action = new Action();
-        $result = $action->setId('testid');
-
-        $this->assertSame($action, $result);
-    }
-
-    public function testSetNullId(): void
-    {
-        $action = new Action();
-        $action->setId(null);
-
-        $this->assertNull($action->id);
+        $this->assertSame('newid123', $action->id);
     }
 
     public function testSetTitleAndGetTitle(): void
     {
         $action = new Action();
-        $action->setTitle('Defend');
+        $action->title = 'Defend';
 
-        $this->assertSame('Defend', $action->getTitle());
-    }
-
-    public function testSetTitleReturnsInstance(): void
-    {
-        $action = new Action();
-        $result = $action->setTitle('Test Action');
-
-        $this->assertSame($action, $result);
+        $this->assertSame('Defend', $action->title);
     }
 
     public function testSetTitleNull(): void
     {
         $action = new Action(title: 'Original');
-        $action->setTitle(null);
+        $action->title = null;
 
         $this->assertNull($action->title);
     }
@@ -136,26 +111,29 @@ class ActionTest extends TestCase
     public function testSetSceneIdAndGetSceneId(): void
     {
         $action = new Action();
-        $action->setSceneId(99);
+        $action->sceneId = 99;
 
-        $this->assertSame(99, $action->getSceneId());
+        $this->assertSame(99, $action->sceneId);
     }
 
-    public function testSetSceneIdReturnsInstance(): void
+    public function testSetSceneIdWithScene(): void
     {
-        $action = new Action();
-        $result = $action->setSceneId(10);
+        $scene = $this->createMock(Scene::class);
+        $scene->method("getId")->willReturn(99);
 
-        $this->assertSame($action, $result);
+        $action = new Action();
+        $action->sceneId = $scene;
+
+        $this->assertSame(99, $action->sceneId);
     }
 
     public function testSetSceneIdNull(): void
     {
         $action = new Action();
-        $action->setSceneId(5);
-        $action->setSceneId(null);
+        $action->sceneId = 5;
+        $action->sceneId = null;
 
-        $this->assertNull($action->getSceneId());
+        $this->assertNull($action->sceneId);
     }
 
     public function testSetParametersAndGetParameters(): void
@@ -236,24 +214,6 @@ class ActionTest extends TestCase
         $this->assertSame('value3', $action->getParameter('param3'));
     }
 
-    public function testFluentInterfaceChaining(): void
-    {
-        $action = new Action();
-        $result = $action
-            ->setId('fluent_id')
-            ->setTitle('Chained Action')
-            ->setSceneId(7)
-            ->setParameter('key1', 'val1')
-            ->setParameter('key2', 'val2');
-
-        $this->assertSame($action, $result);
-        $this->assertSame('fluent_id', $action->getId());
-        $this->assertSame('Chained Action', $action->getTitle());
-        $this->assertSame(7, $action->getSceneId());
-        $this->assertSame('val1', $action->getParameter('key1'));
-        $this->assertSame('val2', $action->getParameter('key2'));
-    }
-
     public function testParameterWithVariousScalarTypes(): void
     {
         $action = new Action();
@@ -290,14 +250,14 @@ class ActionTest extends TestCase
         $action1 = new Action();
         $action2 = new Action();
 
-        $this->assertNotEquals($action1->getId(), $action2->getId());
+        $this->assertNotEquals($action1->id, $action2->id);
     }
 
     public function testIdGenerationUsesCorrectLength(): void
     {
         for ($i = 0; $i < 10; $i++) {
             $action = new Action();
-            $this->assertSame(8, strlen($action->getId()));
+            $this->assertSame(8, strlen($action->id));
         }
     }
 }

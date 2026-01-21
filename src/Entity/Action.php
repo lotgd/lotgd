@@ -7,72 +7,40 @@ namespace LotGD2\Entity;
 use LotGD2\Entity\Mapped\Scene;
 use LotGD2\Entity\Param\Param;
 use LotGD2\Game\Random\DiceBag;
+use LotGD2\Game\Random\DiceBagInterface;
 
 class Action
 {
-    public ?string $id = null;
-    public ?string $title = null;
-    /** @var array<string, scalar> */
-    public array $parameters = [];
-    public ?int $sceneId = null;
+    public string $id;
+    public ?int $sceneId {
+        get => $this->sceneId;
+        set(null|int|Scene $value) {
+            if ($value instanceof Scene) {
+                $this->sceneId = $value->getId();
+            } else {
+                $this->sceneId = $value;
+            }
+        }
+    }
 
     /**
      * @param array<string, scalar> $parameters
      */
     public function __construct(
         ?Scene $scene = null,
-        ?string $title = null,
-        array $parameters = [],
-        ?DiceBag $diceBag = null,
+        public ?string $title = null,
+        public array $parameters = [],
+        ?DiceBagInterface $diceBag = null,
+        public ?string $reference = null,
     ) {
         if ($diceBag === null) {
             $diceBag = new DiceBag();
         }
 
         $this->id = $diceBag->getRandomString(8);
-
-        if ($scene !== null) {
-            $this->setSceneId($scene->getId());
-        }
-
-        if ($title !== null) {
-            $this->setTitle($title);
-        }
+        $this->sceneId = $scene;
 
         $this->setParameters($parameters);
-    }
-
-    public function getId(): string
-    {
-        return $this->id;
-    }
-
-    public function setId(?string $id): self
-    {
-        $this->id = $id;
-        return $this;
-    }
-
-    public function getTitle(): ?string
-    {
-        return $this->title;
-    }
-
-    public function setTitle(?string $title): self
-    {
-        $this->title = $title;
-        return $this;
-    }
-
-    public function setSceneId(?int $sceneId): self
-    {
-        $this->sceneId = $sceneId;
-        return $this;
-    }
-
-    public function getSceneId(): ?int
-    {
-        return $this->sceneId;
     }
 
     /**

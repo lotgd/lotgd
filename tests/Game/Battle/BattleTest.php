@@ -105,13 +105,17 @@ class BattleTest extends KernelTestCase
         $this->assertCount(1, $actionGroups);
         $this->assertArrayHasKey(Battle::ActionGroupBattle, $actionGroups);
 
-        $actions = $actionGroups[Battle::ActionGroupBattle]->getActions();
+        $attackActionGroup = $actionGroups[Battle::ActionGroupBattle];
+        $actions = $attackActionGroup->getActions();
         $this->assertCount(1, $actions);
 
+        $attackAction = $attackActionGroup->getActionByReference(Battle::ActionAttack);
+
+        $this->assertNotNull($attackAction);
         // Assert required parameters are set
-        $this->assertSame("attack", $actions[0]->getParameters()["how"]);
+        $this->assertSame("attack", $attackAction->getParameters()["how"]);
         // Assert battle state is transferred correctly
-        $this->assertSame($battleState, $actions[0]->getParameters()["battleState"]);
+        $this->assertSame($battleState, $attackAction->getParameters()["battleState"]);
     }
 
     #[Depends("testStartBattle")]
@@ -127,15 +131,19 @@ class BattleTest extends KernelTestCase
         $this->assertCount(1, $actionGroups);
         $this->assertArrayHasKey(Battle::ActionGroupBattle, $actionGroups);
 
-        $actions = $actionGroups[Battle::ActionGroupBattle]->getActions();
+        $actionGroup = $actionGroups[Battle::ActionGroupBattle];
+        $actions = $actionGroup->getActions();
         $this->assertCount(1, $actions);
 
+        $attackAction = $actionGroup->getActionByReference(Battle::ActionAttack);
+
+        $this->assertNotNull($attackAction);
         // Assert required parameters are set
-        $this->assertSame("attack", $actions[0]->getParameters()["how"]);
+        $this->assertSame("attack", $actionGroup->getActionByReference(Battle::ActionAttack)->getParameters()["how"]);
         // Assert battle state is transferred correctly
-        $this->assertSame($battleState, $actions[0]->getParameters()["battleState"]);
+        $this->assertSame($battleState, $attackAction->getParameters()["battleState"]);
         // Assert custom params are still there
-        $this->assertSame("fight", $actions[0]->getParameters()["op"]);
+        $this->assertSame("fight", $attackAction->getParameters()["op"]);
     }
 
     public function testFightOneTurnWithDamageEvents(): void

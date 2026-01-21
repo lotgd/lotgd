@@ -7,11 +7,15 @@ namespace LotGD2\Tests\Game\Stage;
 use LotGD2\Entity\Action;
 use LotGD2\Entity\ActionGroup;
 use LotGD2\Entity\Mapped\Stage;
+use LotGD2\Game\Random\DiceBag;
 use LotGD2\Game\Stage\ActionService;
 use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\UsesClass;
 use PHPUnit\Framework\TestCase;
 
 #[CoversClass(ActionService::class)]
+#[UsesClass(DiceBag::class)]
+#[UsesClass(Action::class)]
 class ActionServiceTest extends TestCase
 {
     private ActionService $actionService;
@@ -25,17 +29,12 @@ class ActionServiceTest extends TestCase
     {
         // Arrange
         $stage = $this->createMock(Stage::class);
-        $action1 = $this->createMock(Action::class);
-        $action2 = $this->createMock(Action::class);
+        $action1 = new Action();
+        $action2 = new Action();
         $actionGroup = $this->createMock(ActionGroup::class);
 
-        $action1->expects($this->any())
-            ->method('getId')
-            ->willReturn('action-1');
-
-        $action2->expects($this->any())
-            ->method('getId')
-            ->willReturn('action-2');
+        $action1->id = 'action-1';
+        $action2->id = 'action-2';
 
         $actionGroup->expects($this->any())
             ->method('getActions')
@@ -56,12 +55,10 @@ class ActionServiceTest extends TestCase
     {
         // Arrange
         $stage = $this->createMock(Stage::class);
-        $action1 = $this->createMock(Action::class);
+        $action1 = new Action();
         $actionGroup = $this->createMock(ActionGroup::class);
 
-        $action1->expects($this->any())
-            ->method('getId')
-            ->willReturn('action-1');
+        $action1->id = 'action-1';
 
         $actionGroup->expects($this->any())
             ->method('getActions')
@@ -82,18 +79,13 @@ class ActionServiceTest extends TestCase
     {
         // Arrange
         $stage = $this->createMock(Stage::class);
-        $action1 = $this->createMock(Action::class);
-        $action2 = $this->createMock(Action::class);
+        $action1 = new Action();
+        $action2 = new Action();;
         $actionGroup1 = $this->createMock(ActionGroup::class);
         $actionGroup2 = $this->createMock(ActionGroup::class);
 
-        $action1->expects($this->any())
-            ->method('getId')
-            ->willReturn('action-1');
-
-        $action2->expects($this->any())
-            ->method('getId')
-            ->willReturn('action-2');
+        $action1->id = "action-1";
+        $action2->id = "action-2";
 
         $actionGroup1->expects($this->any())
             ->method('getActions')
@@ -118,7 +110,7 @@ class ActionServiceTest extends TestCase
     {
         // Arrange
         $stage = $this->createMock(Stage::class);
-        $action = $this->createMock(Action::class);
+        $action = new Action();
 
         $stage->expects($this->once())
             ->method('addAction')
@@ -136,17 +128,12 @@ class ActionServiceTest extends TestCase
     {
         // Arrange
         $stage = $this->createMock(Stage::class);
-        $action1 = $this->createMock(Action::class);
-        $action2 = $this->createMock(Action::class);
+        $action1 = new Action();;
+        $action2 = new Action();;
         $actionGroup = $this->createMock(ActionGroup::class);
 
-        $action1->expects($this->any())
-            ->method('getId')
-            ->willReturn('action-1');
-
-        $action2->expects($this->any())
-            ->method('getId')
-            ->willReturn('action-1');
+        $action1->id = "action-1";
+        $action2->id = "action-2";
 
         $actionGroup->expects($this->any())
             ->method('getActions')

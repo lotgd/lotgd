@@ -34,6 +34,7 @@ use function round;
 class Battle
 {
     const string ActionGroupBattle = "lotgd2.actionGroup.battle";
+    const string ActionAttack = "lotgd2.action.attack";
 
     public function __construct(
         private LoggerInterface $logger,
@@ -70,7 +71,7 @@ class Battle
         $actionGroup = new ActionGroup(self::ActionGroupBattle, "Fight", -100);
 
         $actionGroup->setActions([
-            new Action($scene, "Attack", [... $actionParams, "how" => "attack", "battleState" => $battleState]),
+            new Action($scene, "Attack", [... $actionParams, "how" => "attack", "battleState" => $battleState], reference: self::ActionAttack),
         ]);
 
         $stage->addActionGroup($actionGroup);

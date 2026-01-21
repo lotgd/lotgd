@@ -146,7 +146,7 @@ readonly class BankTemplate implements SceneTemplateInterface
             $this->actionService->addHiddenAction($stage, $formAction);
 
             $stage->addAttachment($attachment, [
-                "actionId" => $formAction->getId(),
+                "actionId" => $formAction->id,
                 "form" => [
                     ["amount", IntegerType::class, ["label" => "Amount", "required" => false]],
                     ["withdraw", CheckboxType::class, ["label" => "Withdraw", "required" => false]],
