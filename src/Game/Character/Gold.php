@@ -26,7 +26,7 @@ final class Gold
 
     public function setGold(int $gold): static
     {
-        $this->logger->debug("{$this->character->getId()} set new gold amount ($gold). Was {$this->getGold()}.");
+        $this->logger->debug("{$this->character->id} set new gold amount ($gold). Was {$this->getGold()}.");
 
         $this->character->setProperty(self::PropertyName, $gold);
         return $this;
@@ -35,7 +35,7 @@ final class Gold
     public function addGold(int $gold): static
     {
         $newGoldAmount = $this->getGold() + $gold;
-        $this->logger->debug("{$this->character->getId()} add gold ($gold). Was {$this->getGold()}, is now {$newGoldAmount}");
+        $this->logger->debug("{$this->character->id} add gold ($gold). Was {$this->getGold()}, is now {$newGoldAmount}");
 
         $this->character->setProperty(self::PropertyName, $newGoldAmount);
         return $this;

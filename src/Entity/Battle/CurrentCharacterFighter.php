@@ -18,7 +18,7 @@ class CurrentCharacterFighter extends Fighter
         $stats = new Stats(null, $equipment, $health, $character);
 
         $fighter =  new CurrentCharacterFighter(
-            name: $character->getName(),
+            name: $character->name,
             level: $stats->getLevel(),
             weapon: $equipment->getItemInSlot(Equipment::WeaponSlot)?->getName() ?? "Fist",
             health: $health->getHealth(),

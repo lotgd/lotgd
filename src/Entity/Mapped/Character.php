@@ -16,73 +16,64 @@ class Character
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    private ?int $id = null;
-
-    #[ORM\Column(length: 50, unique: true)]
-    #[Assert\NotBlank]
-    #[Assert\Length(min: 2)]
-    private ?string $name = null;
-
-    #[ORM\Column(length: 50, nullable: true)]
-    private ?string $title = null;
-
-    #[ORM\Column(length: 50, nullable: true)]
-    private ?string $suffix = null;
-
-    #[ORM\Column(type: Types::SMALLINT, options: ["default" => 0])]
-    private ?int $level = null;
-
-    #[ORM\OneToOne(mappedBy: 'owner', cascade: ['persist', 'remove'])]
-    private ?Stage $stage = null;
-
-    /** @var null|array<string, mixed>  */
-    #[ORM\Column(type: JsonDocumentType::NAME, nullable: true)]
-    private ?array $properties;
-
-    public function __construct()
-    {
-        $this->properties = [];
+    public ?int $id = null {
+        get => $this->id;
     }
 
-    public function getId(): ?int
-    {
-        return $this->id;
-    }
+    /**
+     * @param null|array<string, mixed> $properties
+     */
+    public function __construct(
+        #[ORM\Column(length: 50, unique: true)]
+        #[Assert\NotBlank]
+        #[Assert\Length(min: 2)]
+        public ?string $name = null {
+            get => $this->name;
+            set => $value;
+        },
 
-    public function getTitle(): ?string
-    {
-        return $this->title;
-    }
+        #[ORM\Column(length: 50, nullable: true)]
+        public ?string $title = null {
+            get => $this->title;
+            set => $value;
+        },
 
-    public function setTitle(?string $title): static
-    {
-        $this->title = $title;
+        #[ORM\Column(length: 50, nullable: true)]
+        public ?string $suffix = null {
+            get => $this->suffix;
+            set => $value;
+        },
 
-        return $this;
-    }
+        #[ORM\Column(type: Types::SMALLINT, options: ["default" => 0])]
+        public ?int $level = null {
+            get => $this->level;
+            set => $value;
+        },
 
-    public function getSuffix(): ?string
-    {
-        return $this->suffix;
-    }
+        #[ORM\OneToOne(mappedBy: 'owner', cascade: ['persist', 'remove'])]
+        public ?Stage $stage = null {
+            get => $this->stage;
+            set {
+                if (is_null($value)) {
+                    $this->stage = null;
+                    return;
+                }
 
-    public function setSuffix(?string $suffix): static
-    {
-        $this->suffix = $suffix;
+                // set the owning side of the relation if necessary
+                if ($value->getOwner() !== $this) {
+                    $value->setOwner($this);
+                }
 
-        return $this;
-    }
+                $this->stage = $value;
+            }
+        },
 
-    public function getName(): ?string
-    {
-        return $this->name;
-    }
-
-    public function setName(string $name): static
-    {
-        $this->name = $name;
-
-        return $this;
+        #[ORM\Column(type: JsonDocumentType::NAME, nullable: true)]
+        public ?array $properties = [] {
+            get => $this->properties;
+            set => $value;
+        },
+    ) {
     }
 
     public function getLevel(): ?int
@@ -90,61 +81,16 @@ class Character
         return $this->level;
     }
 
-    public function setLevel(int $level): static
-    {
-        $this->level = $level;
-
-        return $this;
-    }
-
-    public function getStage(): ?Stage
-    {
-        return $this->stage;
-    }
-
-    public function setStage(?Stage $stage): static
-    {
-        if (!$stage) {
-            $this->stage = null;
-            return $this;
-        }
-
-        // set the owning side of the relation if necessary
-        if ($stage->getOwner() !== $this) {
-            $stage->setOwner($this);
-        }
-
-        $this->stage = $stage;
-
-        return $this;
-    }
-
-    /**
-     * @return array<string, mixed>|null
-     */
-    public function getProperties(): ?array
-    {
-        return $this->properties;
-    }
-
     public function getProperty(string $name, mixed $default = null): mixed
     {
         return $this->properties[$name] ?? $default;
     }
 
-    /**
-     * @param array<string, mixed> $properties
-     * @return $this
-     */
-    public function setProperties(array $properties): static
-    {
-        $this->properties = $properties;
-        return $this;
-    }
-
     public function setProperty(string $name, mixed $value): static
     {
-        $this->properties[$name] = $value;
+        $properties = $this->properties;
+        $properties[$name] = $value;
+        $this->properties = $properties;
         return $this;
     }
 }

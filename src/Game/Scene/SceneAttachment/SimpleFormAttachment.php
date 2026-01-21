@@ -52,7 +52,7 @@ final class SimpleFormAttachment extends AbstractController implements SceneAtta
         $action = $actionService->getActionById($this->stage, $actionId);
 
         if (!$action) {
-            $logger->critical("Unknown action id in SimpleFormAttachment::buyItem() for character {$this->character->getId()}");
+            $logger->critical("Unknown action id in SimpleFormAttachment::buyItem() for character {$this->character}");
             throw new HttpException(Response::HTTP_INTERNAL_SERVER_ERROR);
         }
 

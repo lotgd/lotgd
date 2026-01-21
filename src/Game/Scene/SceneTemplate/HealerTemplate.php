@@ -119,7 +119,7 @@ readonly class HealerTemplate implements SceneTemplateInterface
         $price = $action->getParameter("price") ?? 0;
 
         if ($price === 0 or $this->gold->getGold() >= $price) {
-            $this->logger->debug("{$character->getId()}: Healed by $amount for $price gold.");
+            $this->logger->debug("{$character->id}: Healed by $amount for $price gold.");
 
             $stage->setDescription($scene->templateConfig["text"]["onHealEnoughGold"]);
             $stage->addContext("price", $price);
@@ -135,7 +135,7 @@ readonly class HealerTemplate implements SceneTemplateInterface
 
     public function getPrice(Character $character): int
     {
-        $level = max(1, $character->getLevel());
+        $level = max(1, $character->level);
         $price = log($level) * ($this->health->getMaxHealth() - $this->health->getHealth() + 10);
 
         return (int)round($price);

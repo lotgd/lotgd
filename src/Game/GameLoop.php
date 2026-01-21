@@ -56,7 +56,7 @@ class GameLoop
 
     public function getStage(Character $character): Stage
     {
-        $stage = $character->getStage();
+        $stage = $character->stage;
 
         if (!$stage) {
             $stage = $this->renderer->renderDefault($character);
@@ -70,9 +70,9 @@ class GameLoop
         Character $character,
         string $action,
     ): Stage {
-        $this->logger->debug("Take action{$action} for character with id={$character->getId()}");
+        $this->logger->debug("Take action{$action} for character with id={$character->id}");
 
-        $stage = $character->getStage();
+        $stage = $character->stage;
         $currentScene = $stage->getScene();
         $renderDefault = true;
 
@@ -120,7 +120,7 @@ class GameLoop
         if ($renderDefault) {
             $this->logger->debug("Rendering scene");
 
-            $stage = $this->renderer->render($character->getStage(), $targetScene);
+            $stage = $this->renderer->render($character->stage, $targetScene);
 
             // Allow the scene template to change the scene
             if ($targetScene->templateClass) {

@@ -10,6 +10,7 @@ use LotGD2\Game\Character\Health;
 use LotGD2\Game\Character\Stats;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\UsesClass;
+use PHPUnit\Framework\MockObject\Runtime\PropertyHook;
 use PHPUnit\Framework\TestCase;
 
 #[CoversClass(CurrentCharacterFighter::class)]
@@ -21,8 +22,8 @@ class CurrentCharacterFighterTest extends TestCase
     public function testCharacterIsClonedProperlyAsAFighter(): void
     {
         $character = $this->createMock(Character::class);
-        $character->method("getLevel")->willReturn(1);
-        $character->method("getName")->willReturn("Character");
+        $character->method(PropertyHook::get("level"))->willReturn(1);
+        $character->method(PropertyHook::get("name"))->willReturn("Character");
         $character->method("getProperty")->willReturnMap([
             [Health::HealthPropertyName, 10, 10],
             [Stats::AttackPropertyName, 1, 1],

@@ -19,15 +19,15 @@ class EquipmentTest extends TestCase
     public function testGetEquipment(): void
     {
         $character = new Character();
-        $weapon = new EquipmentItem("Sword", 15, 500);
-        $armor = new EquipmentItem("Armor", 10, 300);
+        $weapon = $this->createStub(EquipmentItem::class);
+        $armor = $this->createStub(EquipmentItem::class);
 
-        $character->setProperties([
+        $character->properties = [
             Equipment::PropertyName => [
                 Equipment::WeaponSlot => $weapon,
                 Equipment::ArmorSlot => $armor,
             ],
-        ]);
+        ];
 
         $loggerMock = $this->createMock(LoggerInterface::class);
 
@@ -40,11 +40,10 @@ class EquipmentTest extends TestCase
     public function testInitialSetEquipment(): void
     {
         $character = new Character();
-        $initialWeapon = new EquipmentItem("Sword", 15, 500);
-        $initialArmor = new EquipmentItem("Armor", 10, 300);
+        $initialWeapon = $this->createStub(EquipmentItem::class);
+        $initialArmor = $this->createStub(EquipmentItem::class);
 
-        $character->setProperties([
-        ]);
+        $character->properties = [];
 
         $loggerMock = $this->createMock(LoggerInterface::class);
         $loggerMock->expects($this->exactly(2))->method("debug");
@@ -61,17 +60,17 @@ class EquipmentTest extends TestCase
     public function testSetEquipment(): void
     {
         $character = new Character();
-        $initialWeapon = new EquipmentItem("Sword", 15, 500);
-        $initialArmor = new EquipmentItem("Armor", 10, 300);
-        $newWeapon = new EquipmentItem("Legendary Weapon", 9001, 1_000_000);
-        $newArmor = new EquipmentItem("Uber Armor", 3005, 602_230);
+        $initialWeapon = $this->createStub(EquipmentItem::class);;
+        $initialArmor = $this->createStub(EquipmentItem::class);;
+        $newWeapon = $this->createStub(EquipmentItem::class);
+        $newArmor = $this->createStub(EquipmentItem::class);
 
-        $character->setProperties([
+        $character->properties = [
             Equipment::PropertyName => [
                 Equipment::WeaponSlot => $initialWeapon,
                 Equipment::ArmorSlot => $initialArmor,
             ],
-        ]);
+        ];
 
         $loggerMock = $this->createMock(LoggerInterface::class);
         $loggerMock->expects($this->exactly(2))->method("debug");
@@ -121,11 +120,11 @@ class EquipmentTest extends TestCase
         $character = new Character();
         $weapon = new EquipmentItem("Iron Sword", 15, 500);
 
-        $character->setProperties([
+        $character->properties = [
             Equipment::PropertyName => [
                 Equipment::WeaponSlot => $weapon,
             ],
-        ]);
+        ];
 
         $loggerMock = $this->createMock(LoggerInterface::class);
         $equipment = new Equipment($loggerMock, $character);
@@ -138,11 +137,11 @@ class EquipmentTest extends TestCase
         $character = new Character();
         $armor = new EquipmentItem("Chain Mail", 10, 300);
 
-        $character->setProperties([
+        $character->properties = [
             Equipment::PropertyName => [
                 Equipment::ArmorSlot => $armor,
             ],
-        ]);
+        ];
 
         $loggerMock = $this->createMock(LoggerInterface::class);
         $equipment = new Equipment($loggerMock, $character);
@@ -153,7 +152,7 @@ class EquipmentTest extends TestCase
     public function testGetNameWithoutEquippedWeapon(): void
     {
         $character = new Character();
-        $character->setProperties([]);
+        $character->properties = [];
 
         $loggerMock = $this->createMock(LoggerInterface::class);
         $equipment = new Equipment($loggerMock, $character);
@@ -164,7 +163,7 @@ class EquipmentTest extends TestCase
     public function testGetNameWithoutEquippedArmor(): void
     {
         $character = new Character();
-        $character->setProperties([]);
+        $character->properties = [];
 
         $loggerMock = $this->createMock(LoggerInterface::class);
         $equipment = new Equipment($loggerMock, $character);
@@ -175,7 +174,7 @@ class EquipmentTest extends TestCase
     public function testGetNameForUnknownSlot(): void
     {
         $character = new Character();
-        $character->setProperties([]);
+        $character->properties = [];
 
         $loggerMock = $this->createMock(LoggerInterface::class);
         $equipment = new Equipment($loggerMock, $character);
@@ -189,12 +188,12 @@ class EquipmentTest extends TestCase
         $character = new Character();
         $weapon = new EquipmentItem("Battle Axe", 20, 750);
 
-        $character->setProperties([
+        $character->properties = [
             Equipment::PropertyName => [
                 Equipment::WeaponSlot => $weapon,
                 // No armor equipped
             ],
-        ]);
+        ];
 
         $loggerMock = $this->createMock(LoggerInterface::class);
         $equipment = new Equipment($loggerMock, $character);
@@ -206,9 +205,9 @@ class EquipmentTest extends TestCase
     public function testGetNameWithEmptyEquipmentProperty(): void
     {
         $character = new Character();
-        $character->setProperties([
+        $character->properties = [
             Equipment::PropertyName => [],
-        ]);
+        ];
 
         $loggerMock = $this->createMock(LoggerInterface::class);
         $equipment = new Equipment($loggerMock, $character);

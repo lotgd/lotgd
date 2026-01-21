@@ -249,7 +249,7 @@ trait DefaultFightTrait
             TEXT
         );
 
-        $this->logger->debug("Character {$stage->getOwner()->getId()} has been slain and lost {$this->gold->getGold()}.");
+        $this->logger->debug("Character {$stage->getOwner()->id} has been slain and lost {$this->gold->getGold()}.");
         $this->gold->setGold(0);
         $this->stats->setExperience((int)round(0.9 * $this->stats->getExperience()));
     }

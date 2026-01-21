@@ -22,22 +22,26 @@ class UserAndCharacterFixtures extends Fixture
     protected function getCharacters(): array
     {
         return [
-            (new Character())
-                ->setName("E. Fischer")
-                ->setTitle("Apprentice")
-                ->setLevel(1),
-            (new Character())
-                ->setName("T. Sandmeyer")
-                ->setTitle("Charged")
-                ->setLevel(9),
-            (new Character())
-                ->setName("A. Suzuki")
-                ->setTitle("Sensei")
-                ->setLevel(14),
-            (new Character())
-                ->setName("M. Disney")
-                ->setTitle("Master")
-                ->setLevel(15),
+            new Character(
+                name: "E. Fischer",
+                title: "Apprentice",
+                level: 1,
+            ),
+            new Character(
+                name: "T. Sandmeyer",
+                title: "Charged",
+                level: 9,
+            ),
+            new Character(
+                name: "A. Suzuki",
+                title: "Sensei",
+                level: 14,
+            ),
+            new Character(
+                name: "M. Disney",
+                title: "Master",
+                level: 15,
+            ),
         ];
     }
 

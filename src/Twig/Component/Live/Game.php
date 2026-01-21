@@ -51,8 +51,8 @@ class Game extends AbstractController
 
         return [
             ["Character"],
-            ["Name", $this->character->getName()],
-            ["Level", $this->character->getLevel()],
+            ["Name", $this->character->name],
+            ["Level", $this->character->level],
             ["Experience", $stats->getExperience()],
             ["Health", $health->getHealth(), $health->getMaxHealth()],
             ["Stats"],

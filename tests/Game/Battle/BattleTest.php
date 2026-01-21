@@ -70,7 +70,7 @@ class BattleTest extends KernelTestCase
         );
 
         $this->logger = $this->createMock(LoggerInterface::class);
-        $this->character = new Character()->setName("Test")->setLevel(1);
+        $this->character = new Character(name: "Test", level: 1);
         $this->turn = $this->createMock(BattleTurn::class);
 
         $this->battle = new Battle(

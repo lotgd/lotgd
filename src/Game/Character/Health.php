@@ -26,7 +26,7 @@ readonly class Health
 
     public function setHealth(int $health): static
     {
-        $this->logger?->debug("{$this->character->getId()}: health set to {$health} (was {$this->getHealth()}) before).");
+        $this->logger?->debug("{$this->character->id}: health set to {$health} (was {$this->getHealth()}) before).");
         $this->character->setProperty(static::HealthPropertyName, $health);
         return $this;
     }
@@ -45,7 +45,7 @@ readonly class Health
             $health = $this->getMaxHealth();
         }
 
-        $this->logger?->debug("{$this->character->getId()}: healed by {$health}.");
+        $this->logger?->debug("{$this->character->id}: healed by {$health}.");
         $this->character->setProperty(
             static::HealthPropertyName,
             min(
@@ -66,7 +66,7 @@ readonly class Health
 
     public function setMaxHealth(int $maxHealth): static
     {
-        $this->logger?->debug("{$this->character->getId()}: health set to {$maxHealth} (was {$this->getMaxHealth()}) before).");
+        $this->logger?->debug("{$this->character->id}: health set to {$maxHealth} (was {$this->getMaxHealth()}) before).");
         $this->character->setProperty(static::MaxHealthPropertyName, $maxHealth);
         return $this;
     }

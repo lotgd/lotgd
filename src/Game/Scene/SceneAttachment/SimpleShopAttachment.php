@@ -40,7 +40,7 @@ final class SimpleShopAttachment implements SceneAttachmentInterface
         $action = $actionService->getActionById($this->stage, $actionId);
 
         if (!$action) {
-            $logger->critical("Unknown action id in SimpleShopAttachment::buyItem() for character {$this->character->getId()}");
+            $logger->critical("Unknown action id in SimpleShopAttachment::buyItem() for character {$this->character}");
             throw new HttpException(Response::HTTP_INTERNAL_SERVER_ERROR);
         }
 

@@ -30,7 +30,7 @@ readonly class Stats
 
     public function setExperience(int $experience): static
     {
-        $this->logger->debug("{$this->character->getId()}: set experience to {$experience}");
+        $this->logger->debug("{$this->character->id}: set experience to {$experience}");
         $this->character->setProperty(self::ExperiencePropertyName, $experience);
         return $this;
     }
@@ -61,12 +61,12 @@ readonly class Stats
             43930,
         ];
 
-        return $requiredExperience[$this->character->getLevel() - 1] ?? null;
+        return $requiredExperience[$this->character->level - 1] ?? null;
     }
 
     public function getLevel(): int
     {
-        return $this->character->getLevel();
+        return $this->character->level;
     }
 
     public function getAttack(): int
@@ -81,7 +81,7 @@ readonly class Stats
 
     public function setAttack(int $attack): static
     {
-        $this->logger?->debug("{$this->character->getId()}: attack set to {$attack} (was {$this->getAttack()}) before).");
+        $this->logger?->debug("{$this->character->id}: attack set to {$attack} (was {$this->getAttack()}) before).");
         $this->character->setProperty(self::AttackPropertyName, $attack);
         return $this;
     }
@@ -99,7 +99,7 @@ readonly class Stats
 
     public function setDefense(int $defense): static
     {
-        $this->logger?->debug("{$this->character->getId()}: defense set to {$defense} (was {$this->getDefense()}) before).");
+        $this->logger?->debug("{$this->character->id}: defense set to {$defense} (was {$this->getDefense()}) before).");
         $this->character->setProperty(self::DefensePropertyName, $defense);
         return $this;
     }
@@ -117,9 +117,9 @@ readonly class Stats
 
     public function levelUp(): static
     {
-        $this->character->setLevel($this->character->getLevel() + 1);
+        $this->character->level = $this->character->level + 1;
 
-        $this->logger?->debug("{$this->character->getId()}: Level increased to {$this->character->getLevel()}.");
+        $this->logger?->debug("{$this->character->id}: Level increased to {$this->character->level}.");
 
         $this->addAttack(1);
         $this->addDefense(1);

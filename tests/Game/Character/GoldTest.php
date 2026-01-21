@@ -28,9 +28,9 @@ class GoldTest extends TestCase
     public function testGetGold(int $goldAmount): void
     {
         $character = new Character();
-        $character->setProperties([
+        $character->properties = [
             Gold::PropertyName => $goldAmount,
-        ]);
+        ];
 
         $loggerMock = $this->createMock(LoggerInterface::class);
 
@@ -52,9 +52,9 @@ class GoldTest extends TestCase
     public function testSetGold(int $initialGoldAmount, int $setGoldAmount): void
     {
         $character = new Character();
-        $character->setProperties([
+        $character->properties = [
             Gold::PropertyName => $initialGoldAmount,
-        ]);
+        ];
 
         $loggerMock = $this->createMock(LoggerInterface::class);
         $loggerMock->expects($this->once())->method("debug");
@@ -78,9 +78,9 @@ class GoldTest extends TestCase
     public function testAddGold(int $initialGoldAmount, int $setGoldAmount, int $finalGoldAmount): void
     {
         $character = new Character();
-        $character->setProperties([
+        $character->properties = [
             Gold::PropertyName => $initialGoldAmount,
-        ]);
+        ];
 
         $loggerMock = $this->createMock(LoggerInterface::class);
         $loggerMock->expects($this->once())->method("debug");

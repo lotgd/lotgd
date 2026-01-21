@@ -9,6 +9,7 @@ use LotGD2\Game\Character\Equipment;
 use LotGD2\Game\Character\Health;
 use LotGD2\Game\Character\Stats;
 use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\MockObject\Runtime\PropertyHook;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 
@@ -144,7 +145,7 @@ class StatsTest extends TestCase
         $expectedLevel = 5;
         $this->character
             ->expects($this->once())
-            ->method('getLevel')
+            ->method(PropertyHook::get("level"))
             ->willReturn($expectedLevel);
 
         $this->assertEquals($expectedLevel, $this->stats->getLevel());
@@ -191,7 +192,7 @@ class StatsTest extends TestCase
 
         $this->character
             ->expects($this->once())
-            ->method('getId')
+            ->method(PropertyHook::get("id"))
             ->willReturn(1);
 
         $this->logger
@@ -288,7 +289,7 @@ class StatsTest extends TestCase
 
         $this->character
             ->expects($this->once())
-            ->method('getId')
+            ->method(PropertyHook::get("id"))
             ->willReturn(1);
 
         $this->logger
@@ -444,17 +445,17 @@ class StatsTest extends TestCase
 
         $this->character
             ->expects($this->exactly(2))
-            ->method('getLevel')
+            ->method(PropertyHook::get("level"))
             ->willReturn($currentLevel, $expectedNewLevel);
 
         $this->character
             ->expects($this->once())
-            ->method('setLevel')
+            ->method(PropertyHook::set("level"))
             ->with($expectedNewLevel);
 
         $this->character
             ->expects($this->atLeastOnce())
-            ->method('getId')
+            ->method(PropertyHook::get("id"))
             ->willReturn(6);
 
         // Mock the calls for addAttack and addDefense
@@ -498,12 +499,12 @@ class StatsTest extends TestCase
 
         $this->character
             ->expects($this->exactly(1))
-            ->method('getLevel')
+            ->method(PropertyHook::get("level"))
             ->willReturn($currentLevel);
 
         $this->character
             ->expects($this->once())
-            ->method('setLevel')
+            ->method(PropertyHook::set("level"))
             ->with($expectedNewLevel);
 
         // Mock the calls for addAttack and addDefense
@@ -560,7 +561,7 @@ class StatsTest extends TestCase
     public function testRequiredExperienceAlwaysIncreases(): void
     {
         $levels = range(1, 15);
-        $this->character->method("getLevel")->willReturn(...$levels);
+        $this->character->method(PropertyHook::get("level"))->willReturn(...$levels);
 
         $required = 0;
         foreach ($levels as $level) {
@@ -572,7 +573,7 @@ class StatsTest extends TestCase
 
     public function testRequiredExperienceIsNullAboveMaxLevel(): void
     {
-        $this->character->method("getLevel")->willReturn(16);
+        $this->character->method(PropertyHook::get("level"))->willReturn(16);
         $this->assertNull($this->stats->getRequiredExperience());
     }
 }

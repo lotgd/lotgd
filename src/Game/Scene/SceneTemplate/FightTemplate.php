@@ -134,7 +134,7 @@ readonly class FightTemplate implements SceneTemplateInterface
         if (!$creature) {
             $this->addDefaultActions($stage, $action, $scene);
             $stage->setDescription("This place looks very peaceful.");
-            $this->logger->critical("Character {$stage->getOwner()->getId()} did not find any creatures");
+            $this->logger->critical("Character {$stage->getOwner()->id} did not find any creatures");
             return;
         }
 
@@ -205,7 +205,7 @@ readonly class FightTemplate implements SceneTemplateInterface
 
             // Only allow searching for easy battles if level is larger than 1. Enemies can only be level 1 or higher, so
             //  it wouldn't make sense to offer this option on level 1.
-            if ($stage->getOwner()->getLevel() > 1) {
+            if ($stage->getOwner()->level > 1) {
                 $actionGroup->addAction(
                     new Action(
                         scene: $scene,

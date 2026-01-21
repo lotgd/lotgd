@@ -118,7 +118,7 @@ readonly class TrainingTemplate implements SceneTemplateInterface
     public function defaultAction(Stage $stage, Action $action, Scene $scene): void
     {
         $character = $stage->getOwner();
-        $master = $this->masterRepository->getByLevel($character->getLevel());
+        $master = $this->masterRepository->getByLevel($character->level);
 
         // If this returns null, the max level has been reached.
         if ($master === null) {
@@ -138,7 +138,7 @@ readonly class TrainingTemplate implements SceneTemplateInterface
     public function askAction(Stage $stage, Action $action, Scene $scene): void
     {
         $character = $stage->getOwner();
-        $master = $this->masterRepository->getByLevel($character->getLevel());
+        $master = $this->masterRepository->getByLevel($character->level);
 
         $stage
             ->setDescription(
@@ -158,7 +158,7 @@ readonly class TrainingTemplate implements SceneTemplateInterface
     public function challengeAction(Stage $stage, Action $action, Scene $scene): void
     {
         $character = $stage->getOwner();
-        $master = $this->masterRepository->getByLevel($character->getLevel());
+        $master = $this->masterRepository->getByLevel($character->level);
 
         if ($this->getSeenMaster($character)) {
             $stage
@@ -271,7 +271,7 @@ readonly class TrainingTemplate implements SceneTemplateInterface
 
         $this->setSeenMaster($character, false);
 
-        $this->logger->debug("Character {$character->getId()} won against his master and is now on level {$character->getLevel()}.");
+        $this->logger->debug("Character {$character->id} won against his master and is now on level {$character->level}.");
     }
 
     /**

@@ -37,7 +37,7 @@ class GameController extends AbstractController
             $gameLoop->setCharacter($character);
             $stage = $gameLoop->takeAction($character, $action);
         } catch (InvalidActionError) {
-            $stage = $character->getStage();
+            $stage = $character->stage;
         }
 
         return $this->render("game/view.html.twig", [
