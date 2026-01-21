@@ -104,7 +104,7 @@ readonly class TrainingTemplate implements SceneTemplateInterface
         $stage->addContext("armor", $this->equipment->getItemInSlot(Equipment::ArmorSlot)?->getName() ?? "T-Shirt");
 
         if ($op === "cheat" and $this->security->isGranted("ROLE_CHEATS_ENABLED")) {
-            $this->handleCheats($action->getParameter($stage->getOwner(), "what"));
+            $this->handleCheats($stage->getOwner(), $action->getParameter("what"));
         }
 
         match ($op) {
