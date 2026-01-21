@@ -158,6 +158,8 @@ readonly class HealerTemplate implements SceneTemplateInterface
             reference: self::ActionCompleteHealing,
         ));
 
+        $healOptionList = [$healthDelta => $price];
+
         // Only add partial healing options if healing is not free
         // Healing is usually free on level 1
         if ($price > 0) {
@@ -165,12 +167,18 @@ readonly class HealerTemplate implements SceneTemplateInterface
                 $partialPrice = (int)ceil($price * $i / 100);
                 $partialHeal = (int)round(max(1, $healthDelta * $i / 100));
 
+                if (isset($healOptionList[$partialHeal])) {
+                    continue;
+                }
+
                 $actionGroup->addAction(new Action(
                     scene: $scene,
-                    title: "{}",
+                    title: "Heal {$partialHeal} points for {$partialPrice} gold",
                     parameters: ["op" => "heal", "amount" => $partialHeal, "price" => $partialPrice],
-                    reference: self::ActionPartialHealing,
+                    reference: self::ActionPartialHealing . ".$i",
                 ));
+
+                $healOptionList[$partialHeal] = $partialPrice;
             }
         }
 
