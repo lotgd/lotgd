@@ -58,11 +58,11 @@ readonly class Stats
 
     public function getTotalAttack(): int
     {
-        return $this->getAttack() + ($this->equipment->getItemInSlot(Equipment::WeaponSlot)?->getValue() ?? 0);
+        return $this->getAttack() + ($this->equipment->getItemInSlot(Equipment::WeaponSlot)?->getStrength() ?? 0);
     }
 
     public function getTotalDefense(): int
     {
-        return $this->getDefense() + ($this->equipment->getItemInSlot(Equipment::ArmorSlot)?->getValue() ?? 0);
+        return $this->getDefense() + ($this->equipment->getItemInSlot(Equipment::ArmorSlot)?->getStrength() ?? 0);
     }
 }

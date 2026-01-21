@@ -225,7 +225,7 @@ class StatsTest extends TestCase
         $weapon = $this->createMock(EquipmentItem::class);
         $weapon
             ->expects($this->once())
-            ->method('getValue')
+            ->method('getStrength')
             ->willReturn($weaponValue);
 
         $this->equipment
@@ -270,7 +270,7 @@ class StatsTest extends TestCase
         $armor = $this->createMock(EquipmentItem::class);
         $armor
             ->expects($this->once())
-            ->method('getValue')
+            ->method('getStrength')
             ->willReturn($armorValue);
 
         $this->equipment
