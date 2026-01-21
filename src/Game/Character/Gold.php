@@ -7,22 +7,22 @@ use LotGD2\Entity\Mapped\Character;
 
 class Gold
 {
-    const string GOLD_PROPERTY = 'gold';
+    const string PropertyName = 'gold';
 
     public function getGold(Character $character): int
     {
-        return $character->getProperty(self::GOLD_PROPERTY, 0);
+        return $character->getProperty(self::PropertyName, 0);
     }
 
     public function setGold(Character $character, int $gold): static
     {
-        $character->setProperty(self::GOLD_PROPERTY, $gold);
+        $character->setProperty(self::PropertyName, $gold);
         return $this;
     }
 
     public function addGold(Character $character, int $gold): static
     {
-        $character->setProperty(self::GOLD_PROPERTY, $this->getGold($character) + $gold);
+        $character->setProperty(self::PropertyName, $this->getGold($character) + $gold);
         return $this;
     }
 }

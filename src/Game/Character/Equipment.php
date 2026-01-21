@@ -11,6 +11,7 @@ class Equipment
 {
     const string ArmorSlot = "armor";
     const string WeaponSlot = "weapon";
+    const string PropertyName = 'equipment';
 
     public function __construct(
         private readonly LoggerInterface $logger,
@@ -19,7 +20,7 @@ class Equipment
 
     public function getItemInSlot(Character $character, string $slot): ?EquipmentItem
     {
-        $equipment = $character->getProperty("equipment");
+        $equipment = $character->getProperty(self::PropertyName);
         return $equipment[$slot] ?? null;
     }
 
@@ -27,13 +28,13 @@ class Equipment
     {
         $this->logger->debug("{$character->getId()} set new item in slot ($slot): {$item->getName()} ({$item->getStrength()})");
 
-        $equipment = $character->getProperty("equipment");
+        $equipment = $character->getProperty(self::PropertyName);
         if (!is_array($equipment)) {
             $equipment[$slot] = $item;
         } else {
             $equipment = [$slot => $item];
         }
-        $character->setProperty("equipment", $equipment);
+        $character->setProperty(self::PropertyName, $equipment);
         return $this;
     }
 }
