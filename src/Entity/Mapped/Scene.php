@@ -40,7 +40,34 @@ class Scene
         }
     }
 
+    /** @var Collection<int, SceneConnection>  */
+    #[ORM\OneToMany(targetEntity: SceneConnection::class, mappedBy: 'sourceScene', cascade: ["persist", "remove"], orphanRemoval: true)]
+    public Collection $sourcedConnections {
+        get => $this->sourcedConnections;
+
+        set(iterable $value) {
+            $this->sourcedConnections = new ArrayCollection();
+            foreach ($value as $sourcedConnection) {
+                $this->addSourcedConnection($sourcedConnection);
+            }
+        }
+    }
+
+    /** @var Collection<int, SceneConnection>  */
+    #[ORM\OneToMany(targetEntity: SceneConnection::class, mappedBy: 'targetScene', cascade: ["persist", "remove"], orphanRemoval: true)]
+    public Collection $targetingConnections {
+        get => $this->targetingConnections;
+        set(iterable $value) {
+            $this->targetingConnections = new ArrayCollection();
+            foreach ($value as $targetingConnection) {
+                $this->addTargetingConnection($targetingConnection);
+            }
+        }
+    }
+
     /**
+     * @param iterable<int, SceneConnection> $sourcedConnections
+     * @param iterable<int, SceneConnection> $targetingConnections
      * @param iterable<int, SceneActionGroup> $actionGroups
      */
     public function __construct(
@@ -76,24 +103,16 @@ class Scene
             }
         },
 
-        /** @var Collection<int, SceneConnection>  */
-        #[ORM\OneToMany(targetEntity: SceneConnection::class, mappedBy: 'sourceScene', cascade: ["persist", "remove"], orphanRemoval: true)]
-        public Collection $sourcedConnections = new ArrayCollection() {
-            get => $this->sourcedConnections;
-        },
-
-        /** @var Collection<int, SceneConnection>  */
-        #[ORM\OneToMany(targetEntity: SceneConnection::class, mappedBy: 'targetScene', cascade: ["persist", "remove"], orphanRemoval: true)]
-        public Collection $targetingConnections = new ArrayCollection() {
-            get => $this->targetingConnections;
-        },
-
+        iterable $sourcedConnections = new ArrayCollection(),
+        iterable $targetingConnections = new ArrayCollection(),
         iterable $actionGroups = new ArrayCollection(),
 
         #[ORM\Column(type: 'boolean', nullable: true, options: ["default" => false])]
         public ?bool $defaultScene = false,
     ) {
         $this->actionGroups = $actionGroups;
+        $this->sourcedConnections = $sourcedConnections;
+        $this->targetingConnections = $targetingConnections;
     }
 
     public function connectTo(
