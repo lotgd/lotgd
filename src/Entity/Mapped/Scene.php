@@ -26,6 +26,7 @@ class Scene
     #[ORM\Column(type: Types::TEXT)]
     private ?string $description = null;
 
+    /** @var class-string<SceneTemplateInterface>|null  */
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $templateClass = null;
 
@@ -85,11 +86,18 @@ class Scene
         return $this;
     }
 
+    /**
+     * @return class-string<SceneTemplateInterface>|null
+     */
     public function getTemplateClass(): ?string
     {
         return $this->templateClass;
     }
 
+    /**
+     * @param class-string<SceneTemplateInterface>|null $templateClass
+     * @return $this
+     */
     public function setTemplateClass(?string $templateClass): static
     {
         if (!is_a($templateClass, SceneTemplateInterface::class, true)) {
@@ -117,9 +125,13 @@ class Scene
      * @param array<string, mixed> $templateConfig
      * @return $this
      */
-    public function setTemplateConfig(array $templateConfig): static
+    public function setTemplateConfig(array $templateConfig, bool $callValidation = true): static
     {
-        $this->templateConfig = $templateConfig;
+        if ($this->templateClass and $callValidation) {
+            $this->templateConfig = $this->templateClass::validateConfiguration($templateConfig);
+        } else {
+            $this->templateConfig = $templateConfig;
+        }
 
         return $this;
     }
