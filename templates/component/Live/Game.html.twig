@@ -69,8 +69,27 @@
             {% endfor %}
         </div>
 
-        <div class="col-3 bg-primary-subtle">
-
+        <div class="col-3 bg-primary-subtle p-3">
+            <table class="table small">
+                {% for row in charStats %}
+                    {% if row|length == 1 %}
+                        <tr>
+                            <th class="bg-primary text-white" scope="colgroup" colspan="2">{{ row[0] }}</th>
+                        </tr>
+                    {% else %}
+                        <tr>
+                            <th scope="row">{{ row[0] }}</th>
+                            <td>
+                                {% if row|length == 2 %}
+                                    {{ row[1] }}
+                                {% else %}
+                                    <twig:Bootstrap:Progress :current="row[1]" :max="row[2]" displayMax displayCurrent colored />
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% endif %}
+                {% endfor %}
+            </table>
         </div>
     </div>
 </div>

@@ -3,8 +3,14 @@ declare(strict_types=1);
 
 namespace LotGD2\Twig\Component\Live;
 
+use LotGD2\Entity\Character\CharStats;
+use LotGD2\Entity\Character\CharStatsTitleRow;
 use LotGD2\Entity\Mapped\Character;
 use LotGD2\Entity\Mapped\Stage;
+use LotGD2\Game\Character\Equipment;
+use LotGD2\Game\Character\Gold;
+use LotGD2\Game\Character\Health;
+use LotGD2\Game\Character\Stats;
 use LotGD2\Game\GameLoop;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\UX\LiveComponent\Attribute\AsLiveComponent;
@@ -32,6 +38,30 @@ class Game extends AbstractController
     public function getStage(): Stage
     {
         return $this->game->getStage($this->character);
+    }
+
+    #[ExposeInTemplate]
+    public function getCharStats(): array
+    {
+        $health = new Health(null, $this->character);
+        $equipment = new Equipment(null, $this->character);
+        $stats = new Stats(null, $equipment, $this->character);
+        $gold = new Gold(null, $this->character);
+
+        return [
+            ["Character"],
+            ["Name", $this->character->getName()],
+            ["Level", $this->character->getLevel()],
+            ["Experience", $stats->getExperience()],
+            ["Health", $health->getHealth(), $health->getMaxHealth()],
+            ["Stats"],
+            ["Attack", $stats->getTotalAttack()],
+            ["Defense", $stats->getTotalDefense()],
+            ["Inventory"],
+            ["Gold in Hand", $gold->getGold()],
+            ["Weapon", $equipment->getItemInSlot(Equipment::WeaponSlot)?->getName() ?? "Fists"],
+            ["Armor", $equipment->getItemInSlot(Equipment::ArmorSlot)?->getName() ?? "T-Shirt"],
+        ];
     }
 
     #[LiveAction]

@@ -13,7 +13,7 @@ final class Gold
     const string PropertyName = 'gold';
 
     public function __construct(
-        private LoggerInterface $logger,
+        private ?LoggerInterface $logger,
         #[Autowire(expression: "service('lotgd2.game_loop').getCharacter()")]
         private Character $character,
     ) {
