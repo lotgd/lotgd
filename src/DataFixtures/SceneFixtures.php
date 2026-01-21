@@ -26,18 +26,22 @@ class SceneFixtures extends Fixture
                         shops around the square. The village is surrounded by a deep, black forest.
                         TXT,
                     actionGroups: [
-                        new SceneActionGroup()
-                            ->setSorting(0)
-                            ->setTitle("Outside"),
-                        new SceneActionGroup()
-                            ->setSorting(1)
-                            ->setTitle("Blade alley"),
-                        new SceneActionGroup()
-                            ->setSorting(2)
-                            ->setTitle("Market place"),
-                        new SceneActionGroup()
-                            ->setSorting(3)
-                            ->setTitle("Tavern street"),
+                        new SceneActionGroup(
+                            title: "Outside",
+                            sorting: 0,
+                        ),
+                        new SceneActionGroup(
+                            title: "Blade alley",
+                            sorting: 1,
+                        ),
+                        new SceneActionGroup(
+                            title: "Market place",
+                            sorting: 2,
+                        ),
+                        new SceneActionGroup(
+                            title: "Tavern street",
+                            sorting: 3,
+                        ),
                     ],
                     defaultScene: true,
                 ),
@@ -55,9 +59,10 @@ class SceneFixtures extends Fixture
 
                 ],
                 actionGroups: [
-                    new SceneActionGroup()
-                        ->setSorting(0)
-                        ->setTitle("Edge of the forest"),
+                    new SceneActionGroup(
+                        title: "Edge of the forest",
+                        sorting: 0,
+                    ),
                 ],
             ),
             "healer" => new Scene(

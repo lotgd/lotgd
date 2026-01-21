@@ -15,6 +15,7 @@ use LotGD2\Game\Enum\SceneConnectionType;
 use LotGD2\Game\Scene\SceneTemplate\SceneTemplateInterface;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\UsesClass;
+use PHPUnit\Framework\MockObject\Runtime\PropertyHook;
 use PHPUnit\Framework\TestCase;
 use ValueError;
 
@@ -421,7 +422,7 @@ class SceneTest extends TestCase
         $scene = new Scene();
         $actionGroup = $this->createMock(SceneActionGroup::class);
         $actionGroup->expects($this->once())
-                   ->method('setScene')
+                   ->method(PropertyHook::set("scene"))
                    ->with($scene);
         
         $result = $scene->addActionGroup($actionGroup);
@@ -435,7 +436,7 @@ class SceneTest extends TestCase
         $scene = new Scene();
         $actionGroup = $this->createMock(SceneActionGroup::class);
         $actionGroup->expects($this->once())
-                   ->method('setScene')
+                   ->method(PropertyHook::set("scene"))
                    ->with($scene);
         
         $scene->addActionGroup($actionGroup);
@@ -449,10 +450,10 @@ class SceneTest extends TestCase
         $scene = new Scene();
         $actionGroup = $this->createMock(SceneActionGroup::class);
         $actionGroup->expects($this->once())
-                   ->method('getScene')
+                   ->method(PropertyHook::get("scene"))
                    ->willReturn($scene);
         $actionGroup->expects($this->exactly(2))
-                   ->method('setScene')
+                   ->method(PropertyHook::set("scene"))
                    ->willReturnMap([
                        [$scene, $actionGroup],
                        [null, $actionGroup]
@@ -470,7 +471,7 @@ class SceneTest extends TestCase
         $scene = new Scene();
         $actionGroup = $this->createMock(SceneActionGroup::class);
         $actionGroup->expects($this->never())
-                   ->method('setScene');
+                   ->method(PropertyHook::set("scene"));
         
         $result = $scene->removeActionGroup($actionGroup);
         
@@ -483,10 +484,10 @@ class SceneTest extends TestCase
         $otherScene = new Scene();
         $actionGroup = $this->createMock(SceneActionGroup::class);
         $actionGroup->expects($this->once())
-                   ->method('getScene')
+                   ->method(PropertyHook::get("scene"))
                    ->willReturn($otherScene);
         $actionGroup->expects($this->once())
-                   ->method('setScene');
+                   ->method(PropertyHook::set("scene"));
         
         $scene->addActionGroup($actionGroup);
         $scene->addActionGroup($actionGroup);

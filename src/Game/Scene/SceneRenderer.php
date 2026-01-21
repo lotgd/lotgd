@@ -113,12 +113,12 @@ readonly class SceneRenderer
 
         foreach ($scene->actionGroups as $sceneActionGroup) {
             $actionGroup = new ActionGroup(
-                id: "lotgd.actionGroup.custom.{$sceneActionGroup->getId()}",
-                title: $sceneActionGroup->getTitle(),
-                weight: $sceneActionGroup->getSorting(),
+                id: "lotgd.actionGroup.custom.{$sceneActionGroup->id}",
+                title: $sceneActionGroup->title,
+                weight: $sceneActionGroup->sorting,
             );
 
-            foreach ($sceneActionGroup->getConnections() as $connection) {
+            foreach ($sceneActionGroup->connections as $connection) {
                 if (!isset($addedConnections[$connection->id])) {
                     $action = $this->createActionFromConnection($scene, $connection);
                     $actionGroup->addAction($action);

@@ -206,10 +206,10 @@ class SceneRendererTest extends TestCase
 
         // Create a mock scene action group
         $sceneActionGroup = $this->createMock(SceneActionGroup::class);
-        $sceneActionGroup->method('getId')->willReturn(13);
-        $sceneActionGroup->method('getTitle')->willReturn('Explore');
-        $sceneActionGroup->method('getSorting')->willReturn(10);
-        $sceneActionGroup->method('getConnections')->willReturn(new ArrayCollection());
+        $sceneActionGroup->method(PropertyHook::get("id"))->willReturn(13);
+        $sceneActionGroup->method(PropertyHook::get("title"))->willReturn('Explore');
+        $sceneActionGroup->method(PropertyHook::get("sorting"))->willReturn(10);
+        $sceneActionGroup->method(PropertyHook::get("connections"))->willReturn(new ArrayCollection());
 
         $scene->method(PropertyHook::get("actionGroups"))->willReturn(new ArrayCollection([$sceneActionGroup]));
         $scene->method('getConnections')->willReturn(new ArrayCollection());
@@ -245,10 +245,10 @@ class SceneRendererTest extends TestCase
 
         // Create a mock scene action group
         $sceneActionGroup = $this->createMock(SceneActionGroup::class);
-        $sceneActionGroup->method('getId')->willReturn(13);
-        $sceneActionGroup->method('getTitle')->willReturn('Explore');
-        $sceneActionGroup->method('getSorting')->willReturn(10);
-        $sceneActionGroup->method('getConnections')->willReturn(new ArrayCollection([$connection]));
+        $sceneActionGroup->method(PropertyHook::get("id"))->willReturn(13);
+        $sceneActionGroup->method(PropertyHook::get("title"))->willReturn('Explore');
+        $sceneActionGroup->method(PropertyHook::get("sorting"))->willReturn(10);
+        $sceneActionGroup->method(PropertyHook::get("connections"))->willReturn(new ArrayCollection([$connection]));
 
         $scene->method(PropertyHook::get("actionGroups"))->willReturn(new ArrayCollection([$sceneActionGroup]));
         $scene->method('getConnections')->willReturn(new ArrayCollection());
@@ -287,10 +287,10 @@ class SceneRendererTest extends TestCase
 
         // Add the same connection to action group
         $sceneActionGroup = $this->createMock(SceneActionGroup::class);
-        $sceneActionGroup->method('getId')->willReturn(13);
-        $sceneActionGroup->method('getTitle')->willReturn('Explore');
-        $sceneActionGroup->method('getSorting')->willReturn(10);
-        $sceneActionGroup->method('getConnections')->willReturn(new ArrayCollection([$connection]));
+        $sceneActionGroup->method(PropertyHook::get("id"))->willReturn(13);
+        $sceneActionGroup->method(PropertyHook::get("title"))->willReturn('Explore');
+        $sceneActionGroup->method(PropertyHook::get("sorting"))->willReturn(10);
+        $sceneActionGroup->method(PropertyHook::get("connections"))->willReturn(new ArrayCollection([$connection]));
 
         // And also include it in visible connections
         $scene->method(PropertyHook::get("actionGroups"))->willReturn(new ArrayCollection([$sceneActionGroup]));
@@ -370,10 +370,10 @@ class SceneRendererTest extends TestCase
 
         // Scene action group
         $sceneActionGroup = $this->createMock(SceneActionGroup::class);
-        $sceneActionGroup->method('getId')->willReturn(13);
-        $sceneActionGroup->method('getTitle')->willReturn('Explore');
-        $sceneActionGroup->method('getSorting')->willReturn(10);
-        $sceneActionGroup->method('getConnections')->willReturn(new ArrayCollection([$connection1]));
+        $sceneActionGroup->method(PropertyHook::get("id"))->willReturn(13);
+        $sceneActionGroup->method(PropertyHook::get("title"))->willReturn('Explore');
+        $sceneActionGroup->method(PropertyHook::get("sorting"))->willReturn(10);
+        $sceneActionGroup->method(PropertyHook::get("connections"))->willReturn(new ArrayCollection([$connection1]));
 
         $scene->method(PropertyHook::get("actionGroups"))->willReturn(new ArrayCollection([$sceneActionGroup]));
         $scene->method('getConnections')->willReturn(new ArrayCollection([$connection1, $connection2]));
@@ -412,10 +412,10 @@ class SceneRendererTest extends TestCase
         $connection->sourceScene = $sourceScene;
 
         $sceneActionGroup = $this->createMock(SceneActionGroup::class);
-        $sceneActionGroup->method('getId')->willReturn(13);
-        $sceneActionGroup->method('getTitle')->willReturn('Movement');
-        $sceneActionGroup->method('getSorting')->willReturn(10);
-        $sceneActionGroup->method('getConnections')->willReturn(new ArrayCollection([$connection]));
+        $sceneActionGroup->method(PropertyHook::get("id"))->willReturn(13);
+        $sceneActionGroup->method(PropertyHook::get("title"))->willReturn('Movement');
+        $sceneActionGroup->method(PropertyHook::get("sorting"))->willReturn(10);
+        $sceneActionGroup->method(PropertyHook::get("connections"))->willReturn(new ArrayCollection([$connection]));
 
         $scene->method(PropertyHook::get("actionGroups"))->willReturn(new ArrayCollection([$sceneActionGroup]));
         $scene->method('getConnections')->willReturn(new ArrayCollection([]));
@@ -441,17 +441,17 @@ class SceneRendererTest extends TestCase
 
         // First action group
         $sceneActionGroup1 = $this->createMock(SceneActionGroup::class);
-        $sceneActionGroup1->method('getId')->willReturn(13);
-        $sceneActionGroup1->method('getTitle')->willReturn('Explore');
-        $sceneActionGroup1->method('getSorting')->willReturn(10);
-        $sceneActionGroup1->method('getConnections')->willReturn(new ArrayCollection());
+        $sceneActionGroup1->method(PropertyHook::get("id"))->willReturn(13);
+        $sceneActionGroup1->method(PropertyHook::get("title"))->willReturn('Explore');
+        $sceneActionGroup1->method(PropertyHook::get("sorting"))->willReturn(10);
+        $sceneActionGroup1->method(PropertyHook::get("connections"))->willReturn(new ArrayCollection());
 
         // Second action group
         $sceneActionGroup2 = $this->createMock(SceneActionGroup::class);
-        $sceneActionGroup2->method('getId')->willReturn(14);
-        $sceneActionGroup2->method('getTitle')->willReturn('Combat');
-        $sceneActionGroup2->method('getSorting')->willReturn(20);
-        $sceneActionGroup2->method('getConnections')->willReturn(new ArrayCollection());
+        $sceneActionGroup2->method(PropertyHook::get("id"))->willReturn(14);
+        $sceneActionGroup2->method(PropertyHook::get("title"))->willReturn('Combat');
+        $sceneActionGroup2->method(PropertyHook::get("sorting"))->willReturn(20);
+        $sceneActionGroup2->method(PropertyHook::get("connections"))->willReturn(new ArrayCollection());
 
         $scene->method(PropertyHook::get("actionGroups"))->willReturn(new ArrayCollection([$sceneActionGroup1, $sceneActionGroup2]));
         $scene->method('getConnections')->willReturn(new ArrayCollection());

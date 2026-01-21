@@ -207,7 +207,7 @@ class Scene
     {
         if (!$this->actionGroups->contains($actionGroup)) {
             $this->actionGroups->add($actionGroup);
-            $actionGroup->setScene($this);
+            $actionGroup->scene = $this;
         }
 
         return $this;
@@ -217,8 +217,8 @@ class Scene
     {
         if ($this->actionGroups->removeElement($actionGroup)) {
             // set the owning side to null (unless already changed)
-            if ($actionGroup->getScene() === $this) {
-                $actionGroup->setScene(null);
+            if ($actionGroup->scene === $this) {
+                $actionGroup->scene = null;
             }
         }
 

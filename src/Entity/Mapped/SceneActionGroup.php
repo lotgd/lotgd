@@ -15,50 +15,47 @@ class SceneActionGroup
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    private ?int $id = null;
-
-    #[ORM\Column(length: 255)]
-    private ?string $title = null;
+    public ?int $id = null {
+        get => $this->id;
+    }
 
     /** @var Collection<int, SceneConnection>  */
     #[ORM\ManyToMany(targetEntity: SceneConnection::class)]
-    private Collection $connections;
-
-    #[ORM\ManyToOne(inversedBy: 'actionGroups')]
-    #[ORM\JoinColumn(nullable: false, onDelete: "CASCADE")]
-    private ?Scene $scene = null;
-
-    #[ORM\Column(type: Types::SMALLINT)]
-    private int $sorting = 0;
-
-    public function __construct()
-    {
-        $this->connections = new ArrayCollection();
-    }
-
-    public function getId(): ?int
-    {
-        return $this->id;
-    }
-
-    public function getTitle(): ?string
-    {
-        return $this->title;
-    }
-
-    public function setTitle(string $title): static
-    {
-        $this->title = $title;
-
-        return $this;
+    public Collection $connections {
+        get => $this->connections;
+        set(iterable $value) {
+            $this->connections = new ArrayCollection();
+            foreach ($value as $connection) {
+                $this->addConnection($connection);
+            }
+        }
     }
 
     /**
-     * @return Collection<int, SceneConnection>
+     * @param iterable<int, SceneConnection> $connections
      */
-    public function getConnections(): Collection
-    {
-        return $this->connections;
+    public function __construct(
+        #[ORM\Column(length: 255)]
+        public ?string $title = null {
+            get => $this->title;
+            set => $value;
+        },
+        iterable $connections = [],
+
+        #[ORM\ManyToOne(inversedBy: 'actionGroups')]
+        #[ORM\JoinColumn(nullable: false, onDelete: "CASCADE")]
+        public ?Scene $scene = null {
+            get => $this->scene;
+            set => $value;
+        },
+
+        #[ORM\Column(type: Types::SMALLINT)]
+        public int $sorting = 0 {
+            get => $this->sorting;
+            set => $value;
+        },
+    ) {
+        $this->connections = $connections;
     }
 
     public function addConnection(SceneConnection $connection): static
@@ -75,11 +72,6 @@ class SceneActionGroup
         $this->connections->removeElement($connection);
 
         return $this;
-    }
-
-    public function getScene(): ?Scene
-    {
-        return $this->scene;
     }
 
     public function setScene(?Scene $scene): static
