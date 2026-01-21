@@ -58,7 +58,23 @@ trait DefaultFightTrait
                 "battleState" => $battleState,
             ]);
 
-            $this->battle->fightOneRound($battleState, $battleTurn);
+            $rounds = $action->getParameter("rounds") ?? 1;
+
+            do {
+                $rounds -= 1;
+                $this->battle->fightOneRound($battleState, $battleTurn);
+
+                if ($battleState->isOver()) {
+                    break;
+                }
+
+                // If ¨$rounds is not 0, we continue with the next round. If $rounds is 0, we stop.
+                // That means, if rounds is negative, the fight continues until someone dies.
+                $anotherOne = $rounds !== 0;
+
+                // Set battle Turn back to default to remove the 'surprised' element after the first round.
+                $battleTurn = BattleTurn::DamageTurnBoth;
+            } while ($anotherOne);
 
             if ($battleState->isOver()) {
                 $this->onFightEnds($stage, $action, $scene, $battleState);

@@ -29,8 +29,12 @@ use function round;
 class Battle
 {
     const string ActionGroupBattle = "lotgd2.actionGroup.battle";
+    const string ActionGroupAutoBattle = "lotgd2.actionGroup.autoBattle";
     const string FightActionAttack = "lotgd2.action.attack";
     const string FightActionFlee = "lotgd2.action.flee";
+    const string FightActionAutoFive = "lotgd2.action.auto5";
+    const string FightActionAutoTen = "lotgd2.action.auto10";
+    const string FightActionAutoAll = "lotgd2.action.autoAll";
 
     public function __construct(
         private LoggerInterface $logger,
@@ -86,7 +90,39 @@ class Battle
             $actionGroup->addAction(new Action($scene, "Flee", [... $actionParams, "how" => "flee", "battleState" => $battleState], reference: self::FightActionFlee));
         }
 
+        $autoActionGroup = new ActionGroup(self::ActionGroupAutoBattle, "Auto", -99);
+        $autoActionGroup->setActions([
+            new Action(
+                $scene,
+                "for 5 rounds", [
+                    ... $actionParams,
+                    "how" => "attack",
+                    "rounds" => 5,
+                    "battleState" => $battleState],
+                reference: self::FightActionAutoFive,
+            ),
+            new Action(
+                $scene,
+                "for all rounds", [
+                ... $actionParams,
+                "how" => "attack",
+                "rounds" => 10,
+                "battleState" => $battleState],
+                reference: self::FightActionAutoTen,
+            ),
+            new Action(
+                $scene,
+                "until the bitter end", [
+                ... $actionParams,
+                "how" => "attack",
+                "rounds" => -1,
+                "battleState" => $battleState],
+                reference: self::FightActionAutoAll,
+            ),
+        ]);
+
         $stage->addActionGroup($actionGroup);
+        $stage->addActionGroup($autoActionGroup);
     }
 
     /**
