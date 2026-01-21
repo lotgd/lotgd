@@ -5,6 +5,7 @@ namespace LotGD2\Entity\Mapped;
 
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Dunglas\DoctrineJsonOdm\Type\JsonDocumentType;
 use LotGD2\Repository\CharacterRepository;
 use Symfony\Component\Validator\Constraints as Assert;
 
@@ -33,6 +34,15 @@ class Character
 
     #[ORM\OneToOne(mappedBy: 'owner', cascade: ['persist', 'remove'])]
     private ?Stage $stage = null;
+
+    /** @var null|array<string, mixed>  */
+    #[ORM\Column(type: JsonDocumentType::NAME, nullable: true)]
+    private ?array $properties;
+
+    public function __construct()
+    {
+        $this->properties = [];
+    }
 
     public function getId(): ?int
     {
@@ -106,6 +116,28 @@ class Character
 
         $this->stage = $stage;
 
+        return $this;
+    }
+
+    public function getProperties(): ?array
+    {
+        return $this->properties;
+    }
+
+    public function getProperty(string $name, mixed $default = null): mixed
+    {
+        return $this->properties[$name] ?? $default;
+    }
+
+    public function setProperties(array $properties): static
+    {
+        $this->properties = $properties;
+        return $this;
+    }
+
+    public function setProperty(string $name, mixed $value): static
+    {
+        $this->properties[$name] = $value;
         return $this;
     }
 }
