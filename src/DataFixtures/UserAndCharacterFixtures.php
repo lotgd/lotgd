@@ -55,6 +55,7 @@ class UserAndCharacterFixtures extends Fixture
                     "ROLE_ADMIN",
                     "ROLE_USER",
                     "ROLE_DEBUG",
+                    "ROLE_CHEATS_ENABLED",
                 ])
         ];
     }

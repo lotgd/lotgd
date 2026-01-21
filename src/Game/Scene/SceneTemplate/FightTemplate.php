@@ -20,6 +20,7 @@ use LotGD2\Game\Stage\ActionService;
 use LotGD2\Repository\AttachmentRepository;
 use LotGD2\Repository\CreatureRepository;
 use Psr\Log\LoggerInterface;
+use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\DependencyInjection\Attribute\Autoconfigure;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
@@ -37,7 +38,10 @@ readonly class FightTemplate implements SceneTemplateInterface
     use DefaultSceneTemplate;
     use DefaultFightTrait;
 
+    const string ActionGroupSearch = "lotgd2.actionGroup.fightTemplate.search";
+
     public function __construct(
+        private Security $security,
         private LoggerInterface $logger,
         private AttachmentRepository $attachmentRepository,
         private Stats $experience,
@@ -79,6 +83,10 @@ readonly class FightTemplate implements SceneTemplateInterface
         $op = $action->getParameter("op");
         $this->logger->debug("Called FightTemplate::onSceneChange, op={$op}");
 
+        if ($op === "cheat" and $this->security->isGranted("ROLE_CHEATS_ENABLED")) {
+            $this->handleCheats($action->getParameter("what"));
+        }
+
         match($op) {
             "search" => $this->searchAction($stage, $action, $scene),
             "fight" => $this->fightAction($stage, $action, $scene),
@@ -97,11 +105,11 @@ readonly class FightTemplate implements SceneTemplateInterface
     {
         $this->logger->debug("Called FightTemplate::defaultAction");
 
-        if ($this->health->getHealth() > 0) {
-            $this->addDefaultActions($stage, $action, $scene);
-        } else {
+        if ($this->health->getHealth() <= 0) {
             $stage->addDescription("You are too tired to delve deeper into the woods.");
         }
+
+        $this->addDefaultActions($stage, $action, $scene);
     }
 
     /**
@@ -181,47 +189,66 @@ readonly class FightTemplate implements SceneTemplateInterface
      */
     public function addDefaultActions(Stage $stage, Action $action, Scene $scene): void
     {
-        $actionGroup = new ActionGroup("lotgd2.actionGroup.fightTemplate.search", $scene->getTitle());
+        if ($this->health->isAlive()) {
+            $actionGroup = new ActionGroup(self::ActionGroupSearch, $scene->getTitle());
 
-        $actionGroup->addAction(
-            new Action(
-                scene: $scene,
-                title: $scene->getTemplateConfig()["searchFightAction"],
-                parameters: [
-                    "op" => "search",
-                    "level" => 0,
-                ]
-            )
-        );
-
-        // Only allow searching for easy battles if level is larger than 1. Enemies can only be level 1 or higher, so
-        //  it wouldn't make sense to offer this option on level 1.
-        if ($stage->getOwner()->getLevel() > 1) {
             $actionGroup->addAction(
                 new Action(
                     scene: $scene,
-                    title: $scene->getTemplateConfig()["searchSlummingAction"] ?? "Go slumming",
+                    title: $scene->getTemplateConfig()["searchFightAction"],
                     parameters: [
                         "op" => "search",
-                        "level" => -1,
+                        "level" => 0,
                     ]
                 )
             );
+
+            // Only allow searching for easy battles if level is larger than 1. Enemies can only be level 1 or higher, so
+            //  it wouldn't make sense to offer this option on level 1.
+            if ($stage->getOwner()->getLevel() > 1) {
+                $actionGroup->addAction(
+                    new Action(
+                        scene: $scene,
+                        title: $scene->getTemplateConfig()["searchSlummingAction"] ?? "Go slumming",
+                        parameters: [
+                            "op" => "search",
+                            "level" => -1,
+                        ]
+                    )
+                );
+            }
+
+            $actionGroup->addAction(
+                new Action(
+                    scene: $scene,
+                    title: $scene->getTemplateConfig()["searchThrillseekingAction"] ?? "Go thrillseeking",
+                    parameters: [
+                        "op" => "search",
+                        "level" => 1,
+                    ]
+                )
+            );
+
+            $stage->addActionGroup($actionGroup);
         }
 
-        $actionGroup->addAction(
-            new Action(
-                scene: $scene,
-                title: $scene->getTemplateConfig()["searchThrillseekingAction"] ?? "Go thrillseeking",
-                parameters: [
-                    "op" => "search",
-                    "level" => 1,
-                ]
-            )
-        );
-
-
-        $stage->addActionGroup($actionGroup);
+        if ($this->security->isGranted("ROLE_CHEATS_ENABLED")) {
+            $cheatsGroup = new ActionGroup("lotgd2.actionGroup.fightTemplate.cheats", "Cheats");
+            $cheatsGroup->setActions([
+                new Action(
+                    scene: $scene,
+                    title: "#! Gain 1000 experience",
+                    parameters: ["op" => "cheat", "what" => "experience"],
+                    reference: "lotgd2.action.fightTemplate.cheats.experience",
+                ),
+                new Action(
+                    scene: $scene,
+                    title: "#! Gain 1000 gold",
+                    parameters: ["op" => "cheat", "what" => "gold"],
+                    reference: "lotgd2.action.fightTemplate.cheats.gold",)
+            ]);
+            $stage->addActionGroup($cheatsGroup);
+        }
     }
 
     /**
@@ -248,5 +275,14 @@ readonly class FightTemplate implements SceneTemplateInterface
         //  - 11.71% chance for a negative increase ((1-P(plev) * P(nlev))
         //  - 82.81% chance for no change (1 - P(plev) * (1-P(nlev) - (1-P(plev) * P(nlev))
         return $level;
+    }
+
+    public function handleCheats(string $cheat): void
+    {
+        if ($cheat === "experience") {
+            $this->stats->addExperience(1000);
+        } elseif ($cheat === "gold") {
+            $this->gold->addGold(1000);
+        }
     }
 }
