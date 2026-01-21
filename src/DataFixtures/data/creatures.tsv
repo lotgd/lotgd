@@ -1,0 +1,288 @@
+name	level	weapon	textDefeated	textLost	gold	experience	health	attack	defense	script	credits	forest	graveyard	oldexperience
+Thieving Kender	1	Whirling Hoopak	You only wish you could pickpocket your money back from the thief.	NULL	36	14	10	1	1	NULL	Appleshiner	1	0	NULL
+Rude Student	1	Worn Textbook	You have sent this student to permanent detention.	NULL	36	14	10	1	1	NULL	Appleshiner	1	0	NULL
+Baby Unicorn	1	Blunt Horn	You feel like a real jerk killing something so pretty.	NULL	36	14	10	1	1	NULL	Appleshiner	1	0	NULL
+Small Purple Mouse	1	Lashing pink tail	It is written in black and white: this strange technicolor mouse is no more.	NULL	36	14	10	1	1	NULL	Appleshiner	1	0	NULL
+Grunting Piggy	1	Wiggly Snout	Mmm...Bacon	NULL	36	14	10	1	1	NULL	Appleshiner	1	0	NULL
+Cherubically Charming Child	1	Curious Questions	You think it was the alliteration that did him in.	NULL	36	14	10	1	1	NULL	foilwench	1	0	NULL
+Bar Fly	1	Alcoholism	Good thing you got him before cirrhosis did!	NULL	36	14	10	1	1	NULL	Bluspring	1	0	NULL
+Hiker	1	Walking Stick	"His last words were ""...I must protect the dragon."""	NULL	36	14	10	1	1	NULL	Appleshiner	1	0	NULL
+Batling	1	Tiny flapping wings	Silly batling!	NULL	36	14	10	1	1	NULL	Appleshiner	1	1	NULL
+Deranged Gnome	1	A Cloth Draped Mirror	What happens when I do THIS?	NULL	36	14	10	1	1	NULL	NULL	1	0	NULL
+Water Sprite	1	Burst of Water	That was refreshing.	NULL	36	14	10	1	1	NULL	NULL	1	0	NULL
+Cunning Sapling	1	Arrrr!	Ah Ha! A toothpick!	NULL	36	14	10	1	1	NULL	NULL	1	0	NULL
+Twig Man	1	Brambles and Briars	I snapped him like a.. Well, twig.	NULL	36	14	10	1	1	NULL	Hank	1	0	NULL
+Rabid Mouse	1	Little Bitty Teeth	Those little teeth HURT!	NULL	36	14	10	1	1	NULL	Hank	1	0	NULL
+Stray Cat	1	A Midnight Serenade	Finally! Peace in the night!	NULL	36	14	10	1	1	NULL	Hank	1	0	NULL
+Big Hairy Spider	1	Sticky stringy webs	I *HATE* spiders!	NULL	36	14	10	1	1	NULL	Hank	1	0	NULL
+Goblin Lackey	1	Dull Knife	Who knew goblins had lackeys?	NULL	36	14	10	1	1	NULL	Hank	1	0	NULL
+Crazy Chihuahua	1	Fast food cravings	Here taco, taco, taco.	NULL	36	14	10	1	1	NULL	Hank	1	0	NULL
+Looney Rabbit	1	Wisecracks	Th- Th- That's all folks!	NULL	36	14	10	1	1	NULL	Hank	1	0	NULL
+Undead Oarsman	1	Rotten Oar	Funny... I didn't see any water around here.	NULL	36	14	10	1	1	NULL	Hank	1	1	NULL
+Dumb Old Eyesore	2	Nagging complaints	All she ever did was nag...nag...nag...	NULL	97	24	21	3	3	NULL	Appleshiner	1	0	NULL
+Pygmy Marmoset	2	Pieces of treebark	The strange little monkey falls from the trees and lies still.	NULL	97	24	21	3	3	NULL	Appleshiner	1	0	NULL
+Screaming Banshee	2	Hauntingly Beautiful Voice	You plunge your weapon into her breast, silencing her song.	NULL	97	24	21	3	3	NULL	Appleshiner	1	1	NULL
+Ursa Minor	2	Twinkling Lights	After an astronomical battle, Ursa Minor is the one seeing stars	NULL	97	24	21	3	3	NULL	Appleshiner	1	0	NULL
+Stone Troll	2	Gaping  Maw	That troll is stone cold ugly.	NULL	97	24	21	3	3	NULL	Appleshiner	1	0	NULL
+Slithering Asp	2	Hypnotic eyes	You break the deadly gaze of the snake to save your own life.	NULL	97	24	21	3	3	NULL	Appleshiner	1	0	NULL
+Windan The Barbarian	2	Feathered Spear	He really was just a feather-weight	NULL	97	24	21	3	3	NULL	Appleshiner	1	0	NULL
+Studious Young Sorceror	2	Newly memorized spells	Perhaps she should have studied harder.	NULL	97	24	21	3	3	NULL	Appleshiner	1	0	NULL
+Mr. Bear	2	Overwhelming Sleepiness	Mr. Bear was too tired to finish playing with you and went back to napping.	NULL	97	24	21	3	3	NULL	foilwench	1	0	NULL
+Camper	2	Marshmallow-roasting Stick	"With her dying breath she gasps ""...and I never saw the dragon."""	NULL	97	24	21	3	3	NULL	Appleshiner	1	0	NULL
+Small Bat	2	Slightly venomous fangs	The small mammal falls to the ground lifeless.	NULL	97	24	21	3	3	NULL	Appleshiner	1	1	NULL
+Insane Bard	2	Iambic Pentameter	Slings and Arrows of outrageous fortune? Nope.  Just the can o' Whoopass.	NULL	97	24	21	3	3	NULL	NULL	1	0	NULL
+Lost Ghostling	2	Sad Weeping	Well, I'm sure that helped him on his way...	NULL	97	24	21	3	3	NULL	Hank	1	0	NULL
+Angry Titmouse	2	Incessant Chattering	You swat the little bird out of the air with little effort.	NULL	97	24	21	3	3	NULL	Hank	1	0	NULL
+Fabianist Youth Member	2	Marxist Doctrine	Socialize THAT.	NULL	97	24	21	3	3	NULL	Hank	1	0	NULL
+Little Bogeyman	2	Noises in the Dark	Hmm, not so scary when you have grown up...	NULL	97	24	21	3	3	NULL	Hank	1	0	NULL
+Coblynau	2	Ill tempered tricks	Maybe I better leave him part of my lunch next time.	NULL	97	24	21	3	3	NULL	Hank	1	0	NULL
+Jack O'Lantern	2	Eternal Wandering	The light has gone out of his life.	NULL	97	24	21	3	3	NULL	Hank	1	0	NULL
+Fresh Ghoul	2	Long Pointed Nails	You leave him to the mercies of the other ghouls.	NULL	97	24	21	3	3	NULL	Hank	1	1	NULL
+Dry Skeleton	2	a Rusty Dagger	The skeleton crumbles into a pile of dust.	NULL	97	24	21	3	3	NULL	Hank	1	1	NULL
+Newly Dead Zombie	2	Fists	Maybe now it can rest in peace.	NULL	97	24	21	3	3	NULL	Hank	1	1	NULL
+Faerie hound	2	Glowing Eyes	The embers in the eye sockets dim and sputter out.	NULL	97	24	21	3	3	NULL	Hank	1	1	NULL
+Four and Twenty Blackbirds	3	Freshly Baked Pies	Now isn't this a dainty dish to set before a king?	NULL	148	34	32	5	4	NULL	Appleshiner	1	0	NULL
+Amazon	3	Bow and Arrow	The beautiful warrior lass has lost a battle for the first time.	NULL	148	34	32	5	4	NULL	Appleshiner	1	0	NULL
+Overbearing Mother	3	9pm Curfew	With one fell swoop you save your social life!	NULL	148	34	32	5	4	NULL	Appleshiner	1	0	NULL
+Huge Bald Programmer	3	Shining Forehead	You feel as if you have seen this man before in the village.	NULL	148	34	32	5	4	NULL	Appleshiner	1	0	NULL
+Someone's Grandfather	3	Stories that go nowhere	This reminds you of the time you needed a new heel for your shoe.	NULL	148	34	32	5	4	NULL	Appleshiner	1	0	NULL
+Juvenile Delinquent	3	Poor Attitude	With a satisfying thump, you knock the smirk right off his face.	NULL	148	34	32	5	4	NULL	Appleshiner	1	0	NULL
+Beautiful Woodland Sprite	3	Kindness and tranquility	You really cut that wood sprite down to size.	NULL	148	34	32	5	4	NULL	Appleshiner	1	0	NULL
+Society Belle	3	Southern Charm	Now she will never be on time for the ball!	NULL	148	34	32	5	4	NULL	Appleshiner	1	0	NULL
+Giant Goldfish Cracker	3	Annoying Commercial Jingles	Now *there* is a fish that smiled till you bit his head off.	NULL	148	34	32	5	4	NULL	Appleshiner	1	0	NULL
+Swarming Ladybugs	3	Stinking Residue	Those Ladybugs weren't very ladylike.	NULL	148	34	32	5	4	NULL	foilwench	1	0	NULL
+The Gar Man	3	Jar of Cotton Balls	There is but one Gar Man!  And now he's just fluff!	NULL	148	34	32	5	4	NULL	foilwench	1	0	NULL
+Forest Ranger	3	Hunting Rifle	"In his pack you find a copy of ""Dragon Seeking for Dummies."""	NULL	148	34	32	5	4	NULL	Appleshiner	1	0	NULL
+Medium Sized Bat	3	Screeching Cries	You killed it just to shut it up.	NULL	148	34	32	5	4	NULL	Appleshiner	1	1	NULL
+Water Nymph	3	A torrent of water	I didn't need a bath, thank you.	NULL	148	34	32	5	4	NULL	NULL	1	0	NULL
+Big Bogeyman	3	Fingers poking you as you sleep.	Ok... that was weird.  But not scary... Nope not at all... I think I'll leave the light on at the inn tonight though.	NULL	148	34	32	5	4	NULL	Hank	1	0	NULL
+Apprentice Necromancer	3	Life Draining Spells	He gasps a final breath and melts into a tarry liquid.	NULL	148	34	32	5	4	NULL	Hank	1	0	NULL
+Doppleganger	3	Shape changing	You kill the doppleganger and he returns to his true form.	NULL	148	34	32	5	4	NULL	Hank	1	0	NULL
+Forest Thief	3	Poisoned Short Sword	His pockets were almost empty. I guess he wasn't much of a thief.	NULL	148	34	32	5	4	NULL	Hank	1	0	NULL
+Mouldy Skeleton	3	Rotten Fists	Heeeeey, didn't you see him in town last week?	NULL	148	34	32	5	4	NULL	Hank	1	1	NULL
+Angry Fairy	3	Furious Fairy Dust	He disappears in a cloud of fairy dust.	NULL	148	34	32	5	4	NULL	Hank	1	0	NULL
+Goblin Hunter	3	a Shortbow	Only one? Don't they usually travel in packs?	NULL	148	34	32	5	4	NULL	Hank	1	0	NULL
+Bobcat Cub	3	Sharp Claws	Even the cute fuzzy kittens are evil in this place.	NULL	148	34	32	5	4	NULL	Hank	1	0	NULL
+Animate Junkheap	3	Stench of 1000 rotten potatoes	Just call you the De-Animator!	NULL	148	34	32	5	4	NULL	Hank	1	0	NULL
+Angry Mob	4	Torches	There is no justice for an angry mob.	NULL	162	45	43	7	6	NULL	Appleshiner	1	0	NULL
+Polar Bear	4	Terrible claws	That bear really needed an attitude adjustment.	NULL	162	45	43	7	6	NULL	Appleshiner	1	0	NULL
+Decaying Skeleton	4	Rusty Sword	His leg ought to make a good toy for your dog.	NULL	162	45	43	7	6	NULL	Appleshiner	1	1	NULL
+Willie the Wonder Hampster	4	Nuclear Sunflower Seeds	You smile a grim smile at Willie and quietly munch on some seeds.	NULL	162	45	43	7	6	NULL	Appleshiner	1	0	NULL
+Winged Demon Of Death	4	Red Glare	You cut off the Demon's head, to be sure of its death.	NULL	162	45	43	7	6	NULL	foilwench	1	1	NULL
+Small Dragon	4	Hot air	For one moment you thought THIS was the Green Dragon, but alas not.	NULL	162	45	43	7	6	NULL	Appleshiner	1	0	NULL
+Monstrous Dustbunny	4	Sneezing fits	You sweep the poor bunny under the rug when no one is looking.	NULL	162	45	43	7	6	NULL	Appleshiner	1	0	NULL
+Small Rabbit	4	Sharp Pointy Teeth	To think you almost ran away!	NULL	162	45	43	7	6	NULL	Appleshiner	1	0	NULL
+Little Cocobean	4	Her Special Roast	She really made your heart race and pound, but now she has crumbled to the ground	NULL	162	45	43	7	6	NULL	Appleshiner	1	0	NULL
+Iron Chef	4	Sizzling Eel Flambe!	You have rendered the Chef Ironless!  He's now simply a copper/tin alloy!	NULL	162	45	43	7	6	NULL	foilwench	1	0	NULL
+Tree-Hugger	4	Propaganda Leaflets	"The leaflet reads ""Who Will Protect The Helpless Dragon?"""	NULL	162	45	43	7	6	NULL	Appleshiner	1	0	NULL
+Large Bat	4	Guano	You feel the need to take a bath.	NULL	162	45	43	7	6	NULL	Appleshiner	1	1	NULL
+Necromancer	4	Strength Draining Touch	In a cloud of black smoke, his body wafts away on the breeze.	NULL	162	45	43	7	6	NULL	Hank	1	0	NULL
+Reed Golem	4	Fists of Thorns	The only thing left was a tiny bale of hay.	NULL	162	45	43	7	6	NULL	Hank	1	0	NULL
+Goblin Shaman	4	Primitive Magic	"""Oooga Booga"", indeed."	NULL	162	45	43	7	6	NULL	Hank	1	0	NULL
+Steam Spirit	4	Scalding Steam	Not so hot now, eh?	NULL	162	45	43	7	6	NULL	Hank	1	0	NULL
+Restless Zombie	4	Broken Longsword	Finally he is at peace.	NULL	162	45	43	7	6	NULL	Hank	1	1	NULL
+Zombie Soldier	4	Rusted Spear	His final orders were to march to hell.	NULL	162	45	43	7	6	NULL	Hank	1	1	NULL
+Dark Imp	4	Nagging Doubts	The imp implodes in a ball of flame.	NULL	162	45	43	7	6	NULL	Hank	1	1	NULL
+Giant Spider	4	Fangs that glisten with poison	I really, really hate spiders.	NULL	162	45	43	7	6	NULL	Hank	1	0	NULL
+Undead Kitten	4	Mews of Doom	Another evil cat sent to hell C.O.D.	NULL	162	45	43	7	6	NULL	Hank	1	1	NULL
+Flying Dagger	4	Sharpened Steel Point	The dagger shatters when it hits the ground.	NULL	162	45	43	7	6	NULL	Hank	1	0	NULL
+Mature Unicorn	5	Powerful Horn	A unicorn is a thing of beauty, even in death.	NULL	198	55	53	9	7	NULL	Appleshiner	1	0	NULL
+Gnome Necromancer	5	Skeleton Familiar	Once you killed its familiar that Gnome was really weak.	NULL	198	55	53	9	7	NULL	Appleshiner	1	1	NULL
+Purple Dinosaur	5	Helpful Nature	There seems to be a person inside that strange dino.  You wonder why.	NULL	198	55	53	9	7	NULL	Appleshiner	1	0	NULL
+Orc Emmisary	5	Diplomacy	You never were the diplomatic type.	NULL	198	55	53	9	7	NULL	Appleshiner	1	0	NULL
+Dark Spiritling	5	Dark Magic	The spiritling gasps a final breath as you end its pitiful life.	NULL	198	55	53	9	7	NULL	Appleshiner	1	1	NULL
+Enchanted Toilet	5	Ninja Flushing Action	That was just weird.	NULL	198	55	53	9	7	NULL	Appleshiner	1	0	NULL
+Giant Water Elemental	5	Torrential Downpours	The giant creature is reduced a meager spring shower.	NULL	198	55	53	9	7	NULL	Appleshiner	1	0	NULL
+Violins	5	Off-Key notes	Won't someone PLEASE stop the violins?	NULL	198	55	53	9	7	NULL	Appleshiner	1	0	NULL
+Whirled Peas	5	Green Slime	We should all pray for whirled peas.	NULL	198	55	53	9	7	NULL	Appleshiner	1	0	NULL
+Haberdasher	5	Heavy Hat	Hats have gone out of style anyway.	NULL	198	55	53	9	7	NULL	foilwench	1	0	NULL
+Shining Happy People	5	Hand Holding Terror	They just wanted to be your friend.  You meanie.	NULL	198	55	53	9	7	NULL	foilwench	1	0	NULL
+Humongous Hairball	5	Incredible Drain-Clogging Power	The hairball and all its accompanying gook have been washed out to sea!	NULL	198	55	53	9	7	NULL	foilwench	1	0	NULL
+Forest Dwelling Hermit	5	Hand-Made Sling	"He speaks only these words as he dies: ""You must leave the Dragon's Forest."""	NULL	198	55	53	9	7	NULL	Appleshiner	1	0	NULL
+Giant Bat	5	Clinging and Biting	Why do movie bats always fly at people's hair?	NULL	198	55	53	9	7	NULL	Appleshiner	1	1	NULL
+Pirate Tree	5	A loud ARRRRR!	Arrrrrr! indeed.	NULL	198	55	53	9	7	NULL	NULL	1	0	NULL
+Undead Centurion	5	Bronze Spear	Hmm Not too good at combat the second time around, either.	NULL	198	55	53	9	7	NULL	NULL	1	1	NULL
+Goblin Warrior	5	Bent Short Sword	Gone... and forgotten.	NULL	198	55	53	9	7	NULL	Hank	1	0	NULL
+Experienced Necromancer	5	a small group of Zombies	The necromancer turns into a pile of black sand and blows away.	NULL	198	55	53	9	7	NULL	Hank	1	0	NULL
+Flame Sprite	5	Searing Flame	You cooled him off in a hurry...	NULL	198	55	53	9	7	NULL	Hank	1	0	NULL
+Mud Man	5	Enchanted Mud	Defeated, the Mud Man dries up in the warm sun.	NULL	198	55	53	9	7	NULL	Hank	1	0	NULL
+Lupe the Hypnotic Chihuahua	5	The stare of doom	You manage to break free of those deep hypnotic eyes...	NULL	198	55	53	9	7	NULL	Hank	1	0	NULL
+Ghoul	5	Hunger for Flesh	The ghoul falls to the ground, a bit of flesh between his teeth.	NULL	198	55	53	9	7	NULL	Hank	1	1	NULL
+Seedy Cutthroat	5	Sharpened Daggers	One more bandit removed from this forest.	NULL	198	55	53	9	7	NULL	Hank	1	0	NULL
+Ogre	5	Broken treebranch	Boy, thats a face not even a mother could love.	NULL	198	55	53	9	7	NULL	Hank	1	0	NULL
+Crazy Woodsman	5	Dull axe	Chopped him down to size...	NULL	198	55	53	9	7	NULL	Hank	1	0	NULL
+Flying Drakeling	5	a Lashing Tail	You swat the small, majestic beast out of the air.	NULL	198	55	53	9	7	NULL	Hank	1	0	NULL
+Magic Mushroom	6	Swirling Colors	Guess you don't need to go ask Alice now.	NULL	234	66	64	11	8	NULL	Appleshiner	1	0	NULL
+Invisible Man	6	Something Invisible and Sharp	You really aren't sure if it is dead, or just hiding...after all it is invisible.	NULL	234	66	64	11	8	NULL	Appleshiner	1	0	NULL
+Clown of Death	6	Balloon Animals from Beyond	You give the clown's nose a honk just for fun before you leave.	NULL	234	66	64	11	8	NULL	Appleshiner	1	1	NULL
+Heart of Stone	6	Unromantic Thoughts	Aww, now look, you broke its heart!	NULL	234	66	64	11	8	NULL	Appleshiner	1	0	NULL
+Troll Warrior	6	Steel Broadsword	Wow, he smelled bad enough alive, can you imagine how he'll smell tomorrow?	NULL	234	66	64	11	8	NULL	Appleshiner	1	0	NULL
+Bettie the Amazing Kung-Fu Butterfly	6	Stupendous Kung-Fu Wings	You survived a battle to the death with a butterfly.  You must be so proud.	NULL	234	66	64	11	8	NULL	Appleshiner	1	0	NULL
+Golden Goose	6	14 Karat Gold Eggs	You have slain the goose but it is too heavy to take back to town.  All that wealth wasted.	NULL	234	66	64	11	8	NULL	Appleshiner	1	0	NULL
+Black Tiger	6	Claws	You ponder the tiger's body thinking what a good rug it might make.	NULL	234	66	64	11	8	NULL	Appleshiner	1	0	NULL
+Lambert the Sheepish Lion	6	Timid Growling	You marched in like a lion and he died like a lamb.	NULL	234	66	64	11	8	NULL	Appleshiner	1	0	NULL
+Football Fan	6	Raucous Cheers	This fan doesn't have much to cheer about.	NULL	234	66	64	11	8	NULL	foilwench	1	0	NULL
+Member of Dragon Lovers Anonymous	6	Stuffed Dragon Toy	"When one wears a pin saying ""Dragon Lovers Anonymous"", they really are not as anonymous as they might think."	NULL	234	66	64	11	8	NULL	Appleshiner	1	0	NULL
+Vampire Batling	6	Pricking teeth	He resembled a mosquito more than a vampire bat.	NULL	234	66	64	11	8	NULL	Appleshiner	1	1	NULL
+Forest Cat	6	Menacing Claws	Here kitty, kitty, kitty.	NULL	234	66	64	11	8	NULL	Hank	1	0	NULL
+Journeyman Necromancer	6	An Undead Giant	The necromancer drifts away on a cloud of black smoke.	NULL	234	66	64	11	8	NULL	Hank	1	0	NULL
+Frigid Skeleton	6	The Cold of the Grave	I'll bet one of these guys could cool ale at the inn.	NULL	234	66	64	11	8	NULL	Hank	1	1	NULL
+Frost Spirit	6	Bone Chilling Cold	Puttin down another cold one.	NULL	234	66	64	11	8	NULL	Hank	1	0	NULL
+Dragon Slayer's ghost	6	Warnings of Doom	Everybody wondered what happened to him.	NULL	234	66	64	11	8	NULL	Hank	1	0	NULL
+Ettin Mage	6	Double threat spells	Two heads are not better than one in this case.  Just more to lop off.	NULL	234	66	64	11	8	NULL	Hank	1	0	NULL
+Insane Brownie	6	Faerie spells	This one's nuts!	NULL	234	66	64	11	8	NULL	Hank	1	0	NULL
+Ghostly Wolfpack	6	Ghostly Howls	Quiet settles in around you.  Finally.	NULL	234	66	64	11	8	NULL	Hank	1	1	NULL
+Wood Golem	6	Oaken Fists	The truth gave you life and the truth set you free.	NULL	234	66	64	11	8	NULL	Hank	1	0	NULL
+Diseased Ent	6	Twisted Branches	There must be fifty ways to cut your lumber. (Groan)	NULL	234	66	64	11	8	NULL	Hank	1	0	NULL
+Marsha of the Jungle	7	Trained Monkeys	Poor Marsha, she thought those monkeys were better trained.	NULL	268	77	74	13	10	NULL	Appleshiner	1	0	NULL
+Moe	7	Two Knives	Maybe those knives weren't so great.	NULL	268	77	74	13	10	NULL	Appleshiner	1	0	NULL
+Coffin	7	Terrifying Premonitions	Best way to get rid of the coffin is Robitussin.	NULL	268	77	74	13	10	NULL	Appleshiner	1	1	NULL
+Green Alligator	7	Crushing Jaws	Crikey!  That thing could have killed you!	NULL	268	77	74	13	10	NULL	foilwench	1	0	NULL
+Lindsey,  Daughter of Erin the Ninja Squirrel	7	A Peanut Shooter	All these squirrels are nuts.	NULL	268	77	74	13	10	NULL	Appleshiner	1	0	NULL
+Wizarding School Senior Student	7	Memory Charm	Drat!  He took your memory before you killed him.  Who are you anyway?	NULL	268	77	74	13	10	NULL	Appleshiner	1	0	NULL
+Enchanted Laundry Basket	7	Stinky Socks of Terror	So that's what happens to lost socks!	NULL	268	77	74	13	10	NULL	Appleshiner	1	0	NULL
+Carrot Top	7	Phone Company Slogans	That has got to be the most satisfying kill you ever made.	NULL	268	77	74	13	10	NULL	Appleshiner	1	0	NULL
+Macintosh Computer	7	Amazingly Bright Colors	So THAT'S what happens when you right-click a Mac.	NULL	268	77	74	13	10	NULL	Appleshiner	1	0	NULL
+Sorority Girl in Nightie	7	Pillow Fighting Action	It's too bad she's dead... you liked her action.	NULL	268	77	74	13	10	NULL	foilwench	1	0	NULL
+The Government	7	Taxes	That's a tax return you'll be taking to the bank!	NULL	268	77	74	13	10	NULL	Bluspring	1	0	NULL
+Methane Man	7	Unfriendly Gasses	Must have been that bean he ate!	NULL	268	77	74	13	10	NULL	foilwench	1	0	NULL
+Initiate Dragon Watcher	7	Binoculars	"All he could say was ""Shhh, you are scaring the dragons!"""	NULL	268	77	74	13	10	NULL	Appleshiner	1	0	NULL
+Small Vampire Bat	7	Deadly Fangs	You kick at the annoying pest as it lies on the ground.	NULL	268	77	74	13	10	NULL	Appleshiner	1	1	NULL
+Dark Druid	7	Corrupted Nature	He lost me at the corrupt it to save it part.	NULL	268	77	74	13	10	NULL	Hank	1	0	NULL
+Lizard Man Scout	7	Marginal Archery	I know where I can get him made into a nice pair of boots.	NULL	268	77	74	13	10	NULL	Hank	1	0	NULL
+Diabolic Footman	7	A Demon Forged Mace	His armor sizzles and he melts as he crumples to the ground.	NULL	268	77	74	13	10	NULL	Hank	1	1	NULL
+Gargantuan Tree Spider	7	Projectile Webbing	After you lop him in half, you realize he's not so big.	NULL	268	77	74	13	10	NULL	Hank	1	0	NULL
+Flaming Zombie	7	Fists covered in Flame	You extinguish the flame of life and the zombie falls to the ground, smoking.	NULL	268	77	74	13	10	NULL	Hank	1	1	NULL
+Eldritch Wizard	7	Spells of Darkness	You slice him in two only to watch his body disappear, leaving an empty robe behind.	NULL	268	77	74	13	10	NULL	Hank	1	0	NULL
+Master Necromancer	7	An Army of the Dead	You kill the necromancer and his minions disintegrate before your eyes.	NULL	268	77	74	13	10	NULL	Hank	1	0	NULL
+Animate Darkness	7	The Darkness of a Thousand Nights	Light Slowly returns to this part of the forest.	NULL	268	77	74	13	10	NULL	Hank	1	1	NULL
+Temple Guardian Statue	7	Marble Fists	So, where's the temple?	NULL	268	77	74	13	10	NULL	Hank	1	0	NULL
+Owlbear	7	Claws and a bearhug	I don't even want to know how they breed these.	NULL	268	77	74	13	10	NULL	Hank	1	0	NULL
+Corporate Lackey	7	Buzzwords	Well, you sure reprioritized his downsizing.	NULL	268	77	74	13	10	NULL	Moonchilde	1	0	NULL
+Interior Designer	8	Color-coordinating Sword and Shield	You didn't like his style.	NULL	302	89	84	15	11	NULL	Appleshiner	1	0	NULL
+Daughter of the Devil	8	Sinfully Good Looks	She is the girl your mom always warned you about.	NULL	302	89	84	15	11	NULL	Appleshiner	1	1	NULL
+Wild Horses	8	Dragging	I guess the saying is true, wild horses can't drag you away.	NULL	302	89	84	15	11	NULL	Appleshiner	1	0	NULL
+Steam Elemental	8	Scalding jets of air	There was just enough steam left to make an espresso.	NULL	302	89	84	15	11	NULL	foilwench	1	0	NULL
+Gordon the Cheese Eater	8	Odiferous Nature	You sure cut that cheese....eater.	NULL	302	89	84	15	11	NULL	Appleshiner	1	0	NULL
+Narcoleptic	8	Drowsiness	This narcoleptic won't be waking up anytime soon.	NULL	302	89	84	15	11	NULL	Appleshiner	1	0	NULL
+Swarm of Bees	8	Stinging	You feel like a pincushion, but you are alive.	NULL	302	89	84	15	11	NULL	Appleshiner	1	0	NULL
+Halfling Mage	8	Painful Spells	That fight wasn't half as difficult as you thought it would be.	NULL	302	89	84	15	11	NULL	Appleshiner	1	0	NULL
+Whopper With Cheese	8	Abundant Cholesterol	This is one whopper that won't show up on your hips tomorrow.	NULL	302	89	84	15	11	NULL	foilwench	1	0	NULL
+Elsabutt	8	Gravitational Pull	This is indeed a grave situation.	NULL	302	89	84	15	11	NULL	foilwench	1	0	NULL
+Wooly Mammoth	8	Wildebeest Sidekick	You climb atop the Mammoth's remains and declare yourself king (or queen) for a day!	NULL	302	89	84	15	11	NULL	foilwench	1	0	NULL
+Dragon Watcher, Junior Class'	8	Annoyance	You find a dragon-watching textbook in his backpack.	NULL	302	89	84	15	11	NULL	Appleshiner	1	0	NULL
+Medium Sized Vampire Bat	8	Echoing Sounds	"Who decides that this bat is a ""Medium""?  Maybe he is a giant bat who hasn't bloomed yet."	NULL	302	89	84	15	11	NULL	Appleshiner	1	1	NULL
+The Man In Black	8	Necromantic Spells	Finally, I got my chance to kill him.	NULL	302	89	84	15	11	NULL	Hank	1	0	NULL
+Gnome Illusionist	8	Fearsome Illusions	It was all in his head.	NULL	302	89	84	15	11	NULL	Hank	1	0	NULL
+Demon Skeleton	8	Diabolic Runes	The spirits of its victims drag the skeleton back to hell.	NULL	302	89	84	15	11	NULL	Hank	1	1	NULL
+Insane Master Druid	8	The land Itself	His evil laughter dies with him.	NULL	302	89	84	15	11	NULL	Hank	1	0	NULL
+Water Elementalist	8	Water Based Spells	He's all wet.	NULL	302	89	84	15	11	NULL	Hank	1	0	NULL
+Earth Elementalist	8	Earth Based Spells	He fought kind of Dirty.	NULL	302	89	84	15	11	NULL	Hank	1	0	NULL
+Ettin Warrior	8	Two Clubs of Iron	They did all right until they hit each other.	NULL	302	89	84	15	11	NULL	Hank	1	0	NULL
+Forest Giant	8	An Uprooted Tree	Ho, Ho, Ho that, green man.	NULL	302	89	84	15	11	NULL	Hank	1	0	NULL
+Demoniac Knight	8	A Diabolic Lance	Good night, Sir Knight.	NULL	302	89	84	15	11	NULL	Hank	1	1	NULL
+Giant Zombie	8	Gigantic Fists	They DO smell worse when they are bigger!	NULL	302	89	84	15	11	NULL	Hank	1	1	NULL
+SCO Lawyer	8	Court Papers	There's one lawyer who'll never trouble you again!	NULL	302	89	84	15	11	NULL	Moonchilde	1	1	NULL
+Citizen of Eythgim Village	9	Slurs	Geeze, what did you ever do to him?	NULL	336	101	94	17	13	NULL	Appleshiner	1	0	NULL
+Old Hag	9	Red Red Rose	It is her turn to sleep an enchanted sleep.	NULL	336	101	94	17	13	NULL	Appleshiner	1	0	NULL
+Charging Buffalo	9	Stampeding Hoofs	Do you know how to stop a charging buffalo?  Take away his credit card!	NULL	336	101	94	17	13	NULL	Appleshiner	1	0	NULL
+Pawn	9	Simple Tactics	Well, that was a bad move.	NULL	336	101	94	17	13	NULL	Appleshiner	1	0	NULL
+Romulan	9	Wrong-Genre Confusion	You think to yourself they look tougher on TV.	NULL	336	101	94	17	13	NULL	Appleshiner	1	0	NULL
+Large Griffon	9	Beak and Claws	The mythical creature is no more.	NULL	336	101	94	17	13	NULL	Appleshiner	1	0	NULL
+Cliche Bond Movie Villain	9	Cell-phone of Death	Well, really, who throws a cell phone? I mean, that really, really hurt!	NULL	336	101	94	17	13	NULL	Appleshiner	1	0	NULL
+Fuzzy Ferret	9	Disarming Cuteness	Who knew ferrets were so violent!	NULL	336	101	94	17	13	NULL	Appleshiner	1	0	NULL
+Starving Artist	9	Pointy Paintbrushes	This guy really painted himself into a corner.	NULL	336	101	94	17	13	NULL	Appleshiner	1	0	NULL
+Crazy Audrey	9	Ravenous Kittens	With a well placed stomp, Audrey and the kittens are no more.	NULL	336	101	94	17	13	NULL	Appleshiner	1	0	NULL
+Dragon-watcher Senior Class	9	Spelunking Equipment	"You find a copy of ""Cave-Dwelling Dragons, and Where to Find Them"" in his pack."	NULL	336	101	94	17	13	NULL	Appleshiner	1	0	NULL
+Huge Vampire Bat	9	Blood-Sucking	You gave more blood to the Red Cross.	NULL	336	101	94	17	13	NULL	Appleshiner	1	1	NULL
+Old Man Winter	9	Bitter Cold	You shake your fist over his dead, pathetic corpse.	NULL	336	101	94	17	13	NULL	NULL	1	0	NULL
+Frost Spectre	9	The Chill Touch of the Grave	As you recover from the fight, the Spectre melts away into the shadows.	NULL	336	101	94	17	13	NULL	Hank	1	1	NULL
+Small Forest Dragon	9	Snapping Jaws	Dragon? Check. Green? Check.  Huge? Nope.	NULL	336	101	94	17	13	NULL	Hank	1	0	NULL
+A Pack of Carnivorous Lemurs	9	Hoots and Howls	What the heck is a Lemur??	NULL	336	101	94	17	13	NULL	Hank	1	0	NULL
+Albino Crypt Bear	9	Foul Stench and Claws	You dispatch the bear and wonder if there are more lurking about.	NULL	336	101	94	17	13	NULL	Hank	1	0	NULL
+Black Knight of The Vale	9	Ebony Sword	As he dies, he curses you and tells you that you will never defeat the dragon.	NULL	336	101	94	17	13	NULL	Hank	1	0	NULL
+Elmearian Spy	9	Small Dagger	He eats his information before he dies, so you learn nothing from him.	NULL	336	101	94	17	13	NULL	Hank	1	0	NULL
+Stalking Shadow	9	Fingers of Darkness	You send the ceature back to where it came from.	NULL	336	101	94	17	13	NULL	Hank	1	1	NULL
+Necromantic Archmagus	9	Screams of a Thousand Souls	With his dying breath he explodes into a pillar of black flame!	NULL	336	101	94	17	13	NULL	Hank	1	0	NULL
+Iron Golem	9	Rusted Fists	The golem seizes up and you push him over.	NULL	336	101	94	17	13	NULL	Hank	1	0	NULL
+A Hell Hound	9	Fiery Breath	He bursts into flames and is sucked into the earth.	NULL	336	101	94	17	13	NULL	Hank	1	1	NULL
+Guard from Eythgim Village	10	Rapier	The people from that village seem angry!	NULL	369	114	105	19	14	NULL	Appleshiner	1	0	NULL
+Garden Gnome	10	Painful Tackiness	Stupid garden gnomes. What are they doing in the forest anyway?	NULL	369	114	105	19	14	NULL	Appleshiner	1	0	NULL
+Chicken	10	Squawking	Good fortune smiles upon you - you will eat well tonight.	NULL	369	114	105	19	14	NULL	foilwench	1	0	NULL
+Marksman	10	Deadly Aim	He took so long to aim, you just walked up and kicked him.	NULL	369	114	105	19	14	NULL	Appleshiner	1	0	NULL
+Enchanted Tissue Box	10	Cold Germs	You pick up the box and put it in your pocket.  You never know when a tissue might come in handy.	NULL	369	114	105	19	14	NULL	Appleshiner	1	0	NULL
+Ghostly Woodsman	10	Phantom Axe	You aren't sure how you did it, but you killed something that was already dead.  Good for you.	NULL	369	114	105	19	14	NULL	Appleshiner	1	1	NULL
+Zombie	10	Rotting Flesh	He really went to pieces, didn't he?	NULL	369	114	105	19	14	NULL	foilwench	1	0	NULL
+Fortula the Plains Cat	10	Claws and Teeth	That plains cat is now plain dead.	NULL	369	114	105	19	14	NULL	Appleshiner	1	0	NULL
+Erin the Ninja Squirrel	10	Acorn Tossing Madness	That squirrel was a little crazy.	NULL	369	114	105	19	14	NULL	Appleshiner	1	0	NULL
+Nasty Nevin	10	Bossy Mom	Wrecked'em?  Darn near killed 'em!	NULL	369	114	105	19	14	NULL	Joe	1	0	NULL
+Master Dragon Watcher	10	Stealth	You wonder who watches the watchers.	NULL	369	114	105	19	14	NULL	Appleshiner	1	0	NULL
+Vampire in Bat Form	10	Bad Romanian Accent	I vant to suk your blooood!	NULL	369	114	105	19	14	NULL	Appleshiner	1	1	NULL
+Lady of the Lake	10	Excalibur	Take that, you watery tart!	NULL	369	114	105	19	14	NULL	NULL	1	0	NULL
+Bluebird of Happiness	11	Uplifting Melody	Happiness is over-rated anyway.	NULL	402	127	115	21	15	NULL	Appleshiner	1	0	NULL
+Potato Newscaster	11	Personal Opinions	It's ok, he was just a common 'tater.	NULL	402	127	115	21	15	NULL	Appleshiner	1	0	NULL
+Pygmy Dragon	11	Fire Breath	You hope he wasn't a relative of the Green Dragon.	NULL	402	127	115	21	15	NULL	Appleshiner	1	0	NULL
+Zealous Photographer	11	Flashing Lights	The things beautiful people have to put up with.	NULL	402	127	115	21	15	NULL	Appleshiner	1	0	NULL
+Gary Larson	11	Strange Cartoons	You still don't get it.	NULL	402	127	115	21	15	NULL	Appleshiner	1	0	NULL
+Soldier from Eythgim Village	11	Battle Cry	Eythgim seems to be waging a personal war with you.	NULL	402	127	115	21	15	NULL	Appleshiner	1	0	NULL
+80''s Glam Rocker	11	Blinding Makeup	You know your motto, Live and let die.	NULL	402	127	115	21	15	NULL	Appleshiner	1	0	NULL
+Vigilante	11	Sack of Doorknobs	This carnage disgusts you.	NULL	402	127	115	21	15	NULL	Appleshiner	1	0	NULL
+The Devil	11	Eternal Damnation	For being the Devil, he really wasn't so hot.	NULL	402	127	115	21	15	NULL	Appleshiner	1	1	NULL
+Rush Hour Driver	11	Road Rage	It was a no-win situation, speeding on these forest paths.  The driver had it coming.	NULL	402	127	115	21	15	NULL	foilwench	1	0	NULL
+Initiate Dragon Tamer	11	10-foot dragon pole	Good thing for you that pole only works on 10-foot dragons!	NULL	402	127	115	21	15	NULL	Appleshiner	1	0	NULL
+Vampire-Bat Prince	11	Death Grip	You thought bats were Republicans.	NULL	402	127	115	21	15	NULL	Appleshiner	1	1	NULL
+Mercenary	12	Blood-chilling Stare	You could use an ale.	NULL	435	141	125	23	17	NULL	Appleshiner	1	0	NULL
+Magic Mirror	12	Flattering Remarks	Mirror, Mirror, on the Ground, it is your death that you have found.	NULL	435	141	125	23	17	NULL	Appleshiner	1	0	NULL
+Broadway Extra	12	Memorable Showtunes	This extra is really on her own now.	NULL	435	141	125	23	17	NULL	Appleshiner	1	0	NULL
+Butter the Sprite	12	Magic Pixie Dust	Butter?  What kind of a name is Butter?	NULL	435	141	125	23	17	NULL	Appleshiner	1	0	NULL
+Father Time	12	Old Age	Your victory is not comforting. You know he will still catch up to you.	NULL	435	141	125	23	17	NULL	Appleshiner	1	0	NULL
+Eythgim Village Archers	12	Flaming Arrows	The tree is  burning, you'd better try to put it out.	NULL	435	141	125	23	17	NULL	foilwench	1	0	NULL
+Animate Stormcloud	12	Lightning	The storm is no more. You can see the light of day peeking through the last of the clouds.	NULL	435	141	125	23	17	NULL	Appleshiner	1	0	NULL
+Three Toed Sloth	12	Slow Responses	Your swift moves were too fast for this sloth.	NULL	435	141	125	23	17	NULL	Appleshiner	1	0	NULL
+Death	12	Cold Grasp	There it is!  Death!!!!!	NULL	435	141	125	23	17	NULL	Appleshiner	1	1	NULL
+Everquest Junkie	12	1337 Sp34k	D00d U pwned that guy!	NULL	435	141	125	23	17	NULL	foilwench	1	0	NULL
+Junior Dragon Tamer	12	Large Whip	If he cannot tell the difference between you and a dragon, he has much work to do.	NULL	435	141	125	23	17	NULL	Appleshiner	1	0	NULL
+Vampire Bat King	12	Red Eyes	You decide to leave before the rest of the bats come to find their king.	NULL	435	141	125	23	17	NULL	Appleshiner	1	1	NULL
+Cerberus	13	Three Drooling Maws	Each one's breath was worse than the last.	NULL	467	156	135	25	18	NULL	Appleshiner	1	1	NULL
+Man from deep, deep, dark, dark, deep, dark woods	13	Snarling and Biting	The creature from the deep, deep, dark, dark, deep, dark woods is finally dead.	NULL	467	156	135	25	18	NULL	Appleshiner	1	0	NULL
+Devil in a Blue Dress	13	Alluring Promises	You really prefer black dresses anyway.	NULL	467	156	135	25	18	NULL	Appleshiner	1	1	NULL
+Giant	13	Smashing Club	Geeze, he almost fell on you!	NULL	467	156	135	25	18	NULL	Appleshiner	1	0	NULL
+Commander of the Eythgim Army	13	Winning Tactics	You have bested their army by killing its master.	NULL	467	156	135	25	18	NULL	Appleshiner	1	0	NULL
+Ice Dragon	13	Frost Breath	You defeated him, but caught a cold.	NULL	467	156	135	25	18	NULL	Appleshiner	1	0	NULL
+Pushmi Pullyew	13	Conflictory Arguments	That strange creature couldn't tell if it was coming or going.	NULL	467	156	135	25	18	NULL	Appleshiner	1	0	NULL
+Whale	13	Tail	You know Violet isn't going to believe a Whale attacked you in the forest.	NULL	467	156	135	25	18	NULL	Appleshiner	1	0	NULL
+Gorma The Leper	13	Contagious Disease	It looks like the leper's fighting strategy has fallen apart...	NULL	467	156	135	25	18	NULL	foilwench	1	0	NULL
+King Agrippa	13	Flaming Wingnuts	As you stare at his smoking corpse, you marvel at the ineffectiveness of flaming wingnuts.	NULL	467	156	135	25	18	NULL	foilwench	1	0	NULL
+Senior Dragon Tamer	13	Very Large Hoop	You regret killing him. You wanted to see him make a dragon jump through that hoop.	NULL	467	156	135	25	18	NULL	Appleshiner	1	0	NULL
+Sorcerous Vampire	13	Petrifying Spells	A cold shiver goes down your spine.  You would rather be with Violet.	NULL	467	156	135	25	18	NULL	Appleshiner	1	1	NULL
+Samurai Master	14	Daisho	You bow to the fallen master before you walk away.	NULL	499	172	145	27	20	NULL	Appleshiner	1	0	NULL
+Bartender	14	Duck	That's not a Duck!  It's a Chicken!	NULL	499	172	145	27	20	NULL	Appleshiner	1	0	NULL
+Prince of Eythgim Village	14	Bribes of Gold	You are not easily bribed, and he was a mortal enemy.	NULL	499	172	145	27	20	NULL	Appleshiner	1	0	NULL
+Loch Ness Monster	14	Shocking Appearance	Why in the world would that monster be in this forest.  You must have been dreaming!	NULL	499	172	145	27	20	NULL	Appleshiner	1	0	NULL
+Fuzzie Wuzzie	14	Male Pattern Baldness	Fuzzie Wuzzie wasn't very fuzzie, was he?	NULL	499	172	145	27	20	NULL	Appleshiner	1	0	NULL
+Ugly Harpy	14	Poisonous Breath	Her breath was worse than her bite.	NULL	499	172	145	27	20	NULL	Appleshiner	1	1	NULL
+Field Mouse	14	Chewing	That was some powerful mouse!	NULL	499	172	145	27	20	NULL	Appleshiner	1	0	NULL
+Ulysses Wulfgang	14	Ridiculous Lies	Death to lies!  Death to Ulysses Wulfgang!	NULL	499	172	145	27	20	NULL	Joe	1	0	NULL
+Master Dragon Tamer	14	Tame Dragon	Once you killed the master, the dragon ran away	NULL	499	172	145	27	20	NULL	Appleshiner	1	0	NULL
+Seductive Vampiress	14	Sultry Moves	It was a shame to kill her.	NULL	499	172	145	27	20	NULL	Appleshiner	1	1	NULL
+Burly Man	15	Amazing Absorbency	"Fantasize,  silencing her song. ""Eeeh, Eeeh!"""	NULL	531	189	155	29	21	NULL	Bluspring	1	0	NULL
+Princess of Eythgim Village	15	Beguiling Words	She tried to tempt you, but you resisted.	NULL	531	189	155	29	21	NULL	Appleshiner	1	0	NULL
+Cyclops Warrior	15	Fire Eye	The dead Cyclops' one eye stares at you blankly.	NULL	531	189	155	29	21	NULL	foilwench	1	0	NULL
+Cupid	15	Pink Arrows of Love	You have slain Cupid. You shall never find true love.	NULL	531	189	155	29	21	NULL	Appleshiner	1	0	NULL
+Tabloid Writer	15	Far-fetched Stories	If you ask me, SHE was the six-armed alien who gave birth to the world's largest infant Elvis impersonator.	NULL	531	189	155	29	21	NULL	Appleshiner	1	0	NULL
+Evil Wizard	15	Tormented Souls	You have set the tortured souls free.	NULL	531	189	155	29	21	NULL	Appleshiner	1	0	NULL
+Artemis, Goddess of the Hunt'	15	Winged Stags	The moon itself shall weep for the slain Artemis.	NULL	531	189	155	29	21	NULL	Appleshiner	1	0	NULL
+Centaur Archer	15	Deadly Marksmanship	The twisted man-beast lies still.	NULL	531	189	155	29	21	NULL	Appleshiner	1	0	NULL
+Mime	15	Something Imaginary	His death is a rather sad charade.	NULL	531	189	155	29	21	NULL	Appleshiner	1	0	NULL
+Chili Chef	15	Insanity Peppers	Man, that's good chili!	NULL	531	189	155	29	21	NULL	Appleshiner	1	0	NULL
+Le Chat dans le chapeau	15	Rhyming Nonsense	In spanish, El Gato en el sombrero.	NULL	531	189	155	29	21	NULL	Appleshiner	1	0	NULL
+Dragon Rider in Training	15	Mechanical Bull	They learn to ride dragons using a mechanical bull?	NULL	531	189	155	29	21	NULL	Appleshiner	1	0	NULL
+Frenzied vampire bats	15	Numerous attacks	Why are there so many darn bats in this forest?	NULL	531	189	155	29	21	NULL	Appleshiner	1	1	NULL
+Monarch of Eythgim Village	16	Royal Commands	I guess this makes you king of their Village.	NULL	563	207	166	31	22	NULL	Appleshiner	1	0	NULL
+Brownie	16	Miniscule weapons	The tiny warrior dies with a faint squeal.	NULL	563	207	166	31	22	NULL	Appleshiner	1	0	NULL
+Darkness	16	Self-induced Terror	You are afraid of the dark no longer.	NULL	563	207	166	31	22	NULL	Appleshiner	1	1	NULL
+Mountain King	16	God-like Fury	The King has died, long live the King!	NULL	563	207	166	31	22	NULL	Appleshiner	1	0	NULL
+Dragon Rider	16	Flying Dragon	A well-aimed strike grounds the flying dragon and his rider.	NULL	563	207	166	31	22	NULL	Appleshiner	1	0	NULL
+Vampirus,the Bat God	16	Godly Power	You are even more god-like then he!	NULL	563	207	166	31	22	NULL	Appleshiner	1	1	NULL
+Loneliness	17	Silence	What is the sound of one hand clapping?	'What is the sound of one hand clapping?'	36	0	1	0	0	NULL	NULL	1	0	NULL
+Loneliness	18	Silence	What is the sound of one hand clapping?	'What is the sound of one hand clapping?'	0	0	1	0	25	NULL	NULL	1	0	NULL
