@@ -76,11 +76,6 @@ class Character
     ) {
     }
 
-    public function getLevel(): ?int
-    {
-        return $this->level;
-    }
-
     public function getProperty(string $name, mixed $default = null): mixed
     {
         return $this->properties[$name] ?? $default;
