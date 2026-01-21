@@ -27,7 +27,9 @@
         <div class="col-6 p-3 lotgd-stage-scene">
             <h2>{{ this.stage.title }}</h2>
 
-            {{ this.stage.description|parse|raw }}
+            {{ this.stage.description|parse({
+                "character": character,
+            }|merge(this.stage.context))|raw }}
 
             {# Attachments #}
             {% for attachment in this.stage.attachments %}
@@ -38,6 +40,7 @@
                 {% endif %}
 
                 {{ component(attachment.attachment.attachmentClass, {
+                    "id": randomId(),
                     "character": character,
                     "stage": stage,
                     "config": attachment.config,

@@ -41,6 +41,10 @@ class Stage
     #[ORM\Column(type: JsonDocumentType::NAME, nullable: true)]
     private ?array $attachments = null;
 
+    /** @var null|array<string, mixed> */
+    #[ORM\Column(type: JsonDocumentType::NAME, nullable: true)]
+    private ?array $context = null;
+
     #[ORM\PreFlush()]
     public function preUpdate(): void
     {
@@ -176,6 +180,33 @@ class Stage
     public function clearAttachments(): self
     {
         $this->attachments = [];
+        return $this;
+    }
+
+    public function getContext(): ?array
+    {
+        return $this->context;
+    }
+
+    public function setContext(?array $context): static
+    {
+        $this->context = $context;
+        return $this;
+    }
+
+    public function addContext(string $key, mixed $value): self
+    {
+        if (!is_array($this->context)) {
+            $this->context = [];
+        }
+
+        $this->context[$key] = $value;
+        return $this;
+    }
+
+    public function clearContext(): self
+    {
+        $this->context = [];
         return $this;
     }
 }

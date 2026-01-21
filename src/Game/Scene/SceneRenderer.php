@@ -42,6 +42,7 @@ readonly class SceneRenderer
         $stage->setTitle($scene->getTitle());
         $stage->setDescription($scene->getDescription());
         $stage->clearAttachments();
+        $stage->clearContext();
 
         $stage->clearActionGroups();
         $this->addDefaultActionGroups($stage);
