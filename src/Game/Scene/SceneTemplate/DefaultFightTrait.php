@@ -47,7 +47,13 @@ trait DefaultFightTrait
             }
 
             if ($how === "flee") {
-                $battleTurn = $this->onFightFlee($stage, $action, $scene, $battleTurn);
+                $success = $this->onFightFlee($stage, $action, $scene, $battleTurn);
+
+                if ($success) {
+                    return;
+                }
+
+                $battleTurn = BattleTurn::DamageTurnBadGuy;
             }
 
             $stage->addAttachment($attachment, data: [
@@ -105,7 +111,7 @@ trait DefaultFightTrait
      * @param int $battleTurn
      * @return int
      */
-    public function onFightFlee(Stage $stage, Action $action, Scene $scene, int $battleTurn): int
+    public function onFightFlee(Stage $stage, Action $action, Scene $scene, int $battleTurn): bool
     {
         if ($action->getParameter("surprise", false) === true || $this->diceBag->chance(0.3333, precision: 4)) {
             $this->logger->critical("Successfully escaped from the enemy.");
@@ -118,7 +124,7 @@ trait DefaultFightTrait
             // Add standard navigation
             $this->addDefaultActions($stage, $action, $scene);
 
-            return $battleTurn;
+            return true;
         } else {
             // Fleeing failed - meaning only the enemy gets to attack
 
@@ -126,7 +132,7 @@ trait DefaultFightTrait
                     You failed to flee your opponent! You are too busy trying to run away like a cowardly dog to try to fight.
                 TEXT);
 
-            return BattleTurn::DamageTurnBadGuy;
+            return false;
         }
     }
 
