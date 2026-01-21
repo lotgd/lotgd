@@ -3,7 +3,7 @@ declare(strict_types=1);
 
 namespace LotGD2\Twig;
 
-use LotGD2\Game\Random\DiceBagInterface;
+use LotGD2\Game\Random\DiceBag;
 use Twig\Extension\AbstractExtension;
 use Twig\TwigFilter;
 use Twig\TwigFunction;
@@ -12,7 +12,7 @@ use Twig\TwigTest;
 class LotGDExtension extends AbstractExtension
 {
     public function __construct(
-        private readonly DiceBagInterface $diceBag,
+        private readonly DiceBag $diceBag,
     ) {
     }
 
