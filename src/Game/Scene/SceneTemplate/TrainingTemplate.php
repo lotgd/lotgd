@@ -186,7 +186,7 @@ readonly class TrainingTemplate implements SceneTemplateInterface
             ;
 
             $this->setSeenMaster($character);
-        } else {
+        } elseif($master) {
             // Find attachment
             $attachment = $this->attachmentRepository->findOneByAttachmentClass(BattleAttachment::class);
 
@@ -223,6 +223,14 @@ readonly class TrainingTemplate implements SceneTemplateInterface
                     Maybe prey to the gods and ask for why that was?");
                 $this->logger->critical("Cannot attach attachment " . BattleAttachment::class . ": Not installed.");
             }
+        } else {
+            $stage->setDescription(
+                $scene->getTemplateConfig()["text"]["maxLevelReached"],
+            );
+
+            $stage->setContext([
+                "campLeader" => $scene->getTemplateConfig()["campLeader"],
+            ]);
         }
     }
 
@@ -279,7 +287,7 @@ readonly class TrainingTemplate implements SceneTemplateInterface
     public function onFightLost(Stage $stage, Action $action, Scene $scene, BattleState $battleState): void
     {
         $stage->setDescription(<<<TEXT
-            You have been defeated by <.{{ badguy.name }}.>. They halt just before delivering the final blow, and instead 
+            You have been defeated by <.{{ badGuy.name }}.>. They halt just before delivering the final blow, and instead 
             extend a hand to help you to your feet, and hand you a complementary healing potion.
             
             {% if textLost %}<<{{ textLost }}>>{% endif %}
