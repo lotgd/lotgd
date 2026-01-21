@@ -145,6 +145,7 @@ readonly class FightTemplate implements SceneTemplateInterface
                 $params["surprise"] = true;
             }
 
+            $stage->clearActionGroups();
             $this->battle->addFightActions($stage, $scene, $battleState, $params);
 
             $stage->addContext("creatureName", $creature->name);
