@@ -56,19 +56,17 @@ readonly class BankTemplate implements SceneTemplateInterface
             ->allowedTypes("string")
             ->default("default");
 
-        $resolver
-            ->define("text")
-            ->default(function (OptionsResolver $resolver) {
-                $resolver
-                    ->define("deposit")
-                    ->required()
-                    ->allowedTypes('string');
+        $resolver->setOptions("text", function (OptionsResolver $resolver): void {
+            $resolver
+                ->define("deposit")
+                ->required()
+                ->allowedTypes('string');
 
-                $resolver
-                    ->define("withdraw")
-                    ->required()
-                    ->allowedTypes('string');
-            });
+            $resolver
+                ->define("withdraw")
+                ->required()
+                ->allowedTypes('string');
+        });
 
         return $resolver->resolve($config);
     }

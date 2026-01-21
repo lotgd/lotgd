@@ -53,34 +53,32 @@ readonly class HealerTemplate implements SceneTemplateInterface
         $resolver->define("actionGroupPotionTitle")->allowedTypes("string")->default("Potions");
         $resolver->define("actionCompleteHealingTitle")->allowedTypes("string")->default("Complete Healing");
 
-        $resolver
-            ->define("text")
-            ->default(function (OptionsResolver $resolver) {
-                $resolver
-                    ->define("onEntryAndHealthy")
-                    ->required()
-                    ->allowedTypes('string');
+        $resolver->setOptions("text", function (OptionsResolver $resolver): void {
+            $resolver
+                ->define("onEntryAndHealthy")
+                ->required()
+                ->allowedTypes('string');
 
-                $resolver
-                    ->define("onEntryAndDamaged")
-                    ->required()
-                    ->allowedTypes('string');
+            $resolver
+                ->define("onEntryAndDamaged")
+                ->required()
+                ->allowedTypes('string');
 
-                $resolver
-                    ->define("onEntryAndOverhealed")
-                    ->required()
-                    ->allowedTypes('string');
+            $resolver
+                ->define("onEntryAndOverhealed")
+                ->required()
+                ->allowedTypes('string');
 
-                $resolver
-                    ->define("onHealEnoughGold")
-                    ->required()
-                    ->allowedTypes('string');
+            $resolver
+                ->define("onHealEnoughGold")
+                ->required()
+                ->allowedTypes('string');
 
-                $resolver
-                    ->define("onHealNotEnoughGold")
-                    ->required()
-                    ->allowedTypes('string');
-            });
+            $resolver
+                ->define("onHealNotEnoughGold")
+                ->required()
+                ->allowedTypes('string');
+        });
 
         return $resolver->resolve($config);
     }

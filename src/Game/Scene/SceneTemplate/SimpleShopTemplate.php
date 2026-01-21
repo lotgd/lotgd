@@ -80,8 +80,7 @@ readonly class SimpleShopTemplate implements SceneTemplateInterface
             })
             ->required();
 
-        $resolver->define("text")
-            ->default(function (OptionsResolver $resolver) {
+        $resolver->setOptions("text", function (OptionsResolver $resolver): void {
                  $resolver
                      ->define("peruse")
                      ->required()
@@ -101,7 +100,7 @@ readonly class SimpleShopTemplate implements SceneTemplateInterface
                     ->define("notEnoughGold")
                     ->required()
                     ->allowedTypes('string');
-            });
+        });
 
         return $resolver->resolve($config);
     }

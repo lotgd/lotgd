@@ -66,29 +66,27 @@ readonly class TrainingTemplate implements SceneTemplateInterface
 
         $resolver->define("campLeader")->allowedTypes("string")->default("Bluspring");
 
-        $resolver
-            ->define("text")
-            ->default(function (OptionsResolver $resolver) {
-                $resolver
-                    ->define("maxLevelReached")
-                    ->required()
-                    ->allowedTypes('string');
+        $resolver->setOptions("text", function (OptionsResolver $resolver): void {
+            $resolver
+                ->define("maxLevelReached")
+                ->required()
+                ->allowedTypes('string');
 
-                $resolver
-                    ->define("askExperience")
-                    ->required()
-                    ->allowedTypes('string');
+            $resolver
+                ->define("askExperience")
+                ->required()
+                ->allowedTypes('string');
 
-                $resolver
-                    ->define("seenMaster")
-                    ->required()
-                    ->allowedTypes('string');
+            $resolver
+                ->define("seenMaster")
+                ->required()
+                ->allowedTypes('string');
 
-                $resolver
-                    ->define("absoluteDefeat")
-                    ->required()
-                    ->allowedTypes('string');
-            });
+            $resolver
+                ->define("absoluteDefeat")
+                ->required()
+                ->allowedTypes('string');
+        });
 
         return $resolver->resolve($config);
     }
