@@ -125,7 +125,7 @@ readonly class SimpleShopTemplate implements SceneTemplateInterface
         $buyAction = new Action($scene, parameters: ["op" => "buy"]);
         $this->actionService->addHiddenAction($stage, $buyAction);
 
-        $oldItem = $this->equipment->getItemInSlot($character, $slot);
+        $oldItem = $this->equipment->getItemInSlot($slot);
 
         $stage
             ->setDescription($scene->getTemplateConfig()["text"]["peruse"])
@@ -166,11 +166,11 @@ readonly class SimpleShopTemplate implements SceneTemplateInterface
                 value: $item["price"],
             );
 
-            if ($this->gold->getGold($character) >= $equipmentItem->getValue()) {
-                $oldItem = $this->equipment->getItemInSlot($character, $slot);
+            if ($this->gold->getGold() >= $equipmentItem->getValue()) {
+                $oldItem = $this->equipment->getItemInSlot($slot);
 
-                $this->equipment->setItemInSlot($character, $slot, $equipmentItem);
-                $this->gold->addGold($character, -($equipmentItem->getValue() - $this->getTradeinValue($oldItem?->getValue() ?? 0)));
+                $this->equipment->setItemInSlot($slot, $equipmentItem);
+                $this->gold->addGold(-($equipmentItem->getValue() - $this->getTradeinValue($oldItem?->getValue() ?? 0)));
             } else {
                 $description = $scene->getTemplateConfig()["text"]["notEnoughGold"];
             }

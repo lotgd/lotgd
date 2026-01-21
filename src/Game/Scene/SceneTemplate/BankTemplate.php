@@ -96,7 +96,7 @@ readonly class BankTemplate implements SceneTemplateInterface
             $amount = min($amount, $this->getGoldInBank($character, $scene->getTemplateConfig()));
 
             $this->addGoldInBank($character, $scene->getTemplateConfig(), -$amount);
-            $this->gold->addGold($character, $amount);
+            $this->gold->addGold($amount);
 
             $this->logger->debug("Withdrew {$amount} gold from the bank (bank account name: {$scene->getTemplateConfig()['accountName']})");
 
@@ -104,13 +104,13 @@ readonly class BankTemplate implements SceneTemplateInterface
         } else {
             if ($amount === 0) {
                 // If amount is 0, we deposit everything
-                $amount = $this->gold->getGold($character);
+                $amount = $this->gold->getGold();
             }
 
-            $amount = min($amount, $this->gold->getGold($character));
+            $amount = min($amount, $this->gold->getGold());
 
             $this->addGoldInBank($character, $scene->getTemplateConfig(), $amount);
-            $this->gold->addGold($character, -$amount);
+            $this->gold->addGold(-$amount);
 
             $this->logger->debug("Deposited {$amount} gold to the bank (bank account name: {$scene->getTemplateConfig()['accountName']})");
 
@@ -120,7 +120,7 @@ readonly class BankTemplate implements SceneTemplateInterface
         $stage
             ->addContext("amount", $amount)
             ->addContext("goldInBank", $this->getGoldInBank($character, $scene->getTemplateConfig()))
-            ->addContext("goldInHand", $this->gold->getGold($character))
+            ->addContext("goldInHand", $this->gold->getGold())
         ;
     }
 

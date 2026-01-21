@@ -14,11 +14,17 @@ use LotGD2\Game\Stage\ActionService;
 use LotGD2\Kernel;
 use LotGD2\Repository\SceneRepository;
 use Psr\Log\LoggerInterface;
+use Symfony\Component\DependencyInjection\Attribute\AsAlias;
+use Symfony\Component\DependencyInjection\Attribute\Autoconfigure;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
+#[AsAlias(id: "lotgd2.game_loop", public: true)]
+#[Autoconfigure(public: true)]
 readonly class GameLoop
 {
     private ContainerInterface $container;
+
+    private readonly ?Character $character;
 
     public function __construct(
         private Kernel $kernel,
@@ -29,6 +35,17 @@ readonly class GameLoop
         private ActionService $actionService,
     ) {
         $this->container = $this->kernel->getContainer();
+    }
+
+    public function getCharacter(): Character
+    {
+        return $this->character;
+    }
+
+    public function setCharacter(Character $character): self
+    {
+        $this->character = $character;
+        return $this;
     }
 
     public function save(Stage $stage): void

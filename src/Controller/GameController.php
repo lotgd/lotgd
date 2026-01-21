@@ -16,8 +16,11 @@ class GameController extends AbstractController
     #[Route("/game/{character}/stage", "lotgd_game_stage")]
     #[IsGranted("ROLE_USER")]
     public function view(
+        GameLoop $gameLoop,
         Character $character,
     ): Response {
+        $gameLoop->setCharacter($character);
+
         return $this->render("game/view.html.twig", [
             "character" => $character,
         ]);
@@ -31,6 +34,7 @@ class GameController extends AbstractController
         string $action,
     ): Response {
         try {
+            $gameLoop->setCharacter($character);
             $stage = $gameLoop->takeAction($character, $action);
         } catch (InvalidActionError) {
             $stage = $character->getStage();

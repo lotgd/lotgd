@@ -12,6 +12,9 @@ use LotGD2\Entity\Mapped\Stage;
 use LotGD2\Game\Random\DiceBagInterface;
 use LotGD2\Repository\SceneRepository;
 
+/**
+ * Responsible class to render a scene onto the stage.
+ */
 readonly class SceneRenderer
 {
     public function __construct(
@@ -21,10 +24,15 @@ readonly class SceneRenderer
 
     }
 
+    /**
+     * Creates a Stage for a character that does not have a stage set yet and fetches the default scene.
+     *
+     * @param Character $character
+     * @return Stage
+     */
     public function renderDefault(
         Character $character
     ): Stage {
-        // For now: Get Scene with id=1
         $defaultScene = $this->sceneRepository->getDefaultScene();
 
         $newStage = new Stage();
@@ -33,6 +41,16 @@ readonly class SceneRenderer
         return $this->render($newStage, $defaultScene);
     }
 
+    /**
+     * Main function of this service. Sets the stage based on information from the scene.
+     *
+     * Note: If this function ever offers a module hook, it should make sure that it only
+     *  expands on this concept and does not change the rendering completely (like exchanging the scene). This should
+     *  be done before this method is called.
+     * @param Stage $stage
+     * @param Scene $scene
+     * @return Stage
+     */
     public function render(
         Stage $stage,
         Scene $scene,
@@ -51,6 +69,12 @@ readonly class SceneRenderer
         return $stage;
     }
 
+    /**
+     * Internal helper method. Creates an action to switch scenes based on a connection.
+     * @param Scene $scene
+     * @param SceneConnection $sceneConnection
+     * @return Action
+     */
     private function createActionFromConnection(
         Scene $scene,
         SceneConnection $sceneConnection
@@ -65,12 +89,20 @@ readonly class SceneRenderer
             $action->setTitle($sceneConnection->getTargetLabel());
             $action->setSceneId($sceneConnection->getSourceScene()->getId());
         } else {
+            // This should never be reached, as $scene must either be the source or the target scene of a connection,
+            // otherwise, it should not be in the list.
             $action->setTitle("#invalidConnection:{$sceneConnection->getId()}");
         }
 
         return $action;
     }
 
+    /**
+     * Internal helper function. Creates action groups and actions based on connections.
+     * @param Stage $stage
+     * @param Scene $scene
+     * @return void
+     */
     private function addActions(
         Stage $stage,
         Scene $scene,
@@ -106,6 +138,11 @@ readonly class SceneRenderer
         }
     }
 
+    /**
+     * Adds default action groups ("Others" and "Hidden")
+     * @param Stage $stage
+     * @return void
+     */
     public function addDefaultActionGroups(Stage $stage): void
     {
         $stage->addActionGroup(

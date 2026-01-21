@@ -4,25 +4,40 @@ declare(strict_types=1);
 namespace LotGD2\Game\Character;
 
 use LotGD2\Entity\Mapped\Character;
+use LotGD2\Game\GameLoop;
+use Psr\Log\LoggerInterface;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
 
 class Gold
 {
     const string PropertyName = 'gold';
 
-    public function getGold(Character $character): int
-    {
-        return $character->getProperty(self::PropertyName, 0);
+    public function __construct(
+        private LoggerInterface $logger,
+        #[Autowire(expression: "service('lotgd2.game_loop').getCharacter()")]
+        private Character $character,
+    ) {
     }
 
-    public function setGold(Character $character, int $gold): static
+    public function getGold(): int
     {
-        $character->setProperty(self::PropertyName, $gold);
+        return $this->character->getProperty(self::PropertyName, 0);
+    }
+
+    public function setGold(int $gold): static
+    {
+        $this->logger->debug("{$this->character->getId()} set new gold amount ($gold). Was {$this->getGold()}.");
+
+        $this->character->setProperty(self::PropertyName, $gold);
         return $this;
     }
 
-    public function addGold(Character $character, int $gold): static
+    public function addGold(int $gold): static
     {
-        $character->setProperty(self::PropertyName, $this->getGold($character) + $gold);
+        $newGoldAmount = $this->getGold() + $gold;
+        $this->logger->debug("{$this->character->getId()} add gold ($gold). Was {$this->getGold()}, is now {$newGoldAmount}");
+
+        $this->character->setProperty(self::PropertyName, $newGoldAmount);
         return $this;
     }
 }
