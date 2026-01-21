@@ -14,6 +14,7 @@ use LotGD2\Game\Character\Equipment;
 use LotGD2\Game\Character\Gold;
 use LotGD2\Game\Character\Health;
 use LotGD2\Game\Character\Stats;
+use LotGD2\Game\Random\DiceBagInterface;
 use LotGD2\Game\Scene\SceneAttachment\BattleAttachment;
 use LotGD2\Game\Stage\ActionService;
 use LotGD2\Repository\AttachmentRepository;
@@ -48,11 +49,12 @@ readonly class TrainingTemplate implements SceneTemplateInterface
         private LoggerInterface $logger,
         private AttachmentRepository $attachmentRepository,
         private MasterRepository $masterRepository,
-        private ActionService $actionService,
+        private DiceBagInterface $diceBag,
         private Battle $battle,
         private Equipment $equipment,
         private Stats $stats,
         private Health $health,
+        private Gold $gold, // @phpstan-ignore property.onlyWritten
     ) {
     }
 
