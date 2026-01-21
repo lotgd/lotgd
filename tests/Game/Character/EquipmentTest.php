@@ -86,4 +86,134 @@ class EquipmentTest extends TestCase
         $this->assertSame($newWeapon, $equipment->getItemInSlot(Equipment::WeaponSlot));
         $this->assertSame($newArmor, $equipment->getItemInSlot(Equipment::ArmorSlot));
     }
+
+    public function testGetEmptyNameForWeaponSlot(): void
+    {
+        $character = new Character();
+        $loggerMock = $this->createMock(LoggerInterface::class);
+        $equipment = new Equipment($loggerMock, $character);
+
+        $this->assertSame("Fists", $equipment->getEmptyName(Equipment::WeaponSlot));
+    }
+
+    public function testGetEmptyNameForArmorSlot(): void
+    {
+        $character = new Character();
+        $loggerMock = $this->createMock(LoggerInterface::class);
+        $equipment = new Equipment($loggerMock, $character);
+
+        $this->assertSame("T-Shirt", $equipment->getEmptyName(Equipment::ArmorSlot));
+    }
+
+    public function testGetEmptyNameForUnknownSlot(): void
+    {
+        $character = new Character();
+        $loggerMock = $this->createMock(LoggerInterface::class);
+        $equipment = new Equipment($loggerMock, $character);
+
+        $this->assertSame("Nothing", $equipment->getEmptyName("unknown-slot"));
+        $this->assertSame("Nothing", $equipment->getEmptyName("ring"));
+        $this->assertSame("Nothing", $equipment->getEmptyName(""));
+    }
+
+    public function testGetNameWithEquippedWeapon(): void
+    {
+        $character = new Character();
+        $weapon = new EquipmentItem("Iron Sword", 15, 500);
+
+        $character->setProperties([
+            Equipment::PropertyName => [
+                Equipment::WeaponSlot => $weapon,
+            ],
+        ]);
+
+        $loggerMock = $this->createMock(LoggerInterface::class);
+        $equipment = new Equipment($loggerMock, $character);
+
+        $this->assertSame("Iron Sword", $equipment->getName(Equipment::WeaponSlot));
+    }
+
+    public function testGetNameWithEquippedArmor(): void
+    {
+        $character = new Character();
+        $armor = new EquipmentItem("Chain Mail", 10, 300);
+
+        $character->setProperties([
+            Equipment::PropertyName => [
+                Equipment::ArmorSlot => $armor,
+            ],
+        ]);
+
+        $loggerMock = $this->createMock(LoggerInterface::class);
+        $equipment = new Equipment($loggerMock, $character);
+
+        $this->assertSame("Chain Mail", $equipment->getName(Equipment::ArmorSlot));
+    }
+
+    public function testGetNameWithoutEquippedWeapon(): void
+    {
+        $character = new Character();
+        $character->setProperties([]);
+
+        $loggerMock = $this->createMock(LoggerInterface::class);
+        $equipment = new Equipment($loggerMock, $character);
+
+        $this->assertSame("Fists", $equipment->getName(Equipment::WeaponSlot));
+    }
+
+    public function testGetNameWithoutEquippedArmor(): void
+    {
+        $character = new Character();
+        $character->setProperties([]);
+
+        $loggerMock = $this->createMock(LoggerInterface::class);
+        $equipment = new Equipment($loggerMock, $character);
+
+        $this->assertSame("T-Shirt", $equipment->getName(Equipment::ArmorSlot));
+    }
+
+    public function testGetNameForUnknownSlot(): void
+    {
+        $character = new Character();
+        $character->setProperties([]);
+
+        $loggerMock = $this->createMock(LoggerInterface::class);
+        $equipment = new Equipment($loggerMock, $character);
+
+        $this->assertSame("Nothing", $equipment->getName("unknown-slot"));
+        $this->assertSame("Nothing", $equipment->getName("helmet"));
+    }
+
+    public function testGetNameWithPartialEquipment(): void
+    {
+        $character = new Character();
+        $weapon = new EquipmentItem("Battle Axe", 20, 750);
+
+        $character->setProperties([
+            Equipment::PropertyName => [
+                Equipment::WeaponSlot => $weapon,
+                // No armor equipped
+            ],
+        ]);
+
+        $loggerMock = $this->createMock(LoggerInterface::class);
+        $equipment = new Equipment($loggerMock, $character);
+
+        $this->assertSame("Battle Axe", $equipment->getName(Equipment::WeaponSlot));
+        $this->assertSame("T-Shirt", $equipment->getName(Equipment::ArmorSlot));
+    }
+
+    public function testGetNameWithEmptyEquipmentProperty(): void
+    {
+        $character = new Character();
+        $character->setProperties([
+            Equipment::PropertyName => [],
+        ]);
+
+        $loggerMock = $this->createMock(LoggerInterface::class);
+        $equipment = new Equipment($loggerMock, $character);
+
+        $this->assertSame("Fists", $equipment->getName(Equipment::WeaponSlot));
+        $this->assertSame("T-Shirt", $equipment->getName(Equipment::ArmorSlot));
+    }
 }

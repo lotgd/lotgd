@@ -173,6 +173,80 @@ class StatsTest extends TestCase
         $this->assertEquals($expectedAttack, $this->stats->getAttack());
     }
 
+    public function testSetAttackCallsCharacterSetProperty(): void
+    {
+        $attack = 15;
+        $currentAttack = 10;
+
+        $this->character
+            ->expects($this->once())
+            ->method('getProperty')
+            ->with(Stats::AttackPropertyName, 1)
+            ->willReturn($currentAttack);
+
+        $this->character
+            ->expects($this->once())
+            ->method('setProperty')
+            ->with(Stats::AttackPropertyName, $attack);
+
+        $this->character
+            ->expects($this->once())
+            ->method('getId')
+            ->willReturn(1);
+
+        $this->logger
+            ->expects($this->once())
+            ->method('debug')
+            ->with('1: attack set to 15 (was 10) before).');
+
+        $result = $this->stats->setAttack($attack);
+
+        $this->assertSame($this->stats, $result);
+    }
+
+    public function testSetAttackWithNullLogger(): void
+    {
+        $statsWithNullLogger = new Stats(
+            null,
+            $this->equipment,
+            $this->health,
+            $this->character
+        );
+
+        $attack = 15;
+
+        $this->character
+            ->expects($this->once())
+            ->method('setProperty')
+            ->with(Stats::AttackPropertyName, $attack);
+
+        $result = $statsWithNullLogger->setAttack($attack);
+
+        $this->assertSame($statsWithNullLogger, $result);
+    }
+
+    public function testAddAttackAddsToCurrentValue(): void
+    {
+        $currentAttack = 10;
+        $addedAttack = 5;
+        $expectedTotal = 15;
+
+        $this->character
+            ->expects($this->exactly(2))
+            ->method('getProperty')
+            ->with(Stats::AttackPropertyName, 1)
+            ->willReturn($currentAttack, $currentAttack); // Called twice: once in getAttack, once in setAttack debug
+
+        $this->character
+            ->expects($this->once())
+            ->method('setProperty')
+            ->with(Stats::AttackPropertyName, $expectedTotal);
+
+        $result = $this->stats->addAttack($addedAttack);
+
+        $this->assertSame($this->stats, $result);
+    }
+
     public function testGetDefenseReturnsDefaultValueOne(): void
     {
         $this->character
@@ -194,6 +268,83 @@ class StatsTest extends TestCase
             ->willReturn($expectedDefense);
 
         $this->assertEquals($expectedDefense, $this->stats->getDefense());
+    }
+
+    public function testSetDefenseCallsCharacterSetProperty(): void
+    {
+        $defense = 12;
+        $currentDefense = 8;
+
+        $this->character
+            ->expects($this->once())
+            ->method('getProperty')
+            ->with(Stats::DefensePropertyName, 1)
+            ->willReturn($currentDefense);
+
+        $this->character
+            ->expects($this->once())
+            ->method('setProperty')
+            ->with(Stats::DefensePropertyName, $defense);
+
+        $this->character
+            ->expects($this->once())
+            ->method('getId')
+            ->willReturn(1);
+
+        $this->logger
+            ->expects($this->once())
+            ->method('debug')
+            ->with('1: defense set to 12 (was 8) before).');
+
+        $result = $this->stats->setDefense($defense);
+
+        $this->assertSame($this->stats, $result);
+    }
+
+    public function testSetDefenseWithNullLogger(): void
+    {
+        $statsWithNullLogger = new Stats(
+            null,
+            $this->equipment,
+            $this->health,
+            $this->character
+        );
+
+        $defense = 12;
+
+        $this->character
+            ->expects($this->once())
+            ->method('setProperty')
+            ->with(Stats::DefensePropertyName, $defense);
+
+        $result = $statsWithNullLogger->setDefense($defense);
+
+        $this->assertSame($statsWithNullLogger, $result);
+    }
+
+    public function testAddDefenseAddsToCurrentValue(): void
+    {
+        $currentDefense = 8;
+        $addedDefense = 3;
+
+        // Note: There's a bug in the original code - addDefense calls setAttack instead of setDefense
+        // This test reflects the current (buggy) behavior
+        $this->character
+            ->expects($this->exactly(2))
+            ->method('getProperty')
+            ->willReturnMap([
+                [Stats::DefensePropertyName, 1, $currentDefense],
+                [Stats::DefensePropertyName, 1, 10]
+            ]);
+
+        $this->character
+            ->expects($this->once())
+            ->method('setProperty')
+            ->with(Stats::DefensePropertyName, 11);
+
+        $result = $this->stats->addDefense($addedDefense);
+
+        $this->assertSame($this->stats, $result);
     }
 
     public function testGetTotalAttackWithNoWeapon(): void
@@ -286,6 +437,102 @@ class StatsTest extends TestCase
         $this->assertEquals($expectedTotal, $this->stats->getTotalDefense());
     }
 
+    public function testLevelUpIncreasesLevel(): void
+    {
+        $currentLevel = 5;
+        $expectedNewLevel = 6;
+
+        $this->character
+            ->expects($this->exactly(2))
+            ->method('getLevel')
+            ->willReturn($currentLevel, $expectedNewLevel);
+
+        $this->character
+            ->expects($this->once())
+            ->method('setLevel')
+            ->with($expectedNewLevel);
+
+        $this->character
+            ->expects($this->atLeastOnce())
+            ->method('getId')
+            ->willReturn(6);
+
+        // Mock the calls for addAttack and addDefense
+        $this->character
+            ->method('getProperty')
+            ->willReturnMap([
+                [Stats::AttackPropertyName, 1, 10],
+                [Stats::AttackPropertyName, 1, 10], // Called again in debug
+                [Stats::DefensePropertyName, 1, 11],
+            ]);
+
+        $this->character
+            ->expects($this->exactly(2))
+            ->method('setProperty')
+            ->willReturnMap([
+                [Stats::AttackPropertyName, 11, $this->character],
+                [Stats::DefensePropertyName, 12, $this->character],
+            ]);
+
+        $this->health
+            ->expects($this->once())
+            ->method('addMaxHealth')
+            ->with(10);
+
+        $result = $this->stats->levelUp();
+
+        $this->assertSame($this->stats, $result);
+    }
+
+    public function testLevelUpWithNullLogger(): void
+    {
+        $statsWithNullLogger = new Stats(
+            null,
+            $this->equipment,
+            $this->health,
+            $this->character
+        );
+
+        $currentLevel = 5;
+        $expectedNewLevel = 6;
+
+        $this->character
+            ->expects($this->exactly(1))
+            ->method('getLevel')
+            ->willReturn($currentLevel);
+
+        $this->character
+            ->expects($this->once())
+            ->method('setLevel')
+            ->with($expectedNewLevel);
+
+        // Mock the calls for addAttack and addDefense
+        $this->character
+            ->expects($this->exactly(2))
+            ->method('getProperty')
+            ->willReturnMap([
+                [Stats::AttackPropertyName, 1, 10],
+                [Stats::DefensePropertyName, 1, 11],
+            ]);
+
+        $this->character
+            ->expects($this->exactly(2))
+            ->method('setProperty')
+            ->willReturnMap([
+                [Stats::AttackPropertyName, 11, $this->character],
+                [Stats::DefensePropertyName, 12, $this->character],
+            ]);
+
+        $this->health
+            ->expects($this->once())
+            ->method('addMaxHealth')
+            ->with(10);
+
+        $result = $statsWithNullLogger->levelUp();
+
+        $this->assertSame($statsWithNullLogger, $result);
+    }
+
     public function testMultipleExperienceAdditions(): void
     {
         $this->character
@@ -308,5 +555,24 @@ class StatsTest extends TestCase
         $this->assertEquals('level', Stats::LevelPropertyName);
         $this->assertEquals('attack', Stats::AttackPropertyName);
         $this->assertEquals('defense', Stats::DefensePropertyName);
+    }
+
+    public function testRequiredExperienceAlwaysIncreases(): void
+    {
+        $levels = range(1, 15);
+        $this->character->method("getLevel")->willReturn(...$levels);
+
+        $required = 0;
+        foreach ($levels as $level) {
+            $requiredExperience = $this->stats->getRequiredExperience();
+            $this->assertGreaterThan($required, $requiredExperience);
+            $required = $requiredExperience;
+        }
+    }
+
+    public function testRequiredExperienceIsNullAboveMaxLevel(): void
+    {
+        $this->character->method("getLevel")->willReturn(16);
+        $this->assertNull($this->stats->getRequiredExperience());
     }
 }

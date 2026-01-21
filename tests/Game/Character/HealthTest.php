@@ -159,4 +159,20 @@ final class HealthTest extends TestCase
 
         $this->assertEquals($aliveStatus, $health->isAlive());
     }
+
+    #[TestWith([10, 10, 20], "positiveAmount")]
+    #[TestWith([10, -10, 0], "negativeAmount")]
+    public function testAddMaxHealth(int $initialMaxHealth, int $addMaxHealth, int $expectedMaxHealth)
+    {
+        $character = new Character();
+        $character->setProperties([
+            Health::MaxHealthPropertyName => $initialMaxHealth,
+        ]);
+
+        $health = new Health($this->createMock(LoggerInterface::class), $character);
+
+        $health->addMaxHealth($addMaxHealth);
+
+        $this->assertEquals($expectedMaxHealth, $health->getMaxHealth());
+    }
 }

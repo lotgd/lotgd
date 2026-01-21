@@ -15,7 +15,6 @@ class MasterRepository extends ServiceEntityRepository
 {
     public function __construct(
         ManagerRegistry $registry,
-        readonly DiceBagInterface $diceBag,
     ) {
         parent::__construct($registry, Master::class);
     }

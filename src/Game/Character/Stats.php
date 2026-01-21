@@ -106,7 +106,7 @@ readonly class Stats
 
     public function addDefense(int $defense): static
     {
-        $this->setAttack($this->getDefense() + $defense);
+        $this->setDefense($this->getDefense() + $defense);
         return $this;
     }
 
@@ -119,7 +119,7 @@ readonly class Stats
     {
         $this->character->setLevel($this->character->getLevel() + 1);
 
-        $this->logger?->debug("{$this->character->getId()}: Level increased to  set to {$this->character->getLevel()}.");
+        $this->logger?->debug("{$this->character->getId()}: Level increased to {$this->character->getLevel()}.");
 
         $this->addAttack(1);
         $this->addDefense(1);
