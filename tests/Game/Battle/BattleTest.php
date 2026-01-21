@@ -102,8 +102,9 @@ class BattleTest extends KernelTestCase
         $this->battle->addFightActions($stage, $scene, $battleState);
 
         $actionGroups = $stage->getActionGroups();
-        $this->assertCount(1, $actionGroups);
+        $this->assertCount(2, $actionGroups);
         $this->assertArrayHasKey(Battle::ActionGroupBattle, $actionGroups);
+        $this->assertArrayHasKey(Battle::ActionGroupAutoBattle, $actionGroups);
 
         $attackActionGroup = $actionGroups[Battle::ActionGroupBattle];
         $actions = $attackActionGroup->getActions();
@@ -116,6 +117,10 @@ class BattleTest extends KernelTestCase
         $this->assertSame("attack", $attackAction->getParameters()["how"]);
         // Assert battle state is transferred correctly
         $this->assertSame($battleState, $attackAction->getParameters()["battleState"]);
+
+        $attackActionGroup = $actionGroups[Battle::ActionGroupAutoBattle];
+        $actions = $attackActionGroup->getActions();
+        $this->assertCount(3, $actions);
     }
 
     #[Depends("testStartBattle")]
@@ -128,8 +133,13 @@ class BattleTest extends KernelTestCase
         $this->battle->addFightActions($stage, $scene, $battleState, $params);
 
         $actionGroups = $stage->getActionGroups();
-        $this->assertCount(1, $actionGroups);
+        $this->assertCount(2, $actionGroups);
         $this->assertArrayHasKey(Battle::ActionGroupBattle, $actionGroups);
+        $this->assertArrayHasKey(Battle::ActionGroupAutoBattle, $actionGroups);
+
+        $actionGroup = $actionGroups[Battle::ActionGroupAutoBattle];
+        $actions = $actionGroup->getActions();
+        $this->assertCount(3, $actions);
 
         $actionGroup = $actionGroups[Battle::ActionGroupBattle];
         $actions = $actionGroup->getActions();

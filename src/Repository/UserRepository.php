@@ -21,11 +21,8 @@ class UserRepository extends ServiceEntityRepository implements UserLoaderInterf
 
     public function loadUserByIdentifier(string $identifier): ?UserInterface
     {
-        $entityManager = $this->getEntityManager();
-
-        return $entityManager->createQueryBuilder()
+        return $this->createQueryBuilder("u")
             ->select("u")
-            ->from(self::class, "u")
             ->where("u.email = :identifier")
             ->setParameter("identifier", $identifier)
             ->getQuery()
