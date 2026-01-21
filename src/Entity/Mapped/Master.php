@@ -22,37 +22,61 @@ class Master implements BasicFighterInterface
     public function __construct(
         #[ORM\Column(length: 255)]
         #[Assert\NotBlank]
-        public ?string $name = null,
+        public ?string $name = null {
+            get => $this->name;
+            set => $value;
+        },
 
         #[ORM\Column(type: Types::SMALLINT)]
         #[Assert\Range(min: 1, max: 255)]
-        public ?int $level = null,
+        public ?int $level = null {
+            get => $this->level;
+            set => $value;
+        },
 
         #[ORM\Column(length: 255)]
         #[Assert\NotBlank]
-        public ?string $weapon = null,
+        public ?string $weapon = null{
+            get => $this->weapon;
+            set => $value;
+        },
 
         #[ORM\Column]
         #[Assert\NotBlank]
-        public ?int $health = null,
+        public ?int $health = null{
+            get => $this->health;
+            set => $value;
+        },
 
         #[ORM\Column]
         #[Assert\NotBlank]
-        public ?int $attack = null,
+        public ?int $attack = null{
+            get => $this->attack;
+            set => $value;
+        },
 
         #[ORM\Column]
         #[Assert\NotBlank]
-        public ?int $defense = null,
+        public ?int $defense = null{
+            get => $this->defense;
+            set => $value;
+        },
 
         #[ORM\Column(length: 255)]
         #[Assert\NotBlank]
         #[Groups("fighter")]
-        public ?string $textDefeated = null,
+        public ?string $textDefeated = null{
+            get => $this->textDefeated;
+            set => $value;
+        },
 
         #[ORM\Column(length: 255, nullable: true)]
         #[Assert\NotBlank()]
         #[Groups("fighter")]
-        public ?string $textLost = null,
+        public ?string $textLost = null{
+            get => $this->textLost;
+            set => $value;
+        },
     ) {
 
     }
