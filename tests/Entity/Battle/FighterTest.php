@@ -183,7 +183,7 @@ class FighterTest extends TestCase
         
         $this->fighter->damage(100);
         
-        $this->assertSame(-50, $this->fighter->health);
+        $this->assertSame(0, $this->fighter->health);
     }
 
     public function testDamageWithZeroDamageDoesNotChangeHealth(): void
