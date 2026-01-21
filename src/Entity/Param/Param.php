@@ -6,10 +6,13 @@ namespace LotGD2\Entity\Param;
 use LotGD2\Entity\Param\ParamTypeEnum;
 use TypeError;
 
+/**
+ * @phpstan-type LegalTypes int|float|bool|string|ParamBag|array<mixed>
+ */
 class Param
 {
     /**
-     * @param int|float|bool|string|ParamBag|array<mixed> $value
+     * @param LegalTypes $value
      */
     public function __construct(
         private int|float|bool|string|ParamBag|array $value,
@@ -41,7 +44,7 @@ class Param
     }
 
     /**
-     * @param int|float|bool|string|ParamBag|array<mixed> $value
+     * @param LegalTypes $value
      */
     public function setValue(int|float|bool|string|ParamBag|array $value): void
     {
@@ -103,9 +106,10 @@ class Param
     }
 
     /**
+     * @param LegalTypes $value
      * @throws TypeError
      */
-    private function assertParamType(null|int|float|bool|string|ParamBag $value=null): void
+    private function assertParamType(null|int|float|bool|string|ParamBag|array $value=null): void
     {
         $throw = false;
 

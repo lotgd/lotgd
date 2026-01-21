@@ -61,6 +61,10 @@ class SceneConnection
         return $this;
     }
 
+    /**
+     * Returns the label visible on the source scene
+     * @return string|null
+     */
     public function getSourceLabel(): ?string
     {
         return $this->sourceLabel;
@@ -73,6 +77,10 @@ class SceneConnection
         return $this;
     }
 
+    /**
+     * Returns the label visible on the target scene
+     * @return string|null
+     */
     public function getTargetLabel(): ?string
     {
         return $this->targetLabel;

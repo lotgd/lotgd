@@ -6,6 +6,7 @@ namespace LotGD2\Game\Random;
 use Random\Engine;
 use Random\Engine\Mt19937;
 use Random\Randomizer;
+use ValueError;
 
 readonly class DiceBag implements DiceBagInterface
 {
@@ -74,7 +75,7 @@ readonly class DiceBag implements DiceBagInterface
     public function throw(int $max, int $min = 1, int $times = 1): int
     {
         if ($times < 1) {
-            throw new \ValueError('The argument $times must be at least 1.');
+            throw new ValueError('The argument $times must be at least 1.');
         }
 
         if ($min === $max) {
@@ -104,7 +105,7 @@ readonly class DiceBag implements DiceBagInterface
     public function chance(int|float $winChance, $precision = 0): bool
     {
         if ($precision < 0) {
-            throw new \ValueError('The argument $precision must be at least 0.');
+            throw new ValueError('The argument $precision must be at least 0.');
         }
 
         // Convert percentage unit to float
@@ -123,7 +124,7 @@ readonly class DiceBag implements DiceBagInterface
         //         If winChance is smaller than 0, it will always be a loss.
         if ($winChance >= 1) {
             return true;
-        } elseif ($winChance < 0) {
+        } elseif ($winChance <= 0) {
             return false;
         } elseif ($this->randomizer->getInt($minNumber, $maxNumber)/$scale < $winChance) {
             return true;
@@ -136,11 +137,12 @@ readonly class DiceBag implements DiceBagInterface
      * An implementation of a "pseudo-bell" random number generator where the two extremes are rarer
      * Originally used in lotgd in at least v0.9.7
      * @author MighyE, JT
+     * @license GPL-2
      * @param int $min
      * @param int $max
      * @return int
      */
-    public function pseudoBell(int $min = 0, int $max = 0): int
+    public function pseudoBell(int $min, int $max = 0): int
     {
         if ($min === $max) {
             return $min;
@@ -200,16 +202,16 @@ readonly class DiceBag implements DiceBagInterface
      * @return string
      */
     public function getRandomString(
-        int $length = 0,
+        int $length,
         string $alphabet = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
     ): string {
         if ($length <= 0) {
-            throw new \ValueError("Lenght must be at least 1.");
+            throw new ValueError("Length must be at least 1.");
         }
 
         $alphabetSize = strlen($alphabet);
         if ($alphabetSize <= 0) {
-            throw new \ValueError("Alphabet cannot be an empty string");
+            throw new ValueError("Alphabet cannot be an empty string");
         }
 
         return $this->randomizer->getBytesFromString($alphabet, $length);

@@ -54,8 +54,7 @@ readonly class SceneRenderer
     public function render(
         Stage $stage,
         Scene $scene,
-    ): Stage
-    {
+    ): Stage {
         $stage->setScene($scene);
         $stage->setTitle($scene->getTitle());
         $stage->setDescription($scene->getDescription());
@@ -71,11 +70,13 @@ readonly class SceneRenderer
 
     /**
      * Internal helper method. Creates an action to switch scenes based on a connection.
+     *
+     * @internal
      * @param Scene $scene
      * @param SceneConnection $sceneConnection
      * @return Action
      */
-    private function createActionFromConnection(
+    public function createActionFromConnection(
         Scene $scene,
         SceneConnection $sceneConnection
     ): Action {
@@ -99,11 +100,12 @@ readonly class SceneRenderer
 
     /**
      * Internal helper function. Creates action groups and actions based on connections.
+     * @internal
      * @param Stage $stage
      * @param Scene $scene
      * @return void
      */
-    private function addActions(
+    public function addActions(
         Stage $stage,
         Scene $scene,
     ): void {
@@ -146,13 +148,13 @@ readonly class SceneRenderer
     public function addDefaultActionGroups(Stage $stage): void
     {
         $stage->addActionGroup(
-            (new ActionGroup())
+            new ActionGroup()
                 ->setId(ActionGroup::EMPTY)
                 ->setTitle("Others")
         );
 
         $stage->addActionGroup(
-            (new ActionGroup())
+            new ActionGroup()
                 ->setId(ActionGroup::HIDDEN)
                 ->setTitle("Hidden")
         );

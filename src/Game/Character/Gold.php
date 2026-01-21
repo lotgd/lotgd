@@ -8,7 +8,7 @@ use LotGD2\Game\GameLoop;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 
-class Gold
+final class Gold
 {
     const string PropertyName = 'gold';
 

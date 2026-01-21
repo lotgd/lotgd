@@ -33,7 +33,7 @@ readonly class Equipment
         $this->logger->debug("{$this->character->getId()} set new item in slot ($slot): {$item->getName()} ({$item->getStrength()})");
 
         $equipment = $this->character->getProperty(self::PropertyName);
-        if (!is_array($equipment)) {
+        if (is_array($equipment)) {
             $equipment[$slot] = $item;
         } else {
             $equipment = [$slot => $item];

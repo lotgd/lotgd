@@ -53,7 +53,7 @@ class Action
         return $this;
     }
 
-    public function getTitle(): string
+    public function getTitle(): ?string
     {
         return $this->title;
     }
@@ -70,7 +70,7 @@ class Action
         return $this;
     }
 
-    public function getSceneId(): int
+    public function getSceneId(): ?int
     {
         return $this->sceneId;
     }

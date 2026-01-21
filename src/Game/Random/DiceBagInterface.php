@@ -33,7 +33,7 @@ interface DiceBagInterface
     public function bell(float $min, float $max): float;
 
     public function getRandomString(
-        int $length = 0,
+        int $length,
         string $alphabet = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
     ): string;
 }
