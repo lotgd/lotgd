@@ -81,7 +81,7 @@ readonly class GameLoop
 
                 // Connect stage to target stage
                 $selectedAction->setTitle("Continue");
-                $selectedAction->getParameters()->set("lotgd.loop.skipOnSceneLeave", true);
+                $selectedAction->setParameter("lotgd.loop.skipOnSceneLeave", true);
                 $stage->addAction(ActionGroup::EMPTY, $selectedAction);
 
                 /** @var SceneTemplateInterface $currentSceneTemplate */
@@ -98,7 +98,7 @@ readonly class GameLoop
 
                 $stage = $this->renderer->render($character->getStage(), $targetScene);
 
-                /** @var ?SceneTemplateInterface $currentSceneTemplate */
+                /** @var SceneTemplateInterface $currentSceneTemplate */
                 $targetSceneTemplate = $this->container->get($targetScene->getTemplateClass());  // @phpstan-ignore varTag.differentVariable
                 $reply = $targetSceneTemplate->onSceneEnter($stage, $selectedAction, $targetScene);
 

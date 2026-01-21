@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace LotGD2\Game\Stage;
 
 use LotGD2\Entity\Action;
+use LotGD2\Entity\ActionGroup;
 use LotGD2\Entity\Stage;
 
 class ActionService
@@ -23,5 +24,10 @@ class ActionService
         }
 
         return $selectedAction;
+    }
+
+    public function addHiddenAction(Stage $stage, Action $action): void
+    {
+        $stage->addAction(ActionGroup::HIDDEN, $action);
     }
 }

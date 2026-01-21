@@ -12,10 +12,17 @@ class Action
 {
     public ?string $id = null;
     public ?string $title = null;
+    /** @var array<string, scalar> */
     public array $parameters = [];
     public ?int $sceneId = null;
 
+    /**
+     * @param array<string, scalar> $parameters
+     */
     public function __construct(
+        ?Scene $scene = null,
+        ?string $title = null,
+        array $parameters = [],
         ?DiceBag $diceBag = null,
     ) {
         if ($diceBag === null) {
@@ -23,6 +30,16 @@ class Action
         }
 
         $this->id = $diceBag->getRandomString(8);
+
+        if ($scene !== null) {
+            $this->setSceneId($scene->getId());
+        }
+
+        if ($title !== null) {
+            $this->setTitle($title);
+        }
+
+        $this->setParameters($parameters);
     }
 
     public function getId(): string
@@ -58,18 +75,24 @@ class Action
         return $this->sceneId;
     }
 
+    /**
+     * @return array<mixed, scalar>
+     */
     public function getParameters(): array
     {
         return $this->parameters;
     }
 
+    /**
+     * @param array<mixed, scalar> $parameters
+     */
     public function setParameters(array $parameters): self
     {
         $this->parameters = $parameters;
         return $this;
     }
 
-    public function getParameter(string $name, mixed $default = null): Param
+    public function getParameter(string $name, mixed $default = null): mixed
     {
         return $this->parameters[$name] ?? $default;
     }

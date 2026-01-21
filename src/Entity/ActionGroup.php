@@ -17,6 +17,27 @@ class ActionGroup
     /** @var Action[] */
     public array $actions = [];
 
+    /**
+     * @param Action[] $actions
+     */
+    public function __construct(
+        ?string $id = null,
+        ?string $title = null,
+        int $weight = 0,
+        array $actions = [],
+    ) {
+        if ($id !== null) {
+            $this->id = $id;
+        }
+
+        if ($title !== null) {
+            $this->title = $title;
+        }
+
+        $this->weight = $weight;
+        $this->actions = $actions;
+    }
+
     public function setId(string $id): self
     {
         $this->id = $id;

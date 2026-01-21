@@ -103,7 +103,7 @@ class Scene
     }
 
     /**
-     * @return null|array<string, mixed>
+     * @return array<string, mixed>
      */
     public function getTemplateConfig(): array
     {
@@ -115,7 +115,7 @@ class Scene
     }
 
     /**
-     * @param null|array<string, mixed> $templateConfig
+     * @param array<string, mixed> $templateConfig
      * @return $this
      */
     public function setTemplateConfig(array $templateConfig): static
@@ -131,11 +131,12 @@ class Scene
         ?string $sourceLabel = null,
         ?string $targetLabel = null,
     ): SceneConnection {
-        $connection = (new SceneConnection())
+        $connection = new SceneConnection()
             ->setSourceScene($this)
             ->setTargetScene($scene)
             ->setSourceLabel($sourceLabel)
             ->setTargetLabel($targetLabel)
+            ->setType($connectionType);
         ;
 
         $this->addSourcedConnection($connection);

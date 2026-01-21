@@ -36,7 +36,7 @@ final class SimpleShopAttachment implements SceneAttachmentInterface
     ): void {
         $this->checkAttachment();
 
-        $actionId = (string)$this->config["buyActionId"] ?? "";
+        $actionId = (string)($this->config["buyActionId"] ?? "");
         $action = $actionService->getActionById($this->stage, $actionId);
 
         if (!$action) {

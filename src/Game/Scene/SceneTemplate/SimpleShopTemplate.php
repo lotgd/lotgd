@@ -110,11 +110,8 @@ readonly class SimpleShopTemplate implements SceneTemplateInterface
 
         $this->logger->debug("Add SimpleShopAttachment (id={$attachment->getId()})");
 
-        $buyAction = new Action()
-            ->setSceneId($scene->getId())
-            ->setParameter("op", "buy")
-        ;
-        $stage->addAction(ActionGroup::HIDDEN, $buyAction);
+        $buyAction = new Action($scene, parameters: ["op" => "buy"]);
+        $this->actionService->addHiddenAction($stage, $buyAction);
 
         $stage
             ->setDescription($scene->getTemplateConfig()["text"]["peruse"])
@@ -151,18 +148,12 @@ readonly class SimpleShopTemplate implements SceneTemplateInterface
     public function addDefaultActions(Stage $stage, Scene $scene): void
     {
         $stage->addActionGroup(
-            new ActionGroup()
-                ->setId(self::ActionGroupShop)
-                ->setTitle($scene->getTitle())
-                ->setWeight(-10)
+            new ActionGroup(self::ActionGroupShop, $scene->getTitle(), -10)
         );
 
         $stage->addAction(
             self::ActionGroupShop,
-            new Action()
-                ->setTitle("Browse")
-                ->setSceneId($scene->getId())
-                ->setParameter("op", "peruse")
+            new Action($scene, "Browse", ["op" => "peruse"])
         );
     }
 }

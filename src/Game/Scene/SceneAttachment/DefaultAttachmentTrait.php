@@ -6,11 +6,12 @@ namespace LotGD2\Game\Scene\SceneAttachment;
 use LotGD2\Entity\Character;
 use LotGD2\Entity\Param\ParamBag;
 use LotGD2\Entity\Stage;
-use Symfony\Component\HttpFoundation\File\Exception\AccessDeniedException;
+use Symfony\Component\Security\Core\Exception\AccessDeniedException;
 use Symfony\UX\LiveComponent\Attribute\LiveProp;
 
 trait DefaultAttachmentTrait
 {
+    /** @var array<string, mixed>  */
     #[LiveProp]
     public array $config;
 
