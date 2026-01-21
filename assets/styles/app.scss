@@ -20,9 +20,18 @@ body {
     --bs-gutter-x: 0rem;
 
     .lotgd-stage-actions {
-        .lotgd-stage-action {
-            padding-left: map.get($spacers, 3);
+        .lotgd-stage-action-group {
             border: 1px solid transparent;
+
+            padding-top: var(--bs-nav-link-padding-y);
+            padding-bottom: var(--bs-nav-link-padding-y);
+            padding-left: map.get($spacers, 1);
+        }
+
+        .lotgd-stage-action {
+            border: 1px solid transparent;
+
+            padding-left: map.get($spacers, 3);
 
             &:hover {
                 border-style: solid;
