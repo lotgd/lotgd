@@ -287,7 +287,7 @@ readonly class TrainingTemplate implements SceneTemplateInterface
         );
 
         $this->health->heal();
-        $this->setSeenMaster($stage->getOwner(), false);
+        $this->setSeenMaster($stage->getOwner());
     }
 
     public function getSeenMaster(Character $character): bool
