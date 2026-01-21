@@ -10,6 +10,7 @@ use LotGD2\Entity\Mapped\Scene;
 use LotGD2\Entity\Mapped\SceneConnection;
 use LotGD2\Entity\Mapped\Stage;
 use LotGD2\Game\Random\DiceBagInterface;
+use LotGD2\Game\Stage\ActionService;
 use LotGD2\Repository\SceneRepository;
 
 /**
@@ -20,6 +21,7 @@ readonly class SceneRenderer
     public function __construct(
         private SceneRepository $sceneRepository,
         private DiceBagInterface $diceBag,
+        private ActionService $actionService,
     ) {
 
     }
@@ -61,8 +63,7 @@ readonly class SceneRenderer
         $stage->clearAttachments();
         $stage->clearContext();
 
-        $stage->clearActionGroups();
-        $this->addDefaultActionGroups($stage);
+        $this->actionService->resetActionGroups($stage);
         $this->addActions($stage, $scene);
 
         return $stage;
@@ -137,25 +138,5 @@ readonly class SceneRenderer
                 $addedConnections[$connection->id] = true;
             }
         }
-    }
-
-    /**
-     * Adds default action groups ("Others" and "Hidden")
-     * @param Stage $stage
-     * @return void
-     */
-    public function addDefaultActionGroups(Stage $stage): void
-    {
-        $stage->addActionGroup(
-            new ActionGroup()
-                ->setId(ActionGroup::EMPTY)
-                ->setTitle("Others")
-        );
-
-        $stage->addActionGroup(
-            new ActionGroup()
-                ->setId(ActionGroup::HIDDEN)
-                ->setTitle("Hidden")
-        );
     }
 }

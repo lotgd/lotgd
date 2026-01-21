@@ -17,6 +17,7 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(ActionService::class)]
 #[UsesClass(DiceBag::class)]
 #[UsesClass(Action::class)]
+#[UsesClass(ActionGroup::class)]
 class ActionServiceTest extends TestCase
 {
     private ActionService $actionService;
@@ -324,5 +325,33 @@ class ActionServiceTest extends TestCase
 
         // Assert
         $this->assertNull($result);
+    }
+
+    public function testAddDefaultActionGroupsAddsEmptyAndHiddenActionGroups()
+    {
+        $stage = $this->createMock(Stage::class);
+        $stage->expects($this->exactly(2))->method("addActionGroup")->willReturnCallback(
+            function (ActionGroup $actionGroup) use ($stage){
+                if ($actionGroup->title === "Others") {
+                    $this->assertSame(ActionGroup::EMPTY, $actionGroup->id);
+                } else {
+                    $this->assertSame("Hidden", $actionGroup->title);
+                    $this->assertSame(ActionGroup::HIDDEN, $actionGroup->id);
+                }
+
+                return $stage;
+            }
+        );
+
+        $this->actionService->addDefaultActionGroups($stage);
+    }
+
+    public function testResetActionGroups()
+    {
+        $stage = $this->createMock(Stage::class);
+        $stage->expects($this->exactly(1))->method("clearActionGroups");
+        $stage->expects($this->exactly(2))->method("addActionGroup");
+
+        $this->actionService->resetActionGroups($stage);
     }
 }

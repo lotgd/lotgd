@@ -13,7 +13,7 @@ use LotGD2\Entity\Mapped\Stage;
 interface SceneTemplateInterface
 {
     public function onSceneLeave(Stage $stage, Action $action, Scene $leavingScene, Scene $enteringScene): bool;
-    public function onSceneEnter(Stage $stage, Action $action, Scene $leavingScene, Scene $enteringScene): bool;
+    public function onSceneEnter(Stage $stage, Action $action, ?Scene $leavingScene, Scene $enteringScene): bool;
     public function onSceneChange(Stage $stage, Action $action, Scene $scene): void;
 
     /**

@@ -99,7 +99,7 @@ class SceneTest extends TestCase
     {
         $class = new class implements SceneTemplateInterface {
             public function onSceneLeave(Stage $stage, Action $action, Scene $leavingScene, Scene $enteringScene): bool {return true;}
-            public function onSceneEnter(Stage $stage, Action $action, Scene $leavingScene, Scene $enteringScene): bool {return true;}
+            public function onSceneEnter(Stage $stage, Action $action, ?Scene $leavingScene, Scene $enteringScene): bool {return true;}
             public function onSceneChange(Stage $stage, Action $action, Scene $scene): void{}
             public static function validateConfiguration(array $config): array{return $config;}
         };
@@ -115,7 +115,7 @@ class SceneTest extends TestCase
     {
         $class = new class implements SceneTemplateInterface {
             public function onSceneLeave(Stage $stage, Action $action, Scene $leavingScene, Scene $enteringScene): bool {return true;}
-            public function onSceneEnter(Stage $stage, Action $action, Scene $leavingScene, Scene $enteringScene): bool {return true;}
+            public function onSceneEnter(Stage $stage, Action $action, ?Scene $leavingScene, Scene $enteringScene): bool {return true;}
             public function onSceneChange(Stage $stage, Action $action, Scene $scene): void{}
             public static function validateConfiguration(array $config): array
             {
@@ -137,7 +137,7 @@ class SceneTest extends TestCase
         
         $validClass = new class implements SceneTemplateInterface {
             public function onSceneLeave(Stage $stage, Action $action, Scene $leavingScene, Scene $enteringScene): bool {return true;}
-            public function onSceneEnter(Stage $stage, Action $action, Scene $leavingScene, Scene $enteringScene): bool {return true;}
+            public function onSceneEnter(Stage $stage, Action $action, ?Scene $leavingScene, Scene $enteringScene): bool {return true;}
             public function onSceneChange(Stage $stage, Action $action, Scene $scene): void{}
             public static function validateConfiguration(array $config): array{return $config;}
         };
@@ -158,7 +158,7 @@ class SceneTest extends TestCase
     {
         $class = new class implements SceneTemplateInterface {
             public function onSceneLeave(Stage $stage, Action $action, Scene $leavingScene, Scene $enteringScene): bool {return true;}
-            public function onSceneEnter(Stage $stage, Action $action, Scene $leavingScene, Scene $enteringScene): bool {return true;}
+            public function onSceneEnter(Stage $stage, Action $action, ?Scene $leavingScene, Scene $enteringScene): bool {return true;}
             public function onSceneChange(Stage $stage, Action $action, Scene $scene): void{}
             public static function validateConfiguration(array $config): array
             {

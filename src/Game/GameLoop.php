@@ -4,10 +4,13 @@ declare(strict_types=1);
 namespace LotGD2\Game;
 
 use Doctrine\ORM\EntityManagerInterface;
+use LotGD2\Entity\Action;
 use LotGD2\Entity\ActionGroup;
 use LotGD2\Entity\Mapped\Character;
+use LotGD2\Entity\Mapped\Scene;
 use LotGD2\Entity\Mapped\Stage;
 use LotGD2\Game\Error\InvalidActionError;
+use LotGD2\Game\GameTime\NewDay;
 use LotGD2\Game\Scene\SceneRenderer;
 use LotGD2\Game\Scene\SceneTemplate\SceneTemplateInterface;
 use LotGD2\Game\Stage\ActionService;
@@ -33,6 +36,7 @@ class GameLoop
         readonly private SceneRenderer $renderer,
         readonly private SceneRepository $sceneRepository,
         readonly private ActionService $actionService,
+        readonly private NewDay $newDay,
     ) {
         $this->container = $this->kernel->getContainer();
     }
@@ -85,35 +89,21 @@ class GameLoop
         $targetScene = $this->sceneRepository->find($selectedAction->sceneId);
 
         if ($targetScene !== $currentScene) {
-            if ($currentScene->templateClass !== null
-                and (bool)($selectedAction->getParameters()["lotgd.scene.skipOnSceneLeave"] ?? false) === false
-            ) {
-                $this->logger->debug("Calling onSceneLeave");
+            $skipOnSceneLeave = (bool)($selectedAction->getParameters()["lotgd.scene.skipOnSceneLeave"] ?? false);
+            $skipOnSceneEnter = (bool)($selectedAction->getParameters()["lotgd.scene.skipOnSceneEnter"] ?? false);
 
-                // Clear actions
-                $stage->clearActionGroups();
-                $this->renderer->addDefaultActionGroups($stage);
+            if ($currentScene?->templateClass !== null and !$skipOnSceneLeave) {
+                $renderDefault = $this->renderOnSceneLeave($stage, $selectedAction, $currentScene, $targetScene);
+            }
 
-                // Connect stage to target stage
-                $selectedAction->title = "Continue";
-                $selectedAction->setParameter("lotgd.loop.skipOnSceneLeave", true);
-                $stage->addAction(ActionGroup::EMPTY, $selectedAction);
+            if ($renderDefault && $this->newDay->isNewDay($character)) {
+                // It is a new day.
+                $this->newDay->render($stage, $selectedAction, $targetScene);
+                $renderDefault = false;
+            }
 
-                /** @var SceneTemplateInterface<array<string, mixed>> $currentSceneTemplate */
-                $currentSceneTemplate = $this->container->get($currentScene->templateClass);
-                $reply = $currentSceneTemplate->onSceneLeave($stage, $selectedAction, $currentScene, $targetScene);
-
-                $renderDefault = !$reply;
-            } elseif ($targetScene->templateClass !== null
-                and (bool)($selectedAction->getParameters()["lotgd.scene.skipOnSceneEnter"] ?? false) === false
-            ) {
-                $this->logger->debug("Calling onSceneEnter");
-
-                /** @var SceneTemplateInterface<array<string, mixed>> $currentSceneTemplate */
-                $targetSceneTemplate = $this->container->get($targetScene->templateClass);  // @phpstan-ignore varTag.differentVariable
-                $reply = $targetSceneTemplate->onSceneEnter($stage, $selectedAction, $currentScene, $targetScene);
-
-                $renderDefault = !$reply;
+            if ($renderDefault && $targetScene?->templateClass !== null and !$skipOnSceneEnter) {
+                $renderDefault = $this->renderOnSceneEnter($stage, $selectedAction, $currentScene, $targetScene);
             }
         }
 
@@ -126,14 +116,61 @@ class GameLoop
             if ($targetScene->templateClass) {
                 $this->logger->debug("Calling onSceneChange");
 
-                /** @var SceneTemplateInterface<array<string, mixed>> $currentSceneTemplate */
+                /** @var null|SceneTemplateInterface<array<string, mixed>> $targetSceneTemplate */
                 $targetSceneTemplate = $this->container->get($targetScene->templateClass);
-                $targetSceneTemplate?->onSceneChange($stage, $selectedAction, $targetScene);  // @phpstan-ignore nullsafe.neverNull
+                $targetSceneTemplate?->onSceneChange($stage, $selectedAction, $targetScene);
             }
         }
 
         $this->save($stage);
 
         return $stage;
+    }
+
+    /**
+     * @param Stage $stage
+     * @param Action $selectedAction
+     * @param Scene $currentScene
+     * @param Scene $targetScene
+     * @return bool True if default should be rendered (= nothing happened onSceneLeave)
+     */
+    public function renderOnSceneLeave(Stage $stage, Action $selectedAction, Scene $currentScene, ?Scene $targetScene): bool
+    {
+        $this->logger->debug("Calling onSceneLeave");
+
+        // Clear actions
+        $stage->clearActionGroups();
+        $this->actionService->addDefaultActionGroups($stage);
+
+        // Connect stage to target scene
+        $selectedAction->title = "Continue";
+        $selectedAction->setParameter("lotgd.loop.skipOnSceneLeave", true);
+        $stage->addAction(ActionGroup::EMPTY, $selectedAction);
+
+        /** @var SceneTemplateInterface<array<string, mixed>> $currentSceneTemplate */
+        $currentSceneTemplate = $this->container->get($currentScene->templateClass);
+        $reply = $currentSceneTemplate->onSceneLeave($stage, $selectedAction, $currentScene, $targetScene);
+
+        $renderDefault = !$reply;
+        return $renderDefault;
+    }
+
+    /**
+     * @param Stage $stage
+     * @param Action $selectedAction
+     * @param Scene $currentScene
+     * @param Scene $targetScene
+     * @return bool True if default should be rendered (= nothing happened onSceneEnter)
+     */
+    public function renderOnSceneEnter(Stage $stage, Action $selectedAction, ?Scene $currentScene, Scene $targetScene): bool
+    {
+        $this->logger->debug("Calling onSceneEnter");
+
+        /** @var SceneTemplateInterface<array<string, mixed>> $targetSceneTemplate */
+        $targetSceneTemplate = $this->container->get($targetScene->templateClass);  // @phpstan-ignore varTag.differentVariable
+        $reply = $targetSceneTemplate->onSceneEnter($stage, $selectedAction, $currentScene, $targetScene);
+
+        $renderDefault = !$reply;
+        return $renderDefault;
     }
 }

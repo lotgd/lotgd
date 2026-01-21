@@ -4,11 +4,14 @@ declare(strict_types=1);
 namespace LotGD2\Tests\Repository;
 
 use LotGD2\Entity\Mapped\Attachment;
+use LotGD2\Kernel;
 use LotGD2\Repository\AttachmentRepository;
 use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\UsesClass;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 
 #[CoversClass(AttachmentRepository::class)]
+#[UsesClass(Kernel::class)]
 class AttachmentRepositoryTest extends KernelTestCase
 {
     use EntityManagerSetupTrait;

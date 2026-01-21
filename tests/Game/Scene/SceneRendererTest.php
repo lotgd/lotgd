@@ -13,6 +13,7 @@ use LotGD2\Entity\Mapped\SceneConnection;
 use LotGD2\Entity\Mapped\Stage;
 use LotGD2\Game\Random\DiceBag;
 use LotGD2\Game\Scene\SceneRenderer;
+use LotGD2\Game\Stage\ActionService;
 use LotGD2\Repository\SceneRepository;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\UsesClass;
@@ -33,16 +34,19 @@ class SceneRendererTest extends TestCase
 {
     private SceneRenderer $renderer;
     private SceneRepository&MockObject $sceneRepository;
+    private ActionService $actionService;
     private DiceBag&MockObject $diceBag;
 
     protected function setUp(): void
     {
         $this->sceneRepository = $this->createMock(SceneRepository::class);
         $this->diceBag = $this->createMock(DiceBag::class);
+        $this->actionService = $this->createStub(ActionService::class);
 
         $this->renderer = new SceneRenderer(
             $this->sceneRepository,
             $this->diceBag,
+            $this->actionService,
         );
     }
 
@@ -66,10 +70,10 @@ class SceneRendererTest extends TestCase
         $sceneRepository->method("getDefaultScene")->willReturn($scene);
 
         $character = $this->createMock(Character::class);
-
         $diceBag = $this->createMock(DiceBag::class);
+        $actionService = $this->createStub(ActionService::class);
 
-        $sceneRenderer = new SceneRenderer($sceneRepository, $diceBag);
+        $sceneRenderer = new SceneRenderer($sceneRepository, $diceBag, $actionService);
 
         $stage = $sceneRenderer->renderDefault($character);
 
@@ -85,10 +89,12 @@ class SceneRendererTest extends TestCase
 
         $sceneRepository = $this->createMock(SceneRepository::class);
         $diceBag = $this->createMock(DiceBag::class);
+        $actionService = $this->createMock(ActionService::class);
+        $actionService->expects($this->once())->method("resetActionGroups");
 
         $stage = new Stage();
 
-        $sceneRenderer = new SceneRenderer($sceneRepository, $diceBag);
+        $sceneRenderer = new SceneRenderer($sceneRepository, $diceBag, $actionService);
         $stage = $sceneRenderer->render($stage, $scene);
 
         $this->assertNotNull($stage);
@@ -96,10 +102,6 @@ class SceneRendererTest extends TestCase
         $this->assertSame("A nice scenery", $stage->description);
 
         $actionGroups = $stage->actionGroups;
-        $filtered = array_filter($actionGroups, fn (ActionGroup $actionGroup) => $actionGroup->getId() === ActionGroup::EMPTY);
-        $this->assertCount(1, $filtered);
-        $filtered = array_filter($actionGroups, fn (ActionGroup $actionGroup) => $actionGroup->getId() === ActionGroup::HIDDEN);
-        $this->assertCount(1, $filtered);
     }
 
     /**
@@ -118,8 +120,9 @@ class SceneRendererTest extends TestCase
 
         $sceneRepository = $this->createMock(SceneRepository::class);
         $diceBag = new DiceBag();
+        $actionService = $this->createStub(ActionService::class);
 
-        $sceneRenderer = new SceneRenderer($sceneRepository, $diceBag);
+        $sceneRenderer = new SceneRenderer($sceneRepository, $diceBag, $actionService);
 
         $action = $sceneRenderer->createActionFromConnection($scene, $sceneConnection);
 
@@ -143,8 +146,9 @@ class SceneRendererTest extends TestCase
 
         $sceneRepository = $this->createMock(SceneRepository::class);
         $diceBag = new DiceBag();
+        $actionService = $this->createStub(ActionService::class);
 
-        $sceneRenderer = new SceneRenderer($sceneRepository, $diceBag);
+        $sceneRenderer = new SceneRenderer($sceneRepository, $diceBag, $actionService);
 
         $action = $sceneRenderer->createActionFromConnection($scene, $sceneConnection);
 
@@ -170,8 +174,9 @@ class SceneRendererTest extends TestCase
         $sceneConnection->sourceLabel = $targetScene->title;
         $sceneRepository = $this->createMock(SceneRepository::class);
         $diceBag = new DiceBag();
+        $actionService = $this->createStub(ActionService::class);
 
-        $sceneRenderer = new SceneRenderer($sceneRepository, $diceBag);
+        $sceneRenderer = new SceneRenderer($sceneRepository, $diceBag, $actionService);
 
         $action = $sceneRenderer->createActionFromConnection($scene, $sceneConnection);
 
@@ -312,7 +317,22 @@ class SceneRendererTest extends TestCase
      */
     public function testAddActionsVisibleConnectionsAddedToEmptyGroup(): void
     {
-        $stage = new Stage();
+        $stage = $this->createMock(Stage::class);
+        $actionGroup = $this->createMocK(ActionGroup::class);
+        $stage->expects($this->once())->method("addAction")->willReturnCallback(
+            function (string $group, Action $action) use ($stage) {
+                $this->assertSame(ActionGroup::EMPTY, $group);
+                $this->assertSame('Go South', $action->title);
+                $this->assertSame(3, $action->sceneId);
+                return $stage;
+            }
+        );
+
+        $stage->method(PropertyHook::get("actionGroups"))->willReturn([
+            ActionGroup::EMPTY => $actionGroup,
+        ]);
+        $stage->expects($this->never())->method("addActionGroup");
+
         $scene = $this->createMock(Scene::class);
 
         // Create a standalone connection (not in any action group)
@@ -330,14 +350,7 @@ class SceneRendererTest extends TestCase
 
         $this->diceBag->method('getRandomString')->willReturn('action-id-2');
 
-        $this->renderer->addDefaultActionGroups($stage);
         $this->renderer->addActions($stage, $scene);
-
-        $actions = $stage->actionGroups[ActionGroup::EMPTY]->getActions();
-        $action = array_values($actions)[0];
-        $this->assertCount(1, $actions);
-        $this->assertSame('Go South', $action->title);
-        $this->assertSame(3, $action->sceneId);
     }
 
     /**
@@ -345,7 +358,29 @@ class SceneRendererTest extends TestCase
      */
     public function testAddActionsMixedActionGroupsAndVisibleConnections(): void
     {
-        $stage = new Stage();
+        $stage = $this->createMock(Stage::class);
+        $stage->expects($this->once())->method("addActionGroup")->willReturnCallback(
+            function (ActionGroup $actionGroup) use ($stage){
+                $this->assertSame("lotgd.actionGroup.custom.13", $actionGroup->id);
+
+                $actions = array_values($actionGroup->actions);
+                $this->assertCount(1, $actions);
+                $this->assertSame("Go North", $actions[0]->title);
+                $this->assertSame(20, $actions[0]->sceneId);
+
+                return $stage;
+            }
+        );
+
+        $stage->expects($this->once())->method("addAction")->willReturnCallback(
+            function (string $group, Action $action) use ($stage) {
+                $this->assertSame(ActionGroup::EMPTY, $group);
+                $this->assertSame('Go South', $action->title);
+                $this->assertSame(30, $action->sceneId);
+                return $stage;
+            }
+        );
+
         $scene = $this->createMock(Scene::class);
 
         // Connection in action group
@@ -380,17 +415,7 @@ class SceneRendererTest extends TestCase
 
         $this->diceBag->method('getRandomString')->willReturn('action-id');
 
-        $this->renderer->addDefaultActionGroups($stage);
         $this->renderer->addActions($stage, $scene);
-
-        $actionGroups = $stage->actionGroups;
-        $this->assertCount(3, $actionGroups);
-        $this->assertArrayHasKey("lotgd.actionGroup.custom.13", $actionGroups);
-        $this->assertCount(1, $actionGroups["lotgd.actionGroup.custom.13"]->getActions());
-
-        $emptyGroupActions = $stage->actionGroups[ActionGroup::EMPTY]->getActions();
-        $this->assertCount(1, $emptyGroupActions);
-        $this->assertEquals('Go South', array_first($emptyGroupActions)->title);
     }
 
     /**

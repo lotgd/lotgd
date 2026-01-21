@@ -14,7 +14,7 @@ trait DefaultSceneTemplate
         return false;
     }
 
-    public function onSceneEnter(Stage $stage, Action $action, Scene $leavingScene, Scene $enteringScene): bool
+    public function onSceneEnter(Stage $stage, Action $action, ?Scene $leavingScene, Scene $enteringScene): bool
     {
         return false;
     }

@@ -37,4 +37,30 @@ class ActionService
     {
         $stage->addAction(ActionGroup::HIDDEN, $action);
     }
+
+    /**
+     * Adds default action groups ("Others" and "Hidden")
+     * @param Stage $stage
+     * @return void
+     */
+    public function addDefaultActionGroups(Stage $stage): void
+    {
+        $stage->addActionGroup(
+            new ActionGroup()
+                ->setId(ActionGroup::EMPTY)
+                ->setTitle("Others")
+        );
+
+        $stage->addActionGroup(
+            new ActionGroup()
+                ->setId(ActionGroup::HIDDEN)
+                ->setTitle("Hidden")
+        );
+    }
+
+    public function resetActionGroups(Stage $stage): void
+    {
+        $stage->clearActionGroups();
+        $this->addDefaultActionGroups($stage);
+    }
 }
