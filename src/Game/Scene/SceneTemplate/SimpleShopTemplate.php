@@ -133,7 +133,7 @@ readonly class SimpleShopTemplate implements SceneTemplateInterface
         $slot = $scene->templateConfig["type"] === "armor" ? Equipment::ArmorSlot : Equipment::WeaponSlot;
 
         $attachment = $this->attachmentRepository->findOneByAttachmentClass(SimpleShopAttachment::class);
-        $this->logger->debug("Add SimpleShopAttachment (id={$attachment->getId()})");
+        $this->logger->debug("Add SimpleShopAttachment (id={$attachment->id})");
 
         $buyAction = new Action($scene, parameters: ["op" => "buy"]);
         $this->actionService->addHiddenAction($stage, $buyAction);

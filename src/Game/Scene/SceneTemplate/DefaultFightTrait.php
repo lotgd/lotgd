@@ -133,7 +133,7 @@ trait DefaultFightTrait
             $stage->setDescription(<<<TEXT
                     You have successfully fled your opponent!
                     
-                TEXT . $scene->getDescription());
+                TEXT . $scene->description);
 
             // Add standard navigation
             $this->addDefaultActions($stage, $action, $scene);

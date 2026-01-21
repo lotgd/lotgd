@@ -26,7 +26,7 @@ trait DefaultAttachmentTrait
     {
         if (count(array_filter(
                 $this->stage->getAttachments(),
-                fn ($attachment) => $attachment["attachment"]->getAttachmentClass() === self::class
+                fn ($attachment) => $attachment["attachment"]->attachmentClass === self::class
             )) === 0) {
 
             throw new AccessDeniedException();

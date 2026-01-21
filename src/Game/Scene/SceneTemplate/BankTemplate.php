@@ -154,7 +154,7 @@ readonly class BankTemplate implements SceneTemplateInterface
                 ],
             ]);
 
-            $this->logger->debug("Add SimpleFormAttachment (id={$attachment->getId()})");
+            $this->logger->debug("Add SimpleFormAttachment (id={$attachment->id})");
         } else {
             $this->logger->critical("Cannot attach attachment " . SimpleFormAttachment::class . ": Not installed.");
         }

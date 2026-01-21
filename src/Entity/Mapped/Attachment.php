@@ -18,7 +18,7 @@ class Attachment
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    private ?int $id = null {
+    public ?int $id = null {
         get => $this->id;
     }
 
