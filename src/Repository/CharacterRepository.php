@@ -5,7 +5,7 @@ namespace LotGD2\Repository;
 
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
-use LotGD2\Entity\Character;
+use LotGD2\Entity\Mapped\Character;
 
 /**
  * @extends ServiceEntityRepository<Character>

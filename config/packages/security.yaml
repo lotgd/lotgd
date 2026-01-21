@@ -7,7 +7,7 @@ security:
         users_in_memory: { memory: null }
         users:
             entity:
-                class: LotGD2\Entity\User
+                class: LotGD2\Entity\Mapped\User
                 property: email
 
     firewalls:

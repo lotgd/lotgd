@@ -1,14 +1,13 @@
 <?php
 declare(strict_types=1);
 
-namespace LotGD2\Entity;
+namespace LotGD2\Entity\Mapped;
 
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Dunglas\DoctrineJsonOdm\Type\JsonDocumentType;
-use LotGD2\Entity\Param\ParamBag;
 use LotGD2\Game\Enum\SceneConnectionType;
 use LotGD2\Game\Scene\SceneTemplate\SceneTemplateInterface;
 use LotGD2\Repository\SceneRepository;

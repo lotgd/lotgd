@@ -1,12 +1,13 @@
 <?php
 declare(strict_types=1);
 
-namespace LotGD2\Entity;
+namespace LotGD2\Entity\Mapped;
 
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Dunglas\DoctrineJsonOdm\Type\JsonDocumentType;
-use LotGD2\Entity\Param\ParamBag;
+use LotGD2\Entity\Action;
+use LotGD2\Entity\ActionGroup;
 use LotGD2\Repository\StageRepository;
 
 #[ORM\Entity(repositoryClass: StageRepository::class)]

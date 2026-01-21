@@ -5,8 +5,8 @@ namespace LotGD2\Game\Scene\SceneTemplate;
 
 use LotGD2\Entity\Action;
 use LotGD2\Entity\ActionGroup;
-use LotGD2\Entity\Scene;
-use LotGD2\Entity\Stage;
+use LotGD2\Entity\Mapped\Scene;
+use LotGD2\Entity\Mapped\Stage;
 use LotGD2\Game\Scene\SceneAttachment\SimpleShopAttachment;
 use LotGD2\Game\Stage\ActionService;
 use LotGD2\Repository\AttachmentRepository;

@@ -3,9 +3,8 @@ declare(strict_types=1);
 
 namespace LotGD2\Game\Scene\SceneAttachment;
 
-use LotGD2\Entity\Character;
-use LotGD2\Entity\Param\ParamBag;
-use LotGD2\Entity\Stage;
+use LotGD2\Entity\Mapped\Character;
+use LotGD2\Entity\Mapped\Stage;
 use Symfony\Component\Security\Core\Exception\AccessDeniedException;
 use Symfony\UX\LiveComponent\Attribute\LiveProp;
 

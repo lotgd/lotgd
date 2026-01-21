@@ -4,9 +4,8 @@ declare(strict_types=1);
 namespace LotGD2\Game\Scene\SceneTemplate;
 
 use LotGD2\Entity\Action;
-use LotGD2\Entity\Character;
-use LotGD2\Entity\Scene;
-use LotGD2\Entity\Stage;
+use LotGD2\Entity\Mapped\Scene;
+use LotGD2\Entity\Mapped\Stage;
 
 interface SceneTemplateInterface
 {

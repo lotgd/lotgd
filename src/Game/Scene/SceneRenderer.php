@@ -5,14 +5,12 @@ namespace LotGD2\Game\Scene;
 
 use LotGD2\Entity\Action;
 use LotGD2\Entity\ActionGroup;
-use LotGD2\Entity\Character;
-use LotGD2\Entity\Scene;
-use LotGD2\Entity\SceneConnection;
-use LotGD2\Entity\Stage;
-use LotGD2\Game\Random\DiceBag;
+use LotGD2\Entity\Mapped\Character;
+use LotGD2\Entity\Mapped\Scene;
+use LotGD2\Entity\Mapped\SceneConnection;
+use LotGD2\Entity\Mapped\Stage;
 use LotGD2\Game\Random\DiceBagInterface;
 use LotGD2\Repository\SceneRepository;
-use Symfony\Component\DependencyInjection\ParameterBag\ContainerBagInterface;
 
 readonly class SceneRenderer
 {

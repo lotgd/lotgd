@@ -5,7 +5,7 @@ namespace LotGD2\Repository;
 
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
-use LotGD2\Entity\User;
+use LotGD2\Entity\Mapped\User;
 use Symfony\Bridge\Doctrine\Security\User\UserLoaderInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
 

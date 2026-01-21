@@ -5,9 +5,8 @@ namespace LotGD2\DataFixtures;
 
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Persistence\ObjectManager;
-use LotGD2\Entity\Param\ParamBag;
-use LotGD2\Entity\Scene;
-use LotGD2\Entity\SceneActionGroup;
+use LotGD2\Entity\Mapped\Scene;
+use LotGD2\Entity\Mapped\SceneActionGroup;
 use LotGD2\Game\Scene\SceneTemplate\SimpleShopTemplate;
 
 class SceneFixtures extends Fixture

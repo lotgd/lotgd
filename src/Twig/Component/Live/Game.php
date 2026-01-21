@@ -3,8 +3,8 @@ declare(strict_types=1);
 
 namespace LotGD2\Twig\Component\Live;
 
-use LotGD2\Entity\Character;
-use LotGD2\Entity\Stage;
+use LotGD2\Entity\Mapped\Character;
+use LotGD2\Entity\Mapped\Stage;
 use LotGD2\Game\GameLoop;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\UX\LiveComponent\Attribute\AsLiveComponent;

@@ -5,8 +5,8 @@ namespace LotGD2\Game;
 
 use Doctrine\ORM\EntityManagerInterface;
 use LotGD2\Entity\ActionGroup;
-use LotGD2\Entity\Character;
-use LotGD2\Entity\Stage;
+use LotGD2\Entity\Mapped\Character;
+use LotGD2\Entity\Mapped\Stage;
 use LotGD2\Game\Error\InvalidActionError;
 use LotGD2\Game\Scene\SceneRenderer;
 use LotGD2\Game\Scene\SceneTemplate\SceneTemplateInterface;
@@ -14,9 +14,7 @@ use LotGD2\Game\Stage\ActionService;
 use LotGD2\Kernel;
 use LotGD2\Repository\SceneRepository;
 use Psr\Log\LoggerInterface;
-use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\ContainerInterface;
-use Symfony\Component\DependencyInjection\ParameterBag\ContainerBagInterface;
 
 readonly class GameLoop
 {

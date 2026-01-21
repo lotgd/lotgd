@@ -4,8 +4,8 @@ declare(strict_types=1);
 namespace LotGD2\Entity;
 
 # Not mapped
+use LotGD2\Entity\Mapped\Scene;
 use LotGD2\Entity\Param\Param;
-use LotGD2\Entity\Param\ParamBag;
 use LotGD2\Game\Random\DiceBag;
 
 class Action

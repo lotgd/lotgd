@@ -5,7 +5,7 @@ namespace LotGD2\Game\Stage;
 
 use LotGD2\Entity\Action;
 use LotGD2\Entity\ActionGroup;
-use LotGD2\Entity\Stage;
+use LotGD2\Entity\Mapped\Stage;
 
 class ActionService
 {

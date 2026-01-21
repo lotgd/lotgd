@@ -5,7 +5,7 @@ namespace LotGD2\Repository;
 
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
-use LotGD2\Entity\Scene;
+use LotGD2\Entity\Mapped\Scene;
 
 /**
  * @extends ServiceEntityRepository<Scene>

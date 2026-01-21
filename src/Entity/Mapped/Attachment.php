@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-namespace LotGD2\Entity;
+namespace LotGD2\Entity\Mapped;
 
 use Doctrine\ORM\Mapping as ORM;
 use LotGD2\Game\Scene\SceneAttachment\SceneAttachmentInterface;

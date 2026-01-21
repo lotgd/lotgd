@@ -5,10 +5,9 @@ namespace LotGD2\DataFixtures;
 
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Persistence\ObjectManager;
-use LotGD2\Entity\Character;
-use LotGD2\Entity\User;
+use LotGD2\Entity\Mapped\Character;
+use LotGD2\Entity\Mapped\User;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
-use Symfony\Component\PasswordHasher\PasswordHasherInterface;
 
 class UserAndCharacterFixtures extends Fixture
 {
