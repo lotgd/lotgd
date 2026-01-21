@@ -9,8 +9,12 @@ use LotGD2\Game\Error\BattleEventError;
 abstract class AbstractBattleEvent implements BattleEventInterface
 {
     private bool $applied = false;
+    /** @var array<string, mixed> */
     protected array $context = [];
 
+    /**
+     * @return array<string, mixed>
+     */
     public function getContext(): array
     {
         return $this->context;
