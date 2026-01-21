@@ -1,8 +1,8 @@
 <?php
+declare(strict_types=1);
 
 namespace LotGD2\Entity;
 
-use ApiPlatform\Metadata\ApiResource;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
@@ -10,7 +10,6 @@ use Doctrine\ORM\Mapping as ORM;
 use LotGD2\Repository\SceneActionGroupRepository;
 
 #[ORM\Entity(repositoryClass: SceneActionGroupRepository::class)]
-#[ApiResource]
 class SceneActionGroup
 {
     #[ORM\Id]
@@ -21,6 +20,7 @@ class SceneActionGroup
     #[ORM\Column(length: 255)]
     private ?string $title = null;
 
+    /** @var Collection<int, SceneConnection>  */
     #[ORM\ManyToMany(targetEntity: SceneConnection::class)]
     private Collection $connections;
 

@@ -4,13 +4,16 @@ declare(strict_types=1);
 namespace LotGD2\Twig\Component\Live;
 
 use LotGD2\Entity\Character;
+use LotGD2\Entity\Stage;
 use LotGD2\Game\GameLoop;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\UX\LiveComponent\Attribute\AsLiveComponent;
 use Symfony\UX\LiveComponent\Attribute\LiveAction;
 use Symfony\UX\LiveComponent\Attribute\LiveArg;
+use Symfony\UX\LiveComponent\Attribute\LiveListener;
 use Symfony\UX\LiveComponent\Attribute\LiveProp;
 use Symfony\UX\LiveComponent\DefaultActionTrait;
+use Symfony\UX\TwigComponent\Attribute\ExposeInTemplate;
 
 #[AsLiveComponent]
 class Game extends AbstractController
@@ -26,19 +29,18 @@ class Game extends AbstractController
 
     }
 
-    #[Expose]
-    public function getStage()
+    #[ExposeInTemplate]
+    public function getStage(): Stage
     {
         return $this->game->getStage($this->character);
     }
 
     #[LiveAction]
+    #[LiveListener("takeAction")]
     public function takeAction(
         #[LiveArg]
-      Character $character,
-        #[LiveArg]
-      string $actionId,
-    ) {
-        $stage = $this->game->takeAction($character, $actionId);
+        string $actionId,
+    ): void {
+        $stage = $this->game->takeAction($this->character, $actionId);
     }
 }

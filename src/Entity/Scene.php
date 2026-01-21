@@ -1,20 +1,19 @@
 <?php
-
 declare(strict_types=1);
 
 namespace LotGD2\Entity;
 
-use ApiPlatform\Metadata\ApiResource;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Dunglas\DoctrineJsonOdm\Type\JsonDocumentType;
+use LotGD2\Entity\Param\ParamBag;
 use LotGD2\Game\Enum\SceneConnectionType;
 use LotGD2\Game\Scene\SceneTemplate\SceneTemplateInterface;
 use LotGD2\Repository\SceneRepository;
 
 #[ORM\Entity(repositoryClass: SceneRepository::class)]
-#[ApiResource]
 class Scene
 {
     #[ORM\Id]
@@ -31,16 +30,20 @@ class Scene
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $templateClass = null;
 
-    #[ORM\Column(nullable: true)]
+    /** @var null|array<string, mixed>  */
+    #[ORM\Column(type: JsonDocumentType::NAME, nullable: true)]
     private ?array $templateConfig = null;
 
-    #[ORM\OneToMany(mappedBy: 'sourceScene', targetEntity: SceneConnection::class, orphanRemoval: true, cascade: ["persist", "remove"])]
+    /** @var Collection<int, SceneConnection>  */
+    #[ORM\OneToMany(targetEntity: SceneConnection::class, mappedBy: 'sourceScene', cascade: ["persist", "remove"], orphanRemoval: true)]
     private Collection $sourcedConnections;
 
-    #[ORM\OneToMany(mappedBy: 'targetScene', targetEntity: SceneConnection::class, orphanRemoval: true, cascade: ["persist", "remove"])]
+    /** @var Collection<int, SceneConnection>  */
+    #[ORM\OneToMany(targetEntity: SceneConnection::class, mappedBy: 'targetScene', cascade: ["persist", "remove"], orphanRemoval: true)]
     private Collection $targetingConnections;
 
-    #[ORM\OneToMany(mappedBy: 'scene', targetEntity: SceneActionGroup::class, orphanRemoval: true, cascade: ["persist", "remove"])]
+    /** @var Collection<int, SceneActionGroup>  */
+    #[ORM\OneToMany(targetEntity: SceneActionGroup::class, mappedBy: 'scene', cascade: ["persist", "remove"], orphanRemoval: true)]
     private Collection $actionGroups;
 
     #[ORM\Column(type: 'boolean', nullable: true, options: ["default" => false])]
@@ -51,6 +54,7 @@ class Scene
         $this->sourcedConnections = new ArrayCollection();
         $this->targetingConnections = new ArrayCollection();
         $this->actionGroups = new ArrayCollection();
+        $this->templateConfig = [];
     }
 
     public function getId(): ?int
@@ -98,12 +102,23 @@ class Scene
         return $this;
     }
 
-    public function getTemplateConfig(): ?array
+    /**
+     * @return null|array<string, mixed>
+     */
+    public function getTemplateConfig(): array
     {
+        if (null === $this->templateConfig) {
+            $this->templateConfig = [];
+        }
+
         return $this->templateConfig;
     }
 
-    public function setTemplateConfig(?array $templateConfig): static
+    /**
+     * @param null|array<string, mixed> $templateConfig
+     * @return $this
+     */
+    public function setTemplateConfig(array $templateConfig): static
     {
         $this->templateConfig = $templateConfig;
 
@@ -113,8 +128,8 @@ class Scene
     public function connectTo(
         Scene $scene,
         SceneConnectionType $connectionType = SceneConnectionType::BothWays,
-        string $sourceLabel = null,
-        string $targetLabel = null,
+        ?string $sourceLabel = null,
+        ?string $targetLabel = null,
     ): SceneConnection {
         $connection = (new SceneConnection())
             ->setSourceScene($this)

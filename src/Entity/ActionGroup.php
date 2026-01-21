@@ -23,7 +23,7 @@ class ActionGroup
         return $this;
     }
 
-    public function getId()
+    public function getId(): string
     {
         return $this->id;
     }
@@ -56,6 +56,10 @@ class ActionGroup
         return $this;
     }
 
+    /**
+     * @param list<Action> $actions
+     * @return $this
+     */
     public function setActions(array $actions): self
     {
         foreach ($actions as $action) {
@@ -68,6 +72,9 @@ class ActionGroup
         return $this;
     }
 
+    /**
+     * @return Action[]
+     */
     public function getActions(): array
     {
         return $this->actions;

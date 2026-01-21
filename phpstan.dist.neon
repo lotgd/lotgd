@@ -1,0 +1,11 @@
+parameters:
+    treatPhpDocTypesAsCertain: false
+    level: 6
+    paths:
+        - bin/
+        - config/
+        - public/
+        - src/
+        - tests/
+    doctrine:
+        allowNullablePropertyForRequiredField: true

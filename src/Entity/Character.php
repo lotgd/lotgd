@@ -3,7 +3,6 @@ declare(strict_types=1);
 
 namespace LotGD2\Entity;
 
-use ApiPlatform\Metadata as Api;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use LotGD2\Repository\CharacterRepository;
@@ -11,7 +10,6 @@ use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: CharacterRepository::class)]
 #[ORM\Table(name: '`character`')]
-#[Api\ApiResource]
 class Character
 {
     #[ORM\Id]

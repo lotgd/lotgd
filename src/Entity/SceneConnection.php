@@ -2,13 +2,11 @@
 
 namespace LotGD2\Entity;
 
-use ApiPlatform\Metadata\ApiResource;
 use Doctrine\ORM\Mapping as ORM;
 use LotGD2\Game\Enum\SceneConnectionType;
 use LotGD2\Repository\SceneConnectionRepository;
 
 #[ORM\Entity(repositoryClass: SceneConnectionRepository::class)]
-#[ApiResource]
 class SceneConnection
 {
     #[ORM\Id]

@@ -8,7 +8,7 @@ use Twig\Extension\RuntimeExtensionInterface;
 class ParseRuntime implements RuntimeExtensionInterface
 {
     public function parse(
-        $text,
+        string $text,
     ): string {
         $text = $this->normalizeLineBreaks($text);
 
@@ -24,6 +24,9 @@ class ParseRuntime implements RuntimeExtensionInterface
                 $emptyParagraph = true;
                 continue;
             }
+
+            // Add a space
+            $part = $part . " ";
 
             if ($emptyParagraph) {
                 $parsedText .= "</p>\n<p>";
@@ -41,6 +44,15 @@ class ParseRuntime implements RuntimeExtensionInterface
     public function parsePart(
         string $text
     ): string {
+        $replacements = [
+            "<<" => "«",
+            ">>" => "»",
+            "<." => "‹",
+            ".>" => "›",
+        ];
+
+        $text = str_replace(array_keys($replacements), array_values($replacements), $text);
+
         return $text;
     }
 

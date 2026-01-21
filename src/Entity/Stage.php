@@ -2,13 +2,14 @@
 
 namespace LotGD2\Entity;
 
-use ApiPlatform\Metadata\ApiResource;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Dunglas\DoctrineJsonOdm\Type\JsonDocumentType;
+use LotGD2\Entity\Param\ParamBag;
 use LotGD2\Repository\StageRepository;
 
-#[ApiResource]
 #[ORM\Entity(repositoryClass: StageRepository::class)]
+#[ORM\HasLifecycleCallbacks()]
 class Stage
 {
     #[ORM\Id]
@@ -30,12 +31,19 @@ class Stage
     #[ORM\JoinColumn(nullable: true, onDelete: "SET NULL")]
     private ?Scene $scene = null;
 
-    /** @var ActionGroup[] */
-    #[ORM\Column(type: "json_document", nullable: true)]
+    /** @var array<string, ActionGroup> */
+    #[ORM\Column(type: JsonDocumentType::NAME, nullable: true)]
     private array $actionGroups = [];
 
-    #[ORM\Column(type: "json_document", nullable: true)]
+    /** @var null|array<int, array{attachment: Attachment, configuration: array<mixed>}> */
+    #[ORM\Column(type: JsonDocumentType::NAME, nullable: true)]
     private ?array $attachments = null;
+
+    #[ORM\PreFlush()]
+    public function preUpdate(): void
+    {
+        $this->actionGroups = array_map(fn ($x) => clone $x, $this->actionGroups);
+    }
 
     public function getId(): ?int
     {
@@ -90,6 +98,9 @@ class Stage
         return $this;
     }
 
+    /**
+     * @return array<string, ActionGroup>
+     */
     public function getActionGroups(): array
     {
         return $this->actionGroups;
@@ -101,11 +112,18 @@ class Stage
         return $this;
     }
 
-    public function addAction($actionGroupId, Action $action): self
+    public function addAction(string|ActionGroup $actionGroup, Action $action): self
     {
+        if ($actionGroup instanceof ActionGroup) {
+            $actionGroupId = $actionGroup->getId();
+        } else {
+            $actionGroupId = $actionGroup;
+        }
+
         if (array_key_exists($actionGroupId, $this->actionGroups)) {
             $this->actionGroups[$actionGroupId]->addAction($action);
         }
+
         return $this;
     }
 
@@ -115,15 +133,47 @@ class Stage
         return $this;
     }
 
+    /**
+     * @param Attachment $attachment
+     * @param array<mixed> $config
+     * @return $this
+     */
+    public function addAttachment(Attachment $attachment, array $config): static
+    {
+        $this->attachments[] = [
+            "attachment" => $attachment,
+            "config" => $config,
+        ];
+        return $this;
+    }
+
+    /**
+     * @return null|array<int, array{attachment: Attachment, configuration: array<mixed>}>
+     */
     public function getAttachments(): ?array
     {
         return $this->attachments;
     }
 
+    /**
+     * @param null|array<int, array{attachment: Attachment, configuration: array<mixed>}> $attachments
+     * @return $this
+     */
     public function setAttachments(?array $attachments): static
     {
+        foreach ($attachments as $attachment) {
+            if (!$attachment instanceof Attachment) {
+                throw new \TypeError("Attachment argument must be an instance of Attachment");
+            }
+        }
         $this->attachments = $attachments;
 
+        return $this;
+    }
+
+    public function clearAttachments(): self
+    {
+        $this->attachments = [];
         return $this;
     }
 }

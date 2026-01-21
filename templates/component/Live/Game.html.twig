@@ -2,7 +2,11 @@
     <div class="row lotgd-stage">
         <div class="col-3 bg-primary-subtle lotgd-stage-actions">
             <ul class="nav flex-column py-3">
-                {% for actionGroup in this.stage.actionGroups %}
+                {% for action in this.stage.actionGroups["lotgd.actionGroup.empty"].actions %}
+                    <twig:Action :action="action" :character="character" />
+                {% endfor %}
+
+                {% for actionGroup in this.stage.actionGroups|filter(g => g.id not in ["lotgd.actionGroup.empty", "lotgd.actionGroup.hidden"])|sort(g => g.weight) %}
                     <li class="nav-item">
                         {{ actionGroup.title }}
                     </li>
@@ -10,10 +14,9 @@
                     {% for action in actionGroup.actions %}
                         <li class="nav-item lotgd-stage-action">
                             <a class="nav-link"
-                               data-action="live#action"
-                               data-live-action-param="takeAction"
-                               data-live-character-param="{{ character.id }}"
-                               data-live-action-id-param="{{ action.id }}"
+                               {{ live_action("takeAction", {
+                                   "actionId": action.id,
+                               }) }}
                             >{{ action.title }}</a>
                         </li>
                     {% endfor %}
@@ -25,6 +28,17 @@
             <h2>{{ this.stage.title }}</h2>
 
             {{ this.stage.description|parse|raw }}
+
+            {# Attachments #}
+            {% for attachment in this.stage.attachments %}
+                {{ component(attachment.attachment.attachmentClass, {
+                    "character": character,
+                    "stage": stage,
+                    "config": attachment.config,
+                }) }}
+
+                {{ attachment.attachment.name }}
+            {% endfor %}
         </div>
 
         <div class="col-3 bg-primary-subtle">

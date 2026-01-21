@@ -7,9 +7,10 @@ use Random\Engine;
 use Random\Engine\Mt19937;
 use Random\Randomizer;
 
-class DiceBag implements DiceBagInterface
+readonly class DiceBag implements DiceBagInterface
 {
     private Engine $engine;
+    private Randomizer $randomizer;
 
     public function __construct(
         private int $seed = 1337,
@@ -129,13 +130,8 @@ class DiceBag implements DiceBagInterface
      */
     private function nextGaussian(): float {
         do {
-            if (method_exists($this->randomizer, "nextFloat")) {
-                $v1 = 2 * $this->randomizer->nextFloat() - 1;
-                $v2 = 2 * $this->randomizer->nextFloat() - 1;
-            } else {
-                $v1 = 2 * $this->randomizer->nextInt() / (2**31-1) - 1;
-                $v2 = 2 * $this->randomizer->nextInt() / (2**31-1) - 1;
-            }
+            $v1 = 2 * $this->randomizer->nextFloat() - 1;
+            $v2 = 2 * $this->randomizer->nextFloat() - 1;
 
             $s = $v1**2 + $v2**2;
         } while ($s >= 1 or $s <= 0);

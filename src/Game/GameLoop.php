@@ -10,8 +10,10 @@ use LotGD2\Entity\Stage;
 use LotGD2\Game\Error\InvalidActionError;
 use LotGD2\Game\Scene\SceneRenderer;
 use LotGD2\Game\Scene\SceneTemplate\SceneTemplateInterface;
+use LotGD2\Game\Stage\ActionService;
 use LotGD2\Kernel;
 use LotGD2\Repository\SceneRepository;
+use Psr\Log\LoggerInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\DependencyInjection\ParameterBag\ContainerBagInterface;
@@ -21,16 +23,19 @@ readonly class GameLoop
     private ContainerInterface $container;
 
     public function __construct(
-        private EntityManagerInterface $entityManager,
         private Kernel $kernel,
+        private EntityManagerInterface $entityManager,
+        private LoggerInterface $logger,
         private SceneRenderer $renderer,
         private SceneRepository $sceneRepository,
+        private ActionService $actionService,
     ) {
         $this->container = $this->kernel->getContainer();
     }
 
-    public function save()
+    public function save(Stage $stage): void
     {
+        $this->entityManager->persist($stage);
         $this->entityManager->flush();
     }
 
@@ -40,7 +45,7 @@ readonly class GameLoop
 
         if (!$stage) {
             $stage = $this->renderer->renderDefault($character);
-            $this->save();
+            $this->save($stage);
         }
 
         return $stage;
@@ -50,20 +55,13 @@ readonly class GameLoop
         Character $character,
         string $action,
     ): Stage {
-        $currentActionGroups = $character->getStage()->getActionGroups();
+        $this->logger->debug("Take action{$action} for character with id={$character->getId()}");
+
         $stage = $character->getStage();
         $currentScene = $stage->getScene();
-        $selectedAction = null;
         $renderDefault = true;
 
-        foreach ($currentActionGroups as $actionGroup) {
-            foreach ($actionGroup->getActions() as $actionEntry) {
-                if ($actionEntry->getId() === $action) {
-                    $selectedAction = $actionEntry;
-                    break;
-                }
-            }
-        }
+        $selectedAction = $this->actionService->getActionById($stage, $action);
 
         if (!$selectedAction) {
             throw new InvalidActionError("The action with the id {$action} is not valid.");
@@ -73,8 +71,10 @@ readonly class GameLoop
 
         if ($targetScene !== $currentScene) {
             if ($currentScene->getTemplateClass() !== null
-                and $selectedAction->getParameters()->get("lotgd.scene.skipOnSceneLeave", false)->asBool() === true
+                and (bool)($selectedAction->getParameters()["lotgd.scene.skipOnSceneLeave"] ?? false) === true
             ) {
+                $this->logger->debug("Calling onSceneLeave");
+
                 // Clear actions
                 $stage->clearActionGroups();
                 $this->renderer->addDefaultActionGroups($stage);
@@ -92,12 +92,14 @@ readonly class GameLoop
                     $renderDefault = false;
                 }
             } elseif ($targetScene->getTemplateClass() !== null
-                and $selectedAction->getParameters()->get("lotgd.scene.skipOnSceneEnter", false)->asBool() === true
+                and (bool)($selectedAction->getParameters()["lotgd.scene.skipOnSceneLeave"] ?? false) === true
             ) {
+                $this->logger->debug("Calling onSceneEnter");
+
                 $stage = $this->renderer->render($character->getStage(), $targetScene);
 
-                /** @var SceneTemplateInterface $currentSceneTemplate */
-                $targetSceneTemplate = $this->container->get($targetScene->getTemplateClass());
+                /** @var ?SceneTemplateInterface $currentSceneTemplate */
+                $targetSceneTemplate = $this->container->get($targetScene->getTemplateClass());  // @phpstan-ignore varTag.differentVariable
                 $reply = $targetSceneTemplate->onSceneEnter($stage, $selectedAction, $targetScene);
 
                 if ($reply === true) {
@@ -107,16 +109,21 @@ readonly class GameLoop
         }
 
         if ($renderDefault) {
+            $this->logger->debug("Rendering scene");
+
             $stage = $this->renderer->render($character->getStage(), $targetScene);
 
             // Allow the scene template to change the scene
             if ($targetScene->getTemplateClass()) {
-                $targetSceneTemplate = $this->container->get($targetScene->getTemplateClass(), ContainerInterface::NULL_ON_INVALID_REFERENCE);
-                $targetSceneTemplate?->onSceneChange($stage, $selectedAction, $targetScene);
+                $this->logger->debug("Calling onSceneChange");
+
+                /** @var SceneTemplateInterface $currentSceneTemplate */
+                $targetSceneTemplate = $this->container->get($targetScene->getTemplateClass());
+                $targetSceneTemplate?->onSceneChange($stage, $selectedAction, $targetScene);  // @phpstan-ignore nullsafe.neverNull
             }
         }
 
-        $this->save();
+        $this->save($stage);
 
         return $stage;
     }

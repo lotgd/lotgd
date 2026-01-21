@@ -34,13 +34,14 @@ class GameController extends AbstractController
         string $action,
     ): Response {
         try {
-            $newStage = $gameLoop->takeAction($character, $action);
-        } catch (InvalidActionError $error) {
+            $stage = $gameLoop->takeAction($character, $action);
+        } catch (InvalidActionError) {
+            $stage = $character->getStage();
         }
 
         return $this->render("game/view.html.twig", [
             "character" => $character,
-            "stage" => $newStage,
+            "stage" => $stage,
         ]);
     }
 }

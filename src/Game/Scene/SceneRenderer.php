@@ -17,7 +17,6 @@ use Symfony\Component\DependencyInjection\ParameterBag\ContainerBagInterface;
 readonly class SceneRenderer
 {
     public function __construct(
-        private ContainerBagInterface $containerBag,
         private SceneRepository $sceneRepository,
         private DiceBagInterface $diceBag,
     ) {
@@ -44,6 +43,7 @@ readonly class SceneRenderer
         $stage->setScene($scene);
         $stage->setTitle($scene->getTitle());
         $stage->setDescription($scene->getDescription());
+        $stage->clearAttachments();
 
         $stage->clearActionGroups();
         $this->addDefaultActionGroups($stage);

@@ -1,0 +1,25 @@
+<div {{ attributes.defaults({}) }}>
+    <table class="table table-sm">
+        <thead>
+            <tr>
+                <th>Item</th>
+                <th>Strength</th>
+                <th>Price</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+             {% for item in config["inventory"] %}
+                <tr>
+                    <td>{{ item.name }}</td>
+                    <td>{{ item.strength }}</td>
+                    <td>{{ item.price }}</td>
+                    <td><a
+                                {{ live_action("buyItem", {"itemNumber": loop.index0}) }}
+                                class="btn btn-sm btn-outline-primary"
+                        >Buy</a></td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>

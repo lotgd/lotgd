@@ -1,0 +1,168 @@
+<?php
+declare(strict_types=1);
+
+namespace LotGD2\Game\Scene\SceneTemplate;
+
+use LotGD2\Entity\Action;
+use LotGD2\Entity\ActionGroup;
+use LotGD2\Entity\Scene;
+use LotGD2\Entity\Stage;
+use LotGD2\Game\Scene\SceneAttachment\SimpleShopAttachment;
+use LotGD2\Game\Stage\ActionService;
+use LotGD2\Repository\AttachmentRepository;
+use Psr\Log\LoggerInterface;
+use Symfony\Component\DependencyInjection\Attribute\Autoconfigure;
+use Symfony\Component\OptionsResolver\OptionsResolver;
+
+#[Autoconfigure(public: true)]
+readonly class SimpleShopTemplate implements SceneTemplateInterface
+{
+    use DefaultSceneTemplate;
+
+    const string ActionGroupShop = "lotgd.actionGroup.shop";
+
+    public function __construct(
+        private AttachmentRepository $attachmentRepository,
+        private LoggerInterface $logger,
+        private ActionService $actionService,
+    ) {
+    }
+
+    public static function validateConfiguration(array $config): array
+    {
+        $resolver = new OptionsResolver();
+
+        $resolver
+            ->define("type")
+            ->required()
+            ->allowedTypes("string")
+            ->allowedValues("armor", "weapon")
+        ;
+
+        $resolver->define("items")
+            ->allowedTypes("array[]")
+            ->allowedValues(function (array &$elements): bool {
+                $subResolver = new OptionsResolver();
+
+                $subResolver->define('name')
+                    ->required()
+                    ->allowedTypes('string');
+
+                $subResolver->define('price')
+                    ->required()
+                    ->allowedTypes('int');
+
+                $subResolver->define('strength')
+                    ->required()
+                    ->allowedTypes('int');
+
+                // Trick is here: use array_map to resolve each elements one by one.
+                $elements = array_map([$subResolver, 'resolve'], $elements);
+                return true;
+            })
+            ->required();
+
+        $resolver->define("text")
+            ->default(function (OptionsResolver $resolver) {
+                 $resolver
+                     ->define("peruse")
+                     ->required()
+                     ->allowedTypes('string');
+
+                $resolver
+                    ->define("itemNotFound")
+                    ->required()
+                    ->allowedTypes('string');
+
+                $resolver
+                    ->define("buy")
+                    ->required()
+                    ->allowedTypes('string');
+            });
+
+        return $resolver->resolve($config);
+    }
+
+    public function onSceneChange(Stage $stage, Action $action, Scene $scene): void
+    {
+        $op = $action->getParameters()["op"] ?? "";
+        $this->logger->debug("Called SimpleShopTemplate::onSceneChange, op={$op}");
+
+        match ($op) {
+            "peruse" => $this->peruseAction($stage, $action, $scene),
+            "buy" => $this->buyAction($stage, $action, $scene),
+            default => $this->defaultAction($stage, $action, $scene),
+        };
+    }
+
+    public function defaultAction(Stage $stage, Action $action, Scene $scene): void
+    {
+        $this->logger->debug("Called SimpleShopTemplate::defaultAction");
+
+        $this->addDefaultActions($stage, $scene);
+    }
+
+    public function peruseAction(Stage $stage, Action $action, Scene $scene): void
+    {
+        $this->logger->debug("Called SimpleShopTemplate::peruseAction");
+
+        $attachment = $this->attachmentRepository->findOneByAttachmentClass(SimpleShopAttachment::class);
+
+        $this->logger->debug("Add SimpleShopAttachment (id={$attachment->getId()})");
+
+        $buyAction = new Action()
+            ->setSceneId($scene->getId())
+            ->setParameter("op", "buy")
+        ;
+        $stage->addAction(ActionGroup::HIDDEN, $buyAction);
+
+        $stage
+            ->setDescription($scene->getTemplateConfig()["text"]["peruse"])
+            ->addAttachment(
+                $attachment, [
+                    "buyActionId" => $buyAction->getId(),
+                    "inventory" => $scene->getTemplateConfig()["items"],
+                ]
+            )
+        ;
+    }
+
+    public function buyAction(Stage $stage, Action $action, Scene $scene): void
+    {
+        $this->logger->debug("Called SimpleShopTemplate::buyAction");
+
+        $itemId = $action->getParameters()[SimpleShopAttachment::ActionParameterName] ?? -1;
+        $inventory = $scene->getTemplateConfig()["items"];
+
+        if (!isset($inventory[$itemId])) {
+            $this->logger->debug("Buying item with number {$itemId}, but does not exist.");
+
+            $description = $scene->getTemplateConfig()["text"]["itemNotFound"];
+        } else {
+            $this->logger->debug("Buying item with number {$itemId}.");
+
+            $description = $scene->getTemplateConfig()["text"]["buy"];
+        }
+
+        $stage->setDescription($description);
+        $this->addDefaultActions($stage, $scene);
+    }
+
+    public function addDefaultActions(Stage $stage, Scene $scene): void
+    {
+        $stage->addActionGroup(
+            new ActionGroup()
+                ->setId(self::ActionGroupShop)
+                ->setTitle($scene->getTitle())
+                ->setWeight(-10)
+        );
+
+        $stage->addAction(
+            self::ActionGroupShop,
+            new Action()
+                ->setTitle("Browse")
+                ->setSceneId($scene->getId())
+                ->setParameter("op", "peruse")
+        );
+    }
+}
