@@ -1,5 +1,18 @@
 # The Legend of the Green Dragon
 
+Legend of the Green Dragon is a text-based RPG originally developed by Eric Stevens and JT Traub as a remake of and homage to the classic BBS Door game, Legend of the Red Dragon, by Seth Able Robinson. You can play it at numerous sites, including http://www.lotgd.net/.
+
+After checking out the developer forums at http://dragonprime.net, it seemed that development had stalled, and specifically, any movement toward more modern technologies and decoupling the game from its web UI was non-existent.
+
+This package aims to offer a modern implementation of the original game ideas. It incorporates elements from [Daenerys](https://github.com/lotgd/core) originally authored by AustenMC and Basilius Sauter, but reduces the very ambigious scope for now.
+
+## Requirements
+
+- PHP 8.4 or later
+- composer and symfony binaries available
+- yarn or npm available
+- MariaDB or MySQL with user and database already existing
+
 ## Installation
 
 First, make a new directory clone this repository into it:
