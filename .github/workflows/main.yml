@@ -65,7 +65,7 @@ jobs:
 
       - name: Setup database
         env:
-          DATABASE_URL: mysql://lotgd:lotgd@127.0.0.1:3306/lotgd_v2?serverVersion=10.6.18-MariaDB&charset=utf8mb4
+          DATABASE_URL: mysql://lotgd:lotgd@127.0.0.1:3306/lotgd?serverVersion=10.6.18-MariaDB&charset=utf8mb4
         run: |
           bin/console doctrine:migrations:migrate first --quiet --no-interaction
           bin/console doctrine:migrations:migrate --quiet --no-interaction
