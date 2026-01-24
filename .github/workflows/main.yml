@@ -13,6 +13,16 @@ jobs:
   build:
 
     runs-on: ubuntu-latest
+    services:
+      mysql:
+        image: mysql:latest
+        env:
+          MYSQL_ALLOW_EMPTY_PASSWORD: false
+          MYSQL_ROOT_PASSWORD: lotgd
+          MYSQL_DATABASE: lotgd_test
+        ports:
+          - 3306/tcp
+        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
 
     steps:
       - name: Install PHP version
@@ -24,14 +34,6 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22.x
-
-      - name: Install MariaDB
-        uses: YakkaDev/mariadb-actions@v1.1.0
-        with:
-          root pass: lotgd
-          database: lotgd_test
-          user: lotgd
-          password: lotgd
           
       - uses: actions/checkout@v4
       
@@ -65,7 +67,7 @@ jobs:
 
       - name: Setup database
         env:
-          DATABASE_URL: mysql://lotgd:lotgd@127.0.0.1:3306/lotgd?serverVersion=10.6.18-MariaDB&charset=utf8mb4
+          DATABASE_URL: mysql://root:lotgd@127.0.0.1:3306/lotgd?serverVersion=10.6.18-MariaDB&charset=utf8mb4
         run: |
           bin/console doctrine:migrations:migrate first --quiet --no-interaction
           bin/console doctrine:migrations:migrate --quiet --no-interaction
@@ -73,6 +75,6 @@ jobs:
 
       - name: Run test suite
         env:
-          DATABASE_URL: mysql://lotgd:lotgd@127.0.0.1:3306/lotgd_v2?serverVersion=10.6.18-MariaDB&charset=utf8mb4
+          DATABASE_URL: mysql://root:lotgd@127.0.0.1:3306/lotgd?serverVersion=10.6.18-MariaDB&charset=utf8mb4
         run: vendor/bin/phpunit --stop-on-failure
       
