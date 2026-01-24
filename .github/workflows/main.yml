@@ -67,7 +67,7 @@ jobs:
 
       - name: Setup database
         env:
-          DATABASE_URL: mysql://root:lotgd@127.0.0.1:3306/lotgd?serverVersion=10.6-MariaDB&charset=utf8mb4
+          DATABASE_URL: mysql://root:lotgd@127.0.0.1:3306/lotgd?serverVersion=10.6.24-MariaDB&charset=utf8mb4
         run: |
           bin/console doctrine:migrations:migrate first --quiet --no-interaction -e test
           bin/console doctrine:migrations:migrate --quiet --no-interaction -e test
@@ -75,6 +75,6 @@ jobs:
 
       - name: Run test suite
         env:
-          DATABASE_URL: mysql://root:lotgd@127.0.0.1:3306/lotgd?serverVersion=10.6-MariaDB&charset=utf8mb4
+          DATABASE_URL: mysql://root:lotgd@127.0.0.1:3306/lotgd?serverVersion=10.6.24-MariaDB&charset=utf8mb4
         run: vendor/bin/phpunit --stop-on-failure
       
