@@ -20,7 +20,7 @@ jobs:
           - '3306:3306'
         env:
           MYSQL_ALLOW_EMPTY_PASSWORD: 'yes'
-          MYSQL_DATABASE: doctrine_tests
+          MYSQL_DATABASE: lotgd_test
         options: >-
           --health-cmd "healthcheck.sh --connect --innodb_initialized || mysqladmin ping --protocol tcp --silent"
 
