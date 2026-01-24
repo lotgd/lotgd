@@ -454,16 +454,16 @@
         },
         {
             "name": "doctrine/event-manager",
-            "version": "2.0.1",
+            "version": "2.1.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/doctrine/event-manager.git",
-                "reference": "b680156fa328f1dfd874fd48c7026c41570b9c6e"
+                "reference": "c07799fcf5ad362050960a0fd068dded40b1e312"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/doctrine/event-manager/zipball/b680156fa328f1dfd874fd48c7026c41570b9c6e",
-                "reference": "b680156fa328f1dfd874fd48c7026c41570b9c6e",
+                "url": "https://api.github.com/repos/doctrine/event-manager/zipball/c07799fcf5ad362050960a0fd068dded40b1e312",
+                "reference": "c07799fcf5ad362050960a0fd068dded40b1e312",
                 "shasum": ""
             },
             "require": {
@@ -473,10 +473,10 @@
                 "doctrine/common": "<2.9"
             },
             "require-dev": {
-                "doctrine/coding-standard": "^12",
-                "phpstan/phpstan": "^1.8.8",
-                "phpunit/phpunit": "^10.5",
-                "vimeo/psalm": "^5.24"
+                "doctrine/coding-standard": "^14",
+                "phpdocumentor/guides-cli": "^1.4",
+                "phpstan/phpstan": "^2.1.32",
+                "phpunit/phpunit": "^10.5.58"
             },
             "type": "library",
             "autoload": {
@@ -525,7 +525,7 @@
             ],
             "support": {
                 "issues": "https://github.com/doctrine/event-manager/issues",
-                "source": "https://github.com/doctrine/event-manager/tree/2.0.1"
+                "source": "https://github.com/doctrine/event-manager/tree/2.1.0"
             },
             "funding": [
                 {
@@ -541,7 +541,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2024-05-22T20:47:39+00:00"
+            "time": "2026-01-17T22:40:21+00:00"
         },
         {
             "name": "doctrine/inflector",
@@ -8639,11 +8639,11 @@
         },
         {
             "name": "phpstan/phpstan",
-            "version": "2.1.33",
+            "version": "2.1.36",
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/phpstan/phpstan/zipball/9e800e6bee7d5bd02784d4c6069b48032d16224f",
-                "reference": "9e800e6bee7d5bd02784d4c6069b48032d16224f",
+                "url": "https://api.github.com/repos/phpstan/phpstan/zipball/2132e5e2361d11d40af4c17faa16f043269a4cf3",
+                "reference": "2132e5e2361d11d40af4c17faa16f043269a4cf3",
                 "shasum": ""
             },
             "require": {
@@ -8688,25 +8688,25 @@
                     "type": "github"
                 }
             ],
-            "time": "2025-12-05T10:24:31+00:00"
+            "time": "2026-01-21T13:58:26+00:00"
         },
         {
             "name": "phpstan/phpstan-doctrine",
-            "version": "2.0.12",
+            "version": "2.0.13",
             "source": {
                 "type": "git",
                 "url": "https://github.com/phpstan/phpstan-doctrine.git",
-                "reference": "d20ee0373d22735271f1eb4d631856b5f847d399"
+                "reference": "2d2ad04a0ac14ac52e21ad47ec67a54a14355c1f"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/phpstan/phpstan-doctrine/zipball/d20ee0373d22735271f1eb4d631856b5f847d399",
-                "reference": "d20ee0373d22735271f1eb4d631856b5f847d399",
+                "url": "https://api.github.com/repos/phpstan/phpstan-doctrine/zipball/2d2ad04a0ac14ac52e21ad47ec67a54a14355c1f",
+                "reference": "2d2ad04a0ac14ac52e21ad47ec67a54a14355c1f",
                 "shasum": ""
             },
             "require": {
                 "php": "^7.4 || ^8.0",
-                "phpstan/phpstan": "^2.1.13"
+                "phpstan/phpstan": "^2.1.34"
             },
             "conflict": {
                 "doctrine/collections": "<1.0",
@@ -8759,22 +8759,22 @@
             "description": "Doctrine extensions for PHPStan",
             "support": {
                 "issues": "https://github.com/phpstan/phpstan-doctrine/issues",
-                "source": "https://github.com/phpstan/phpstan-doctrine/tree/2.0.12"
+                "source": "https://github.com/phpstan/phpstan-doctrine/tree/2.0.13"
             },
-            "time": "2025-12-01T11:34:02+00:00"
+            "time": "2026-01-18T16:15:40+00:00"
         },
         {
             "name": "phpstan/phpstan-symfony",
-            "version": "2.0.9",
+            "version": "2.0.12",
             "source": {
                 "type": "git",
                 "url": "https://github.com/phpstan/phpstan-symfony.git",
-                "reference": "24d8c157aa483141b0579d705ef0aac9e1b95436"
+                "reference": "a46dd92eaf15146cd932d897a272e59cd4108ce2"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/phpstan/phpstan-symfony/zipball/24d8c157aa483141b0579d705ef0aac9e1b95436",
-                "reference": "24d8c157aa483141b0579d705ef0aac9e1b95436",
+                "url": "https://api.github.com/repos/phpstan/phpstan-symfony/zipball/a46dd92eaf15146cd932d897a272e59cd4108ce2",
+                "reference": "a46dd92eaf15146cd932d897a272e59cd4108ce2",
                 "shasum": ""
             },
             "require": {
@@ -8830,9 +8830,9 @@
             "description": "Symfony Framework extensions and rules for PHPStan",
             "support": {
                 "issues": "https://github.com/phpstan/phpstan-symfony/issues",
-                "source": "https://github.com/phpstan/phpstan-symfony/tree/2.0.9"
+                "source": "https://github.com/phpstan/phpstan-symfony/tree/2.0.12"
             },
-            "time": "2025-11-29T11:17:28+00:00"
+            "time": "2026-01-23T09:04:33+00:00"
         },
         {
             "name": "phpunit/php-code-coverage",
@@ -9170,16 +9170,16 @@
         },
         {
             "name": "phpunit/phpunit",
-            "version": "12.5.5",
+            "version": "12.5.6",
             "source": {
                 "type": "git",
                 "url": "https://github.com/sebastianbergmann/phpunit.git",
-                "reference": "ba2d126905713bcf802c7f1e0d7507092ce9bf9a"
+                "reference": "ab8e4374264bc65523d1458d14bf80261577e01f"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/sebastianbergmann/phpunit/zipball/ba2d126905713bcf802c7f1e0d7507092ce9bf9a",
-                "reference": "ba2d126905713bcf802c7f1e0d7507092ce9bf9a",
+                "url": "https://api.github.com/repos/sebastianbergmann/phpunit/zipball/ab8e4374264bc65523d1458d14bf80261577e01f",
+                "reference": "ab8e4374264bc65523d1458d14bf80261577e01f",
                 "shasum": ""
             },
             "require": {
@@ -9247,7 +9247,7 @@
             "support": {
                 "issues": "https://github.com/sebastianbergmann/phpunit/issues",
                 "security": "https://github.com/sebastianbergmann/phpunit/security/policy",
-                "source": "https://github.com/sebastianbergmann/phpunit/tree/12.5.5"
+                "source": "https://github.com/sebastianbergmann/phpunit/tree/12.5.6"
             },
             "funding": [
                 {
@@ -9271,7 +9271,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2026-01-15T12:03:46+00:00"
+            "time": "2026-01-16T16:28:10+00:00"
         },
         {
             "name": "sebastian/cli-parser",

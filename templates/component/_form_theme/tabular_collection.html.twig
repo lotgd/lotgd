@@ -1,0 +1,36 @@
+{%- block live_collection_widget -%}
+    {%- if button_add is defined and not button_add.rendered -%}
+        {{ form_row(button_add, { label: "+", attr: { class: 'btn-outline-primary' } }) }}
+    {%- endif -%}
+
+    <div class="border-start border-5">
+        {{ block('form_widget') }}
+    </div>
+{% endblock %}
+
+{%- block live_collection_entry_row -%}
+    <div class="row border-bottom border-1 mb-3 ms-3">
+        <div class="col-3">
+            <div class="btn-group mb-3">
+                {{- form_widget(button_delete, { label: 'X', attr: { class: 'btn-outline-danger' } }) -}}
+
+                {%- if button_push_up is defined and not button_push_up.rendered -%}
+                    {{- form_widget(button_push_up, { label: '↑', attr: { class: 'btn-outline-info' } }) -}}
+                {%- endif -%}
+                {%- if button_push_up is defined and not button_push_up.rendered -%}
+                    {{- form_widget(button_push_down, { label: '↓', attr: { class: 'btn-outline-info' } }) -}}
+                {%- endif -%}
+            </div>
+        </div>
+        <div class="col-9">
+            {% for key, child in form.children %}
+                {{ form_errors(child) }}
+                <div class="input-group mb-3">
+                    <span class="input-group-text">{{ form_label(child) }}</span>
+                    {{ form_widget(child) }}
+                </div>
+                {{ form_help(child) }}
+            {% endfor %}
+        </div>
+    </div>
+{% endblock %}

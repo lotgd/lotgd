@@ -8,6 +8,7 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Dunglas\DoctrineJsonOdm\Type\JsonDocumentType;
+use LotGD2\Entity\ActionGroup;
 use LotGD2\Game\Enum\SceneConnectionType;
 use LotGD2\Game\Scene\SceneTemplate\SceneTemplateInterface;
 use LotGD2\Repository\SceneRepository;
@@ -27,6 +28,7 @@ class Scene
 
     /** @var Collection<int, SceneActionGroup>  */
     #[ORM\OneToMany(targetEntity: SceneActionGroup::class, mappedBy: 'scene', cascade: ["persist", "remove"], orphanRemoval: true)]
+    #[ORM\OrderBy(["sorting" => "ASC"])]
     public Collection $actionGroups {
         get {
             return $this->actionGroups;

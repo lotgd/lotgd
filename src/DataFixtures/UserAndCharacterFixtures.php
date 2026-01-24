@@ -60,6 +60,7 @@ class UserAndCharacterFixtures extends Fixture
                     "ROLE_USER",
                     "ROLE_DEBUG",
                     "ROLE_CHEATS_ENABLED",
+                    "ROLE_SCENE_EDITOR",
                 ])
         ];
     }

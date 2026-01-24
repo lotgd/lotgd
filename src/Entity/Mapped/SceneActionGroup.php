@@ -8,6 +8,7 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use LotGD2\Repository\SceneActionGroupRepository;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: SceneActionGroupRepository::class)]
 class SceneActionGroup
@@ -36,6 +37,7 @@ class SceneActionGroup
      */
     public function __construct(
         #[ORM\Column(length: 255)]
+        #[Assert\NotBlank()]
         public ?string $title = null {
             get => $this->title;
             set => $value;
@@ -50,9 +52,10 @@ class SceneActionGroup
         },
 
         #[ORM\Column(type: Types::SMALLINT)]
+        #[Assert\NotNull()]
         public int $sorting = 0 {
             get => $this->sorting;
-            set => $value;
+            set => $value ?? 0;
         },
     ) {
         $this->connections = $connections;
@@ -86,9 +89,9 @@ class SceneActionGroup
         return $this->sorting;
     }
 
-    public function setSorting(int $sorting): static
+    public function setSorting(?int $sorting): static
     {
-        $this->sorting = $sorting;
+        $this->sorting = $sorting ?? 0;
 
         return $this;
     }

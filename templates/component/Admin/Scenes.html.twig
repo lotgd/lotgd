@@ -1,0 +1,19 @@
+<div {{ attributes.defaults(stimulus_controller('admin/scene', {
+    tree: tree,
+})) }}>
+    <div class="bg-white">
+        <div {{ stimulus_target('admin/scene', "sceneView") }}>
+
+        </div>
+
+        <div {{ stimulus_target("admin/scene", "modal") }} class="modal" tabindex="-1">
+            <div class="modal-dialog modal-lg small">
+                <div class="modal-content">
+                    {% if scene %}
+                        <twig:Admin:SceneForm :key="scene.id" :scene="scene" />
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

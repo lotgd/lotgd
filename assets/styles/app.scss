@@ -56,6 +56,30 @@ body {
     }
 }
 
+.modal {
+    --bs-body-font-size: 0.875rem;
+
+    .input-group-text {
+        font-size: var(--bs-body-font-size);
+
+        .form-label {
+            margin-bottom: 0;
+        }
+    }
+
+    .form-label {
+        font-size: var(--bs-body-font-size);
+    }
+
+    .form-control {
+        font-size: var(--bs-body-font-size);
+    }
+
+    textarea {
+        height: 8rem;
+    }
+}
+
 .preserve-breaks {
     white-space-collapse: preserve-breaks;
 }

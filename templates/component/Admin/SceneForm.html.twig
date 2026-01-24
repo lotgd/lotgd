@@ -1,0 +1,34 @@
+{% form_theme form 'component/_form_theme/tabular_collection.html.twig' %}
+
+<div {{ attributes.defaults({}) }}>
+    {{ form_start(form, {
+        attr: {
+            'data-action': 'live#action:prevent',
+            'data-live-action-param': 'save'
+        }
+    }) }}
+
+    <div class="modal-header">
+        <h1 class="modal-title h6">Edit scene</h1>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+    </div>
+    <div class="modal-body">
+        {% if saved is same as(false) %}
+            <div class="alert alert-warning">
+                Might contain uncommited changes.
+            </div>
+        {% elseif saved is same as(true) %}
+            <div class="alert alert-success">
+                Saved.
+            </div>
+        {% endif %}
+
+        {{ form_rest(form) }}
+    </div>
+    <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        <button type="submit" class="btn btn-primary">Save changes</button>
+    </div>
+
+    {{ form_end(form) }}
+</div>
