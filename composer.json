@@ -1,4 +1,7 @@
 {
+    "name": "lotgd/lotgd",
+    "description": "A remake of the browser game Legend of the Green Dragon with a modern software stack.",
+
     "type": "project",
     "license": "proprietary",
     "minimum-stability": "stable",
