@@ -76,23 +76,4 @@ class SceneActionGroup
 
         return $this;
     }
-
-    public function setScene(?Scene $scene): static
-    {
-        $this->scene = $scene;
-
-        return $this;
-    }
-
-    public function getSorting(): int
-    {
-        return $this->sorting;
-    }
-
-    public function setSorting(?int $sorting): static
-    {
-        $this->sorting = $sorting ?? 0;
-
-        return $this;
-    }
 }

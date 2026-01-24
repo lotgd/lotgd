@@ -110,22 +110,6 @@ class SceneActionGroupTest extends TestCase
         $this->assertNull($actionGroup->scene);
     }
 
-    public function testSetSceneMethod()
-    {
-        $actionGroup = new SceneActionGroup();
-        $scene = $this->createMock(Scene::class);
-
-        $result = $actionGroup->setScene($scene);
-
-        $this->assertSame($actionGroup, $result); // Test fluent interface
-        $this->assertSame($scene, $actionGroup->scene);
-
-        // Test setting to null
-        $result = $actionGroup->setScene(null);
-        $this->assertSame($actionGroup, $result);
-        $this->assertNull($actionGroup->scene);
-    }
-
     public function testSortingProperty()
     {
         $actionGroup = new SceneActionGroup();
@@ -148,27 +132,6 @@ class SceneActionGroupTest extends TestCase
         // Test large values
         $actionGroup->sorting = 1000;
         $this->assertSame(1000, $actionGroup->sorting);
-    }
-
-    public function testGetSortingMethod()
-    {
-        $actionGroup = new SceneActionGroup(sorting: 25);
-
-        $this->assertSame(25, $actionGroup->getSorting());
-
-        $actionGroup->sorting = 50;
-        $this->assertSame(50, $actionGroup->getSorting());
-    }
-
-    public function testSetSortingMethod()
-    {
-        $actionGroup = new SceneActionGroup();
-
-        $result = $actionGroup->setSorting(30);
-
-        $this->assertSame($actionGroup, $result); // Test fluent interface
-        $this->assertSame(30, $actionGroup->sorting);
-        $this->assertSame(30, $actionGroup->getSorting());
     }
 
     public function testConnectionsProperty()
@@ -343,14 +306,11 @@ class SceneActionGroupTest extends TestCase
         $connection2 = $this->createMock(SceneConnection::class);
 
         // Test method chaining
-        $result = $actionGroup->setScene($scene)
-            ->setSorting(25)
+        $result = $actionGroup
             ->addConnection($connection1)
             ->addConnection($connection2);
 
         $this->assertSame($actionGroup, $result);
-        $this->assertSame($scene, $actionGroup->scene);
-        $this->assertSame(25, $actionGroup->sorting);
         $this->assertCount(2, $actionGroup->connections);
         $this->assertTrue($actionGroup->connections->contains($connection1));
         $this->assertTrue($actionGroup->connections->contains($connection2));
@@ -423,12 +383,12 @@ class SceneActionGroupTest extends TestCase
         $this->assertSame(15, $actionGroup3->sorting);
 
         // Modify sorting
-        $actionGroup1->setSorting(1);
-        $actionGroup2->setSorting(2);
-        $actionGroup3->setSorting(3);
+        $actionGroup1->sorting = 1;
+        $actionGroup2->sorting = 2;
+        $actionGroup3->sorting = 3;
 
-        $this->assertSame(1, $actionGroup1->getSorting());
-        $this->assertSame(2, $actionGroup2->getSorting());
-        $this->assertSame(3, $actionGroup3->getSorting());
+        $this->assertSame(1, $actionGroup1->sorting);
+        $this->assertSame(2, $actionGroup2->sorting);
+        $this->assertSame(3, $actionGroup3->sorting);
     }
 }
