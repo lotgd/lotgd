@@ -11,6 +11,7 @@ use LotGD2\Entity\Mapped\Scene;
 use LotGD2\Entity\Mapped\SceneActionGroup;
 use LotGD2\Entity\Mapped\SceneConnection;
 use LotGD2\Entity\Mapped\Stage;
+use LotGD2\Game\ExpressionService;
 use LotGD2\Game\Random\DiceBag;
 use LotGD2\Game\Scene\SceneRenderer;
 use LotGD2\Game\Stage\ActionService;
@@ -20,6 +21,7 @@ use PHPUnit\Framework\Attributes\UsesClass;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\MockObject\Runtime\PropertyHook;
 use PHPUnit\Framework\TestCase;
+use Psr\Log\LoggerInterface;
 
 #[CoversClass(SceneRenderer::class)]
 #[UsesClass(SceneRepository::class)]
@@ -35,6 +37,7 @@ class SceneRendererTest extends TestCase
     private SceneRenderer $renderer;
     private SceneRepository&MockObject $sceneRepository;
     private ActionService $actionService;
+    private LoggerInterface $logger;
     private DiceBag&MockObject $diceBag;
 
     protected function setUp(): void
@@ -42,11 +45,13 @@ class SceneRendererTest extends TestCase
         $this->sceneRepository = $this->createMock(SceneRepository::class);
         $this->diceBag = $this->createMock(DiceBag::class);
         $this->actionService = $this->createStub(ActionService::class);
+        $this->logger = $this->createStub(LoggerInterface::class);
 
         $this->renderer = new SceneRenderer(
             $this->sceneRepository,
             $this->diceBag,
             $this->actionService,
+            $this->logger,
         );
     }
 
@@ -73,7 +78,7 @@ class SceneRendererTest extends TestCase
         $diceBag = $this->createMock(DiceBag::class);
         $actionService = $this->createStub(ActionService::class);
 
-        $sceneRenderer = new SceneRenderer($sceneRepository, $diceBag, $actionService);
+        $sceneRenderer = new SceneRenderer($sceneRepository, $diceBag, $actionService, $this->logger);
 
         $stage = $sceneRenderer->renderDefault($character);
 
@@ -92,9 +97,11 @@ class SceneRendererTest extends TestCase
         $actionService = $this->createMock(ActionService::class);
         $actionService->expects($this->once())->method("resetActionGroups");
 
-        $stage = new Stage();
+        $stage = new Stage(
+            owner: $this->createStub(Character::class),
+        );
 
-        $sceneRenderer = new SceneRenderer($sceneRepository, $diceBag, $actionService);
+        $sceneRenderer = new SceneRenderer($sceneRepository, $diceBag, $actionService, $this->logger);
         $stage = $sceneRenderer->render($stage, $scene);
 
         $this->assertNotNull($stage);
@@ -117,14 +124,19 @@ class SceneRendererTest extends TestCase
         $sceneConnection->targetScene = $otherScene;
         $sceneConnection->sourceLabel = $otherScene->title;
         $sceneConnection->targetLabel = $scene->title;
+        $sceneConnection->sourceExpression = null;
+        $sceneConnection->targetExpression = null;
 
         $sceneRepository = $this->createMock(SceneRepository::class);
         $diceBag = new DiceBag();
         $actionService = $this->createStub(ActionService::class);
 
-        $sceneRenderer = new SceneRenderer($sceneRepository, $diceBag, $actionService);
+        $expressionService = $this->createMock(ExpressionService::class);
+        $expressionService->expects($this->once())->method("evaluate")->willReturn(true);
 
-        $action = $sceneRenderer->createActionFromConnection($scene, $sceneConnection);
+        $sceneRenderer = new SceneRenderer($sceneRepository, $diceBag, $actionService, $this->logger);
+
+        $action = $sceneRenderer->createActionFromConnection($scene, $sceneConnection, $expressionService);
 
         $this->assertSame($otherScene->title, $action->title);
         $this->assertSame(13, $action->sceneId);
@@ -148,9 +160,12 @@ class SceneRendererTest extends TestCase
         $diceBag = new DiceBag();
         $actionService = $this->createStub(ActionService::class);
 
-        $sceneRenderer = new SceneRenderer($sceneRepository, $diceBag, $actionService);
+        $expressionService = $this->createMock(ExpressionService::class);
+        $expressionService->expects($this->once())->method("evaluate")->willReturn(true);
 
-        $action = $sceneRenderer->createActionFromConnection($scene, $sceneConnection);
+        $sceneRenderer = new SceneRenderer($sceneRepository, $diceBag, $actionService, $this->logger);
+
+        $action = $sceneRenderer->createActionFromConnection($scene, $sceneConnection, $expressionService);
 
         $this->assertSame($otherScene->title, $action->title);
         $this->assertSame(13, $action->sceneId);
@@ -175,10 +190,12 @@ class SceneRendererTest extends TestCase
         $sceneRepository = $this->createMock(SceneRepository::class);
         $diceBag = new DiceBag();
         $actionService = $this->createStub(ActionService::class);
+        $expressionService = $this->createMock(ExpressionService::class);
+        $expressionService->expects($this->exactly(0))->method("evaluate")->willReturn(true);
 
-        $sceneRenderer = new SceneRenderer($sceneRepository, $diceBag, $actionService);
+        $sceneRenderer = new SceneRenderer($sceneRepository, $diceBag, $actionService, $this->logger);
 
-        $action = $sceneRenderer->createActionFromConnection($scene, $sceneConnection);
+        $action = $sceneRenderer->createActionFromConnection($scene, $sceneConnection, $expressionService);
 
         $this->assertStringStartsWith("#invalidConnection", $action->title);
         $this->assertNull($action->sceneId);
@@ -189,7 +206,9 @@ class SceneRendererTest extends TestCase
      */
     public function testAddActionsWithEmptyScene(): void
     {
-        $stage = new Stage();
+        $stage = new Stage(
+            owner: $this->createStub(Character::class),
+        );
         $scene = $this->createMock(Scene::class);
 
         $scene->method(PropertyHook::get("actionGroups"))->willReturn(new ArrayCollection());
@@ -206,7 +225,9 @@ class SceneRendererTest extends TestCase
      */
     public function testAddActionsCreatesActionGroupsFromSceneActionGroups(): void
     {
-        $stage = new Stage();
+        $stage = new Stage(
+            owner: $this->createStub(Character::class),
+        );
         $scene = $this->createMock(Scene::class);
 
         // Create a mock scene action group
@@ -234,7 +255,9 @@ class SceneRendererTest extends TestCase
      */
     public function testAddActionsAddsConnectionsToActionGroups(): void
     {
-        $stage = new Stage();
+        $stage = new Stage(
+            owner: $this->createStub(Character::class),
+        );
         $scene = $this->createMock(Scene::class);
 
         // Create a mock connection
@@ -277,7 +300,9 @@ class SceneRendererTest extends TestCase
      */
     public function testAddActionsDuplicateConnectionsNotAdded(): void
     {
-        $stage = new Stage();
+        $stage = new Stage(
+            owner: $this->createStub(Character::class),
+        );
         $scene = $this->createMock(Scene::class);
 
         // Create a mock connection
@@ -318,6 +343,7 @@ class SceneRendererTest extends TestCase
     public function testAddActionsVisibleConnectionsAddedToEmptyGroup(): void
     {
         $stage = $this->createMock(Stage::class);
+        $stage->expects($this->atLeastOnce())->method(PropertyHook::get("owner"))->willReturn($this->createStub(Character::class));
         $actionGroup = $this->createMocK(ActionGroup::class);
         $stage->expects($this->once())->method("addAction")->willReturnCallback(
             function (string $group, Action $action) use ($stage) {
@@ -359,6 +385,7 @@ class SceneRendererTest extends TestCase
     public function testAddActionsMixedActionGroupsAndVisibleConnections(): void
     {
         $stage = $this->createMock(Stage::class);
+        $stage->method(PropertyHook::get("owner"))->willReturn($this->createStub(Character::class));
         $stage->expects($this->once())->method("addActionGroup")->willReturnCallback(
             function (ActionGroup $actionGroup) use ($stage){
                 $this->assertSame("lotgd.actionGroup.custom.13", $actionGroup->id);
@@ -423,7 +450,9 @@ class SceneRendererTest extends TestCase
      */
     public function testAddActionsWithBidirectionalConnection(): void
     {
-        $stage = new Stage();
+        $stage = new Stage(
+            owner: $this->createStub(Character::class),
+        );
         $scene = $this->createMock(Scene::class);
 
         // Connection where current scene is the target
@@ -461,7 +490,9 @@ class SceneRendererTest extends TestCase
      */
     public function testAddActionsWithMultipleActionGroups(): void
     {
-        $stage = new Stage();
+        $stage = new Stage(
+            owner: $this->createStub(Character::class),
+        );
         $scene = $this->createMock(Scene::class);
 
         // First action group

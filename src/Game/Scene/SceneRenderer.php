@@ -47,7 +47,9 @@ readonly class SceneRenderer
     ): Stage {
         $defaultScene = $this->sceneRepository->getDefaultScene();
 
-        $newStage = new Stage();
+        $newStage = new Stage(
+            owner: $character,
+        );
         $character->stage = $newStage;
 
         return $this->render($newStage, $defaultScene);
