@@ -7,6 +7,7 @@ use Doctrine\ORM\Mapping as ORM;
 use LotGD2\Game\Enum\SceneConnectionType;
 use LotGD2\Repository\SceneConnectionRepository;
 use Symfony\Component\Validator\Constraints as Assert;
+use Symfony\Component\Validator\Constraints\Length;
 
 #[ORM\Entity(repositoryClass: SceneConnectionRepository::class)]
 class SceneConnection
@@ -30,13 +31,25 @@ class SceneConnection
         public ?Scene $targetScene = null,
 
         #[ORM\Column(length: 255, nullable: true)]
+        #[Length(max: 255)]
         public ?string $sourceLabel = null,
 
         #[ORM\Column(length: 255, nullable: true)]
+        #[Length(max: 255)]
         public ?string $targetLabel = null,
 
         #[ORM\Column(length: 255, enumType: SceneConnectionType::class)]
         public ?SceneConnectionType $type = SceneConnectionType::BothWays,
+
+        #[ORM\Column(length: 255, nullable: true)]
+        #[Assert\ExpressionSyntax()]
+        #[Length(max: 255)]
+        public ?string $sourceExpression = null,
+
+        #[ORM\Column(length: 255, nullable: true)]
+        #[Assert\ExpressionSyntax()]
+        #[Length(max: 255)]
+        public ?string $targetExpression = null,
     ) {
 
     }

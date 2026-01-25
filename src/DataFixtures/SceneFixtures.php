@@ -395,7 +395,7 @@ class SceneFixtures extends Fixture
         $forestToHealerConnection = $scenes["forest"]->connectTo($scenes["healer"], sourceLabel: "Healer's Hut", targetLabel: "Back to the forest");
         $scenes["forest"]->actionGroups->get(0)->addConnection($forestToHealerConnection);
 
-        $forestToDragonConnection = $scenes["forest"]->connectTo($scenes["dragon"], sourceLabel: "The Dragon's Cave", targetLabel: "Back to the forest");
+        $forestToDragonConnection = $scenes["forest"]->connectTo($scenes["dragon"], sourceLabel: "The Dragon's Cave", targetLabel: "Back to the forest", sourceExpression: "character.level >= 15");
         $scenes["forest"]->actionGroups->get(1)->addConnection($forestToDragonConnection);
 
         $villageToTrainingConnection = $scenes["village"]->connectTo($scenes["training"], sourceLabel: "Bluspring's Warrior Training", targetLabel: "Back to the village");
