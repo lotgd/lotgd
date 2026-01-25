@@ -44,12 +44,26 @@ class SceneConnection
         #[ORM\Column(length: 255, nullable: true)]
         #[Assert\ExpressionSyntax()]
         #[Length(max: 255)]
-        public ?string $sourceExpression = null,
+        public ?string $sourceExpression = null {
+            get {
+                return $this->sourceExpression ?? null;
+            }
+            set {
+                $this->sourceExpression = $value;
+            }
+        },
 
         #[ORM\Column(length: 255, nullable: true)]
         #[Assert\ExpressionSyntax()]
         #[Length(max: 255)]
-        public ?string $targetExpression = null,
+        public ?string $targetExpression = null {
+            get {
+                return $this->targetExpression ?? null;
+            }
+            set {
+                $this->targetExpression = $value;
+            }
+        },
     ) {
 
     }
