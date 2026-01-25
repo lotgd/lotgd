@@ -216,6 +216,12 @@ class CriticalHitEventTest extends TestCase
 
     public function testBoundaryConditionMinorPowerMoveBelowThreshold(): void
     {
+        $this->attacker->expects($this->once())->method(PropertyHook::get("name"));
+        $this->attacker->expects($this->once())->method(PropertyHook::get("attack"))->willReturn(10);
+
+        $this->defender->expects($this->once())->method(PropertyHook::get("name"));
+        $this->defender->expects($this->never())->method(PropertyHook::get("attack"));
+
         $criticalValue = 12; // Just below 10 * 1.25 = 12.5
         $event = new CriticalHitEvent($this->attacker, $this->defender, ["criticalAttackValue" => $criticalValue]);
 
