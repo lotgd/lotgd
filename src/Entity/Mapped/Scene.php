@@ -122,6 +122,8 @@ class Scene
         SceneConnectionType $connectionType = SceneConnectionType::BothWays,
         ?string $sourceLabel = null,
         ?string $targetLabel = null,
+        ?string $sourceExpression = null,
+        ?string $targetExpression = null,
     ): SceneConnection {
         $connection = new SceneConnection(
             sourceScene: $this,
@@ -129,6 +131,8 @@ class Scene
             sourceLabel: $sourceLabel,
             targetLabel: $targetLabel,
             type: $connectionType,
+            sourceExpression: $sourceExpression,
+            targetExpression: $targetExpression,
         );
 
         $this->addSourcedConnection($connection);

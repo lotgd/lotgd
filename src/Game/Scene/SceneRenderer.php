@@ -9,9 +9,18 @@ use LotGD2\Entity\Mapped\Character;
 use LotGD2\Entity\Mapped\Scene;
 use LotGD2\Entity\Mapped\SceneConnection;
 use LotGD2\Entity\Mapped\Stage;
+use LotGD2\Game\Character\Equipment;
+use LotGD2\Game\Character\Gold;
+use LotGD2\Game\Character\Health;
+use LotGD2\Game\Character\Stats;
+use LotGD2\Game\ExpressionService;
 use LotGD2\Game\Random\DiceBagInterface;
 use LotGD2\Game\Stage\ActionService;
 use LotGD2\Repository\SceneRepository;
+use Psr\Log\LoggerInterface;
+use Symfony\Component\ExpressionLanguage\ExpressionLanguage;
+use Symfony\Component\ExpressionLanguage\Parser;
+use Symfony\Component\ExpressionLanguage\SyntaxError;
 
 /**
  * Responsible class to render a scene onto the stage.
@@ -22,6 +31,7 @@ readonly class SceneRenderer
         private SceneRepository $sceneRepository,
         private DiceBagInterface $diceBag,
         private ActionService $actionService,
+        private LoggerInterface $logger,
     ) {
 
     }
@@ -75,27 +85,37 @@ readonly class SceneRenderer
      * @internal
      * @param Scene $scene
      * @param SceneConnection $sceneConnection
-     * @return Action
+     * @return ?Action
      */
     public function createActionFromConnection(
         Scene $scene,
-        SceneConnection $sceneConnection
-    ): Action {
+        SceneConnection $sceneConnection,
+        ExpressionService $expressionService,
+    ): ?Action {
         $action = new Action(diceBag: $this->diceBag);
+        $add = true;
 
         if ($sceneConnection->sourceScene === $scene) {
             $action->title = $sceneConnection->sourceLabel;
             $action->sceneId = $sceneConnection->targetScene;
+
+            if (!$expressionService->evaluate($sceneConnection->sourceExpression)) {
+                $add =false;
+            }
         } elseif ($sceneConnection->targetScene === $scene) {
             $action->title = $sceneConnection->targetLabel;
             $action->sceneId = $sceneConnection->sourceScene;
+
+            if (!$expressionService->evaluate($sceneConnection->targetExpression)) {
+                $add =false;
+            }
         } else {
             // This should never be reached, as $scene must either be the source or the target scene of a connection,
             // otherwise, it should not be in the list.
             $action->title = "#invalidConnection:{$sceneConnection->id}";
         }
 
-        return $action;
+        return $add ? $action : null;
     }
 
     /**
@@ -109,6 +129,19 @@ readonly class SceneRenderer
         Stage $stage,
         Scene $scene,
     ): void {
+        $character = $stage->owner;
+        $equipment = new Equipment($this->logger, $character);
+        $health = new Health($this->logger, $character);
+
+        $expressionService = new ExpressionService(
+            $this->logger,
+            $character,
+            health: $health,
+            stats: new Stats($this->logger, $equipment, $health, $character),
+            gold: new Gold($this->logger, $character),
+            equipment: $equipment,
+        );
+
         $allKnownConnection = $scene->getConnections();
         $addedConnections = [];
 
@@ -121,8 +154,12 @@ readonly class SceneRenderer
 
             foreach ($sceneActionGroup->connections as $connection) {
                 if (!isset($addedConnections[$connection->id])) {
-                    $action = $this->createActionFromConnection($scene, $connection);
-                    $actionGroup->addAction($action);
+                    $action = $this->createActionFromConnection($scene, $connection, $expressionService);
+
+                    if ($action !== null) {
+                        $actionGroup->addAction($action);
+                    }
+
                     $addedConnections[$connection->id] = true;
                 }
             }
@@ -133,8 +170,12 @@ readonly class SceneRenderer
         // Add all other actions
         foreach ($scene->getConnections(visibleOnly: true) as $connection) {
             if (!isset($addedConnections[$connection->id])) {
-                $action = $this->createActionFromConnection($scene, $connection);
-                $stage->addAction(ActionGroup::EMPTY, $action);
+                $action = $this->createActionFromConnection($scene, $connection, $expressionService);
+
+                if ($action !== null) {
+                    $stage->addAction(ActionGroup::EMPTY, $action);
+                }
+
                 $addedConnections[$connection->id] = true;
             }
         }
