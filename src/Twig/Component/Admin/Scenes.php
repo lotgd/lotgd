@@ -13,6 +13,25 @@ use Symfony\UX\LiveComponent\Attribute\LiveProp;
 use Symfony\UX\LiveComponent\DefaultActionTrait;
 use Symfony\UX\TwigComponent\Attribute\ExposeInTemplate;
 
+/**
+ * @phpstan-type SceneNode array{
+ *      scene: int,
+ *      title: string,
+ *      children: array<int, array{
+ *       scene: int,
+ *       title: string,
+ *       children: array<int, array{
+ *        scene: int,
+ *        title: string,
+ *        children: array<int, array{
+ *          scene: int,
+ *          title: string,
+ *          children: array<int, array<mixed>>,
+ *        }>,
+ *       }>,
+ *      }>,
+ *  }
+ */
 #[AsLiveComponent]
 class Scenes
 {
@@ -35,10 +54,6 @@ class Scenes
     }
 
     /**
-     * @phpstan-type SceneNode array{
-     *     scene: int,
-     *     children: SceneNode[],
-     * }
      * @return SceneNode
      */
     #[ExposeInTemplate]
@@ -59,6 +74,13 @@ class Scenes
         return $tree;
     }
 
+    /**
+     * @param Scene $scene
+     * @param int $depth
+     * @param array<int, bool> $sceneList
+     * @param Scene|null $parent
+     * @return iterable<SceneNode>
+     */
     private function getLeaves(Scene $scene, int $depth = 0, array &$sceneList = [], ?Scene $parent = null): iterable
     {
         $leave = [];
@@ -69,6 +91,7 @@ class Scenes
 
         foreach ($scene->getConnections() as $connection) {
             $connectedScene = $connection->sourceScene === $scene ? $connection->targetScene : $connection->sourceScene;
+            assert(is_int($connectedScene->id));
 
             // Direct back connections are hidden
             if ($connectedScene === $parent) {

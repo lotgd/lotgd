@@ -46,6 +46,9 @@ class SceneForm extends AbstractController
         $this->saved = true;
     }
 
+    /**
+     * @return FormInterface<Scene>
+     */
     protected function instantiateForm(): FormInterface
     {
         return $this->createForm(SceneType::class, $this->scene);

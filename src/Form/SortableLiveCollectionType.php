@@ -13,6 +13,7 @@ use Symfony\UX\LiveComponent\Form\Type\LiveCollectionType;
 
 /**
  * Based on LiveCollectionType
+ * @extends AbstractType<mixed>
  */
 final class SortableLiveCollectionType extends AbstractType
 {
@@ -41,7 +42,6 @@ final class SortableLiveCollectionType extends AbstractType
     {
         $prefixOffset = -2;
         // check if the entry type also defines a block prefix
-        /** @var FormInterface $entry */
         foreach ($form as $entry) {
             if ($entry->getConfig()->getOption('block_prefix')) {
                 --$prefixOffset;
