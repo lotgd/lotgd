@@ -55,7 +55,7 @@ class SceneActionGroup
         #[Assert\NotNull()]
         public int $sorting = 0 {
             get => $this->sorting;
-            set => $value ?? 0;
+            set => $value;
         },
     ) {
         $this->connections = $connections;

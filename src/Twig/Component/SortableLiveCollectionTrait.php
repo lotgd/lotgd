@@ -8,6 +8,9 @@ use Symfony\UX\LiveComponent\Attribute\LiveAction;
 use Symfony\UX\LiveComponent\Attribute\LiveArg;
 use Symfony\UX\LiveComponent\LiveCollectionTrait;
 
+/**
+ * @phpstan-ignore trait.unused
+ */
 trait SortableLiveCollectionTrait
 {
     use LiveCollectionTrait;

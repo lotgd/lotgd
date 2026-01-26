@@ -58,7 +58,7 @@ class ExpressionService
 
         try {
             $expressionLanguage->lint($expression, $names, $flags);
-            return (bool)$expressionLanguage->evaluate($expression, $names, $flags);
+            return (bool)$expressionLanguage->evaluate($expression, $names);
         } catch (SyntaxError $e) {
             // Allow connection to be made if expression contains an error
             $this->logger->warning("Expression was faulty: {$expression}. {$e->getMessage()}");

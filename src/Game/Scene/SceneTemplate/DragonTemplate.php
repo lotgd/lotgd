@@ -44,7 +44,7 @@ class DragonTemplate implements SceneTemplateInterface
     use DefaultFightTrait;
 
     private ?Stage $stage = null;
-    private ?Action $action = null;
+    private ?Action $action = null; // @phpstan-ignore property.onlyWritten
     private ?Scene $scene = null;
     private ?Character $character = null;
 

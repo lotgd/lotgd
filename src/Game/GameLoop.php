@@ -167,7 +167,7 @@ class GameLoop
         $this->logger->debug("Calling onSceneEnter");
 
         /** @var SceneTemplateInterface<array<string, mixed>> $targetSceneTemplate */
-        $targetSceneTemplate = $this->container->get($targetScene->templateClass);  // @phpstan-ignore varTag.differentVariable
+        $targetSceneTemplate = $this->container->get($targetScene->templateClass);
         $reply = $targetSceneTemplate->onSceneEnter($stage, $selectedAction, $currentScene, $targetScene);
 
         $renderDefault = !$reply;
