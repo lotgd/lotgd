@@ -32,9 +32,8 @@ class NewDay
             $lastNewDay = (int)$lastNewDay;
 
             $interval = new DateTime()->getTimestamp() - $lastNewDay;
-            dump($interval, $lastNewDay);
 
-            if ($interval > 60) {
+            if ($interval >= 1800) {
                 return true;
             }
             return false;
