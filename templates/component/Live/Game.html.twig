@@ -8,88 +8,103 @@
         </div>
     </div>
 
-    <div class="row lotgd-stage">
-        <div class="col-3 bg-primary-subtle lotgd-stage-actions px-3">
-            <div data-loading="">
-                Loading...
-            </div>
-            <ul data-loading="hide" class="nav flex-column py-3">
-                {% if this.stage.actionGroups["lotgd.actionGroup.empty"] is defined %}
-                    {% for action in this.stage.actionGroups["lotgd.actionGroup.empty"].actions %}
-                        <twig:Action :action="action" :character="character" />
-                    {% endfor %}
-                {% endif %}
-
-                {% for actionGroup in this.stage.actionGroups|filter(g => g.id not in ["lotgd.actionGroup.empty", "lotgd.actionGroup.hidden"])|sort((a, b) => a.weight <=> b.weight) %}
-                    <li class="nav-item lotgd-stage-action-group">
-                        {{ actionGroup.title }} {{ actionGroup.weight }}
-                    </li>
-
-                    {% for action in actionGroup.actions %}
-                        <twig:Action :action="action" :character="character" />
-                    {% endfor %}
-                {% endfor %}
+    <div class="d-flex">
+        <div class="d-lg-none d-flex flex-column flex-shrink-0 bg-light sticky-top" style="width: 6rem;">
+            <ul class="vh-100 nav nav-pills nav-flush flex-column mb-auto text-center">
+                <li class="nav-item">
+                    <a href="#lotgd-stage-action" class="nav-link nav-flush flex-column border-bottom">Actions</a>
+                </li>
+                <li class="nav-item">
+                    <a href="#lotgd-stage-scene" class="nav-link nav-flush flex-column border-bottom">Scene</a>
+                </li>
+                <li class="nav-item">
+                    <a href="#lotgd-stage-character" class="nav-link nav-flush flex-column border-bottom">Stats</a>
+                </li>
             </ul>
         </div>
 
-        <div class="col-6 p-3 lotgd-stage-scene">
-            <h2>{{ this.stage.title }}</h2>
+        <div class="d-flex flex-column">
+            <div class="row lotgd-stage vh-100 overflow-scroll">
+                <div id="lotgd-stage-action" class="col-12 col-lg-3 bg-primary-subtle lotgd-stage-actions px-3">
+                    <ul data-loading="hide" class="nav flex-column py-3">
+                        {% if this.stage.actionGroups["lotgd.actionGroup.empty"] is defined %}
+                            {% for action in this.stage.actionGroups["lotgd.actionGroup.empty"].actions %}
+                                <twig:Action :action="action" :character="character" />
+                            {% endfor %}
+                        {% endif %}
 
-            {{ this.stage.description|parse({
-                "character": character,
-            }|merge(this.stage.context))|raw }}
+                        {% for actionGroup in this.stage.actionGroups|filter(g => g.id not in ["lotgd.actionGroup.empty", "lotgd.actionGroup.hidden"])|sort((a, b) => a.weight <=> b.weight) %}
+                            <li class="nav-item lotgd-stage-action-group">
+                                {{ actionGroup.title }} {{ actionGroup.weight }}
+                            </li>
 
-            {# Attachments #}
-            {% for attachment in this.stage.attachments %}
-                {% if is_granted("ROLE_DEBUG") and app.environment == "dev" %}
-                    <twig:Debug title="Attachment" name="{{ attachment.attachment.name }}">
-                        {# {{ dump(attachment) }} #}
-                    </twig:Debug>
-                {% endif %}
+                            {% for action in actionGroup.actions %}
+                                <twig:Action :action="action" :character="character" />
+                            {% endfor %}
+                        {% endfor %}
+                    </ul>
+                </div>
 
-                {% try %}
-                    {{ component(attachment.attachment.attachmentClass, {
-                        "id": randomId(),
+                <div id="lotgd-stage-scene"  class="col-12 col-lg-6 p-3 lotgd-stage-scene">
+                    <h2>{{ this.stage.title }}</h2>
+
+                    {{ this.stage.description|parse({
                         "character": character,
-                        "stage": stage,
-                        "config": attachment.config,
-                    }|merge(attachment.data)) }}
-                {% catch %}
-                    {% if is_granted("ROLE_DEBUG") %}
-                        <twig:Debug title="Attachment" name="{{ attachment.attachment.name }}">
-                            This attachment is faulty: {{ e.message }}
+                    }|merge(this.stage.context))|raw }}
 
-                            {% if app.environment == "dev" %}
-                                {# {{ dump(e) }} #}
+                    {# Attachments #}
+                    {% for attachment in this.stage.attachments %}
+                        {% if is_granted("ROLE_DEBUG") and app.environment == "dev" %}
+                            <twig:Debug title="Attachment" name="{{ attachment.attachment.name }}">
+                                {# {{ dump(attachment) }} #}
+                            </twig:Debug>
+                        {% endif %}
+
+                        {% try %}
+                        {{ component(attachment.attachment.attachmentClass, {
+                            "id": randomId(),
+                            "character": character,
+                            "stage": stage,
+                            "config": attachment.config,
+                        }|merge(attachment.data)) }}
+                        {% catch %}
+                            {% if is_granted("ROLE_DEBUG") %}
+                                <twig:Debug title="Attachment" name="{{ attachment.attachment.name }}">
+                                    This attachment is faulty: {{ e.message }}
+
+                                    {% if app.environment == "dev" %}
+                                        {# {{ dump(e) }} #}
+                                    {% endif %}
+                                </twig:Debug>
                             {% endif %}
-                        </twig:Debug>
-                    {% endif %}
-                {% endcatch %}
+                        {% endcatch %}
 
-            {% endfor %}
-        </div>
+                    {% endfor %}
+                </div>
 
-        <div class="col-3 bg-primary-subtle p-3">
-            <table class="table small">
-                {% for row in charStats %}
-                    {% if row|length == 1 %}
-                        <tr>
-                            <th class="bg-primary text-white" scope="colgroup" colspan="2">{{ row[0] }}</th>
-                        </tr>
-                    {% else %}
-                        <tr>
-                            <th scope="row">{{ row[0] }}</th>
-                            <td>
-                                {% if row|length == 2 %}
-                                    {{ row[1] }}
-                                {% else %}
-                                    <twig:Bootstrap:Progress :current="row[1]" :max="row[2]" displayMax displayCurrent colored />
-                                {% endif %}
-                            </td>
-                        </tr>
-                    {% endif %}
-                {% endfor %}
-            </table>
+                <div id="lotgd-stage-character"  class="col-12 col-lg-3 bg-primary-subtle p-lg-3">
+                    <table class="table small">
+                        {% for row in charStats %}
+                            {% if row|length == 1 %}
+                                <tr>
+                                    <th class="bg-primary text-white" scope="colgroup" colspan="2">{{ row[0] }}</th>
+                                </tr>
+                            {% else %}
+                                <tr>
+                                    <th scope="row">{{ row[0] }}</th>
+                                    <td>
+                                        {% if row|length == 2 %}
+                                            {{ row[1] }}
+                                        {% else %}
+                                            <twig:Bootstrap:Progress :current="row[1]" :max="row[2]" displayMax displayCurrent colored />
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            {% endif %}
+                        {% endfor %}
+                    </table>
+                </div>
+            </div>
         </div>
     </div>
 </div>
