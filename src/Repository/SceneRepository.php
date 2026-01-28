@@ -26,4 +26,15 @@ class SceneRepository extends ServiceEntityRepository
             ->getOneOrNullResult()
         ;
     }
+
+    public function findAllWithConnections(): iterable
+    {
+        return $this->createQueryBuilder("s")
+            ->select('s')
+            ->leftJoin('s.sourcedConnections', 'source')
+            ->leftJoin('s.targetingConnections', 'target')
+            ->addSelect("source", "target")
+            ->getQuery()
+            ->getResult();
+    }
 }

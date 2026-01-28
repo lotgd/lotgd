@@ -3,12 +3,14 @@ declare(strict_types=1);
 
 namespace LotGD2\Twig\Component\Admin;
 
+use Doctrine\ORM\EntityManagerInterface;
 use LotGD2\Entity\Mapped\Scene;
 use LotGD2\Repository\SceneRepository;
 use Symfony\Bridge\Doctrine\Attribute\MapEntity;
 use Symfony\UX\LiveComponent\Attribute\AsLiveComponent;
 use Symfony\UX\LiveComponent\Attribute\LiveAction;
 use Symfony\UX\LiveComponent\Attribute\LiveArg;
+use Symfony\UX\LiveComponent\Attribute\LiveListener;
 use Symfony\UX\LiveComponent\Attribute\LiveProp;
 use Symfony\UX\LiveComponent\DefaultActionTrait;
 use Symfony\UX\TwigComponent\Attribute\ExposeInTemplate;
@@ -40,6 +42,9 @@ class Scenes
     #[LiveProp]
     public ?Scene $scene = null;
 
+    #[LiveProp]
+    public ?Scene $parentScene = null;
+
     public function __construct(
         private readonly SceneRepository $sceneRepository,
     ) {
@@ -50,7 +55,7 @@ class Scenes
      */
     public function getScenes(): iterable
     {
-        return $this->sceneRepository->findAll();
+        return $this->sceneRepository->findAllWithConnections();
     }
 
     /**
@@ -59,7 +64,7 @@ class Scenes
     #[ExposeInTemplate]
     public function getTree(): array
     {
-        $allScenes = $this->sceneRepository->findAll();
+        $allScenes = $this->getScenes();
 
         // Build tree
         $treeRoot = array_find($allScenes, fn (Scene $scene) => $scene->defaultScene);
@@ -69,6 +74,26 @@ class Scenes
             "scene" => $treeRoot->id,
             "title" => $treeRoot->title,
             "children" => $this->getLeaves($treeRoot, sceneList: $sceneList),
+        ];
+
+        $orphanedScenes = [];
+        foreach ($allScenes as $scene) {
+            # Skip if scene was already used
+            if (isset($sceneList[$scene->id])) {
+                continue;
+            }
+
+            $orphanedScenes[] = [
+                "scene" => $scene->id,
+                "title" => $scene->title,
+                "children" => $this->getLeaves($scene, sceneList: $sceneList),
+            ];
+        }
+
+        $tree = [
+            "scene" => null,
+            "title" => "All scenes",
+            "children" => [$tree, ... $orphanedScenes],
         ];
 
         return $tree;
@@ -115,6 +140,35 @@ class Scenes
     public function showForm(
         #[LiveArg]
         Scene $scene
+    ): void {
+        $this->scene = $scene;
+        $this->parentScene = null;
+    }
+
+    #[LiveAction]
+    public function addScene(
+        #[LiveArg]
+        Scene $scene
+    ): void {
+        $this->scene = null;
+        $this->parentScene = $scene;
+    }
+
+    #[LiveAction]
+    public function removeScene(
+        EntityManagerInterface $entityManager,
+        #[LiveArg]
+        Scene $scene
+    ): void {
+        $this->scene = null;
+        $entityManager->remove($scene);
+        $entityManager->flush();
+    }
+
+    #[LiveListener('sceneAdded')]
+    public function onSceneAdded(
+        #[LiveArg]
+        Scene $scene,
     ): void {
         $this->scene = $scene;
     }

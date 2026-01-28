@@ -12,6 +12,7 @@ use LotGD2\Entity\ActionGroup;
 use LotGD2\Game\Enum\SceneConnectionType;
 use LotGD2\Game\Scene\SceneTemplate\SceneTemplateInterface;
 use LotGD2\Repository\SceneRepository;
+use Symfony\Component\Validator\Constraints as Assert;
 use ValueError;
 
 #[ORM\Entity(repositoryClass: SceneRepository::class)]
@@ -74,9 +75,11 @@ class Scene
      */
     public function __construct(
         #[ORM\Column(length: 255)]
+        #[Assert\NotBlank()]
         public ?string $title = null,
 
         #[ORM\Column(type: Types::TEXT)]
+        #[Assert\NotBlank()]
         public ?string $description = null,
 
         /** @var string|null  */

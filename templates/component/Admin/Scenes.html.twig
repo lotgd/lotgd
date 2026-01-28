@@ -11,6 +11,8 @@
                 <div class="modal-content">
                     {% if scene %}
                         <twig:Admin:SceneForm :key="scene.id" :scene="scene" />
+                    {% else %}
+                        <twig:Admin:SceneForm key="new" :scene="scene" :parentScene="parentScene" />
                     {% endif %}
                 </div>
             </div>
