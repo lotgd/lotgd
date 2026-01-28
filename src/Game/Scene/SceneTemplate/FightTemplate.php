@@ -5,18 +5,14 @@ namespace LotGD2\Game\Scene\SceneTemplate;
 
 use LotGD2\Entity\Action;
 use LotGD2\Entity\ActionGroup;
-use LotGD2\Entity\Battle\BattleState;
 use LotGD2\Entity\Mapped\Scene;
 use LotGD2\Entity\Mapped\Stage;
 use LotGD2\Game\Battle\Battle;
-use LotGD2\Game\Battle\BattleStateStatusEnum;
-use LotGD2\Game\Battle\BattleTurn;
 use LotGD2\Game\Character\Gold;
 use LotGD2\Game\Character\Health;
 use LotGD2\Game\Character\Stats;
 use LotGD2\Game\Random\DiceBagInterface;
 use LotGD2\Game\Scene\SceneAttachment\BattleAttachment;
-use LotGD2\Game\Stage\ActionService;
 use LotGD2\Repository\AttachmentRepository;
 use LotGD2\Repository\CreatureRepository;
 use Psr\Log\LoggerInterface;
@@ -125,7 +121,7 @@ readonly class FightTemplate implements SceneTemplateInterface
         $level = intval($action->getParameter("level", 0));
         $this->logger->debug("Called FightTemplate::searchAction, with level={$level}");
         $level += $this->getRandomLevelChange();
-        $level = $this->experience->getLevel() + $level;
+        $level = max(1, $this->experience->getLevel() + $level); // Make sure the level is at least 1
         $this->logger->debug("FightTemplate::searchAction, level adjusted to {$level}");
 
         // Find creature
