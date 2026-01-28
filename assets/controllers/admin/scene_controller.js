@@ -39,7 +39,7 @@ export default class extends Controller {
         // (dx is a height, and dy a width). This because the tree must be viewed with the root at the
         // “bottom”, in the data domain. The width of a column is based on the tree’s height.
         const root = d3.hierarchy(this.treeValue);
-        const dx = 40;
+        const dx = 60;
         const dy = 200; // (width - marginRight - marginLeft) / (1 + root.height);
 
         // Define the tree layout and the shape for links.
@@ -65,7 +65,108 @@ export default class extends Controller {
 
         const outerGroup = svg.append("g");
 
-        const link = outerGroup.append("g")
+        const link = this.createLink(root, outerGroup);
+        const node = this.createNode(root, outerGroup);
+
+        const zoom = d3.zoom()
+            .on("zoom", zoom => {d3.select("svg g").attr("transform", zoom.transform)})
+        ;
+
+        svg.call(zoom);
+    }
+
+    createNode(root, group)
+    {
+        const node = group.append("g")
+            .attr("stroke-linejoin", "round")
+            .attr("stroke-width", 3)
+            .selectAll()
+            .data(root.descendants())
+            .join("g")
+            .attr("transform", d => `translate(${d.y}, ${d.x})`)
+        ;
+
+        const sceneAdd = node.append("circle")
+            .attr("data-lotgd-type", "scene-add")
+            .attr("fill", "var(--bs-info)")
+            .attr("r", 10)
+        ;
+
+        const sceneDel = node.append("circle")
+            .attr("data-lotgd-type", "scene-delete")
+            .attr("fill", "var(--bs-danger)")
+            .attr("r", 10)
+        ;
+
+        const scene = node.append("circle")
+            .attr("data-lotgd-type", "scene")
+            .attr("fill", "var(--bs-secondary)")
+            .attr("r", 15)
+        ;
+
+        node.append("text")
+            .attr("dy", "-1.5em")
+            .attr("x", 0)
+            .attr("text-anchor", "middle")
+            .text(d => d.data.title)
+            .attr("stroke", "white")
+            .attr("paint-order", "stroke");
+
+        scene.on("click", this.onNodeClick.bind(this));
+        sceneAdd.on("click", this.onNodeAddClick.bind(this));
+        sceneDel.on("click", this.onNodeDelClick.bind(this));
+
+        node.on("mouseover", (d, e) => {
+            const circle = d.target.parentElement.querySelector("circle[data-lotgd-type='scene']");
+            const addTool = d.target.parentElement.querySelector("circle[data-lotgd-type='scene-add']");
+            const delTool = d.target.parentElement.querySelector("circle[data-lotgd-type='scene-delete']");
+            const text = d.target.parentElement.querySelector("text");
+
+            node.selectAll("g").sort((a, b) => (a.id != d.id) ? -1 : 1)
+
+            d3.select(circle).transition().duration(100)
+                .attr("fill", "var(--bs-primary)");
+
+            d3.select(text).transition().duration(100)
+                .style("font-weight", "bold");
+
+            d3.select(addTool).transition().duration(100)
+                .attr("transform", `translate(-15, 15)`)
+
+            d3.select(delTool).transition().duration(100)
+                .attr("transform", `translate(15, 15)`)
+        })
+
+        node.on("mouseout", (d, e) => {
+            const circle = d.target.parentElement.querySelector("circle[data-lotgd-type='scene']");
+            const addTool = d.target.parentElement.querySelector("circle[data-lotgd-type='scene-add']");
+            const delTool = d.target.parentElement.querySelector("circle[data-lotgd-type='scene-delete']");
+            const text = d.target.parentElement.querySelector("text");
+
+
+            d3.select(circle).transition().duration(100)
+                .attr("fill", "var(--bs-secondary)");
+
+            d3.select(text).transition().duration(100)
+                .style("font-weight", "normal");
+
+            d3.select(addTool)
+                .transition()
+                .duration(50)
+                .attr("transform", `translate(0, 0)`)
+
+            d3.select(delTool)
+                .transition()
+                .duration(50)
+                .attr("transform", `translate(0, 0)`)
+        });
+
+        return node;
+    }
+
+    createLink(root, outerGroup)
+    {
+        const links = outerGroup.append("g")
             .attr("fill", "none")
             .attr("stroke", "#555")
             .attr("stroke-opacity", 0.4)
@@ -79,57 +180,21 @@ export default class extends Controller {
             )
         ;
 
-        const node = outerGroup.append("g")
-            .attr("stroke-linejoin", "round")
-            .attr("stroke-width", 3)
-            .selectAll()
-            .data(root.descendants())
-            .join("g")
-            .attr("transform", d => `translate(${d.y}, ${d.x})`)
-        ;
-
-        node.append("circle")
-            .attr("fill", "var(--bs-secondary")
-            .attr("r", 10)
-        ;
-
-        node.append("text")
-            .attr("dy", "-1.5em")
-            //.attr("x", d => d.children ? -6 : 6)
-            //.attr("text-anchor", d => d.children ? "end" : "start")
-            .attr("x", 0)
-            .attr("text-anchor", "middle")
-            .text(d => d.data.title)
-            .attr("stroke", "white")
-            .attr("paint-order", "stroke");
-
-        const zoom = d3.zoom()
-            .on("zoom", zoom => {d3.select("svg g").attr("transform", zoom.transform)})
-        ;
-
-        node.on("click", this.onNodeClick.bind(this));
-        node.on("mouseover", (d, e) => {
-            const circle = d.target.parentElement.querySelector("circle");
-            const text = d.target.parentElement.querySelector("text");
-
-            circle.style.fill = "var(--bs-primary)";
-            text.style.fontWeight = "bold";
-        })
-        node.on("mouseout", (d, e) => {
-            const circle = d.target.parentElement.querySelector("circle");
-            const text = d.target.parentElement.querySelector("text");
-
-            circle.style.fill = "var(--bs-secondary)";
-            text.style.fontWeight = "normal";
-        })
-
-        svg.call(zoom);
+        return links;
     }
 
     onNodeClick(event, data)
     {
-        console.log(data);
-
         this.component.action('showForm', {"scene": data.data.scene}).then(() => this.modal.show());
+    }
+
+    onNodeDelClick(event, data)
+    {
+        this.component.action('removeScene', {"scene": data.data.scene});
+    }
+
+    onNodeAddClick(event, data)
+    {
+        this.component.action('addScene', {"scene": data.data.scene}).then(() => this.modal.show());
     }
 }
