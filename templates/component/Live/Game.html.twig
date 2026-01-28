@@ -10,7 +10,7 @@
 
     <div class="d-flex">
         <div class="d-lg-none d-flex flex-column flex-shrink-0 bg-light sticky-top" style="width: 6rem;">
-            <ul class="vh-100 nav nav-pills nav-flush flex-column mb-auto text-center">
+            <ul {{ stimulus_target("tooltip", "scrollSpy") }} id="lotgd-stage-nav" class="vh-100 nav nav-pills nav-flush flex-column mb-auto text-center rounded-0">
                 <li class="nav-item">
                     <a href="#lotgd-stage-action" class="nav-link nav-flush flex-column border-bottom">Actions</a>
                 </li>
@@ -23,9 +23,9 @@
             </ul>
         </div>
 
-        <div class="d-flex flex-column">
-            <div class="row lotgd-stage vh-100 overflow-scroll">
-                <div id="lotgd-stage-action" class="col-12 col-lg-3 bg-primary-subtle lotgd-stage-actions px-3">
+        <div class="d-flex w-100">
+            <div class="row lotgd-stage vh-100 w-100 overflow-scroll" data-bs-spy="scroll" data-bs-target="#lotgd-stage-nav" data-bs-root-margin="0px 0px -30%" data-bs-smooth-scroll="true">
+                <div id="lotgd-stage-action" class="col-12 col-lg-3 col-xxl-2 bg-primary-subtle lotgd-stage-actions px-3">
                     <ul data-loading="hide" class="nav flex-column py-3">
                         {% if this.stage.actionGroups["lotgd.actionGroup.empty"] is defined %}
                             {% for action in this.stage.actionGroups["lotgd.actionGroup.empty"].actions %}
@@ -45,7 +45,7 @@
                     </ul>
                 </div>
 
-                <div id="lotgd-stage-scene"  class="col-12 col-lg-6 p-3 lotgd-stage-scene">
+                <div id="lotgd-stage-scene"  class="col-12 col-lg-6 col-xxl-8 p-3 lotgd-stage-scene">
                     <h2>{{ this.stage.title }}</h2>
 
                     {{ this.stage.description|parse({
@@ -82,7 +82,7 @@
                     {% endfor %}
                 </div>
 
-                <div id="lotgd-stage-character"  class="col-12 col-lg-3 bg-primary-subtle p-lg-3">
+                <div id="lotgd-stage-character"  class="col-12 col-lg-3 col-xxl-2 bg-primary-subtle p-lg-3">
                     <table class="table small">
                         {% for row in charStats %}
                             {% if row|length == 1 %}
