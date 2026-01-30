@@ -14,6 +14,10 @@ export default class extends Controller {
         "sceneView", "modal"
     ]
 
+    _currentDraggedNode = null;
+    _currentDroppedNode = null;
+    _currentDragPath = null;
+
     async initialize()
     {
         this.component = await getComponent(this.element);
@@ -57,22 +61,30 @@ export default class extends Controller {
         const height = x1 - x0 + dx * 2;
 
         // Create the SVG container, a layer for the links and a layer for the nodes.
-        const svg = d3.select(this.sceneViewTarget).append("svg")
+        this.svg = d3.select(this.sceneViewTarget).append("svg")
             .attr("width", width)
             .attr("height", height)
             .attr("viewBox", [-dy/3, x0 - dx, width, height])
             .attr("style", "max-width: 100%; height: auto; font: 10px sans-serif; user-select: none;");
 
-        const outerGroup = svg.append("g");
-
-        const link = this.createLink(root, outerGroup);
-        const node = this.createNode(root, outerGroup);
+        this.outerGroup = this.svg.append("g");
+        this.link = this.createLink(root, this.outerGroup);
+        this.node = this.createNode(root, this.outerGroup);
+        this.utility = this.createUtility(this.outerGroup);//.append("g");
 
         const zoom = d3.zoom()
             .on("zoom", zoom => {d3.select("svg g").attr("transform", zoom.transform)})
         ;
 
-        svg.call(zoom);
+        this.svg.call(zoom);
+    }
+
+    createUtility(outerGroup) {
+        return outerGroup.append("g")
+            .attr("fill", "none")
+            .attr("stroke", "#555")
+            .attr("stroke-opacity", 1)
+            .attr("stroke-width", 1.5);
     }
 
     createNode(root, group)
@@ -116,50 +128,16 @@ export default class extends Controller {
         sceneAdd.on("click", this.onNodeAddClick.bind(this));
         sceneDel.on("click", this.onNodeDelClick.bind(this));
 
-        node.on("mouseover", (d, e) => {
-            const circle = d.target.parentElement.querySelector("circle[data-lotgd-type='scene']");
-            const addTool = d.target.parentElement.querySelector("circle[data-lotgd-type='scene-add']");
-            const delTool = d.target.parentElement.querySelector("circle[data-lotgd-type='scene-delete']");
-            const text = d.target.parentElement.querySelector("text");
+        const drag = d3.drag()
+            .on("start", this.onNodeDragStart.bind(this))
+            .on("drag", this.onNodeDragMove.bind(this))
+            .on("end", this.onNodeDragEnd.bind(this))
 
-            node.selectAll("g").sort((a, b) => (a.id != d.id) ? -1 : 1)
+        scene
+            .call(drag);
 
-            d3.select(circle).transition().duration(100)
-                .attr("fill", "var(--bs-primary)");
-
-            d3.select(text).transition().duration(100)
-                .style("font-weight", "bold");
-
-            d3.select(addTool).transition().duration(100)
-                .attr("transform", `translate(-15, 15)`)
-
-            d3.select(delTool).transition().duration(100)
-                .attr("transform", `translate(15, 15)`)
-        })
-
-        node.on("mouseout", (d, e) => {
-            const circle = d.target.parentElement.querySelector("circle[data-lotgd-type='scene']");
-            const addTool = d.target.parentElement.querySelector("circle[data-lotgd-type='scene-add']");
-            const delTool = d.target.parentElement.querySelector("circle[data-lotgd-type='scene-delete']");
-            const text = d.target.parentElement.querySelector("text");
-
-
-            d3.select(circle).transition().duration(100)
-                .attr("fill", "var(--bs-secondary)");
-
-            d3.select(text).transition().duration(100)
-                .style("font-weight", "normal");
-
-            d3.select(addTool)
-                .transition()
-                .duration(50)
-                .attr("transform", `translate(0, 0)`)
-
-            d3.select(delTool)
-                .transition()
-                .duration(50)
-                .attr("transform", `translate(0, 0)`)
-        });
+        node.on("mouseover", this.onHoverStart.bind(this));
+        node.on("mouseout", this.onHoverEnd.bind(this));
 
         return node;
     }
@@ -196,5 +174,125 @@ export default class extends Controller {
     onNodeAddClick(event, data)
     {
         this.component.action('addScene', {"scene": data.data.scene}).then(() => this.modal.show());
+    }
+
+    onNodeDragStart(event, data)
+    {
+        // No dragging event allowed if the node has no id
+        if (data.data.scene === null) {
+            return;
+        }
+
+        this._currentDraggedNode = data;
+        this._currentDragPath = {x: event.x, y: event.y};
+
+        let line = d3.path();
+        line.moveTo(0, 0);
+        line.lineTo(0, 0);
+
+        this.utility.append("path")
+            .attr("transform", `translate(${event.y}, ${event.x})`)
+            .attr("d", line);
+    }
+
+    onNodeDragMove(event, data)
+    {
+        let line = d3.path();
+        line.moveTo(0, 0);
+        line.lineTo(event.x - this._currentDragPath.x, event.y - this._currentDragPath.y);
+
+        this.utility.select("path")
+            .attr("d", line);
+    }
+
+    onNodeDragEnd(event, data)
+    {
+        if (data.data.scene === null) {
+            return;
+        }
+
+        let source = this._currentDraggedNode.data.scene;
+        let target = this._currentDroppedNode.data.scene;
+
+        // Make sure we don't change anything and create a self-connecting node
+        if (source !== target) {
+            // Call the connection action
+            this.component.action('connectScenes', {
+                "source": this._currentDraggedNode.data.scene,
+                "target": this._currentDroppedNode.data.scene,
+            });
+        }
+
+        // Forget everything about the dragging
+        this._currentDraggedNode = null;
+        this._currentDroppedNode = null;
+        this._currentDragPath = null;
+    }
+
+    onHoverStart(event, data)
+    {
+        const circle = event.target.parentElement.querySelector("circle[data-lotgd-type='scene']");
+
+        if (data.data.scene !== null) {
+            this._currentDroppedNode = data;
+        }
+
+        if (this._currentDraggedNode !== null) {
+            d3.select(circle).transition().duration(100)
+                .attr("fill", "var(--bs-info)");
+            return;
+        }
+
+        const addTool = event.target.parentElement.querySelector("circle[data-lotgd-type='scene-add']");
+        const delTool = event.target.parentElement.querySelector("circle[data-lotgd-type='scene-delete']");
+        const text = event.target.parentElement.querySelector("text");
+
+        d3.select(circle).transition().duration(100)
+            .attr("fill", "var(--bs-primary)");
+
+        d3.select(text).transition().duration(100)
+            .style("font-weight", "bold");
+
+        d3.select(addTool).transition().duration(100)
+            .attr("transform", `translate(-15, 15)`)
+
+        if (data.data.scene !== null) {
+            d3.select(delTool).transition().duration(100)
+                .attr("transform", `translate(15, 15)`)
+        }
+    }
+
+    onHoverEnd(d, e)
+    {
+        // If we leave a dot, we want to forget that dot.
+        this._currentDroppedNode = null;
+
+        const circle = d.target.parentElement.querySelector("circle[data-lotgd-type='scene']");
+
+        if (this._currentDraggedNode !== null) {
+            d3.select(circle).transition().duration(100)
+                .attr("fill", "var(--bs-secondary)");
+            return;
+        }
+
+        const addTool = d.target.parentElement.querySelector("circle[data-lotgd-type='scene-add']");
+        const delTool = d.target.parentElement.querySelector("circle[data-lotgd-type='scene-delete']");
+        const text = d.target.parentElement.querySelector("text");
+
+        d3.select(circle).transition().duration(100)
+            .attr("fill", "var(--bs-secondary)");
+
+        d3.select(text).transition().duration(100)
+            .style("font-weight", "normal");
+
+        d3.select(addTool)
+            .transition()
+            .duration(50)
+            .attr("transform", `translate(0, 0)`)
+
+        d3.select(delTool)
+            .transition()
+            .duration(50)
+            .attr("transform", `translate(0, 0)`)
     }
 }

@@ -148,7 +148,7 @@ class Scenes
     #[LiveAction]
     public function addScene(
         #[LiveArg]
-        Scene $scene
+        ?Scene $scene
     ): void {
         $this->scene = null;
         $this->parentScene = $scene;
@@ -171,5 +171,33 @@ class Scenes
         Scene $scene,
     ): void {
         $this->scene = $scene;
+    }
+
+    #[LiveAction]
+    public function connectScenes(
+        EntityManagerInterface $entityManager,
+        #[LiveArg]
+        Scene $source,
+        #[LiveArg]
+        Scene $target,
+    ): void {
+        // Early exit if source is same as target
+        if ($source === $target) {
+            return;
+        }
+
+        // Make sure there is no preexisting connection
+        foreach ($source->getConnections() as $connection) {
+            if ($connection->sourceScene === $target || $connection->targetScene === $target) {
+                return;
+            }
+        }
+
+        // Create the connection
+        $connection = $source->connectTo($target);
+
+        // Persist & flush
+        $entityManager->persist($connection);
+        $entityManager->flush();
     }
 }

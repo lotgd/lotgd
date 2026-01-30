@@ -44,7 +44,7 @@ class Scene
     }
 
     /** @var Collection<int, SceneConnection>  */
-    #[ORM\OneToMany(targetEntity: SceneConnection::class, mappedBy: 'sourceScene', cascade: ["persist", "remove"], orphanRemoval: true)]
+    #[ORM\OneToMany(targetEntity: SceneConnection::class, mappedBy: 'sourceScene', cascade: ["persist", "remove"], fetch: "EAGER", orphanRemoval: true)]
     public Collection $sourcedConnections {
         get => $this->sourcedConnections;
 
@@ -57,7 +57,7 @@ class Scene
     }
 
     /** @var Collection<int, SceneConnection>  */
-    #[ORM\OneToMany(targetEntity: SceneConnection::class, mappedBy: 'targetScene', cascade: ["persist", "remove"], orphanRemoval: true)]
+    #[ORM\OneToMany(targetEntity: SceneConnection::class, mappedBy: 'targetScene', cascade: ["persist", "remove"], fetch: "EAGER", orphanRemoval: true)]
     public Collection $targetingConnections {
         get => $this->targetingConnections;
         set(iterable $value) {
