@@ -33,7 +33,7 @@ export default class extends Controller {
 
     render()
     {
-        const width = 928;
+        const width = this.sceneViewTarget.clientWidth;
         const marginTop = 10;
         const marginRight = 10;
         const marginBottom = 10;
