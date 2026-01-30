@@ -17,16 +17,16 @@ use Symfony\UX\TwigComponent\Attribute\ExposeInTemplate;
 
 /**
  * @phpstan-type SceneNode array{
- *      scene: int,
+ *      scene: ?int,
  *      title: string,
  *      children: array<int, array{
- *       scene: int,
+ *       scene: ?int,
  *       title: string,
  *       children: array<int, array{
- *        scene: int,
+ *        scene: ?int,
  *        title: string,
  *        children: array<int, array{
- *          scene: int,
+ *          scene: ?int,
  *          title: string,
  *          children: array<int, array<mixed>>,
  *        }>,

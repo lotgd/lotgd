@@ -27,6 +27,9 @@ class SceneRepository extends ServiceEntityRepository
         ;
     }
 
+    /**
+     * @return Scene[]
+     */
     public function findAllWithConnections(): iterable
     {
         return $this->createQueryBuilder("s")
