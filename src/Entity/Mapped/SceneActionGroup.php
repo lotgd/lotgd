@@ -21,7 +21,10 @@ class SceneActionGroup
     }
 
     /** @var Collection<int, SceneConnection>  */
-    #[ORM\ManyToMany(targetEntity: SceneConnection::class)]
+    #[ORM\ManyToMany(targetEntity: SceneConnection::class, inversedBy: "sceneActionGroup")]
+    #[ORM\JoinTable("scene_action_group_scene_connection")]
+    #[ORM\JoinColumn("scene_action_group_id", referencedColumnName: "id", onDelete: "CASCADE")]
+    #[ORM\InverseJoinColumn("scene_connection_id", referencedColumnName: "id", onDelete: "CASCADE")]
     public Collection $connections {
         get => $this->connections;
         set(iterable $value) {

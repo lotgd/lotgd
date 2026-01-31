@@ -5,6 +5,7 @@ namespace LotGD2\Twig\Component\Admin;
 
 use Doctrine\ORM\EntityManagerInterface;
 use LotGD2\Entity\Mapped\Scene;
+use LotGD2\Entity\Mapped\SceneConnection;
 use LotGD2\Repository\SceneRepository;
 use Symfony\Bridge\Doctrine\Attribute\MapEntity;
 use Symfony\UX\LiveComponent\Attribute\AsLiveComponent;
@@ -17,17 +18,21 @@ use Symfony\UX\TwigComponent\Attribute\ExposeInTemplate;
 
 /**
  * @phpstan-type SceneNode array{
- *      scene: int,
+ *      scene: ?int,
  *      title: string,
+ *      connection?: int,
  *      children: array<int, array{
- *       scene: int,
+ *       scene: ?int,
  *       title: string,
+ *       connection?: int,
  *       children: array<int, array{
- *        scene: int,
+ *        scene: ?int,
  *        title: string,
+ *        connection?: int,
  *        children: array<int, array{
- *          scene: int,
+ *          scene: ?int,
  *          title: string,
+ *          connection?: int,
  *          children: array<int, array<mixed>>,
  *        }>,
  *       }>,
@@ -44,6 +49,9 @@ class Scenes
 
     #[LiveProp]
     public ?Scene $parentScene = null;
+
+    #[LiveProp]
+    public ?SceneConnection $sceneConnection = null;
 
     public function __construct(
         private readonly SceneRepository $sceneRepository,
@@ -126,6 +134,7 @@ class Scenes
             $tree = [
                 "scene" => $connectedScene->id,
                 "title" => $connectedScene->title,
+                "connection" => $connection->id,
                 "children" => isset($sceneList[$connectedScene->id]) ? null : $this->getLeaves($connectedScene, $depth + 1, $sceneList, $scene),
             ];
 
@@ -146,9 +155,17 @@ class Scenes
     }
 
     #[LiveAction]
+    public function editSceneConnection(
+        #[LiveArg]
+        SceneConnection $sceneConnection
+    ): void {
+        $this->sceneConnection = $sceneConnection;
+    }
+
+    #[LiveAction]
     public function addScene(
         #[LiveArg]
-        Scene $scene
+        ?Scene $scene
     ): void {
         $this->scene = null;
         $this->parentScene = $scene;
@@ -171,5 +188,33 @@ class Scenes
         Scene $scene,
     ): void {
         $this->scene = $scene;
+    }
+
+    #[LiveAction]
+    public function connectScenes(
+        EntityManagerInterface $entityManager,
+        #[LiveArg]
+        Scene $source,
+        #[LiveArg]
+        Scene $target,
+    ): void {
+        // Early exit if source is same as target
+        if ($source === $target) {
+            return;
+        }
+
+        // Make sure there is no preexisting connection
+        foreach ($source->getConnections() as $connection) {
+            if ($connection->sourceScene === $target || $connection->targetScene === $target) {
+                return;
+            }
+        }
+
+        // Create the connection
+        $connection = $source->connectTo($target);
+
+        // Persist & flush
+        $entityManager->persist($connection);
+        $entityManager->flush();
     }
 }

@@ -11,6 +11,10 @@ use LotGD2\Entity\Mapped\Scene;
 use LotGD2\Entity\Mapped\SceneActionGroup;
 use LotGD2\Entity\Mapped\SceneConnection;
 use LotGD2\Entity\Mapped\Stage;
+use LotGD2\Game\Character\Equipment;
+use LotGD2\Game\Character\Gold;
+use LotGD2\Game\Character\Health;
+use LotGD2\Game\Character\Stats;
 use LotGD2\Game\ExpressionService;
 use LotGD2\Game\Random\DiceBag;
 use LotGD2\Game\Scene\SceneRenderer;
@@ -32,6 +36,11 @@ use Psr\Log\LoggerInterface;
 #[UsesClass(SceneConnection::class)]
 #[UsesClass(DiceBag::class)]
 #[UsesClass(Action::class)]
+#[UsesClass(Equipment::class)]
+#[UsesClass(Gold::class)]
+#[UsesClass(Health::class)]
+#[UsesClass(Stats::class)]
+#[UsesClass(ExpressionService::class)]
 class SceneRendererTest extends TestCase
 {
     private SceneRenderer $renderer;
