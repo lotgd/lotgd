@@ -23,6 +23,9 @@ class SceneConnection
         get => $this->id;
     }
 
+    /**
+     * @var Collection<int, SceneActionGroup>
+     */
     #[ORM\ManyToMany(targetEntity: SceneActionGroup::class, mappedBy: "connections")]
     private Collection $sceneActionGroup;
 
@@ -121,23 +124,23 @@ class SceneConnection
 
     private function _getTargetActionGroup(): ?SceneActionGroup
     {
-        return $this->sceneActionGroup->findFirst(function (int $key, SceneActionGroup $sceneActionGroup): SceneActionGroup|null {
+        return $this->sceneActionGroup->findFirst(function (int $key, SceneActionGroup $sceneActionGroup): bool {
             if ($sceneActionGroup->scene === $this->targetScene and $sceneActionGroup->connections->contains($this)) {
-                return $sceneActionGroup;
+                return true;
             }
 
-            return null;
+            return false;
         });
     }
 
     private function _getSourceActionGroup(): ?SceneActionGroup
     {
-        return $this->sceneActionGroup->findFirst(function (int $key, SceneActionGroup $sceneActionGroup): SceneActionGroup|null {
+        return $this->sceneActionGroup->findFirst(function (int $key, SceneActionGroup $sceneActionGroup): bool {
             if ($sceneActionGroup->scene === $this->sourceScene and $sceneActionGroup->connections->contains($this)) {
-                return $sceneActionGroup;
+                return true;
             }
 
-            return null;
+            return false;
         });
     }
 }

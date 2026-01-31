@@ -4,7 +4,6 @@ declare(strict_types=1);
 namespace LotGD2\Twig\Component\Admin;
 
 use Doctrine\ORM\EntityManagerInterface;
-use LotGD2\Entity\Mapped\Scene;
 use LotGD2\Entity\Mapped\SceneConnection;
 use LotGD2\Form\Scene\SceneConnectionType;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -54,7 +53,7 @@ class SceneConnectionForm extends AbstractController
     }
 
     /**
-     * @return FormInterface<Scene>
+     * @return FormInterface<SceneConnection>
      */
     protected function instantiateForm(): FormInterface
     {
