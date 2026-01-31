@@ -62,4 +62,10 @@ class SceneConnectionForm extends AbstractController
             "target_action_groups" => $this->sceneConnection->targetScene->actionGroups,
         ]);
     }
+
+    #[LiveAction]
+    public function delete(): void
+    {
+        $this->emitUp("removeConnection", ["sceneConnection" => $this->sceneConnection->id]);
+    }
 }

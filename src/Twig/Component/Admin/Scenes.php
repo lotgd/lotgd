@@ -13,6 +13,7 @@ use Symfony\UX\LiveComponent\Attribute\LiveAction;
 use Symfony\UX\LiveComponent\Attribute\LiveArg;
 use Symfony\UX\LiveComponent\Attribute\LiveListener;
 use Symfony\UX\LiveComponent\Attribute\LiveProp;
+use Symfony\UX\LiveComponent\ComponentToolsTrait;
 use Symfony\UX\LiveComponent\DefaultActionTrait;
 use Symfony\UX\TwigComponent\Attribute\ExposeInTemplate;
 
@@ -188,6 +189,18 @@ class Scenes
         Scene $scene,
     ): void {
         $this->scene = $scene;
+    }
+
+    #[LiveListener('removeConnection')]
+    public function onSceneRemoved(
+        EntityManagerInterface $entityManager,
+        #[LiveArg]
+        SceneConnection $sceneConnection,
+    ): void {
+        $entityManager->remove($sceneConnection);
+        $entityManager->flush();
+
+        $this->sceneConnection = null;
     }
 
     #[LiveAction]
