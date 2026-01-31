@@ -64,7 +64,7 @@ class SceneConnectionForm extends AbstractController
     }
 
     #[LiveAction]
-    public function delete()
+    public function delete(): void
     {
         $this->emitUp("removeConnection", ["sceneConnection" => $this->sceneConnection->id]);
     }
