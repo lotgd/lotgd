@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-namespace LotGD2\Form;
+namespace LotGD2\Form\Scene;
 
 use LotGD2\Entity\Mapped\Scene;
 use Symfony\Component\Form\AbstractType;

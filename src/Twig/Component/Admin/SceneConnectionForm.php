@@ -5,6 +5,8 @@ namespace LotGD2\Twig\Component\Admin;
 
 use Doctrine\ORM\EntityManagerInterface;
 use LotGD2\Entity\Mapped\Scene;
+use LotGD2\Entity\Mapped\SceneConnection;
+use LotGD2\Form\Scene\SceneConnectionType;
 use LotGD2\Form\Scene\SceneType;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Form\FormInterface;
@@ -17,7 +19,7 @@ use Symfony\UX\LiveComponent\DefaultActionTrait;
 use Symfony\UX\LiveComponent\LiveCollectionTrait;
 
 #[AsLiveComponent]
-class SceneForm extends AbstractController
+class SceneConnectionForm extends AbstractController
 {
     use DefaultActionTrait;
     use ComponentWithFormTrait;
@@ -27,11 +29,8 @@ class SceneForm extends AbstractController
     #[LiveProp]
     public ?string $key;
 
-    #[LiveProp(fieldName: "somethingElse")]
-    public ?Scene $scene = null;
-
     #[LiveProp(updateFromParent: true)]
-    public ?Scene $parentScene = null;
+    public SceneConnection $sceneConnection;
 
     #[LiveProp]
     public ?bool $saved = null;
@@ -47,22 +46,15 @@ class SceneForm extends AbstractController
     ): void {
         $this->submitForm();
 
-        $scene = $this->getForm()->getData();
+        $sceneConnection = $this->getForm()->getData();
 
-        $sceneId = $scene->id;
+        $sourceActionGroup = $this->getForm()->get("sourceActionGroup")->getData();
+        $targetActionGroup = $this->getForm()->get("targetActionGroup")->getData();
 
-        // If there is a parent scene, we'll persist it.
-        if ($this->parentScene) {
-            $this->parentScene->connectTo($scene);
-        }
+        // Unfinished
 
-        $entityManager->persist($scene);
+        $entityManager->persist($sceneConnection);
         $entityManager->flush();
-
-        if (!$sceneId) {
-            $this->resetForm();
-            $this->emitUp("sceneAdded", ["scene" => $scene->id]);
-        }
 
         $this->saved = true;
     }
@@ -72,6 +64,9 @@ class SceneForm extends AbstractController
      */
     protected function instantiateForm(): FormInterface
     {
-        return $this->createForm(SceneType::class, $this->scene);
+        return $this->createForm(SceneConnectionType::class, $this->sceneConnection, options: [
+            "source_action_groups" => $this->sceneConnection->sourceScene->actionGroups,
+            "target_action_groups" => $this->sceneConnection->targetScene->actionGroups,
+        ]);
     }
 }
