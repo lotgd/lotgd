@@ -1,0 +1,15 @@
+{% block grouped_form_row %}
+<div class="mb-3">
+    <div class="mb-3">
+        <h2 class="h6 text-body-emphasis">{{ form_label(form) }}</h2>
+        {{ form_help(form) }}
+        {{ form_errors(form) }}
+    </div>
+
+    <div class="border-start border-5 ps-3">
+        {% for child in form.children|filter(child => not child.rendered) %}
+            {{ form_row(child) }}
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
