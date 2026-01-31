@@ -307,6 +307,8 @@ export default class extends Controller {
         this.component.action('editSceneConnection', {
             "sceneConnection": connectionId
         }).then(() => this.sceneConnectionModal.show());
+
+        window.addEventListener('modal:close', () => this.sceneConnectionModal.hide());
     }
 
     onLinkHoverStart(event, data) {
