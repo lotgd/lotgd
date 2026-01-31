@@ -3,11 +3,15 @@ declare(strict_types=1);
 
 namespace LotGD2\Entity\Mapped;
 
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
+use Doctrine\Common\Collections\Criteria;
 use Doctrine\ORM\Mapping as ORM;
 use LotGD2\Game\Enum\SceneConnectionType;
 use LotGD2\Repository\SceneConnectionRepository;
 use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Component\Validator\Constraints\Length;
+use ValueError;
 
 #[ORM\Entity(repositoryClass: SceneConnectionRepository::class)]
 class SceneConnection
@@ -17,6 +21,53 @@ class SceneConnection
     #[ORM\Column]
     public ?int $id = null {
         get => $this->id;
+    }
+
+    #[ORM\ManyToMany(targetEntity: SceneActionGroup::class, mappedBy: "connections")]
+    private Collection $sceneActionGroup;
+
+    public ?SceneActionGroup $sourceActionGroup {
+        get => $this->_getSourceActionGroup();
+
+        set(?SceneActionGroup $value) {
+            // No matter what $value is, we need to remote the existing reference to this connection
+            $this->_getSourceActionGroup()?->removeConnection($this);
+
+            if (is_null($value)) {
+                // Value is none, our job is done.
+                return;
+            }
+
+            if ($value->scene !== $this->sourceScene) {
+                // Make sure we don't just set any scene connection
+                throw new ValueError("The SceneActionGroup must belong to the same scene as this connection's source scene.");
+            }
+
+            // Add this connection to the new action group
+            $value->addConnection($this);
+        }
+    }
+
+    public ?SceneActionGroup $targetActionGroup {
+        get => $this->_getTargetActionGroup();
+
+        set(?SceneActionGroup $value) {
+            // No matter what $value is, we need to remote the existing reference to this connection
+            $this->_getTargetActionGroup()?->removeConnection($this);
+
+            if (is_null($value)) {
+                // Value is none, our job is done.
+                return;
+            }
+
+            if ($value->scene !== $this->targetScene) {
+                // Make sure we don't just set any scene connection
+                throw new ValueError("The SceneActionGroup must belong to the same scene as this connection's target scene.");
+            }
+
+            // Add this connection to the new action group
+            $value->addConnection($this);
+        }
     }
 
     public function __construct(
@@ -65,6 +116,28 @@ class SceneConnection
             }
         },
     ) {
+        $this->sceneActionGroup = new ArrayCollection();
+    }
 
+    private function _getTargetActionGroup(): ?SceneActionGroup
+    {
+        return $this->sceneActionGroup->findFirst(function (int $key, SceneActionGroup $sceneActionGroup): SceneActionGroup|null {
+            if ($sceneActionGroup->scene === $this->targetScene and $sceneActionGroup->connections->contains($this)) {
+                return $sceneActionGroup;
+            }
+
+            return null;
+        });
+    }
+
+    private function _getSourceActionGroup(): ?SceneActionGroup
+    {
+        return $this->sceneActionGroup->findFirst(function (int $key, SceneActionGroup $sceneActionGroup): SceneActionGroup|null {
+            if ($sceneActionGroup->scene === $this->sourceScene and $sceneActionGroup->connections->contains($this)) {
+                return $sceneActionGroup;
+            }
+
+            return null;
+        });
     }
 }

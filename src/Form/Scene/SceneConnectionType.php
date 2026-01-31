@@ -29,7 +29,6 @@ class SceneConnectionType extends AbstractType
                 "choice_label" => "title",
             ])
             ->add("sourceActionGroup", EntityType::class, options: [
-                "mapped" => false,
                 "class" => SceneActionGroup::class,
                 "choice_label" => "title",
                 "choices" => $options["source_action_groups"],
@@ -45,7 +44,6 @@ class SceneConnectionType extends AbstractType
                 "choice_label" => "title",
             ])
             ->add("targetActionGroup", EntityType::class, options: [
-                "mapped" => false,
                 "class" => SceneActionGroup::class,
                 "choice_label" => "title",
                 "choices" => $options["target_action_groups"],

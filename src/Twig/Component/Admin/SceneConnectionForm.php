@@ -7,7 +7,6 @@ use Doctrine\ORM\EntityManagerInterface;
 use LotGD2\Entity\Mapped\Scene;
 use LotGD2\Entity\Mapped\SceneConnection;
 use LotGD2\Form\Scene\SceneConnectionType;
-use LotGD2\Form\Scene\SceneType;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Form\FormInterface;
 use Symfony\UX\LiveComponent\Attribute\AsLiveComponent;
@@ -47,11 +46,6 @@ class SceneConnectionForm extends AbstractController
         $this->submitForm();
 
         $sceneConnection = $this->getForm()->getData();
-
-        $sourceActionGroup = $this->getForm()->get("sourceActionGroup")->getData();
-        $targetActionGroup = $this->getForm()->get("targetActionGroup")->getData();
-
-        // Unfinished
 
         $entityManager->persist($sceneConnection);
         $entityManager->flush();
