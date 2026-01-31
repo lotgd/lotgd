@@ -5,6 +5,7 @@ namespace LotGD2\Twig\Component\Admin;
 
 use Doctrine\ORM\EntityManagerInterface;
 use LotGD2\Entity\Mapped\Scene;
+use LotGD2\Entity\Mapped\SceneConnection;
 use LotGD2\Repository\SceneRepository;
 use Symfony\Bridge\Doctrine\Attribute\MapEntity;
 use Symfony\UX\LiveComponent\Attribute\AsLiveComponent;
@@ -19,15 +20,19 @@ use Symfony\UX\TwigComponent\Attribute\ExposeInTemplate;
  * @phpstan-type SceneNode array{
  *      scene: ?int,
  *      title: string,
+ *      connection?: int,
  *      children: array<int, array{
  *       scene: ?int,
  *       title: string,
+ *       connection?: int,
  *       children: array<int, array{
  *        scene: ?int,
  *        title: string,
+ *        connection?: int,
  *        children: array<int, array{
  *          scene: ?int,
  *          title: string,
+ *          connection?: int,
  *          children: array<int, array<mixed>>,
  *        }>,
  *       }>,
@@ -44,6 +49,9 @@ class Scenes
 
     #[LiveProp]
     public ?Scene $parentScene = null;
+
+    #[LiveProp]
+    public ?SceneConnection $sceneConnection = null;
 
     public function __construct(
         private readonly SceneRepository $sceneRepository,
@@ -126,6 +134,7 @@ class Scenes
             $tree = [
                 "scene" => $connectedScene->id,
                 "title" => $connectedScene->title,
+                "connection" => $connection->id,
                 "children" => isset($sceneList[$connectedScene->id]) ? null : $this->getLeaves($connectedScene, $depth + 1, $sceneList, $scene),
             ];
 
@@ -143,6 +152,14 @@ class Scenes
     ): void {
         $this->scene = $scene;
         $this->parentScene = null;
+    }
+
+    #[LiveAction]
+    public function editSceneConnection(
+        #[LiveArg]
+        SceneConnection $sceneConnection
+    ): void {
+        $this->sceneConnection = $sceneConnection;
     }
 
     #[LiveAction]

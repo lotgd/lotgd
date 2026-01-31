@@ -11,7 +11,7 @@ export default class extends Controller {
     };
 
     static targets = [
-        "sceneView", "modal"
+        "sceneView", "modal", "sceneConnectionModal",
     ]
 
     _currentDraggedNode = null;
@@ -24,6 +24,7 @@ export default class extends Controller {
         this.component.on('render:finished', this.render.bind(this));
 
         this.modal = new Modal(this.modalTarget);
+        this.sceneConnectionModal = new Modal(this.sceneConnectionModalTarget);
     }
 
     connect()
@@ -87,8 +88,7 @@ export default class extends Controller {
             .attr("stroke-width", 1.5);
     }
 
-    createNode(root, group)
-    {
+    createNode(root, group) {
         const node = group.append("g")
             .attr("stroke-linejoin", "round")
             .attr("stroke-width", 3)
@@ -142,8 +142,7 @@ export default class extends Controller {
         return node;
     }
 
-    createLink(root, outerGroup)
-    {
+    createLink(root, outerGroup) {
         const links = outerGroup.append("g")
             .attr("fill", "none")
             .attr("stroke", "#555")
@@ -158,26 +157,26 @@ export default class extends Controller {
             )
         ;
 
+        links.on("mouseover", this.onLinkHoverStart.bind(this));
+        links.on("mouseout", this.onLinkHoverEnd.bind(this));
+        links.on("click", this.onLinkClick.bind(this));
+
         return links;
     }
 
-    onNodeClick(event, data)
-    {
+    onNodeClick(event, data) {
         this.component.action('showForm', {"scene": data.data.scene}).then(() => this.modal.show());
     }
 
-    onNodeDelClick(event, data)
-    {
+    onNodeDelClick(event, data) {
         this.component.action('removeScene', {"scene": data.data.scene});
     }
 
-    onNodeAddClick(event, data)
-    {
+    onNodeAddClick(event, data) {
         this.component.action('addScene', {"scene": data.data.scene}).then(() => this.modal.show());
     }
 
-    onNodeDragStart(event, data)
-    {
+    onNodeDragStart(event, data) {
         // No dragging event allowed if the node has no id
         if (data.data.scene === null) {
             return;
@@ -195,8 +194,7 @@ export default class extends Controller {
             .attr("d", line);
     }
 
-    onNodeDragMove(event, data)
-    {
+    onNodeDragMove(event, data) {
         let line = d3.path();
         line.moveTo(0, 0);
         line.lineTo(event.x - this._currentDragPath.x, event.y - this._currentDragPath.y);
@@ -205,17 +203,24 @@ export default class extends Controller {
             .attr("d", line);
     }
 
-    onNodeDragEnd(event, data)
-    {
+    onNodeDragEnd(event, data) {
         if (data.data.scene === null) {
             return;
         }
 
-        let source = this._currentDraggedNode.data.scene;
-        let target = this._currentDroppedNode.data.scene;
+        let source;
+        let target;
+
+        try {
+            source = this._currentDraggedNode.data.scene;
+            target = this._currentDroppedNode.data.scene;
+        } catch (e) {
+            source = null;
+            target = null;
+        }
 
         // Make sure we don't change anything and create a self-connecting node
-        if (source !== target) {
+        if (source !== null && target !== null && source !== target) {
             // Call the connection action
             this.component.action('connectScenes', {
                 "source": this._currentDraggedNode.data.scene,
@@ -227,10 +232,11 @@ export default class extends Controller {
         this._currentDraggedNode = null;
         this._currentDroppedNode = null;
         this._currentDragPath = null;
+
+        this.utility.select("path").remove();
     }
 
-    onHoverStart(event, data)
-    {
+    onHoverStart(event, data) {
         const circle = event.target.parentElement.querySelector("circle[data-lotgd-type='scene']");
 
         if (data.data.scene !== null) {
@@ -262,8 +268,7 @@ export default class extends Controller {
         }
     }
 
-    onHoverEnd(d, e)
-    {
+    onHoverEnd(d, e) {
         // If we leave a dot, we want to forget that dot.
         this._currentDroppedNode = null;
 
@@ -294,5 +299,39 @@ export default class extends Controller {
             .transition()
             .duration(50)
             .attr("transform", `translate(0, 0)`)
+    }
+
+    onLinkClick(event, data) {
+        let connectionId = data.target.data.connection ?? null;
+
+        this.component.action('editSceneConnection', {
+            "sceneConnection": connectionId
+        }).then(() => this.sceneConnectionModal.show());
+    }
+
+    onLinkHoverStart(event, data) {
+        let connectionId = data.target.data.connection ?? null;
+
+        if (connectionId === null) {
+            return;
+        }
+
+        const path = event.target;
+
+        d3.select(path).transition().duration(10)
+            .attr("stroke-opacity", 1.0)
+            .attr("stroke-width", 5)
+            .attr("stroke", "#000")
+        ;
+    }
+
+    onLinkHoverEnd(event, data) {
+        const path = event.target;
+
+        d3.select(path).transition().duration(200)
+            .attr("stroke-opacity", null)
+            .attr("stroke-width", null)
+            .attr("stroke", null)
+        ;
     }
 }
