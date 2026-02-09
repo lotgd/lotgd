@@ -3,10 +3,12 @@ declare(strict_types=1);
 
 namespace LotGD2\Game\Scene\SceneTemplate;
 
+use LotGD2\Attribute\TemplateType;
 use LotGD2\Entity\Action;
 use LotGD2\Entity\Mapped\Character;
 use LotGD2\Entity\Mapped\Scene;
 use LotGD2\Entity\Mapped\Stage;
+use LotGD2\Form\Scene\SceneTemplate\BankTemplateType;
 use LotGD2\Game\Character\Gold;
 use LotGD2\Game\Scene\SceneAttachment\SimpleFormAttachment;
 use LotGD2\Game\Stage\ActionService;
@@ -29,6 +31,7 @@ use Symfony\Component\OptionsResolver\OptionsResolver;
  * @implements SceneTemplateInterface<BankTemplateConfiguration>
  */
 #[Autoconfigure(public: true)]
+#[TemplateType(BankTemplateType::class)]
 readonly class BankTemplate implements SceneTemplateInterface
 {
     use DefaultSceneTemplate;
@@ -39,36 +42,6 @@ readonly class BankTemplate implements SceneTemplateInterface
         private AttachmentRepository $attachmentRepository,
         private ActionService $actionService,
     ) {
-    }
-
-    public static function validateConfiguration(array $config): array
-    {
-        $resolver = new OptionsResolver();
-        $resolver
-            ->define("tellerName")
-            ->required()
-            ->allowedTypes("string")
-            ->default("Elessa");
-
-        $resolver
-            ->define("accountName")
-            ->required()
-            ->allowedTypes("string")
-            ->default("default");
-
-        $resolver->setOptions("text", function (OptionsResolver $resolver): void {
-            $resolver
-                ->define("deposit")
-                ->required()
-                ->allowedTypes('string');
-
-            $resolver
-                ->define("withdraw")
-                ->required()
-                ->allowedTypes('string');
-        });
-
-        return $resolver->resolve($config);
     }
 
     public function onSceneChange(Stage $stage, Action $action, Scene $scene): void

@@ -22,8 +22,4 @@ trait DefaultSceneTemplate
     public function onSceneChange(Stage $stage, Action $action, Scene $scene): void
     {
     }
-
-    public static function validateConfiguration(array $config): array {
-        return $config;
-    }
 }

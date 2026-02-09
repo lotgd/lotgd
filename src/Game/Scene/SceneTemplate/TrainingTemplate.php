@@ -3,12 +3,14 @@ declare(strict_types=1);
 
 namespace LotGD2\Game\Scene\SceneTemplate;
 
+use LotGD2\Attribute\TemplateType;
 use LotGD2\Entity\Action;
 use LotGD2\Entity\ActionGroup;
 use LotGD2\Entity\Battle\BattleState;
 use LotGD2\Entity\Mapped\Character;
 use LotGD2\Entity\Mapped\Scene;
 use LotGD2\Entity\Mapped\Stage;
+use LotGD2\Form\Scene\SceneTemplate\TrainingTemplateType;
 use LotGD2\Game\Battle\Battle;
 use LotGD2\Game\Character\Equipment;
 use LotGD2\Game\Character\Gold;
@@ -16,7 +18,6 @@ use LotGD2\Game\Character\Health;
 use LotGD2\Game\Character\Stats;
 use LotGD2\Game\Random\DiceBagInterface;
 use LotGD2\Game\Scene\SceneAttachment\BattleAttachment;
-use LotGD2\Game\Stage\ActionService;
 use LotGD2\Repository\AttachmentRepository;
 use LotGD2\Repository\MasterRepository;
 use Psr\Log\LoggerInterface;
@@ -37,6 +38,7 @@ use Symfony\Component\OptionsResolver\OptionsResolver;
  * @implements SceneTemplateInterface<TrainingTemplateConfiguration>
  */
 #[Autoconfigure(public: true)]
+#[TemplateType(TrainingTemplateType::class)]
 readonly class TrainingTemplate implements SceneTemplateInterface
 {
     use DefaultSceneTemplate;
@@ -58,37 +60,6 @@ readonly class TrainingTemplate implements SceneTemplateInterface
         private Health $health,
         private Gold $gold, // @phpstan-ignore property.onlyWritten
     ) {
-    }
-
-    public static function validateConfiguration(array $config): array
-    {
-        $resolver = new OptionsResolver();
-
-        $resolver->define("campLeader")->allowedTypes("string")->default("Bluspring");
-
-        $resolver->setOptions("text", function (OptionsResolver $resolver): void {
-            $resolver
-                ->define("maxLevelReached")
-                ->required()
-                ->allowedTypes('string');
-
-            $resolver
-                ->define("askExperience")
-                ->required()
-                ->allowedTypes('string');
-
-            $resolver
-                ->define("seenMaster")
-                ->required()
-                ->allowedTypes('string');
-
-            $resolver
-                ->define("absoluteDefeat")
-                ->required()
-                ->allowedTypes('string');
-        });
-
-        return $resolver->resolve($config);
     }
 
     public function onSceneChange(Stage $stage, Action $action, Scene $scene): void

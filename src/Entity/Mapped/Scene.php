@@ -100,11 +100,7 @@ class Scene
         public ?array $templateConfig = [] {
             get => $this->templateConfig;
             set {
-                if ($this->templateClass and is_subclass_of($this->templateClass, SceneTemplateInterface::class, true)) {
-                    $this->templateConfig = $this->templateClass::validateConfiguration($value);
-                } else {
-                    $this->templateConfig = $value;
-                }
+                $this->templateConfig = $value;
             }
         },
 
