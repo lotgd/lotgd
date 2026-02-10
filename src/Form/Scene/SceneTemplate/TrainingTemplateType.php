@@ -118,6 +118,8 @@ class TrainingTemplateType extends AbstractType implements TypeProvidesDefaultDa
     public function configureOptions(OptionsResolver $resolver): void
     {
         $resolver->setDefault("inherit_data", false);
+        $resolver->setDefault("help", "The training template provides the facility to challenge masters
+        in order to increase levels.");
     }
 
     public function getParent(): string

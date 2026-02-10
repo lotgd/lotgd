@@ -22,26 +22,12 @@ use Symfony\Component\Validator\Constraints\Valid;
  */
 class BankTemplateType extends AbstractType implements TypeProvidesDefaultDataInterface
 {
-    public function getDefaultData(): array
+    public function configureOptions(OptionsResolver $resolver): void
     {
-        return [
-            "tellerName" => "Elessa",
-            "accountName" => "default",
-            "text" => [
-                "deposit" => <<<TXT
-                    {{ tellerName }} records your deposit of {{ amount }} gold in her ledger.
-                    {% if goldinbank < 0 %} 
-                         <<Thank you, {{ character.name }}. You now have a debt of {{ goldInBank|abs }} gold to the bank and {{ goldInHand }} gold in hand.>>
-                    {% else %}
-                         <<Thank you, {{ character.name }}. You now have a balance of {{ goldInBank }} gold in the bank and {{ goldInHand }} gold in hand.>>
-                    {% endif %}
-                    TXT,
-                "withdraw" => <<<TXT
-                    {{ tellerName }} records your withdrawal of {{ amount }} gold in her ledger.
-                    <<Thank you, {{ character.name }}. You now have a balance of {{ goldInBank }} gold in the bank and {{ goldInHand }} gold in hand.>>
-                    TXT,
-            ],
-        ];
+        $resolver->setDefault("inherit_data", false);
+        $resolver->setDefault("help", "The bank template gives a player the opportunity to store money
+        on a bank account. As all gold is lost after dying, the bank offers a possibility to savely store it away.
+        Depending on the settings of the template, each bank gives access to the same, or to a different bank account.");
     }
 
     public function buildForm(FormBuilderInterface $builder, array $options): void
@@ -93,13 +79,31 @@ class BankTemplateType extends AbstractType implements TypeProvidesDefaultDataIn
         ;
     }
 
-    public function configureOptions(OptionsResolver $resolver): void
-    {
-        $resolver->setDefault("inherit_data", false);
-    }
-
     public function getParent(): string
     {
         return GroupedFormType::class;
     }
+
+    public function getDefaultData(): array
+    {
+        return [
+            "tellerName" => "Elessa",
+            "accountName" => "default",
+            "text" => [
+                "deposit" => <<<TXT
+                    {{ tellerName }} records your deposit of {{ amount }} gold in her ledger.
+                    {% if goldinbank < 0 %} 
+                         <<Thank you, {{ character.name }}. You now have a debt of {{ goldInBank|abs }} gold to the bank and {{ goldInHand }} gold in hand.>>
+                    {% else %}
+                         <<Thank you, {{ character.name }}. You now have a balance of {{ goldInBank }} gold in the bank and {{ goldInHand }} gold in hand.>>
+                    {% endif %}
+                    TXT,
+                "withdraw" => <<<TXT
+                    {{ tellerName }} records your withdrawal of {{ amount }} gold in her ledger.
+                    <<Thank you, {{ character.name }}. You now have a balance of {{ goldInBank }} gold in the bank and {{ goldInHand }} gold in hand.>>
+                    TXT,
+            ],
+        ];
+    }
+
 }

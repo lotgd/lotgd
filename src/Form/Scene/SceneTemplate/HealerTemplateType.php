@@ -11,6 +11,7 @@ use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
 use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
+use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Validator\Constraints\NotBlank;
 use Symfony\Component\Validator\Constraints\Valid;
 
@@ -21,6 +22,13 @@ use Symfony\Component\Validator\Constraints\Valid;
  */
 class HealerTemplateType extends AbstractType implements TypeProvidesDefaultDataInterface
 {
+    public function configureOptions(OptionsResolver $resolver): void
+    {
+        $resolver->setDefault("inherit_data", false);
+        $resolver->setDefault("help", "The healer template provides functionality of a healer: Filling up 
+        hit points against gold. On level 1, the healing is usually to not have users stuck after dying repeatedly.");
+    }
+
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         $defaultData = $this->getDefaultData();
@@ -43,7 +51,7 @@ class HealerTemplateType extends AbstractType implements TypeProvidesDefaultData
             ->add($builder
                 ->create("text", GroupedFormType::class, [
                     "required" => false,
-                    "help" => "Common elements are price, ",
+                    "help" => "Common element is price.",
                     "inherit_data" => true,
                     "constraints" => [
                         new Valid(),
@@ -79,7 +87,7 @@ class HealerTemplateType extends AbstractType implements TypeProvidesDefaultData
                 ->add("onHealEnoughGold", TextareaType::class, [
                     "required" => true,
                     "label" => "Text on successfully buying a potion",
-                    "help" => "Text that gets displayed when a potion is bought with enough gold.",
+                    "help" => "Text that gets displayed when a potion is bought with enough gold. Besides price, amount is also available.",
                     "constraints" => [
                         new NotBlank(),
                     ],
@@ -96,6 +104,11 @@ class HealerTemplateType extends AbstractType implements TypeProvidesDefaultData
                 ])
             )
         ;
+    }
+
+    public function getParent(): string
+    {
+        return GroupedFormType::class;
     }
 
     public function getDefaultData(): array

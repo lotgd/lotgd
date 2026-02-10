@@ -3,10 +3,12 @@ declare(strict_types=1);
 
 namespace LotGD2\Game\Scene\SceneTemplate;
 
+use LotGD2\Attribute\TemplateType;
 use LotGD2\Entity\Action;
 use LotGD2\Entity\ActionGroup;
 use LotGD2\Entity\Mapped\Scene;
 use LotGD2\Entity\Mapped\Stage;
+use LotGD2\Form\Scene\SceneTemplate\FightTemplateType;
 use LotGD2\Game\Battle\Battle;
 use LotGD2\Game\Character\Gold;
 use LotGD2\Game\Character\Health;
@@ -29,6 +31,7 @@ use Symfony\Component\OptionsResolver\OptionsResolver;
  * @implements SceneTemplateInterface<FightTemplateConfiguration>
  */
 #[Autoconfigure(public: true)]
+#[TemplateType(FightTemplateType::class)]
 readonly class FightTemplate implements SceneTemplateInterface
 {
     use DefaultSceneTemplate;
@@ -48,30 +51,6 @@ readonly class FightTemplate implements SceneTemplateInterface
         private Stats $stats,
         private Gold $gold,
     ) {
-    }
-
-    public static function validateConfiguration(array $config): array
-    {
-        $resolver = new OptionsResolver();
-        $resolver
-            ->define("searchFightAction")
-            ->required()
-            ->allowedTypes("string")
-            ->default("Search for a fight");
-
-        $resolver
-            ->define("searchSlummingAction")
-            ->required()
-            ->allowedTypes("string")
-            ->default("Go Slumming");
-
-        $resolver
-            ->define("searchThrillseekingAction")
-            ->required()
-            ->allowedTypes("string")
-            ->default("Go Thrillseeking");
-
-        return $resolver->resolve($config);
     }
 
     public function onSceneChange(Stage $stage, Action $action, Scene $scene): void

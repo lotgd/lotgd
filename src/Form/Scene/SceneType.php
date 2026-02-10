@@ -6,7 +6,10 @@ namespace LotGD2\Form\Scene;
 use LotGD2\Attribute\TemplateType;
 use LotGD2\Entity\Mapped\Scene;
 use LotGD2\Game\Scene\SceneTemplate\BankTemplate;
+use LotGD2\Game\Scene\SceneTemplate\DragonTemplate;
+use LotGD2\Game\Scene\SceneTemplate\FightTemplate;
 use LotGD2\Game\Scene\SceneTemplate\HealerTemplate;
+use LotGD2\Game\Scene\SceneTemplate\SimpleShopTemplate;
 use LotGD2\Game\Scene\SceneTemplate\TrainingTemplate;
 use LotGD2\Service\SceneTemplateTypeFinder;
 use Symfony\Component\Form\AbstractType;
@@ -41,15 +44,18 @@ class SceneType extends AbstractType
             ])
             ->add("templateClass", ChoiceType::class, [
                 "choices" => [
-                    "Bank Template" => BankTemplate::class,
-                    "Training Template" => TrainingTemplate::class,
-                    "Healer Template" => HealerTemplate::class,
+                    "Bank" => BankTemplate::class,
+                    "Training Camp" => TrainingTemplate::class,
+                    "Healer's Hut" => HealerTemplate::class,
+                    "Dragon's Cave" => DragonTemplate::class,
+                    "Search for Fights" => FightTemplate::class,
+                    "Simple Shop" => SimpleShopTemplate::class,
                 ],
                 "required" => false,
             ])
         ;
 
-        $builder->addEventListener(FormEvents::POST_SET_DATA, [$this, 'onPostSetData']);
+        $builder->addEventListener(FormEvents::PRE_SET_DATA, [$this, 'onPreSetData']);
         $builder->addEventListener(FormEvents::PRE_SUBMIT, [$this, 'onPreSubmit']);
     }
 
@@ -62,7 +68,7 @@ class SceneType extends AbstractType
      * @param FormEvent $event
      * @return void
      */
-    public function onPostSetData(FormEvent $event): void
+    public function onPreSetData(FormEvent $event): void
     {
         /** @var Scene $scene */
         $scene = $event->getData();
@@ -80,7 +86,7 @@ class SceneType extends AbstractType
             }
         } else {
             $scene->templateConfig = [];
-            $form->setData($scene);
+            $event->setData($scene);
         }
     }
 
@@ -109,7 +115,7 @@ class SceneType extends AbstractType
         } else {
             $form->remove("templateConfig");
             $scene["templateConfig"] = [];
-            $form->setData($scene);
+            $event->setData($scene);
         }
     }
 }

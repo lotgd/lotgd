@@ -8,6 +8,8 @@ use Doctrine\Persistence\ObjectManager;
 use LotGD2\Entity\Mapped\Scene;
 use LotGD2\Entity\Mapped\SceneActionGroup;
 use LotGD2\Form\Scene\SceneTemplate\BankTemplateType;
+use LotGD2\Form\Scene\SceneTemplate\DragonTemplateType;
+use LotGD2\Form\Scene\SceneTemplate\FightTemplateType;
 use LotGD2\Form\Scene\SceneTemplate\HealerTemplateType;
 use LotGD2\Form\Scene\SceneTemplate\TrainingTemplateType;
 use LotGD2\Game\Scene\SceneTemplate\BankTemplate;
@@ -59,9 +61,7 @@ class SceneFixtures extends Fixture
                     bleached, brittle bones that scatter the floor. You are trying to hide your presence from the things living here.
                     TXT,
                 templateClass: FightTemplate::class,
-                templateConfig: [
-
-                ],
+                templateConfig: new FightTemplateType()->getDefaultData(),
                 actionGroups: [
                     new SceneActionGroup(
                         title: "Edge of the forest",
@@ -287,6 +287,7 @@ class SceneFixtures extends Fixture
                     What do you do?
                 TXT,
                 templateClass: DragonTemplate::class,
+                templateConfig: new DragonTemplateType()->getDefaultData(),
             )
         ];
 
