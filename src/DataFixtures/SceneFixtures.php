@@ -7,6 +7,11 @@ use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Persistence\ObjectManager;
 use LotGD2\Entity\Mapped\Scene;
 use LotGD2\Entity\Mapped\SceneActionGroup;
+use LotGD2\Form\Scene\SceneTemplate\BankTemplateType;
+use LotGD2\Form\Scene\SceneTemplate\DragonTemplateType;
+use LotGD2\Form\Scene\SceneTemplate\FightTemplateType;
+use LotGD2\Form\Scene\SceneTemplate\HealerTemplateType;
+use LotGD2\Form\Scene\SceneTemplate\TrainingTemplateType;
 use LotGD2\Game\Scene\SceneTemplate\BankTemplate;
 use LotGD2\Game\Scene\SceneTemplate\DragonTemplate;
 use LotGD2\Game\Scene\SceneTemplate\FightTemplate;
@@ -56,9 +61,7 @@ class SceneFixtures extends Fixture
                     bleached, brittle bones that scatter the floor. You are trying to hide your presence from the things living here.
                     TXT,
                 templateClass: FightTemplate::class,
-                templateConfig: [
-
-                ],
+                templateConfig: new FightTemplateType()->getDefaultData(),
                 actionGroups: [
                     new SceneActionGroup(
                         title: "Edge of the forest",
@@ -78,51 +81,7 @@ class SceneFixtures extends Fixture
                     notice them until now. Couldn't be your failure as a warrior. Nope, definitely not.
                 TXT,
                 templateClass: HealerTemplate::class,
-                templateConfig: [
-                    "stealHealth" => true,
-                    "text" => [
-                        "onEntryAndDamaged" => <<<TXT
-                            <<See you, I do.  Before you did see me, I think, hmm?>> the old thing remarks. <<Know you, I do; healing you seek. 
-                            Willing to heal am I, but only if willing to pay are you.>>
-
-                            <<Uh, um.  How much?>> you ask, ready to be rid of the smelly old thing.
-
-                            The old being thumps your ribs with a gnarly staff.  <<For you... {{ price }} gold pieces for a complete heal!!>> it says 
-                            as it bends over and pulls a clay vial from behind a pile of skulls sitting in the corner. The view of the thing bending 
-                            over to remove the vial almost does enough mental damage to require a larger potion. <<I also have some, erm... <.bargain.> 
-                            potions available>> it says as it gestures at a pile of dusty, cracked vials. They'll heal a certain percent of your damage.
-                        TXT,
-                        "onEntryAndOverhealed" => <<<TXT
-                            The old creature glances at you, then in a whirlwind of movement that catches you completely off guard, brings its gnarled 
-                            staff squarely in contact with the back of your head. You gasp as you collapse to the ground.
-                            
-                            Slowly you open your eyes and realize the beast is emptying the last drops of a clay vial down your throat.
-                            
-                            <<No charge for that potion.>> is all it has to say. You feel a strong urge to leave as quickly as you can.
-                        TXT,
-                        "onEntryAndHealthy" => <<<TXT
-                            The old creature grunts as it looks your way. <<Need a potion, you do not.  Wonder why you bother me, I do.>> says the hideous 
-                            thing. The aroma of its breath makes you wish you hadn't come in here in the first place. You think you had best leave.
-                        TXT,
-                        "onHealEnoughGold" => <<<TXT
-                            {% if price > 0 %}
-                                With a grimace, you up-end the potion the creature hands you, and despite the foul flavor, you feel a warmth spreading through 
-                                your veins as your muscles knit back together. Staggering some, you hand it {{ price }} gold and are ready to be out of here.
-                            {% else %}
-                                With a grimace, you up-end the potion the creature hands you, and despite the foul flavor, you feel a warmth spreading through 
-                                your veins. Staggering some you are ready to be out of here.
-                            {% endif %}
-                            
-                            You have been healed for {{ amount }} points!
-                        TXT,
-                        "onHealNotEnoughGold" => <<<TXT
-                            The old creature pierces you with a gaze hard and cruel. Your lightning quick reflexes enable you to dodge the blow from its 
-                            gnarled staff. Perhaps you should get some more money before you attempt to engage in local commerce.
-                            
-                            You recall that the creature had asked for {{ price }} gold.
-                        TXT,
-                    ]
-                ]
+                templateConfig: new HealerTemplateType()->getDefaultData(),
             ),
             "weapons" => new Scene(
                 title: "MightyE's weapon shop",
@@ -296,24 +255,7 @@ class SceneFixtures extends Fixture
                     {% endif %}
                     TXT,
                 templateClass: BankTemplate::class,
-                templateConfig: [
-                    "tellerName" => "Elessa",
-                    "accountName" => "default",
-                    "text" => [
-                        "withdraw" => <<<TXT
-                            {{ tellerName }} records your withdrawal of {{ amount }} gold in her ledger.
-                            <<Thank you, {{ character.name }}. You now have a balance of {{ goldInBank }} gold in the bank and {{ goldInHand }} gold in hand.>>
-                            TXT,
-                        "deposit" => <<<TXT
-                            {{ tellerName }} records your deposit of {{ amount }} gold in her ledger.
-                            {% if goldinbank < 0 %} 
-                                 <<Thank you, {{ character.name }}. You now have a debt of {{ goldInBank|abs }} gold to the bank and {{ goldInHand }} gold in hand.>>
-                            {% else %}
-                                 <<Thank you, {{ character.name }}. You now have a balance of {{ goldInBank }} gold in the bank and {{ goldInHand }} gold in hand.>>
-                            {% endif %}
-                            TXT,
-                    ]
-                ]
+                templateConfig: new BankTemplateType()->getDefaultData(),
             ),
             "training" => new Scene(
                 title: "Bluspring's Warrior Training",
@@ -322,39 +264,7 @@ class SceneFixtures extends Fixture
                     {{ master.name }} stands ready to evaluate you.
                     TXT,
                 templateClass: TrainingTemplate::class,
-                templateConfig: [
-                    "campLeader" => "Bluspring's Warrior",
-                    "text" => [
-                        "maxLevelReached" => <<<TXT
-                            You stroll into the battle grounds. Younger warriors huddle together and point as you pass by.
-                            You know this place well. {{ campLeader }}  hails you, and you grasp their hand firmly. There 
-                            is nothing left for you here but memories. You remain a moment longer, and look at the warriors 
-                            in training before you turn to return to the village.
-                        TXT,
-                        "askExperience" => <<<TXT
-                            You approach {{ master.name }} timidly and inquire as to your standing in the class.
-                            {% if experience >= requiredExperience %}
-                                They say, <<Gee, your muscles are getting bigger than mine...>>
-                            {% else %}
-                                They state that you will need {{ requiredExperience - experience }} more experience 
-                                before you are ready to challenge him in battle.
-                            {% endif %}
-                        TXT,
-                        "seenMaster" => <<<TXT
-                            You think that, perhaps, you've seen enough of your master for today, the lessons you learned 
-                            earlier prevent you from so willingly subjecting yourself to that sort of humiliation again.
-                        TXT,
-                        "absoluteDefeat" => <<<TXT
-                            You ready your {{ weapon }} and {{ armor }} and approach {{ master.name }}.
-                            
-                            A small crowd of onlookers has gathered, and you briefly notice the smiles on their faces, 
-                            but you feel confident. You bow before them, and execute a perfect spin-attack, only to 
-                            realize that you are holding NOTHING! {{ master.name }} stands before you holding your weapon.
-                            Meekly you retrieve your {{ weapon }} , and slink out of the training grounds to the sound 
-                            of boisterous guffaws.
-                        TXT,
-                    ]
-                ],
+                templateConfig: new TrainingTemplateType()->getDefaultData(),
             ),
             "dragon" => new Scene(
                 title: "Seek out the Green Dragon",
@@ -377,6 +287,7 @@ class SceneFixtures extends Fixture
                     What do you do?
                 TXT,
                 templateClass: DragonTemplate::class,
+                templateConfig: new DragonTemplateType()->getDefaultData(),
             )
         ];
 

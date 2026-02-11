@@ -3,11 +3,13 @@ declare(strict_types=1);
 
 namespace LotGD2\Game\Scene\SceneTemplate;
 
+use LotGD2\Attribute\TemplateType;
 use LotGD2\Entity\Action;
 use LotGD2\Entity\ActionGroup;
 use LotGD2\Entity\Mapped\Character;
 use LotGD2\Entity\Mapped\Scene;
 use LotGD2\Entity\Mapped\Stage;
+use LotGD2\Form\Scene\SceneTemplate\HealerTemplateType;
 use LotGD2\Game\Character\Gold;
 use LotGD2\Game\Character\Health;
 use Psr\Log\LoggerInterface;
@@ -30,6 +32,7 @@ use Symfony\Component\OptionsResolver\OptionsResolver;
  * @implements SceneTemplateInterface<HealerTemplateConfiguration>
  */
 #[Autoconfigure(public: true)]
+#[TemplateType(HealerTemplateType::class)]
 readonly class HealerTemplate implements SceneTemplateInterface
 {
     use DefaultSceneTemplate;
@@ -44,43 +47,6 @@ readonly class HealerTemplate implements SceneTemplateInterface
         private Gold $gold,
     ) {
 
-    }
-
-    public static function validateConfiguration(array $config): array
-    {
-        $resolver = new OptionsResolver();
-        $resolver->define("stealHealth")->allowedTypes("bool")->default(true);
-        $resolver->define("actionGroupPotionTitle")->allowedTypes("string")->default("Potions");
-        $resolver->define("actionCompleteHealingTitle")->allowedTypes("string")->default("Complete Healing");
-
-        $resolver->setOptions("text", function (OptionsResolver $resolver): void {
-            $resolver
-                ->define("onEntryAndHealthy")
-                ->required()
-                ->allowedTypes('string');
-
-            $resolver
-                ->define("onEntryAndDamaged")
-                ->required()
-                ->allowedTypes('string');
-
-            $resolver
-                ->define("onEntryAndOverhealed")
-                ->required()
-                ->allowedTypes('string');
-
-            $resolver
-                ->define("onHealEnoughGold")
-                ->required()
-                ->allowedTypes('string');
-
-            $resolver
-                ->define("onHealNotEnoughGold")
-                ->required()
-                ->allowedTypes('string');
-        });
-
-        return $resolver->resolve($config);
     }
 
     public function onSceneChange(Stage $stage, Action $action, Scene $scene): void

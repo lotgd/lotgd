@@ -3,11 +3,13 @@ declare(strict_types=1);
 
 namespace LotGD2\Game\Scene\SceneTemplate;
 
+use LotGD2\Attribute\TemplateType;
 use LotGD2\Entity\Action;
 use LotGD2\Entity\ActionGroup;
 use LotGD2\Entity\Character\EquipmentItem;
 use LotGD2\Entity\Mapped\Scene;
 use LotGD2\Entity\Mapped\Stage;
+use LotGD2\Form\Scene\SceneTemplate\SimpleShopTemplateType;
 use LotGD2\Game\Character\Equipment;
 use LotGD2\Game\Character\Gold;
 use LotGD2\Game\Scene\SceneAttachment\SimpleShopAttachment;
@@ -18,9 +20,10 @@ use Symfony\Component\DependencyInjection\Attribute\Autoconfigure;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
 /**
+ * @phpstan-type SimpleShopItem array{name: string, price: int, strength: int}
  * @phpstan-type SimpleShopConfiguration array{
  *     type: "armor"|"weapon",
- *     items: array<int, array{name: string, price: int, strength: int}>,
+ *     items: SimpleShopItem[],
  *     text: array{
  *         peruse: string,
  *         itemNotFound: string,
@@ -31,6 +34,7 @@ use Symfony\Component\OptionsResolver\OptionsResolver;
  * @implements SceneTemplateInterface<SimpleShopConfiguration>
  */
 #[Autoconfigure(public: true)]
+#[TemplateType(SimpleShopTemplateType::class)]
 readonly class SimpleShopTemplate implements SceneTemplateInterface
 {
     use DefaultSceneTemplate;
@@ -44,65 +48,6 @@ readonly class SimpleShopTemplate implements SceneTemplateInterface
         private Equipment $equipment,
         private Gold $gold,
     ) {
-    }
-
-    public static function validateConfiguration(array $config): array
-    {
-        $resolver = new OptionsResolver();
-
-        $resolver
-            ->define("type")
-            ->required()
-            ->allowedTypes("string")
-            ->allowedValues("armor", "weapon")
-        ;
-
-        $resolver->define("items")
-            ->allowedTypes("array[]")
-            ->allowedValues(function (array &$elements): bool {
-                $subResolver = new OptionsResolver();
-
-                $subResolver->define('name')
-                    ->required()
-                    ->allowedTypes('string');
-
-                $subResolver->define('price')
-                    ->required()
-                    ->allowedTypes('int');
-
-                $subResolver->define('strength')
-                    ->required()
-                    ->allowedTypes('int');
-
-                // Trick is here: use array_map to resolve each elements one by one.
-                $elements = array_map([$subResolver, 'resolve'], $elements);
-                return true;
-            })
-            ->required();
-
-        $resolver->setOptions("text", function (OptionsResolver $resolver): void {
-                 $resolver
-                     ->define("peruse")
-                     ->required()
-                     ->allowedTypes('string');
-
-                $resolver
-                    ->define("itemNotFound")
-                    ->required()
-                    ->allowedTypes('string');
-
-                $resolver
-                    ->define("buy")
-                    ->required()
-                    ->allowedTypes('string');
-
-                $resolver
-                    ->define("notEnoughGold")
-                    ->required()
-                    ->allowedTypes('string');
-        });
-
-        return $resolver->resolve($config);
     }
 
     public function onSceneChange(Stage $stage, Action $action, Scene $scene): void
