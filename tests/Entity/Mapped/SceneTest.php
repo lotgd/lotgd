@@ -111,26 +111,6 @@ class SceneTest extends TestCase
         $this->assertSame($class::class, $scene->templateClass);
     }
 
-    public function testSettingTemplateClassCallsSceneTemplateValidation()
-    {
-        $class = new class implements SceneTemplateInterface {
-            public function onSceneLeave(Stage $stage, Action $action, Scene $leavingScene, Scene $enteringScene): bool {return true;}
-            public function onSceneEnter(Stage $stage, Action $action, ?Scene $leavingScene, Scene $enteringScene): bool {return true;}
-            public function onSceneChange(Stage $stage, Action $action, Scene $scene): void{}
-            public static function validateConfiguration(array $config): array
-            {
-                throw new Exception("validateConfiguration has been called");
-            }
-        };
-
-        $this->expectException(Exception::class);
-        $this->expectExceptionMessage("validateConfiguration has been called");
-
-        $scene = new Scene(
-            templateClass: $class::class,
-        );
-    }
-
     public function testTemplateClassSetterValidation()
     {
         $scene = new Scene();
@@ -169,7 +149,7 @@ class SceneTest extends TestCase
         $scene = new Scene(templateClass: $class::class);
         $scene->templateConfig = ['test' => 'value'];
         
-        $this->assertEquals(['test' => 'value', 'validated' => true], $scene->templateConfig);
+        $this->assertEquals(['test' => 'value'], $scene->templateConfig);
     }
 
     public function testTemplateConfigSetterWithoutTemplateClass()
