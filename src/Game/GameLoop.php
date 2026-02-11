@@ -20,6 +20,7 @@ use Psr\Log\LoggerInterface;
 use Symfony\Component\DependencyInjection\Attribute\AsAlias;
 use Symfony\Component\DependencyInjection\Attribute\Autoconfigure;
 use Symfony\Component\DependencyInjection\ContainerInterface;
+use Symfony\Component\Stopwatch\Stopwatch;
 
 #[AsAlias(id: "lotgd2.game_loop", public: true)]
 #[Autoconfigure(public: true)]
@@ -31,6 +32,7 @@ class GameLoop
 
     public function __construct(
         readonly private Kernel $kernel,
+        readonly private Stopwatch $stopwatch,
         readonly private EntityManagerInterface $entityManager,
         readonly private LoggerInterface $logger,
         readonly private SceneRenderer $renderer,
@@ -74,6 +76,7 @@ class GameLoop
         Character $character,
         string $action,
     ): Stage {
+        $this->stopwatch->start("lotgd.GameLoop.takeAction");
         $this->logger->debug("Take action{$action} for character with id={$character->id}");
 
         $stage = $character->stage;
@@ -124,6 +127,7 @@ class GameLoop
 
         $this->save($stage);
 
+        $this->stopwatch->stop("lotgd.GameLoop.takeAction");
         return $stage;
     }
 
@@ -158,7 +162,7 @@ class GameLoop
     /**
      * @param Stage $stage
      * @param Action $selectedAction
-     * @param Scene $currentScene
+     * @param Scene|null $currentScene
      * @param Scene $targetScene
      * @return bool True if default should be rendered (= nothing happened onSceneEnter)
      */
