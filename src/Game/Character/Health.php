@@ -4,13 +4,20 @@ declare(strict_types=1);
 namespace LotGD2\Game\Character;
 
 use LotGD2\Entity\Mapped\Character;
+use LotGD2\Event\StageChangeEvent;
+use LotGD2\Game\GameTime\NewDay;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
+use Symfony\Component\EventDispatcher\Attribute\AsEventListener;
 
 readonly class Health
 {
     const string HealthPropertyName = 'health';
     const string MaxHealthPropertyName = 'maxHealth';
+    const string Resurrections = "resurrections";
+    const string Age = "age";
+    const string Turns = "turns";
+    const string MaxTurns = "maxTurns";
 
     public function __construct(
         private ?LoggerInterface $logger,
@@ -19,15 +26,17 @@ readonly class Health
     ) {
     }
 
-    public function getHealth(): int
+    public function getHealth(?Character $character = null): int
     {
-        return $this->character->getProperty(static::HealthPropertyName, 10);
+        $character = $character ?? $this->character;
+        return $character->getProperty(static::HealthPropertyName, $character->level * 10);
     }
 
-    public function setHealth(int $health): static
+    public function setHealth(int $health, ?Character $character = null): static
     {
-        $this->logger?->debug("{$this->character->id}: health set to {$health} (was {$this->getHealth()}) before).");
-        $this->character->setProperty(static::HealthPropertyName, $health);
+        $character = $character ?? $this->character;
+        $this->logger?->debug("{$character->id}: health set to {$health} (was {$this->getHealth($character)}) before).");
+        $character->setProperty(static::HealthPropertyName, $health);
         return $this;
     }
 
@@ -39,46 +48,143 @@ readonly class Health
      * @param int|null $health The amount to heal the character. If null is given, character is healed completely.
      * @return $this
      */
-    public function heal(?int $health = null): static
+    public function heal(?int $health = null, ?Character $character = null): static
     {
+        $character = $character ?? $this->character;
         if ($health === null) {
-            $health = $this->getMaxHealth();
+            $health = $this->getMaxHealth($character);
         }
 
-        $this->logger?->debug("{$this->character->id}: healed by {$health}.");
-        $this->character->setProperty(
+        $this->logger?->debug("{$character->id}: healed by {$health}.");
+        $character->setProperty(
             static::HealthPropertyName,
             min(
-                $this->character->getProperty(static::MaxHealthPropertyName),
+                $character->getProperty(static::MaxHealthPropertyName),
                 max(
-                    $this->getHealth() + $health,
+                    $this->getHealth($character) + $health,
                     0
                 )
             )
         );
+
         return $this;
     }
 
-    public function getMaxHealth(): int
+    public function getMaxHealth(?Character $character = null): int
     {
-        return $this->character->getProperty(static::MaxHealthPropertyName, 10);
+        $character = $character ?? $this->character;
+        return $character->getProperty(static::MaxHealthPropertyName, $character->level * 10);
     }
 
-    public function setMaxHealth(int $maxHealth): static
+    public function setMaxHealth(int $maxHealth, ?Character $character = null): static
     {
-        $this->logger?->debug("{$this->character->id}: health set to {$maxHealth} (was {$this->getMaxHealth()}) before).");
-        $this->character->setProperty(static::MaxHealthPropertyName, $maxHealth);
+        $character = $character ?? $this->character;
+        $this->logger?->debug("{$character->id}: health set to {$maxHealth} (was {$this->getMaxHealth($character)}) before).");
+        $character->setProperty(static::MaxHealthPropertyName, $maxHealth);
         return $this;
     }
 
-    public function addMaxHealth(int $maxHealth): static
+    public function addMaxHealth(int $maxHealth, ?Character $character = null): static
     {
-        $this->setMaxHealth($this->getMaxHealth() + $maxHealth);
+        $character = $character ?? $this->character;
+        $this->setMaxHealth($this->getMaxHealth($character) + $maxHealth, $character);
         return $this;
     }
 
-    public function isAlive(): bool
+    public function isAlive(?Character $character = null): bool
     {
-        return $this->getHealth() > 0;
+        return $this->getHealth($character ?? $this->character) > 0;
+    }
+
+    public function getResurrections(?Character $character = null): int
+    {
+        $character = $character ?? $this->character;
+        return $character->getProperty(static::Resurrections, 10);
+    }
+
+    public function addResurrection(?Character $character = null): self
+    {
+        $character = $character ?? $this->character;
+        $character->setProperty(self::Resurrections, $this->getResurrections($character) + 1);
+
+        $this->logger?->debug("{$character->id}: resurrections incremented to {$this->getTurns($character)}.");
+        return $this;
+    }
+
+    public function getAge(?Character $character = null): int
+    {
+        $character = $character ?? $this->character;
+        return $character->getProperty(static::Age, 0);
+    }
+
+    public function addAge(?Character $character = null): self
+    {
+        $character = $character ?? $this->character;
+        $character->setProperty(self::Age, $this->getAge($character) + 1);
+
+        $this->logger?->debug("{$character->id}: age incremented to {$this->getTurns($character)}.");
+        return $this;
+    }
+
+    public function getTurns(?Character $character = null): int
+    {
+        $character = $character ?? $this->character;
+        return $character->getProperty(static::Turns, 30);
+    }
+
+    public function setTurns(?int $turns = null, ?Character $character = null): self
+    {
+        $character = $character ?? $this->character;
+        $turns = $turns ?? $this->getMaxTurns($character);
+
+        $this->logger?->debug("{$character->id}: turns set to {$turns} (was {$this->getTurns($character)}) before).");
+
+        $character->setProperty(static::Turns, $turns);
+        return $this;
+    }
+
+    public function getMaxTurns(?Character $character = null): int
+    {
+        $character = $character ?? $this->character;
+        return $character->getProperty(static::MaxTurns, 30);
+    }
+
+    public function setMaxTurns(?int $turns, ?Character $character = null): self
+    {
+        $character = $character ?? $this->character;
+
+        $this->logger?->debug("{$character->id}: maxTurns set to {$turns} (was {$this->getMaxTurns($character)}) before).");
+
+        $character->setProperty(static::MaxTurns, $turns);
+        return $this;
+    }
+
+    #[AsEventListener(event: NewDay::PostNewDay)]
+    public function onNewDayEvent(StageChangeEvent $event): void
+    {
+        // Increase Age
+        $this->addAge($event->character);
+        $event->stage->addDescription(<<<TXT
+            You open your eyes to discover that a new day has been bestowed upon you.
+            It is day number {{ age }}.
+            TXT);
+        $event->stage->addContext("age", $this->getAge($event->character));
+
+        // Reset turns
+        $this->setTurns(character: $event->character);
+        $event->stage->addDescription("Turns for today set to {{ turns }} ");
+        $event->stage->addContext("turns", $this->getTurns($event->character));
+
+        // Add resurrection notice
+        if ($this->isAlive($event->character) === false) {
+            $this->addResurrection($event->character);
+            $event->stage->addDescription("You are resurrected! This is resurrection number {{ resurrections }}");
+            $event->stage->addContext("resurrections", $this->getResurrections($event->character));
+        }
+
+        // Restore health completely
+        $this->heal(character: $event->character);
+        $event->stage->addDescription("Your health was restored to {{ maxHealth }}.");
+        $event->stage->addContext("maxHealth", $this->getMaxHealth($event->character));
     }
 }
