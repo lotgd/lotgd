@@ -12,6 +12,7 @@ use Symfony\Contracts\EventDispatcher\Event;
 final class StageChangeEvent extends Event
 {
     private(set) readonly Character $character;
+    private(set) readonly Character $characterBefore;
     private(set) bool $stopRender = false;
 
     public function __construct(
@@ -20,6 +21,7 @@ final class StageChangeEvent extends Event
         private(set) readonly Scene $scene,
     ) {
         $this->character = $stage->owner;
+        $this->characterBefore = clone $this->character;
     }
 
     public function setStopRender(bool $stopRender = true): void
