@@ -63,6 +63,16 @@ class NewDay
     {
         $character = $stage->owner;
 
+        // Reset before PreNewDay to have a "fresh" stage for listeners
+        $this->logger->debug("{$character->id}: It is a new day.");
+
+        $stage->scene = null;
+        $stage->title = "It is a new day!";
+        $stage->description = "It is a new day!";
+        $stage->clearAttachments();
+        $stage->clearContext();
+        $this->actionService->resetActionGroups($stage);
+
         $event = new StageChangeEvent($stage, $action, $scene);
         $this->eventDispatcher->dispatch($event, self::PreNewDay);
 
@@ -70,14 +80,7 @@ class NewDay
             return;
         }
 
-        $this->logger->debug("{$character->id}: It is a new day.");
-
-        $stage->scene = null;
-        $stage->title = "It is a new day!";
-        $stage->description = "It is a new day!";
-        $stage->clearContext();
-        $stage->clearAttachments();
-        $this->actionService->resetActionGroups($stage);
+        // We do not add actions or set the current last day if the eventDispatcher was stopped.
 
         // Connect to the originally targeted Scene
         $stage->addAction(ActionGroup::EMPTY, new Action(
