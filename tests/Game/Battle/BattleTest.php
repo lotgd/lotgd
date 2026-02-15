@@ -83,7 +83,7 @@ class BattleTest extends KernelTestCase
 
     public function testStartBattle(): BattleState
     {
-        $badGuy = $this->createMock(Fighter::class);
+        $badGuy = new Fighter(name: null, level: null, weapon: null, health: null, attack: null, defense: null, kwargs: []);
 
         $battleState = $this->battle->start($badGuy);
 
