@@ -76,11 +76,17 @@ class Scene
     public function __construct(
         #[ORM\Column(length: 255)]
         #[Assert\NotBlank()]
-        public ?string $title = null,
+        public ?string $title = null {
+            get => $this->title;
+            set => $value;
+        },
 
         #[ORM\Column(type: Types::TEXT)]
         #[Assert\NotBlank()]
-        public ?string $description = null,
+        public ?string $description = null {
+            get => $this->description;
+            set => $value;
+        },
 
         /** @var string|null  */
         #[ORM\Column(length: 255, nullable: true)]

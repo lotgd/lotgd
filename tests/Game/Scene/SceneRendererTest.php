@@ -67,8 +67,15 @@ class SceneRendererTest extends TestCase
     private function getSceneMock(string $title, string $description): Scene&MockObject
     {
         $scene = $this->createMock(Scene::class);
-        $scene->title = $title;
-        $scene->description = $description;
+        $scene
+            ->expects($this->atLeast(0))
+            ->method(PropertyHook::get("title"))
+            ->willReturn($title);
+
+        $scene
+            ->expects($this->atLeast(0))
+            ->method(PropertyHook::get("description"))
+            ->willReturn($description);
 
         return $scene;
     }

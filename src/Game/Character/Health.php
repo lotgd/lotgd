@@ -143,6 +143,13 @@ readonly class Health
         return $this;
     }
 
+    public function decrementTurns(?Character $character = null): self
+    {
+        $character = $character ?? $this->character;
+        $character->setProperty(static::Turns, $this->getTurns($character) - 1);
+        return $this;
+    }
+
     public function getMaxTurns(?Character $character = null): int
     {
         $character = $character ?? $this->character;

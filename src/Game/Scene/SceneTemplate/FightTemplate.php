@@ -20,7 +20,6 @@ use LotGD2\Repository\CreatureRepository;
 use Psr\Log\LoggerInterface;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\DependencyInjection\Attribute\Autoconfigure;
-use Symfony\Component\OptionsResolver\OptionsResolver;
 
 /**
  * @phpstan-type FightTemplateConfiguration array{
@@ -81,7 +80,7 @@ readonly class FightTemplate implements SceneTemplateInterface
         $this->logger->debug("Called FightTemplate::defaultAction");
 
         if ($this->health->getHealth() <= 0) {
-            $stage->addDescription("You are too tired to delve deeper into the woods.");
+            $stage->addDescription("You are dead. You can't fight any more battles today.");
         }
 
         $this->addDefaultActions($stage, $action, $scene);
@@ -96,6 +95,12 @@ readonly class FightTemplate implements SceneTemplateInterface
      */
     public function searchAction(Stage $stage, Action $action, Scene $scene): void
     {
+        if ($this->health->getTurns() <= 0) {
+            $this->defaultAction($stage, $action, $scene);
+            $stage->description = "You are too tired to search the forest any longer today. Perhaps tomorrow you will have more energy.";
+            return;
+        }
+
         // Adjust level
         $level = intval($action->getParameter("level", 0));
         $this->logger->debug("Called FightTemplate::searchAction, with level={$level}");
@@ -119,6 +124,7 @@ readonly class FightTemplate implements SceneTemplateInterface
         $attachment = $this->attachmentRepository->findOneByAttachmentClass(BattleAttachment::class);
 
         if ($attachment) {
+            $this->health->decrementTurns();
             $battleState = $this->battle->start($creature);
 
             $stage->addAttachment($attachment, data: [
