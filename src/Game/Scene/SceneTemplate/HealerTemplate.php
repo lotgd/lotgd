@@ -13,8 +13,8 @@ use LotGD2\Form\Scene\SceneTemplate\HealerTemplateType;
 use LotGD2\Game\Character\Gold;
 use LotGD2\Game\Character\Health;
 use Psr\Log\LoggerInterface;
+use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\DependencyInjection\Attribute\Autoconfigure;
-use Symfony\Component\OptionsResolver\OptionsResolver;
 
 /**
  * @phpstan-type HealerTemplateConfiguration array{
@@ -43,6 +43,7 @@ readonly class HealerTemplate implements SceneTemplateInterface
 
     public function __construct(
         private LoggerInterface $logger,
+        private Security $security,
         private Health $health,
         private Gold $gold,
     ) {
@@ -52,6 +53,14 @@ readonly class HealerTemplate implements SceneTemplateInterface
     public function onSceneChange(Stage $stage, Action $action, Scene $scene): void
     {
         $op = $action->getParameter("op") ?? null;
+
+        if ($op === "cheat") {
+            $what = $action->getParameter("what") ?? null;
+
+            if ($what === "heal") {
+                $this->health->heal();
+            }
+        }
 
         match($op) {
             default => $this->defaultAction($stage, $action, $scene),
@@ -63,7 +72,9 @@ readonly class HealerTemplate implements SceneTemplateInterface
     {
         $this->logger->debug("Called HealerTemplate::defaultAction");
 
-        if ($this->health->getHealth() < $this->health->getMaxHealth()) {
+        if ($this->health->isAlive() === false) {
+            $stage->addDescription("You are dead and cannot get healing from the Healer's hut. Try waiting for a new day to continue playing.");
+        } elseif ($this->health->getHealth() < $this->health->getMaxHealth()) {
             $stage->addDescription($scene->templateConfig["text"]["onEntryAndDamaged"]);
             $stage->addContext("price", $this->getPrice($stage->owner));
             $this->addPotionActions($stage, $scene);
@@ -71,6 +82,19 @@ readonly class HealerTemplate implements SceneTemplateInterface
             $stage->addDescription($scene->templateConfig["text"]["onEntryAndOverhealed"]);
         } else {
             $stage->addDescription($scene->templateConfig["text"]["onEntryAndHealthy"]);
+        }
+
+        if ($this->security->isGranted("ROLE_CHEATS_ENABLED")) {
+            $cheatsGroup = new ActionGroup("lotgd2.actionGroup.healerTemplate.cheats", "Cheats");
+            $cheatsGroup->setActions([
+                new Action(
+                    scene: $scene,
+                    title: "#! Complete Heal",
+                    parameters: ["op" => "cheat", "what" => "heal"],
+                    reference: "lotgd2.action.healerTemplate.cheats.experience",
+                ),
+            ]);
+            $stage->addActionGroup($cheatsGroup);
         }
     }
 
