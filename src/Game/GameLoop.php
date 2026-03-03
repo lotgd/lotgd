@@ -121,7 +121,8 @@ class GameLoop
 
                 /** @var null|SceneTemplateInterface<array<string, mixed>> $targetSceneTemplate */
                 $targetSceneTemplate = $this->container->get($targetScene->templateClass);
-                $targetSceneTemplate?->onSceneChange($stage, $selectedAction, $targetScene);
+                $targetSceneTemplate?->setSceneChangeParameter($stage, $selectedAction, $targetScene);
+                $targetSceneTemplate?->onSceneChange();
             }
         }
 
@@ -135,7 +136,7 @@ class GameLoop
      * @param Stage $stage
      * @param Action $selectedAction
      * @param Scene $currentScene
-     * @param Scene $targetScene
+     * @param ?Scene $targetScene
      * @return bool True if default should be rendered (= nothing happened onSceneLeave)
      */
     public function renderOnSceneLeave(Stage $stage, Action $selectedAction, Scene $currentScene, ?Scene $targetScene): bool
@@ -146,14 +147,15 @@ class GameLoop
         $stage->clearActionGroups();
         $this->actionService->addDefaultActionGroups($stage);
 
-        // Connect stage to target scene
+        // Connect the stage to the target scene
         $selectedAction->title = "Continue";
         $selectedAction->setParameter("lotgd.loop.skipOnSceneLeave", true);
         $stage->addAction(ActionGroup::EMPTY, $selectedAction);
 
         /** @var SceneTemplateInterface<array<string, mixed>> $currentSceneTemplate */
         $currentSceneTemplate = $this->container->get($currentScene->templateClass);
-        $reply = $currentSceneTemplate->onSceneLeave($stage, $selectedAction, $currentScene, $targetScene);
+        $currentSceneTemplate->setSceneChangeParameter($stage, $selectedAction, $targetScene, $currentScene);
+        $reply = $currentSceneTemplate->onSceneLeave();
 
         $renderDefault = !$reply;
         return $renderDefault;
@@ -172,7 +174,8 @@ class GameLoop
 
         /** @var SceneTemplateInterface<array<string, mixed>> $targetSceneTemplate */
         $targetSceneTemplate = $this->container->get($targetScene->templateClass);
-        $reply = $targetSceneTemplate->onSceneEnter($stage, $selectedAction, $currentScene, $targetScene);
+        $targetSceneTemplate->setSceneChangeParameter($stage, $selectedAction, $targetScene, $currentScene);
+        $reply = $targetSceneTemplate->onSceneEnter();
 
         $renderDefault = !$reply;
         return $renderDefault;

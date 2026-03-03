@@ -10,6 +10,7 @@ use LotGD2\Entity\Battle\BattleState;
 use LotGD2\Entity\Mapped\Character;
 use LotGD2\Entity\Mapped\Scene;
 use LotGD2\Entity\Mapped\Stage;
+use LotGD2\Entity\Paragraph;
 use LotGD2\Form\Scene\SceneTemplate\TrainingTemplateType;
 use LotGD2\Game\Battle\Battle;
 use LotGD2\Game\Character\Equipment;
@@ -39,7 +40,7 @@ use Symfony\Component\OptionsResolver\OptionsResolver;
  */
 #[Autoconfigure(public: true)]
 #[TemplateType(TrainingTemplateType::class)]
-readonly class TrainingTemplate implements SceneTemplateInterface
+class TrainingTemplate implements SceneTemplateInterface
 {
     use DefaultSceneTemplate;
     use DefaultFightTrait;
@@ -49,95 +50,125 @@ readonly class TrainingTemplate implements SceneTemplateInterface
     const ActionChallenge = "lotgd2.action.trainingTemplate.challenge";
 
     public function __construct(
-        private Security $security,
-        private LoggerInterface $logger,
-        private AttachmentRepository $attachmentRepository,
-        private MasterRepository $masterRepository,
-        private DiceBagInterface $diceBag,
-        private Battle $battle,
-        private Equipment $equipment,
-        private Stats $stats,
-        private Health $health,
-        private Gold $gold, // @phpstan-ignore property.onlyWritten
+        private readonly Security $security,
+        private readonly LoggerInterface $logger,
+        private readonly AttachmentRepository $attachmentRepository,
+        private readonly MasterRepository $masterRepository,
+        private readonly DiceBagInterface $diceBag,
+        private readonly Battle $battle,
+        private readonly Equipment $equipment,
+        private readonly Stats $stats,
+        private readonly Health $health,
+        private readonly Gold $gold, // @phpstan-ignore property.onlyWritten
     ) {
     }
 
-    public function onSceneChange(Stage $stage, Action $action, Scene $scene): void
+    /**
+     * @return array<string, mixed>
+     */
+    public function getContext(): array
     {
-        $op = $action->getParameters()["op"] ?? "";
+        return [
+            "experience" => $this->stats->getExperience(),
+            "requiredExperience" => $this->stats->getRequiredExperience(),
+            "weapon" => $this->equipment->getItemInSlot(Equipment::WeaponSlot)?->getName() ?? "Fists",
+            "armor" => $this->equipment->getItemInSlot(Equipment::ArmorSlot)?->getName() ?? "T-Shirt",
+        ];
+    }
+
+    public function onSceneChange(): void
+    {
+        $op = $this->action->getParameters()["op"] ?? "";
         $this->logger->debug("Called TrainingTemplate::onSceneChange, op={$op}");
 
-        $stage->addContext("experience", $this->stats->getExperience());
-        $stage->addContext("requiredExperience", $this->stats->getRequiredExperience());
-        $stage->addContext("weapon", $this->equipment->getItemInSlot(Equipment::WeaponSlot)?->getName() ?? "Fists");
-        $stage->addContext("armor", $this->equipment->getItemInSlot(Equipment::ArmorSlot)?->getName() ?? "T-Shirt");
-
         if ($op === "cheat" and $this->security->isGranted("ROLE_CHEATS_ENABLED")) {
-            $this->handleCheats($stage->owner, $action->getParameter("what"));
+            $this->handleCheats($this->stage->owner, $this->action->getParameter("what"));
         }
 
         match ($op) {
-            default => $this->defaultAction($stage, $action, $scene),
-            "ask" => $this->askAction($stage, $action, $scene),
-            "challenge" => $this->challengeAction($stage, $action, $scene),
-            "fight" => $this->fightAction($stage, $action, $scene),
+            default => $this->defaultAction(),
+            "ask" => $this->askAction(),
+            "challenge" => $this->challengeAction(),
+            "fight" => $this->fightAction(),
         };
     }
 
-    public function defaultAction(Stage $stage, Action $action, Scene $scene): void
+    public function defaultAction(): void
     {
-        $character = $stage->owner;
-        $master = $this->masterRepository->getByLevel($character->level);
+        $master = $this->masterRepository->getByLevel($this->character->level);
 
         // If this returns null, the max level has been reached.
         if ($master === null) {
-            $stage->description = $scene->templateConfig["text"]["maxLevelReached"];
-
-            $stage->context = [
-                "campLeader" => $scene->templateConfig["campLeader"],
+            $this->stage->paragraphs = [
+                new Paragraph(
+                    id: "lotgd2.paragraph.trainingTemplate.maxLevelReached",
+                    text: $this->scene->templateConfig["text"]["maxLevelReached"],
+                    context: [
+                        ... $this->getContext(),
+                        "campLeader" => $this->scene->templateConfig["campLeader"],
+                    ]
+                )
             ];
         } else {
-            $this->addDefaultActions($stage, $action, $scene);
-            $stage->addContext("master", $master->name);
+            $this->addDefaultActions();
+
+            $sceneParagraph = $this->stage->paragraphs[Stage::SceneText] ?? null;
+            $sceneParagraph->addContext("master", $master->name);
+
+            $context = $this->getContext();
+            array_walk($context, function ($value, $key) use ($sceneParagraph) {
+                $sceneParagraph->addContext($key, $value);
+            });
         }
     }
 
-    public function askAction(Stage $stage, Action $action, Scene $scene): void
+    public function askAction(): void
     {
-        $character = $stage->owner;
-        $master = $this->masterRepository->getByLevel($character->level);
+        $master = $this->masterRepository->getByLevel($this->character->level);
 
-        $stage->description = $scene->templateConfig["text"]["askExperience"];
-        $stage->context = [
-            "campLeader" => $scene->templateConfig["campLeader"],
-            "master" => $master,
-            "experience" => $this->stats->getExperience(),
-            "requiredExperience" => $this->stats->getRequiredExperience(),
+        $this->stage->paragraphs = [
+            new Paragraph(
+                id: "lotgd2.paragraph.trainingTemplate.askExperience",
+                text: $this->scene->templateConfig["text"]["askExperience"],
+                context: [
+                    ... $this->getContext(),
+                    "campLeader" => $this->scene->templateConfig["campLeader"],
+                    "master" => $master,
+                ]
+            )
         ];
 
-        $this->addDefaultActions($stage, $action, $scene);
+        $this->addDefaultActions();
     }
 
-    public function challengeAction(Stage $stage, Action $action, Scene $scene): void
+    public function challengeAction(): void
     {
-        $character = $stage->owner;
+        $character = $this->stage->owner;
         $master = $this->masterRepository->getByLevel($character->level);
 
         if ($this->getSeenMaster($character)) {
-            $stage->description = $scene->templateConfig["text"]["seenMaster"];
-            $stage->context = [
-                "campLeader" => $scene->templateConfig["campLeader"],
-                "master" => $master,
-                "weapon" => $this->equipment->getName(Equipment::WeaponSlot),
-                "armor" => $this->equipment->getName(Equipment::WeaponSlot),
+            $this->stage->paragraphs = [
+                new Paragraph(
+                    id: "lotgd2.paragraph.trainingTemplate.seenMaster",
+                    text: $this->scene->templateConfig["text"]["seenMaster"],
+                    context: [
+                        ... $this->getContext(),
+                        "campLeader" => $this->scene->templateConfig["campLeader"],
+                        "master" => $master,
+                    ]
+                )
             ];
         } elseif ($this->stats->getExperience() < $this->stats->getRequiredExperience()) {
-            $stage->description = $scene->templateConfig["text"]["absoluteDefeat"];
-            $stage->context = [
-                "campLeader" => $scene->templateConfig["campLeader"],
-                "master" => $master,
-                "weapon" => $this->equipment->getName(Equipment::WeaponSlot),
-                "armor" => $this->equipment->getName(Equipment::ArmorSlot),
+            $this->stage->paragraphs = [
+                new Paragraph(
+                    id: "lotgd2.paragraph.trainingTemplate.absoluteDefeat",
+                    text: $this->scene->templateConfig["text"]["absoluteDefeat"],
+                    context: [
+                        ... $this->getContext(),
+                        "campLeader" => $this->scene->templateConfig["campLeader"],
+                        "master" => $master,
+                    ]
+                )
             ];
 
             $this->setSeenMaster($character);
@@ -155,32 +186,53 @@ readonly class TrainingTemplate implements SceneTemplateInterface
                     $healed = true;
                 }
 
-                $stage->description = <<<TEXT
-                    {% if healed %} {{ master.name }} offers you a healing potion before the fight. You are back to 
-                    full health. {% endif %}
-                    
-                    You ready your {{ weapon }} and {{ armor }} and bow to {{ master.name }}. He bows, too, and draws 
-                    his {{ master.weapon }}.
-                    TEXT;
-                $stage->context = [
-                    "weapon" => $this->equipment->getName(Equipment::WeaponSlot),
-                    "armor" => $this->equipment->getName(Equipment::ArmorSlot),
-                    "master" => $master,
-                    "healed" => $healed,
+                $this->stage->paragraphs = [
+                    new Paragraph(
+                        id: "lotgd2.paragraph.trainingTemplate.fightStarted",
+                        text: <<<TEXT
+                            {% if healed %} {{ master.name }} offers you a healing potion before the fight. You are back to 
+                            full health. {% endif %}
+                            
+                            You ready your {{ weapon }} and {{ armor }} and bow to {{ master.name }}. He bows, too, and draws 
+                            his {{ master.weapon }}.
+                            TEXT,
+                        context: [
+                            ... $this->getContext(),
+                            "healed" => $healed,
+                            "campLeader" => $this->scene->templateConfig["campLeader"],
+                            "master" => $master,
+                        ]
+                    )
                 ];
-                $stage->actionGroups = [];
 
-                $this->battle->addFightActions($stage, $scene, $battleState, $params);
+                $this->stage->actionGroups = [];
+
+                $this->battle->addFightActions($this->stage, $this->scene, $battleState, $params);
             } else {
-                $stage->description = "Your maser suddenly sheats his weapon and disappears, his intentions unclear. 
-                    Maybe prey to the gods and ask for why that was?";
+                $this->stage->paragraphs = [
+                    new Paragraph(
+                        id: "lotgd2.paragraph.trainingTemplate.attachmentDisappeared",
+                        text: "Your maser suddenly sheats his weapon and disappears, his intentions unclear. 
+                            Maybe prey to the gods and ask for why that was?",
+                    )
+                ];
+
                 $this->logger->critical("Cannot attach attachment " . BattleAttachment::class . ": Not installed.");
             }
         } else {
-            $stage->description = $scene->templateConfig["text"]["maxLevelReached"];
+            $this->stage->paragraphs = [
+                new Paragraph(
+                    id: "lotgd2.paragraph.trainingTemplate.maxLevelReached",
+                    text: $this->scene->templateConfig["text"]["maxLevelReached"],
+                    context: [
+                        ... $this->getContext(),
+                        "campLeader" => $this->scene->templateConfig["campLeader"],
+                    ]
+                )
+            ];
 
-            $stage->context = [
-                "campLeader" => $scene->templateConfig["campLeader"],
+            $this->stage->context = [
+                "campLeader" => $this->scene->templateConfig["campLeader"],
             ];
         }
     }
@@ -189,39 +241,42 @@ readonly class TrainingTemplate implements SceneTemplateInterface
      * Overwrites the default onFightWon method.
      *
      * When a master has been defeated, no gold or experience is gained - instead, the level is increased.
-     * @param Stage $stage
-     * @param Action $action
-     * @param Scene $scene
      * @param BattleState $battleState
      * @return void
      */
-    public function onFightWon(Stage $stage, Action $action, Scene $scene, BattleState $battleState): void
+    public function onFightWon(BattleState $battleState): void
     {
-        $character = $stage->owner;
-
         $this->stats->levelUp();
         $this->health->heal();
 
-        $stage->description = <<<TEXT
-            You have defeated your master, <.{{ badGuy.name }}.>. {% if textDefeated %}<<{{ textDefeated }}>>{% endif %}
-            
-            You level up! You are now on level {{ character.level }}.
-            
-            Your max health is now {{ maxHealth }}. Your attack and defense both increase by one.
-            
-            {% if character.level < 15 %}
-                You now have a new master.
-            {% else %}
-                Nobody is stronger than you.
-            {% endif %}
-            TEXT;
-        $stage
-            ->addContext("maxHealth", $this->health->getMaxHealth())
-        ;
 
-        $this->setSeenMaster($character, false);
+        $this->stage->paragraphs = [
+            new Paragraph(
+                id: "lotgd2.paragraph.trainingTemplate.maxLevelReached",
+                text: <<<TEXT
+                    You have defeated your master, <.{{ badGuy.name }}.>. {% if textDefeated %}<<{{ textDefeated }}>>{% endif %}
+                    
+                    You level up! You are now on level {{ character.level }}.
+                    
+                    Your max health is now {{ maxHealth }}. Your attack and defense both increase by one.
+                    
+                    {% if character.level < 15 %}
+                        You now have a new master.
+                    {% else %}
+                        Nobody is stronger than you.
+                    {% endif %}
+                    TEXT,
+                context: [
+                    "campLeader" => $this->scene->templateConfig["campLeader"],
+                    "badGuy" => $battleState->badGuy,
+                    "maxHealth" => $this->health->getMaxHealth(),
+                ]
+            )
+        ];
 
-        $this->logger->debug("Character {$character->id} won against his master and is now on level {$character->level}.");
+        $this->setSeenMaster($this->character, false);
+
+        $this->logger->debug("Character {$this->character->id} won against his master and is now on level {$this->character->level}.");
     }
 
     /**
@@ -234,17 +289,28 @@ readonly class TrainingTemplate implements SceneTemplateInterface
      * @param BattleState $battleState
      * @return void
      */
-    public function onFightLost(Stage $stage, Action $action, Scene $scene, BattleState $battleState): void
+    public function onFightLost(BattleState $battleState): void
     {
-        $stage->description = <<<TEXT
-            You have been defeated by <.{{ badGuy.name }}.>. They halt just before delivering the final blow, and instead 
-            extend a hand to help you to your feet, and hand you a complementary healing potion.
-            
-            {% if textLost %}<<{{ textLost }}>>{% endif %}
-            TEXT;
+        $this->stage->paragraphs = [
+            new Paragraph(
+                id: "lotgd2.paragraph.trainingTemplate.maxLevelReached",
+                text: <<<TEXT
+                    You have been defeated by <.{{ badGuy.name }}.>. They halt just before delivering the final blow, and instead 
+                    extend a hand to help you to your feet, and hand you a complementary healing potion.
+                    
+                    {% if textLost %}<<{{ textLost }}>>{% endif %}
+                    TEXT,
+                context: [
+                    "campLeader" => $this->scene->templateConfig["campLeader"],
+                    "badGuy" => $battleState->badGuy,
+                    "maxHealth" => $this->health->getMaxHealth(),
+                    "textLost" => $battleState->badGuy->kwargs["textLost"] ?? null,
+                ]
+            )
+        ];
 
         $this->health->heal();
-        $this->setSeenMaster($stage->owner);
+        $this->setSeenMaster($this->stage->owner);
     }
 
     public function getSeenMaster(Character $character): bool
@@ -257,41 +323,41 @@ readonly class TrainingTemplate implements SceneTemplateInterface
         $character->setProperty("lotgd2.trainingTemplate.seenMaster", $seenMaster);
     }
 
-    public function addDefaultActions(Stage $stage, Action $action, Scene $scene): void
+    public function addDefaultActions(): void
     {
         $actionGroup = new ActionGroup(self::ActionGroupTraining, "Training");
         $actionGroup->addAction(new Action(
-            $scene,
+            $this->scene,
             title: "Question Master",
             parameters: ["op" => "ask"],
             reference: self::ActionQuestion,
         ));
         $actionGroup->addAction(new Action(
-            $scene,
+            $this->scene,
             title: "Challenge Master",
             parameters: ["op" => "challenge"],
             reference: self::ActionChallenge,
         ));
 
-        $stage->addActionGroup($actionGroup);
+        $this->stage->addActionGroup($actionGroup);
 
 
         if ($this->security->isGranted("ROLE_CHEATS_ENABLED")) {
             $cheatsGroup = new ActionGroup("lotgd2.actionGroup.fightTemplate.cheats", "Cheats");
             $cheatsGroup->setActions([
                 new Action(
-                    scene: $scene,
+                    scene: $this->scene,
                     title: "#! Unsee master",
                     parameters: ["op" => "cheat", "what" => "unseeMaster"],
                     reference: "lotgd2.action.fightTemplate.cheats.experience",
                 ),
                 new Action(
-                    scene: $scene,
+                    scene: $this->scene,
                     title: "#! Gain 1 level",
                     parameters: ["op" => "cheat", "what" => "levelUp"],
                     reference: "lotgd2.action.fightTemplate.cheats.gold",)
             ]);
-            $stage->addActionGroup($cheatsGroup);
+            $this->stage->addActionGroup($cheatsGroup);
         }
     }
 

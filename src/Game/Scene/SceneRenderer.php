@@ -9,6 +9,7 @@ use LotGD2\Entity\Mapped\Character;
 use LotGD2\Entity\Mapped\Scene;
 use LotGD2\Entity\Mapped\SceneConnection;
 use LotGD2\Entity\Mapped\Stage;
+use LotGD2\Entity\Paragraph;
 use LotGD2\Game\Character\Equipment;
 use LotGD2\Game\Character\Gold;
 use LotGD2\Game\Character\Health;
@@ -71,9 +72,13 @@ readonly class SceneRenderer
     ): Stage {
         $stage->scene = $scene;
         $stage->title = $scene->title;
-        $stage->description = $scene->description;
-        $stage->clearAttachments();
-        $stage->clearContext();
+
+        $stage->clear();
+
+        $stage->addParagraph(new Paragraph(
+            id: Stage::SceneText,
+            text: $scene->description
+        ));
 
         $this->actionService->resetActionGroups($stage);
         $this->addActions($stage, $scene);

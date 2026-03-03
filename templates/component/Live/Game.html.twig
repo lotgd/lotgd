@@ -48,9 +48,11 @@
                 <div id="lotgd-stage-scene"  class="col-12 col-lg-6 col-xxl-8 p-3 lotgd-stage-scene">
                     <h2>{{ this.stage.title }}</h2>
 
-                    {{ this.stage.description|parse({
-                        "character": character,
-                    }|merge(this.stage.context))|raw }}
+                    {% for paragraph in this.stage.paragraphs %}
+                        <twig:Paragraph :paragraph="paragraph" />
+                    {% endfor %}
+
+                    {{ dump(this.stage.description) }}
 
                     {# Attachments #}
                     {% for attachment in this.stage.attachments %}

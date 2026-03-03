@@ -8,6 +8,7 @@ use LotGD2\Entity\Action;
 use LotGD2\Entity\ActionGroup;
 use LotGD2\Entity\Mapped\Scene;
 use LotGD2\Entity\Mapped\Stage;
+use LotGD2\Entity\Paragraph;
 use LotGD2\Form\Scene\SceneTemplate\FightTemplateType;
 use LotGD2\Game\Battle\Battle;
 use LotGD2\Game\Character\Gold;
@@ -31,7 +32,7 @@ use Symfony\Component\DependencyInjection\Attribute\Autoconfigure;
  */
 #[Autoconfigure(public: true)]
 #[TemplateType(FightTemplateType::class)]
-readonly class FightTemplate implements SceneTemplateInterface
+class FightTemplate implements SceneTemplateInterface
 {
     use DefaultSceneTemplate;
     use DefaultFightTrait;
@@ -39,32 +40,32 @@ readonly class FightTemplate implements SceneTemplateInterface
     const string ActionGroupSearch = "lotgd2.actionGroup.fightTemplate.search";
 
     public function __construct(
-        private Security $security,
-        private LoggerInterface $logger,
-        private AttachmentRepository $attachmentRepository,
-        private Stats $experience,
-        private DiceBagInterface $diceBag,
-        private CreatureRepository $creatureRepository,
-        private Battle $battle,
-        private Health $health,
-        private Stats $stats,
-        private Gold $gold,
+        private readonly Security $security,
+        private readonly LoggerInterface $logger,
+        private readonly AttachmentRepository $attachmentRepository,
+        private readonly Stats $experience,
+        private readonly DiceBagInterface $diceBag,
+        private readonly CreatureRepository $creatureRepository,
+        private readonly Battle $battle,
+        private readonly Health $health,
+        private readonly Stats $stats,
+        private readonly Gold $gold,
     ) {
     }
 
-    public function onSceneChange(Stage $stage, Action $action, Scene $scene): void
+    public function onSceneChange(): void
     {
-        $op = $action->getParameter("op");
+        $op = $this->action->getParameter("op");
         $this->logger->debug("Called FightTemplate::onSceneChange, op={$op}");
 
         if ($op === "cheat" and $this->security->isGranted("ROLE_CHEATS_ENABLED")) {
-            $this->handleCheats($action->getParameter("what"));
+            $this->handleCheats($this->action->getParameter("what"));
         }
 
         match($op) {
-            "search" => $this->searchAction($stage, $action, $scene),
-            "fight" => $this->fightAction($stage, $action, $scene),
-            default => $this->defaultAction($stage, $action, $scene),
+            "search" => $this->searchAction(),
+            "fight" => $this->fightAction(),
+            default => $this->defaultAction(),
         };
     }
 
@@ -75,15 +76,18 @@ readonly class FightTemplate implements SceneTemplateInterface
      * @param Scene $scene
      * @return void
      */
-    public function defaultAction(Stage $stage, Action $action, Scene $scene): void
+    public function defaultAction(): void
     {
         $this->logger->debug("Called FightTemplate::defaultAction");
 
-        if ($this->health->getHealth() <= 0) {
-            $stage->addDescription("You are dead. You can't fight any more battles today.");
+        if ($this->health->isAlive() === false) {
+            $this->stage->addParagraph(new Paragraph(
+                id: "lotgd2.paragraph.fightTemplate.isDeadMessage",
+                text: "You are dead. You can't fight any more battles today.",
+            ));
         }
 
-        $this->addDefaultActions($stage, $action, $scene);
+        $this->addDefaultActions();
     }
 
     /**
@@ -93,16 +97,22 @@ readonly class FightTemplate implements SceneTemplateInterface
      * @param Scene $scene
      * @return void
      */
-    public function searchAction(Stage $stage, Action $action, Scene $scene): void
+    public function searchAction(): void
     {
         if ($this->health->getTurns() <= 0) {
-            $this->defaultAction($stage, $action, $scene);
-            $stage->description = "You are too tired to search the forest any longer today. Perhaps tomorrow you will have more energy.";
+            $this->defaultAction();
+            $this->stage->paragraphs = [
+                new Paragraph(
+                    id: "lotgd2.paragraph.fightTemplate.tooTired",
+                    text: "You are too tired to search the forest any longer today. Perhaps tomorrow you will have more energy.",
+                )
+            ];
+
             return;
         }
 
         // Adjust level
-        $level = intval($action->getParameter("level", 0));
+        $level = intval($this->action->getParameter("level", 0));
         $this->logger->debug("Called FightTemplate::searchAction, with level={$level}");
         $level += $this->getRandomLevelChange();
         $level = max(1, $this->experience->getLevel() + $level); // Make sure the level is at least 1
@@ -112,9 +122,14 @@ readonly class FightTemplate implements SceneTemplateInterface
         $creature = $this->creatureRepository->getRandomCreature($level);
 
         if (!$creature) {
-            $this->addDefaultActions($stage, $action, $scene);
-            $stage->description = "This place looks very peaceful.";
-            $this->logger->critical("Character {$stage->owner->id} did not find any creatures");
+            $this->addDefaultActions();
+            $this->stage->paragraphs = [
+                new Paragraph(
+                    id: "lotgd2.paragraph.fightTemplate.tooPeaceful",
+                    text: "This place looks very peaceful.",
+                )
+            ];
+            $this->logger->critical("Character {$this->character->id} did not find any creatures");
             return;
         }
 
@@ -127,7 +142,7 @@ readonly class FightTemplate implements SceneTemplateInterface
             $this->health->decrementTurns();
             $battleState = $this->battle->start($creature);
 
-            $stage->addAttachment($attachment, data: [
+            $this->stage->addAttachment($attachment, data: [
                 "battleState" => $battleState,
             ]);
 
@@ -135,48 +150,67 @@ readonly class FightTemplate implements SceneTemplateInterface
 
             if ($this->diceBag->chance(0.25)) {
                 // Player is getting surprised
-                $stage->description = <<<TEXT
-                You walk through the forest, looking for a monster to fight against. Suddenly, a <.{{creatureName}}.> appears, ready to fight you with its weapon <.{{creatureWeapon}}.>.
-                TEXT;
-
+                $this->stage->paragraphs = [
+                    new Paragraph(
+                        id: "lotgd2.paragraph.fightTemplate.fightCharacterIsSurprised",
+                        text: <<<TXT
+                            You walk through the forest, looking for a monster to fight against. Suddenly, 
+                            a <.{{ badGuy.name }}.> appears, ready to fight you with its weapon <.{{ badGuy.weapon }}.>.    
+                            TXT,
+                        context: [
+                            "badGuy" => $battleState->badGuy,
+                        ]
+                    )
+                ];
             } else {
-                $stage->description = <<<TEXT
-                You walk through the forest, looking for a monster to fight against. After a while, you encounter a <.{{creatureName}}.>, wielding its weapon <.{{creatureWeapon}}.>.
-                
-                It has not yet spotted you, allowing you a surprise attack
-                TEXT;
+                // Player is getting surprised
+                $this->stage->paragraphs = [
+                    new Paragraph(
+                        id: "lotgd2.paragraph.fightTemplate.fightCreatureIsSurprised",
+                        text: <<<TXT
+                            You walk through the forest, looking for a monster to fight against. After a while, you encounter 
+                            a <.{{ badGuy.name }}.>, wielding its weapon <.{{ badGuy.weapon }}.>.
+                            
+                            It has not yet spotted you, allowing you a surprise attack  
+                            TXT,
+                        context: [
+                            "badGuy" => $battleState->badGuy,
+                        ]
+                    )
+                ];
 
                 $params["surprise"] = true;
             }
 
-            $stage->clearActionGroups();
-            $this->battle->addFightActions($stage, $scene, $battleState, $params);
-
-            $stage->addContext("creatureName", $creature->name);
-            $stage->addContext("creatureWeapon", $creature->weapon);
+            $this->stage->clearActionGroups();
+            $this->battle->addFightActions($this->stage, $this->scene, $battleState, $params);
         } else {
-            $stage->description = "You are too blind to see any monsters. Maybe prey to the gods and ask for why that is?";
+            $this->stage->paragraphs = [
+                new Paragraph(
+                    id: "lotgd2.paragraph.fightTemplate.noMonstersFound",
+                    text: "You are too blind to see any monsters. Maybe prey to the gods and ask for why that is?",
+                )
+            ];
+
             $this->logger->critical("Cannot attach attachment " . BattleAttachment::class . ": Not installed.");
 
-            $this->addDefaultActions($stage, $action, $scene);
+            $this->addDefaultActions();
         }
     }
 
     /**
      * Adds the actions required to search for a fight. The level action parameter defines the difficulty.
-     * @param Stage $stage
-     * @param Scene $scene
      * @return void
      */
-    public function addDefaultActions(Stage $stage, Action $action, Scene $scene): void
+    public function addDefaultActions(): void
     {
         if ($this->health->isAlive()) {
-            $actionGroup = new ActionGroup(self::ActionGroupSearch, $scene->title);
+            $actionGroup = new ActionGroup(self::ActionGroupSearch, $this->scene->title);
 
             $actionGroup->addAction(
                 new Action(
-                    scene: $scene,
-                    title: $scene->templateConfig["searchFightAction"],
+                    scene: $this->scene,
+                    title: $this->scene->templateConfig["searchFightAction"],
                     parameters: [
                         "op" => "search",
                         "level" => 0,
@@ -184,13 +218,14 @@ readonly class FightTemplate implements SceneTemplateInterface
                 )
             );
 
-            // Only allow searching for easy battles if level is larger than 1. Enemies can only be level 1 or higher, so
-            //  it wouldn't make sense to offer this option on level 1.
-            if ($stage->owner->level > 1) {
+            // Only allow searching for easy battles if the level is larger than 1.
+            //  Enemies can only be level 1 or higher, so it wouldn't make sense
+            //  to offer this option on level 1.
+            if ($this->character->level > 1) {
                 $actionGroup->addAction(
                     new Action(
-                        scene: $scene,
-                        title: $scene->templateConfig["searchSlummingAction"] ?? "Go slumming",
+                        scene: $this->scene,
+                        title: $this->scene->templateConfig["searchSlummingAction"] ?? "Go slumming",
                         parameters: [
                             "op" => "search",
                             "level" => -1,
@@ -201,8 +236,8 @@ readonly class FightTemplate implements SceneTemplateInterface
 
             $actionGroup->addAction(
                 new Action(
-                    scene: $scene,
-                    title: $scene->templateConfig["searchThrillseekingAction"] ?? "Go thrillseeking",
+                    scene: $this->scene,
+                    title: $this->scene->templateConfig["searchThrillseekingAction"] ?? "Go thrillseeking",
                     parameters: [
                         "op" => "search",
                         "level" => 1,
@@ -210,25 +245,26 @@ readonly class FightTemplate implements SceneTemplateInterface
                 )
             );
 
-            $stage->addActionGroup($actionGroup);
+            $this->stage->addActionGroup($actionGroup);
         }
 
         if ($this->security->isGranted("ROLE_CHEATS_ENABLED")) {
             $cheatsGroup = new ActionGroup("lotgd2.actionGroup.fightTemplate.cheats", "Cheats");
             $cheatsGroup->setActions([
                 new Action(
-                    scene: $scene,
+                    scene: $this->scene,
                     title: "#! Gain 1000 experience",
                     parameters: ["op" => "cheat", "what" => "experience"],
                     reference: "lotgd2.action.fightTemplate.cheats.experience",
                 ),
                 new Action(
-                    scene: $scene,
+                    scene: $this->scene,
                     title: "#! Gain 1000 gold",
                     parameters: ["op" => "cheat", "what" => "gold"],
                     reference: "lotgd2.action.fightTemplate.cheats.gold",)
             ]);
-            $stage->addActionGroup($cheatsGroup);
+
+            $this->stage->addActionGroup($cheatsGroup);
         }
     }
 

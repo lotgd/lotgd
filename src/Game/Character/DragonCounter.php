@@ -6,6 +6,7 @@ namespace LotGD2\Game\Character;
 use LotGD2\Entity\Action;
 use LotGD2\Entity\ActionGroup;
 use LotGD2\Entity\Mapped\Character;
+use LotGD2\Entity\Paragraph;
 use LotGD2\Event\StageChangeEvent;
 use LotGD2\Game\GameTime\NewDay;
 use LotGD2\Game\Random\DiceBagInterface;
@@ -116,14 +117,22 @@ class DragonCounter
             $stage = $event->stage;
 
             $stage->title ="Dragon points";
-            $stage->description = <<<TXT
-                You earn one dragon point each time you slay the dragon. 
-                Advancements made by dragon points are permanent!
-                
-                You currently have {{ dragonPointsLeft }} unspent dragon points.
-                How do you wish to spend them?
-                TXT;
-            $stage->addContext("dragonPointsLeft", $dragonPointsLeft);
+
+            $stage->paragraphs = [
+                new Paragraph(
+                    id: "lotgd.paragraph.DragonCounter.dragonPointsLeft",
+                    text: <<<TXT
+                        You earn one dragon point each time you slay the dragon. 
+                        Advancements made by dragon points are permanent!
+                        
+                        You currently have {{ dragonPointsLeft }} unspent dragon points.
+                        How do you wish to spend them?
+                        TXT,
+                    context: [
+                        "dragonPointsLeft" => $dragonPointsLeft,
+                    ]
+                )
+            ];
 
             $event->addAction(ActionGroup::EMPTY, new Action(
                 title: "+5 Health",

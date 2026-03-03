@@ -8,6 +8,7 @@ use LotGD2\Entity\ActionGroup;
 use LotGD2\Entity\Mapped\Character;
 use LotGD2\Entity\Mapped\Scene;
 use LotGD2\Entity\Mapped\Stage;
+use LotGD2\Entity\Paragraph;
 use LotGD2\Game\Character\Gold;
 use LotGD2\Game\Character\Health;
 use LotGD2\Game\Random\DiceBag;
@@ -24,6 +25,7 @@ use Symfony\Bundle\SecurityBundle\Security;
 #[UsesClass(Action::class)]
 #[UsesClass(ActionGroup::class)]
 #[UsesClass(DiceBag::class)]
+#[UsesClass(Paragraph::class)]
 class HealerTemplateTest extends TestCase
 {
     private HealerTemplate $healerTemplate;
@@ -107,12 +109,15 @@ class HealerTemplateTest extends TestCase
             ->willReturn($character);
 
         $stage->expects($this->once())
-            ->method('addDescription')
-            ->with('You need healing. Price is {{ price }} gold.');
+            ->method("addParagraph")
+            ->willReturnCallback(function (Paragraph $paragraph) use ($stage) {
+                $this->assertSame("lotgd2.paragraph.healerTemplate.onEntryAndDamaged", $paragraph->id);
+                $this->assertSame('You need healing. Price is {{ price }} gold.', $paragraph->text);
+                $this->assertArrayHasKey("price", $paragraph->context);
+                $this->assertIsInt($paragraph->context["price"]);
 
-        $stage->expects($this->once())
-            ->method('addContext')
-            ->with('price', $this->isInt());
+                return $stage;
+            });
 
         $stage->expects($this->once())
             ->method('addActionGroup');
@@ -122,7 +127,8 @@ class HealerTemplateTest extends TestCase
             ->with('ROLE_CHEATS_ENABLED')
             ->willReturn(false);
 
-        $this->healerTemplate->onSceneChange($stage, $action, $scene);
+        $this->healerTemplate->setSceneChangeParameter($stage, $action, $scene);
+        $this->healerTemplate->onSceneChange();
     }
 
     public function testOnSceneChangeWithHealAction(): void
@@ -164,29 +170,19 @@ class HealerTemplateTest extends TestCase
             ->willReturn($this->getDefaultTemplateConfig());
 
         $stage->expects($this->once())
-            ->method(PropertyHook::set("description"))
-            ->with('You have been healed for {{ amount }} points!');
+            ->method(PropertyHook::set("paragraphs"))
+            ->willReturnCallback(function (array $paragraphs) use ($stage) {
+                $this->assertCount(1, $paragraphs);
+                $paragraph = $paragraphs[0];
 
-        $stage->expects($this->exactly(2))
-            ->method('addContext')
-            ->willReturnCallback(function (string $context, mixed $value) use ($stage) {
-                if ($context === "price") {
-                    $this->assertIsInt($value);
+                $this->assertSame("lotgd2.paragraph.healerTemplate.onHealEnoughGold", $paragraph->id);
+                $this->assertSame('You have been healed for {{ amount }} points!', $paragraph->text);
+                $this->assertEquals([
+                    "price" => 100,
+                    "amount" => 50
+                ], $paragraph->context);
 
-                    return match($value) {
-                        100 => $stage,
-                        default => throw new \AssertionError("100 expected, got {$value}")
-                    };
-                } elseif ($context === "amount") {
-                    $this->assertIsInt($value);
-
-                    return match($value) {
-                        50 => $stage,
-                        default => throw new \AssertionError("50 expected, got {$value}")
-                    };
-                } else {
-                    throw new \AssertionError("Unknown context {$context}");
-                }
+                return $stage;
             });
 
         $this->health->expects($this->once())
@@ -197,7 +193,8 @@ class HealerTemplateTest extends TestCase
             ->method('addGold')
             ->with(-100);
 
-        $this->healerTemplate->onSceneChange($stage, $action, $scene);
+        $this->healerTemplate->setSceneChangeParameter($stage, $action, $scene);
+        $this->healerTemplate->onSceneChange();
     }
 
     public function testOnSceneChangeWithCheatAction(): void
@@ -205,6 +202,8 @@ class HealerTemplateTest extends TestCase
         $stage = $this->createMock(Stage::class);
         $action = $this->createMock(Action::class);
         $scene = $this->createMock(Scene::class);
+        $character = $this->createMock(Character::class);
+        $stage->method(PropertyHook::get("owner"))->willReturn($character);
 
         $action->expects($this->exactly(2))
             ->method('getParameter')
@@ -237,16 +236,13 @@ class HealerTemplateTest extends TestCase
             ->method(PropertyHook::get("templateConfig"))
             ->willReturn($this->getDefaultTemplateConfig());
 
-        $stage->expects($this->once())
-            ->method('addDescription')
-            ->with('You are healthy already.');
-
         $this->security->expects($this->once())
             ->method('isGranted')
             ->with('ROLE_CHEATS_ENABLED')
             ->willReturn(false);
 
-        $this->healerTemplate->onSceneChange($stage, $action, $scene);
+        $this->healerTemplate->setSceneChangeParameter($stage, $action, $scene);
+        $this->healerTemplate->onSceneChange();
     }
 
     public function testDefaultActionWhenDead(): void
@@ -254,6 +250,8 @@ class HealerTemplateTest extends TestCase
         $stage = $this->createMock(Stage::class);
         $action = $this->createMock(Action::class);
         $scene = $this->createMock(Scene::class);
+        $character = $this->createMock(Character::class);
+        $stage->method(PropertyHook::get("owner"))->willReturn($character);
 
         $this->logger->expects($this->once())
             ->method('debug')
@@ -264,15 +262,23 @@ class HealerTemplateTest extends TestCase
             ->willReturn(false);
 
         $stage->expects($this->once())
-            ->method('addDescription')
-            ->with("You are dead and cannot get healing from the Healer's hut. Try waiting for a new day to continue playing.");
+            ->method(PropertyHook::set("paragraphs"))
+            ->willReturnCallback(function (array $paragraphs) use ($stage) {
+                $this->assertCount(1, $paragraphs);
+                $paragraph = $paragraphs[0];
+
+                $this->assertSame("lotgd2.paragraph.healerTemplate.isDeadMessage", $paragraph->id);
+                $this->assertSame("You are dead and cannot get healing from the Healer's hut. Try waiting for a new day to continue playing.", $paragraph->text);
+                $this->assertEquals([], $paragraph->context);
+            });
 
         $this->security->expects($this->once())
             ->method('isGranted')
             ->with('ROLE_CHEATS_ENABLED')
             ->willReturn(false);
 
-        $this->healerTemplate->defaultAction($stage, $action, $scene);
+        $this->healerTemplate->setSceneChangeParameter($stage, $action, $scene);
+        $this->healerTemplate->defaultAction();
     }
 
     public function testDefaultActionWhenHealthy(): void
@@ -280,6 +286,8 @@ class HealerTemplateTest extends TestCase
         $stage = $this->createMock(Stage::class);
         $action = $this->createStub(Action::class);
         $scene = $this->createMock(Scene::class);
+        $character = $this->createMock(Character::class);
+        $stage->method(PropertyHook::get("owner"))->willReturn($character);
 
         $this->logger->expects($this->once())
             ->method('debug')
@@ -305,15 +313,20 @@ class HealerTemplateTest extends TestCase
             ->willReturn($this->getDefaultTemplateConfig());
 
         $stage->expects($this->once())
-            ->method('addDescription')
-            ->with('You are healthy already.');
+            ->method('addParagraph')
+            ->willReturnCallback(function (Paragraph $paragraph) use ($stage) {
+                $this->assertSame("lotgd2.paragraph.healerTemplate.onEntryAndHealthy", $paragraph->id);
+                $this->assertSame('You are healthy already.', $paragraph->text);
+                return $stage;
+            });
 
         $this->security->expects($this->once())
             ->method('isGranted')
             ->with('ROLE_CHEATS_ENABLED')
             ->willReturn(false);
 
-        $this->healerTemplate->defaultAction($stage, $action, $scene);
+        $this->healerTemplate->setSceneChangeParameter($stage, $action, $scene);
+        $this->healerTemplate->defaultAction();
     }
 
     public function testDefaultActionWhenDamaged(): void
@@ -355,12 +368,15 @@ class HealerTemplateTest extends TestCase
             ->willReturn($character);
 
         $stage->expects($this->once())
-            ->method('addDescription')
-            ->with('You need healing. Price is {{ price }} gold.');
+            ->method("addParagraph")
+            ->willReturnCallback(function (Paragraph $paragraph) use ($stage) {
+                $this->assertSame("lotgd2.paragraph.healerTemplate.onEntryAndDamaged", $paragraph->id);
+                $this->assertSame('You need healing. Price is {{ price }} gold.', $paragraph->text);
+                $this->assertArrayHasKey("price", $paragraph->context);
+                $this->assertIsInt($paragraph->context["price"]);
 
-        $stage->expects($this->once())
-            ->method('addContext')
-            ->with('price', $this->isInt());
+                return $stage;
+            });
 
         $stage->expects($this->once())
             ->method('addActionGroup');
@@ -370,7 +386,8 @@ class HealerTemplateTest extends TestCase
             ->with('ROLE_CHEATS_ENABLED')
             ->willReturn(false);
 
-        $this->healerTemplate->defaultAction($stage, $action, $scene);
+        $this->healerTemplate->setSceneChangeParameter($stage, $action, $scene);
+        $this->healerTemplate->defaultAction();
     }
 
     public function testDefaultActionWhenOverhealed(): void
@@ -378,6 +395,8 @@ class HealerTemplateTest extends TestCase
         $stage = $this->createMock(Stage::class);
         $action = $this->createStub(Action::class);
         $scene = $this->createMock(Scene::class);
+        $character = $this->createMock(Character::class);
+        $stage->method(PropertyHook::get("owner"))->willReturn($character);
 
         $this->logger->expects($this->once())
             ->method('debug')
@@ -402,16 +421,22 @@ class HealerTemplateTest extends TestCase
             ->method(PropertyHook::get("templateConfig"))
             ->willReturn($this->getDefaultTemplateConfig());
 
+
         $stage->expects($this->once())
-            ->method('addDescription')
-            ->with('You are overhealed!');
+            ->method('addParagraph')
+            ->willReturnCallback(function (Paragraph $paragraph) use ($stage) {
+                $this->assertSame("lotgd2.paragraph.healerTemplate.onEntryAndOverhealed", $paragraph->id);
+                $this->assertSame('You are overhealed!', $paragraph->text);
+                return $stage;
+            });
 
         $this->security->expects($this->once())
             ->method('isGranted')
             ->with('ROLE_CHEATS_ENABLED')
             ->willReturn(false);
 
-        $this->healerTemplate->defaultAction($stage, $action, $scene);
+        $this->healerTemplate->setSceneChangeParameter($stage, $action, $scene);
+        $this->healerTemplate->defaultAction();
     }
 
     public function testDefaultActionWhenOverhealedButStealHealthDisabled(): void
@@ -419,6 +444,8 @@ class HealerTemplateTest extends TestCase
         $stage = $this->createMock(Stage::class);
         $action = $this->createStub(Action::class);
         $scene = $this->createMock(Scene::class);
+        $character = $this->createMock(Character::class);
+        $stage->method(PropertyHook::get("owner"))->willReturn($character);
 
         $this->logger->expects($this->once())
             ->method('debug')
@@ -447,15 +474,20 @@ class HealerTemplateTest extends TestCase
             ->willReturn($templateConfig);
 
         $stage->expects($this->once())
-            ->method('addDescription')
-            ->with('You are healthy already.');
+            ->method('addParagraph')
+            ->willReturnCallback(function (Paragraph $paragraph) use ($stage) {
+                $this->assertSame("lotgd2.paragraph.healerTemplate.onEntryAndHealthy", $paragraph->id);
+                $this->assertSame('You are healthy already.', $paragraph->text);
+                return $stage;
+            });
 
         $this->security->expects($this->once())
             ->method('isGranted')
             ->with('ROLE_CHEATS_ENABLED')
             ->willReturn(false);
 
-        $this->healerTemplate->defaultAction($stage, $action, $scene);
+        $this->healerTemplate->setSceneChangeParameter($stage, $action, $scene);
+        $this->healerTemplate->defaultAction();
     }
 
     public function testDefaultActionWithCheats(): void
@@ -463,33 +495,15 @@ class HealerTemplateTest extends TestCase
         $stage = $this->createMock(Stage::class);
         $action = $this->createStub(Action::class);
         $scene = $this->createMock(Scene::class);
+        $character = $this->createMock(Character::class);
+        $stage->method(PropertyHook::get("owner"))->willReturn($character);
 
         $this->logger->expects($this->once())
             ->method('debug')
             ->with('Called HealerTemplate::defaultAction');
 
-        $this->health->expects($this->atLeastOnce())
-            ->method('isAlive')
-            ->willReturn(true);
-
-        $this->health->expects($this->atLeastOnce())
-            ->method('getHealth')
-            ->willReturn(100);
-
-        $this->health->expects($this->atLeastOnce())
-            ->method('getMaxHealth')
-            ->willReturn(100);
-
         $this->gold->expects($this->never())
             ->method('getGold');
-
-        $scene->expects($this->atLeastOnce())
-            ->method(PropertyHook::get("templateConfig"))
-            ->willReturn($this->getDefaultTemplateConfig());
-
-        $stage->expects($this->once())
-            ->method('addDescription')
-            ->with('You are healthy already.');
 
         $this->security->expects($this->once())
             ->method('isGranted')
@@ -504,7 +518,8 @@ class HealerTemplateTest extends TestCase
                     && count($actionGroup->getActions()) === 1;
             }));
 
-        $this->healerTemplate->defaultAction($stage, $action, $scene);
+        $this->healerTemplate->setSceneChangeParameter($stage, $action, $scene);
+        $this->healerTemplate->defaultAction();
     }
 
     public function testHealActionWithEnoughGold(): void
@@ -548,22 +563,19 @@ class HealerTemplateTest extends TestCase
             ->willReturn($this->getDefaultTemplateConfig());
 
         $stage->expects($this->once())
-            ->method(PropertyHook::set("description"))
-            ->with('You have been healed for {{ amount }} points!');
+            ->method(PropertyHook::set("paragraphs"))
+            ->willReturnCallback(function (array $paragraphs) use ($stage) {
+                $this->assertCount(1, $paragraphs);
+                $paragraph = $paragraphs[0];
 
-        $stage->expects($this->exactly(2))
-            ->method('addContext')
-            ->willReturnCallback(function (string $context, mixed $value) use ($stage) {
-                if ($context === "price") {
-                    if ($value === 50) {
-                        return $stage;
-                    }
-                } elseif ($context === "amount") {
-                    if ($value === 30) {
-                        return $stage;
-                    }
-                }
-                throw new \AssertionError("Unexpected values [$context,$value] in addContext");
+                $this->assertSame("lotgd2.paragraph.healerTemplate.onHealEnoughGold", $paragraph->id);
+                $this->assertSame('You have been healed for {{ amount }} points!', $paragraph->text);
+                $this->assertEquals([
+                    "price" => 50,
+                    "amount" => 30,
+                ], $paragraph->context);
+
+                return $stage;
             });
 
         $this->health->expects($this->once())
@@ -574,7 +586,8 @@ class HealerTemplateTest extends TestCase
             ->method('addGold')
             ->with(-50);
 
-        $this->healerTemplate->healAction($stage, $action, $scene);
+        $this->healerTemplate->setSceneChangeParameter($stage, $action, $scene);
+        $this->healerTemplate->healAction();
     }
 
     public function testHealActionWithNotEnoughGold(): void
@@ -608,12 +621,15 @@ class HealerTemplateTest extends TestCase
             ->willReturn($this->getDefaultTemplateConfig());
 
         $stage->expects($this->once())
-            ->method(PropertyHook::set("description"))
-            ->with('Not enough gold! Need {{ price }} gold.');
-
-        $stage->expects($this->once())
-            ->method('addContext')
-            ->with('price', 50);
+            ->method(PropertyHook::set("paragraphs"))
+            ->willReturnCallback(function ($value) use ($stage) {
+                $this->assertSame("lotgd2.paragraph.healerTemplate.onHealNotEnoughGold", $value[0]->id);
+                $this->assertSame('Not enough gold! Need {{ price }} gold.', $value[0]->text);
+                $this->assertSame([
+                    "price" => 50
+                ], $value[0]->context);
+                return $stage;
+            });
 
         $this->health->expects($this->never())
             ->method('heal');
@@ -621,7 +637,8 @@ class HealerTemplateTest extends TestCase
         $this->gold->expects($this->never())
             ->method('addGold');
 
-        $this->healerTemplate->healAction($stage, $action, $scene);
+        $this->healerTemplate->setSceneChangeParameter($stage, $action, $scene);
+        $this->healerTemplate->healAction();
     }
 
     public function testHealActionWithFreeHealing(): void
@@ -630,6 +647,7 @@ class HealerTemplateTest extends TestCase
         $action = $this->createMock(Action::class);
         $scene = $this->createMock(Scene::class);
         $character = $this->createMock(Character::class);
+        $stage->method(PropertyHook::get("owner"))->willReturn($character);
 
         $this->logger->expects($this->exactly(2))
             ->method('debug')
@@ -660,15 +678,20 @@ class HealerTemplateTest extends TestCase
             ->willReturn($this->getDefaultTemplateConfig());
 
         $stage->expects($this->once())
-            ->method(PropertyHook::set("description"))
-            ->with('You have been healed for {{ amount }} points!');
+            ->method(PropertyHook::set("paragraphs"))
+            ->willReturnCallback(function (array $paragraphs) use ($stage) {
+                $this->assertCount(1, $paragraphs);
+                $paragraph = $paragraphs[0];
 
-        $stage->expects($this->exactly(2))
-            ->method('addContext')
-            ->willReturnMap([
-                ['price', 0, $stage],
-                ['amount', 30, $stage],
-            ]);
+                $this->assertSame("lotgd2.paragraph.healerTemplate.onHealEnoughGold", $paragraph->id);
+                $this->assertSame('You have been healed for {{ amount }} points!', $paragraph->text);
+                $this->assertEquals([
+                    "price" => 0,
+                    "amount" => 30,
+                ], $paragraph->context);
+
+                return $stage;
+            });
 
         $this->health->expects($this->once())
             ->method('heal')
@@ -678,7 +701,8 @@ class HealerTemplateTest extends TestCase
             ->method('addGold')
             ->with(0);
 
-        $this->healerTemplate->healAction($stage, $action, $scene);
+        $this->healerTemplate->setSceneChangeParameter($stage, $action, $scene);
+        $this->healerTemplate->healAction();
     }
 
     public function testGetPriceCalculation(): void
@@ -743,6 +767,7 @@ class HealerTemplateTest extends TestCase
     {
         $stage = $this->createMock(Stage::class);
         $scene = $this->createMock(Scene::class);
+        $action = $this->createMock(Action::class);
         $character = $this->createMock(Character::class);
 
         $this->logger->expects($this->never())->method('debug');
@@ -780,13 +805,15 @@ class HealerTemplateTest extends TestCase
                     && $actionGroup->getTitle() === 'Potions';
             }));
 
-        $this->healerTemplate->addPotionActions($stage, $scene);
+        $this->healerTemplate->setSceneChangeParameter($stage, $action, $scene);
+        $this->healerTemplate->addPotionActions();
     }
 
     public function testAddPotionActionsWithPaidHealing(): void
     {
         $stage = $this->createMock(Stage::class);
         $scene = $this->createMock(Scene::class);
+        $action = $this->createMock(Action::class);
         $character = $this->createMock(Character::class);
 
         $this->logger->expects($this->never())->method('debug');
@@ -824,7 +851,8 @@ class HealerTemplateTest extends TestCase
                     && $actionGroup->getTitle() === 'Potions';
             }));
 
-        $this->healerTemplate->addPotionActions($stage, $scene);
+        $this->healerTemplate->setSceneChangeParameter($stage, $action, $scene);
+        $this->healerTemplate->addPotionActions();
     }
 
     public function testConstants(): void

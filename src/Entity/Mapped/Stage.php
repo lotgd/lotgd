@@ -3,11 +3,13 @@ declare(strict_types=1);
 
 namespace LotGD2\Entity\Mapped;
 
+use Deprecated;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Dunglas\DoctrineJsonOdm\Type\JsonDocumentType;
 use LotGD2\Entity\Action;
 use LotGD2\Entity\ActionGroup;
+use LotGD2\Entity\Paragraph;
 use LotGD2\Repository\StageRepository;
 use TypeError;
 
@@ -19,9 +21,11 @@ use TypeError;
  * }
  */
 #[ORM\Entity(repositoryClass: StageRepository::class)]
-#[ORM\HasLifecycleCallbacks()]
+#[ORM\HasLifecycleCallbacks]
 class Stage
 {
+    const string SceneText = "lotgd.stage.sceneText";
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
@@ -50,9 +54,32 @@ class Stage
             set => $value;
         },
 
+        /**
+         * @var array<string|int, Paragraph>
+         */
+        #[ORM\Column(type: JsonDocumentType::NAME, nullable: true)]
+        public ?array $paragraphs = null {
+            get => $this->paragraphs ?? [];
+            set {
+                if ($value === null) {
+                    $this->paragraphs = [];
+                } else {
+                    $paragraphs = [];
+
+                    foreach ($value as $paragraph) {
+                        $paragraphs[$paragraph->id] = $paragraph;
+                    }
+
+                    $this->paragraphs = $paragraphs;
+                }
+            }
+        },
+
         #[ORM\Column(type: Types::TEXT)]
         public ?string $description = null {
+            #[Deprecated]
             get => $this->description;
+            #[Deprecated]
             set => $value;
         },
 
@@ -87,7 +114,9 @@ class Stage
 
         #[ORM\Column(type: JsonDocumentType::NAME, nullable: true)]
         public ?array $context = null {
+            #[Deprecated]
             get => $this->context;
+            #[Deprecated]
             set => $value;
         },
     ) {
@@ -105,6 +134,7 @@ class Stage
         $this->actionGroups = array_map(fn ($x) => clone $x, $this->actionGroups);
     }
 
+    #[Deprecated]
     public function addDescription(string $description, string $prefix = "\n\n"): static
     {
         $this->description .= $prefix . $description;
@@ -164,6 +194,7 @@ class Stage
         return $this;
     }
 
+    #[Deprecated]
     public function addContext(string $key, mixed $value): self
     {
         if (!is_array($this->context)) {
@@ -177,9 +208,34 @@ class Stage
         return $this;
     }
 
+    #[Deprecated]
     public function clearContext(): self
     {
         $this->context = [];
+        return $this;
+    }
+
+    public function addParagraph(Paragraph $paragraph): self
+    {
+        $this->paragraphs = array_merge($this->paragraphs, [$paragraph->id => $paragraph]);
+
+        return $this;
+    }
+
+    public function clearParagraphs(): self
+    {
+        $this->paragraphs = [];
+
+        return $this;
+    }
+
+    public function clear(): self
+    {
+        $this->clearParagraphs();
+        $this->clearContext();
+        $this->clearAttachments();
+        $this->clearActionGroups();
+
         return $this;
     }
 }

@@ -8,6 +8,7 @@ use LotGD2\Entity\Action;
 use LotGD2\Entity\Mapped\Character;
 use LotGD2\Entity\Mapped\Scene;
 use LotGD2\Entity\Mapped\Stage;
+use LotGD2\Entity\Paragraph;
 use LotGD2\Event\StageChangeEvent;
 use LotGD2\Form\Scene\SceneTemplate\BankTemplateType;
 use LotGD2\Game\Character\Gold;
@@ -42,7 +43,7 @@ use Symfony\Component\Stopwatch\Stopwatch;
  */
 #[Autoconfigure(public: true)]
 #[TemplateType(BankTemplateType::class)]
-readonly class BankTemplate implements SceneTemplateInterface
+class BankTemplate implements SceneTemplateInterface
 {
     use DefaultSceneTemplate;
 
@@ -57,43 +58,47 @@ readonly class BankTemplate implements SceneTemplateInterface
     ) {
     }
 
-    public function onSceneChange(Stage $stage, Action $action, Scene $scene): void
+    public function onSceneChange(): void
     {
-        $op = $action->getParameters()["op"] ?? "";
+        $op = $this->action->getParameter("op", "");
         $this->logger->debug("Called BankTemplate::onSceneChange, op={$op}");
 
-        $stage->context = [
-            "tellerName" => $scene->templateConfig["tellerName"],
-        ];
+        $sceneText = $this->stage->paragraphs[Stage::SceneText] ?? null;
+        $sceneText?->addContext("tellerName", $this->scene->templateConfig["tellerName"]);
+        $sceneText?->addContext("goldInBank", $this->getGoldInBank($this->stage->owner, $this->scene->templateConfig));
 
         match ($op) {
-            "depositOrWithdraw" => $this->depositOrWithdrawAction($stage, $action, $scene),
-            default => $this->defaultAction($stage, $action, $scene),
+            "depositOrWithdraw" => $this->depositOrWithdrawAction(),
+            default => $this->defaultAction(),
         };
     }
 
-    public function depositOrWithdrawAction(Stage $stage, Action $action, Scene $scene): void
+    public function depositOrWithdrawAction(): void
     {
         $this->logger->debug("Called BankTemplate::depositOrWithdrawAction");
 
-        $character = $stage->owner;
-        $actionData = $action->getParameters()[SimpleFormAttachment::ActionParameterName];
+        $character = $this->stage->owner;
+        $actionData = $this->action->getParameters()[SimpleFormAttachment::ActionParameterName] ?? [];
         $amount = (int)abs($actionData["amount"] ?? 0);
 
         if (isset($actionData["withdraw"]) and $actionData["withdraw"] === true) {
             if ($amount === 0) {
                 // If amount is 0, we withdraw everything
-                $amount = $this->getGoldInBank($character, $scene->templateConfig);
+                $amount = $this->getGoldInBank($character, $this->scene->templateConfig);
             }
 
-            $amount = min($amount, $this->getGoldInBank($character, $scene->templateConfig));
+            $amount = min($amount, $this->getGoldInBank($character, $this->scene->templateConfig));
 
-            $this->addGoldInBank($character, $scene->templateConfig, -$amount);
+            $this->addGoldInBank($character, $this->scene->templateConfig, -$amount);
             $this->gold->addGold($amount);
 
-            $this->logger->debug("Withdrew {$amount} gold from the bank (bank account name: {$scene->templateConfig['accountName']})");
+            $accountName = $this->scene->templateConfig['accountName'] ?? 'defaults';
+            $this->logger->debug("Withdrew {$amount} gold from the bank (bank account name: {$accountName})");
 
-            $stage->description = $scene->templateConfig["text"]["withdraw"];
+            $paragraph = new Paragraph(
+                id: "lotgd2.paragraph.bankTemplate.withdraw",
+                text: $this->scene->templateConfig["text"]["withdraw"],
+            );
         } else {
             if ($amount === 0) {
                 // If amount is 0, we deposit everything
@@ -102,35 +107,38 @@ readonly class BankTemplate implements SceneTemplateInterface
 
             $amount = min($amount, $this->gold->getGold());
 
-            $this->addGoldInBank($character, $scene->templateConfig, $amount);
+            $this->addGoldInBank($character, $this->scene->templateConfig, $amount);
             $this->gold->addGold(-$amount);
 
-            $this->logger->debug("Deposited {$amount} gold to the bank (bank account name: {$scene->templateConfig['accountName']})");
+            $accountName = $this->scene->templateConfig['accountName'] ?? 'defaults';
+            $this->logger->debug("Deposited {$amount} gold to the bank (bank account name: {$accountName})");
 
-            $stage->description = $scene->templateConfig["text"]["deposit"];
+            $paragraph = new Paragraph(
+                id: "lotgd2.paragraph.bankTemplate.deposit",
+                text: $this->scene->templateConfig["text"]["deposit"],
+            );
         }
 
-        $stage
-            ->addContext("amount", $amount)
-            ->addContext("goldInBank", $this->getGoldInBank($character, $scene->templateConfig))
-            ->addContext("goldInHand", $this->gold->getGold())
-        ;
+        $paragraph->context = [
+            "amount" => $amount,
+            "goldInBank" => $this->getGoldInBank($character, $this->scene->templateConfig),
+            "goldInHand" => $this->gold->getGold(),
+        ];
+
+        $this->stage->paragraphs = [$paragraph];
     }
 
-    public function defaultAction(Stage $stage, Action $action, Scene $scene): void
+    public function defaultAction(): void
     {
         $this->logger->debug("Called BankTemplate::defaultAction");
 
         $attachment = $this->attachmentRepository->findOneByAttachmentClass(SimpleFormAttachment::class);
 
-        $stage
-            ->addContext("goldInBank", $this->getGoldInBank($stage->owner, $scene->templateConfig));
-
         if ($attachment) {
-            $formAction = new Action($scene, parameters: ["op" => "depositOrWithdraw"]);
-            $this->actionService->addHiddenAction($stage, $formAction);
+            $formAction = new Action($this->scene, parameters: ["op" => "depositOrWithdraw"]);
+            $this->actionService->addHiddenAction($this->stage, $formAction);
 
-            $stage->addAttachment($attachment, [
+            $this->stage->addAttachment($attachment, [
                 "actionId" => $formAction->id,
                 "form" => [
                     ["amount", IntegerType::class, ["label" => "Amount", "required" => false]],
@@ -152,10 +160,11 @@ readonly class BankTemplate implements SceneTemplateInterface
     private function getGoldInBank(Character $character, array $templateConfig): int
     {
         $bankProperties = $character->getProperty("bank", []);
+        $accountName = $templateConfig["accountName"] ?? 'defaults';
         if (empty($bankProperties)) {
             return 0;
-        } elseif (isset($bankProperties[$templateConfig["accountName"]])) {
-            return $bankProperties[$templateConfig["accountName"]];
+        } elseif (isset($bankProperties[$accountName])) {
+            return $bankProperties[$accountName];
         } else {
             return 0;
         }
@@ -170,7 +179,7 @@ readonly class BankTemplate implements SceneTemplateInterface
     private function setGoldInBank(Character $character, array $templateConfig, int $amount): void
     {
         $bankProperties = $character->getProperty("bank", []);
-        $bankProperties[$templateConfig["accountName"]] = $amount;
+        $bankProperties[$templateConfig["accountName"] ?? "defaults"] = $amount;
         $character->setProperty("bank", $bankProperties);
     }
 
@@ -216,30 +225,42 @@ readonly class BankTemplate implements SceneTemplateInterface
             $goldInBank = $this->getGoldInBank($event->character, $config);
             $interest = (int)round($interestRate * $goldInBank);
 
-            $event->stage->addContext("bankName{$i}", $scene->title);
-            $event->stage->addContext("bankInterestRate{$i}", $interestRate*100);
-            $event->stage->addContext("bankInterest{$i}", $interest);
+            $context = [
+                "bankName" => $scene->title,
+                "bankInterestRate" => $interestRate*100,
+                "bankInterest" => $interest,
+            ];
+
+            $text = null;
 
             if ($goldInBank < 0) {
                 // Character has dept
                 if ($goldInBank < -$maxGoldInBank) {
                     // Character owes a dept larger than the limit; let's not bankrupt him further.
                     $interest = 0;
-                    $event->stage->addDescription("The bank <.{{ bankName{$i} }}.> forgoes their right to collect interest on your dept. You owe enough money already.");
+                    $text = "The bank <.{{ bankName }}.> forgoes their right to collect interest on your dept. You owe enough money already.";
                 } else {
-                    $event->stage->addDescription("The bank <.{{ bankName{$i} }}.>'s interest rate today is {{ bankInterestRate{$i} }}%. Your dept increases by an additional {{ bankInterest{$i}|abs }} gold.");
+                    $text = "The bank <.{{ bankName }}.>'s interest rate today is {{ bankInterestRate }}%. Your dept increases by an additional {{ bankInterest|abs }} gold.";
                 }
             } elseif ($goldInBank > 0) {
                 // Character has money
                 if ($goldInBank > $maxGoldInBank) {
                     // Character has more gold than the maximum; the bank does not pay out interest.
                     $interest = 0;
-                    $event->stage->addDescription("The bank <.{{ bankName{$i} }}.> does not pay our your interest to retain solvency. You have already enough savings.");
+                    $text = "The bank <.{{ bankName }}.> does not pay our your interest to retain solvency. You have already enough savings.";
                 } elseif ($turnsLeftBeforeInterest >= 0 && $turnsLeftBeforeInterest <= $oldHealth->getTurns()) {
-                    $event->stage->addDescription("The bank <.{{ bankName{$i} }}.>'s interest rate today is {{ bankInterestRate{$i} }}%, but you will not earn interest. This bank only gives interest to those who work.");
+                    $text = "The bank <.{{ bankName }}.>'s interest rate today is {{ bankInterestRate }}%, but you will not earn interest. This bank only gives interest to those who work.";
                 } else {
-                    $event->stage->addDescription("The bank <.{{ bankName{$i} }}.>'s interest rate today is {{ bankInterestRate{$i} }}%. You earned {{ bankInterest{$i}|abs }} gold interest.");
+                    $text = "The bank <.{{ bankName{$i} }}.>'s interest rate today is {{ bankInterestRate{$i} }}%. You earned {{ bankInterest{$i}|abs }} gold interest.";
                 }
+            }
+
+            if ($text) {
+                $event->stage->addParagraph(new Paragraph(
+                    id: "lotgd2.paragraph.BankTemplate.onNewDay",
+                    text: $text,
+                    context: $context,
+                ));
             }
 
             $this->addGoldInBank($event->character, $config, $interest);

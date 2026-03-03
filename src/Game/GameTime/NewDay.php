@@ -9,6 +9,7 @@ use LotGD2\Entity\ActionGroup;
 use LotGD2\Entity\Mapped\Character;
 use LotGD2\Entity\Mapped\Scene;
 use LotGD2\Entity\Mapped\Stage;
+use LotGD2\Entity\Paragraph;
 use LotGD2\Event\StageChangeEvent;
 use LotGD2\Game\Stage\ActionService;
 use Psr\Log\LoggerInterface;
@@ -68,7 +69,12 @@ class NewDay
 
         $stage->scene = null;
         $stage->title = "It is a new day!";
-        $stage->description = "It is a new day!";
+        $stage->paragraphs = [
+            new Paragraph(
+                id: "lotgd.paragraph.NewDay.newDay",
+                text: "It is a new day!",
+            ),
+        ];
         $stage->clearAttachments();
         $stage->clearContext();
         $this->actionService->resetActionGroups($stage);

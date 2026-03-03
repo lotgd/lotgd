@@ -6,11 +6,13 @@ namespace LotGD2\Tests\Game\Scene\SceneTemplate;
 use LotGD2\Entity\Action;
 use LotGD2\Entity\ActionGroup;
 use LotGD2\Entity\Battle\BattleState;
+use LotGD2\Entity\Battle\FighterInterface;
 use LotGD2\Entity\Mapped\Attachment;
 use LotGD2\Entity\Mapped\Character;
 use LotGD2\Entity\Mapped\Creature;
 use LotGD2\Entity\Mapped\Scene;
 use LotGD2\Entity\Mapped\Stage;
+use LotGD2\Entity\Paragraph;
 use LotGD2\Game\Battle\Battle;
 use LotGD2\Game\Character\Gold;
 use LotGD2\Game\Character\Health;
@@ -33,6 +35,8 @@ use Symfony\Bundle\SecurityBundle\Security;
 #[UsesClass(Action::class)]
 #[UsesClass(ActionGroup::class)]
 #[UsesClass(DiceBag::class)]
+#[UsesClass(Paragraph::class)]
+#[UsesClass(BattleState::class)]
 class FightTemplateTest extends TestCase
 {
     private FightTemplate $fightTemplate;
@@ -97,11 +101,7 @@ class FightTemplateTest extends TestCase
             })
         ;
 
-        $this->health->expects($this->once())
-            ->method('getHealth')
-            ->willReturn(100);
-
-        $this->health->expects($this->once())
+        $this->health->expects($this->atLeastOnce())
             ->method('isAlive')
             ->willReturn(true);
 
@@ -133,7 +133,8 @@ class FightTemplateTest extends TestCase
             ->with('ROLE_CHEATS_ENABLED')
             ->willReturn(false);
 
-        $this->fightTemplate->onSceneChange($stage, $action, $scene);
+        $this->fightTemplate->setSceneChangeParameter($stage, $action, $scene);
+        $this->fightTemplate->onSceneChange();
     }
 
     public function testOnSceneChangeWithSearchAction(): void
@@ -143,7 +144,16 @@ class FightTemplateTest extends TestCase
         $scene = $this->createMock(Scene::class);
         $creature = $this->createMock(Creature::class);
         $attachment = $this->createMock(Attachment::class);
-        $battleState = $this->createMock(BattleState::class);
+        $battleStateGoodGuy = $this->createMock(FighterInterface::class);
+        $battleStateBadGuy = $this->createMock(FighterInterface::class);
+        $battleState = $this->getMockBuilder(BattleState::class)
+            ->enableOriginalConstructor()
+            ->setConstructorArgs([$battleStateGoodGuy, $battleStateBadGuy])
+            ->getMock();
+
+        $stage->expects($this->atLeastOnce())
+            ->method(PropertyHook::get("owner"))
+            ->willReturn($this->character);
 
         $action->expects($this->exactly(2))
             ->method('getParameter')
@@ -189,10 +199,6 @@ class FightTemplateTest extends TestCase
             ->method(PropertyHook::get("health"))
             ->willReturn(50);
 
-        $creature->expects($this->atLeastOnce())
-            ->method(PropertyHook::get("weapon"))
-            ->willReturn("Rusty Sword");
-
         $this->attachmentRepository->expects($this->once())
             ->method("__call")
             ->with("findOneByAttachmentClass", [BattleAttachment::class])
@@ -214,17 +220,19 @@ class FightTemplateTest extends TestCase
             ->method('addFightActions')
             ->with($stage, $scene, $battleState, ['op' => 'fight', 'surprise' => true]);
 
-        $stage->expects($this->exactly(2))
-            ->method('addContext')
-            ->willReturnMap([
-                ['creatureName', 'Goblin', $stage],
-                ['creatureWeapon', 'Rusty Sword', $stage],
-            ]);
-
         $stage->expects($this->once())
-            ->method(PropertyHook::set("description"));
+            ->method(PropertyHook::set("paragraphs"))
+            ->willReturnCallback(function (array $value) use ($battleStateBadGuy) {
+                $this->assertSame("lotgd2.paragraph.fightTemplate.fightCreatureIsSurprised", $value[0]->id);
+                $this->assertStringContainsString("badGuy.name", $value[0]->text);
+                $this->assertStringContainsString("badGuy.weapon", $value[0]->text);
+                $this->assertStringStartsWith("You walk through the forest, looking for a monster to fight against. After a", $value[0]->text);
+                $this->assertArrayHasKey("badGuy", $value[0]->context);
+                $this->assertSame($battleStateBadGuy, $value[0]->context["badGuy"]);
+            });
 
-        $this->fightTemplate->onSceneChange($stage, $action, $scene);
+        $this->fightTemplate->setSceneChangeParameter($stage, $action, $scene);
+        $this->fightTemplate->onSceneChange();
     }
 
     public function testOnSceneChangeWithSearchActionWithCharacterGettingSurprised(): void
@@ -234,7 +242,16 @@ class FightTemplateTest extends TestCase
         $scene = $this->createMock(Scene::class);
         $creature = $this->createMock(Creature::class);
         $attachment = $this->createMock(Attachment::class);
-        $battleState = $this->createMock(BattleState::class);
+        $battleStateGoodGuy = $this->createMock(FighterInterface::class);
+        $battleStateBadGuy = $this->createMock(FighterInterface::class);
+        $battleState = $this->getMockBuilder(BattleState::class)
+            ->enableOriginalConstructor()
+            ->setConstructorArgs([$battleStateGoodGuy, $battleStateBadGuy])
+            ->getMock();
+
+        $stage->expects($this->atLeastOnce())
+            ->method(PropertyHook::get("owner"))
+            ->willReturn($this->character);
 
         $action->expects($this->exactly(2))
             ->method('getParameter')
@@ -276,10 +293,6 @@ class FightTemplateTest extends TestCase
             ->method(PropertyHook::get("health"))
             ->willReturn(50);
 
-        $creature->expects($this->atLeastOnce())
-            ->method(PropertyHook::get("weapon"))
-            ->willReturn("Rusty Sword");
-
         $this->attachmentRepository->expects($this->once())
             ->method("__call")
             ->with("findOneByAttachmentClass", [BattleAttachment::class])
@@ -301,17 +314,19 @@ class FightTemplateTest extends TestCase
             ->method('addFightActions')
             ->with($stage, $scene, $battleState, ['op' => 'fight']);
 
-        $stage->expects($this->exactly(2))
-            ->method('addContext')
-            ->willReturnMap([
-                ['creatureName', 'Goblin', $stage],
-                ['creatureWeapon', 'Rusty Sword', $stage],
-            ]);
-
         $stage->expects($this->once())
-            ->method(PropertyHook::set("description"));
+            ->method(PropertyHook::set("paragraphs"))
+            ->willReturnCallback(function (array $value) use ($battleStateBadGuy) {
+                $this->assertSame("lotgd2.paragraph.fightTemplate.fightCharacterIsSurprised", $value[0]->id);
+                $this->assertStringContainsString("badGuy.name", $value[0]->text);
+                $this->assertStringContainsString("badGuy.weapon", $value[0]->text);
+                $this->assertStringStartsWith("You walk through the forest, looking for a monster to fight against. Suddenly", $value[0]->text);
+                $this->assertArrayHasKey("badGuy", $value[0]->context);
+                $this->assertSame($battleStateBadGuy, $value[0]->context["badGuy"]);
+            });
 
-        $this->fightTemplate->onSceneChange($stage, $action, $scene);
+        $this->fightTemplate->setSceneChangeParameter($stage, $action, $scene);
+        $this->fightTemplate->onSceneChange();
     }
 
     public function testOnSceneChangeWithFightAction(): void
@@ -319,6 +334,8 @@ class FightTemplateTest extends TestCase
         $stage = $this->createMock(Stage::class);
         $action = $this->createMock(Action::class);
         $scene = $this->createMock(Scene::class);
+
+        $stage->method(PropertyHook::get("owner"))->willReturn($this->character);
 
         $action->expects($this->atLeastOnce())
             ->method('getParameter')
@@ -334,7 +351,8 @@ class FightTemplateTest extends TestCase
         // Mock the fightAction method by expecting it to be called
         // Since fightAction is likely implemented in DefaultFightTrait, 
         // we just verify the method dispatch works correctly
-        $this->fightTemplate->onSceneChange($stage, $action, $scene);
+        $this->fightTemplate->setSceneChangeParameter($stage, $action, $scene);
+        $this->fightTemplate->onSceneChange();
     }
 
     public function testOnSceneChangeWithCheats(): void
@@ -363,11 +381,7 @@ class FightTemplateTest extends TestCase
             ->method('debug')
             ->withAnyParameters();
 
-        $this->health->expects($this->once())
-            ->method('getHealth')
-            ->willReturn(100);
-
-        $this->health->expects($this->once())
+        $this->health->expects($this->atLeastOnce())
             ->method('isAlive')
             ->willReturn(true);
 
@@ -394,7 +408,8 @@ class FightTemplateTest extends TestCase
         $stage->expects($this->exactly(2))
             ->method('addActionGroup');
 
-        $this->fightTemplate->onSceneChange($stage, $action, $scene);
+        $this->fightTemplate->setSceneChangeParameter($stage, $action, $scene);
+        $this->fightTemplate->onSceneChange();
     }
 
     public function testDefaultActionWhenDead(): void
@@ -403,28 +418,31 @@ class FightTemplateTest extends TestCase
         $action = $this->createMock(Action::class);
         $scene = $this->createMock(Scene::class);
 
+        $stage->method(PropertyHook::get("owner"))->willReturn($this->character);
+
         $this->logger->expects($this->once())
             ->method('debug')
             ->with('Called FightTemplate::defaultAction');
 
-        $this->health->expects($this->once())
-            ->method('getHealth')
-            ->willReturn(0);
-
-        $this->health->expects($this->once())
+        $this->health->expects($this->atLeastOnce())
             ->method('isAlive')
             ->willReturn(false);
 
         $stage->expects($this->once())
-            ->method('addDescription')
-            ->with("You are dead. You can't fight any more battles today.");
+            ->method('addParagraph')
+            ->willReturnCallback(function (Paragraph $paragraph) use ($stage) {
+                $this->assertSame("lotgd2.paragraph.fightTemplate.isDeadMessage", $paragraph->id);
+                $this->assertSame("You are dead. You can't fight any more battles today.", $paragraph->text);
+                return $stage;
+            });
 
         $this->security->expects($this->once())
             ->method('isGranted')
             ->with('ROLE_CHEATS_ENABLED')
             ->willReturn(false);
 
-        $this->fightTemplate->defaultAction($stage, $action, $scene);
+        $this->fightTemplate->setSceneChangeParameter($stage, $action, $scene);
+        $this->fightTemplate->defaultAction();
     }
 
     public function testSearchActionWhenTired(): void
@@ -432,6 +450,8 @@ class FightTemplateTest extends TestCase
         $stage = $this->createMock(Stage::class);
         $action = $this->createMock(Action::class);
         $scene = $this->createMock(Scene::class);
+
+        $stage->method(PropertyHook::get("owner"))->willReturn($this->character);
 
         $this->health->expects($this->once())
             ->method('getTurns')
@@ -445,11 +465,7 @@ class FightTemplateTest extends TestCase
             ->method('debug')
             ->with('Called FightTemplate::defaultAction');
 
-        $this->health->expects($this->once())
-            ->method('getHealth')
-            ->willReturn(100);
-
-        $this->health->expects($this->once())
+        $this->health->expects($this->atLeastOnce())
             ->method('isAlive')
             ->willReturn(true);
 
@@ -472,8 +488,12 @@ class FightTemplateTest extends TestCase
             ->willReturn($this->character);
 
         $stage->expects($this->once())
-            ->method(PropertyHook::set("description"))
-            ->with("You are too tired to search the forest any longer today. Perhaps tomorrow you will have more energy.");
+            ->method(PropertyHook::set("paragraphs"))
+            ->willReturnCallback(function (array $paragraphs) use ($stage) {
+                $this->assertSame("lotgd2.paragraph.fightTemplate.tooTired", $paragraphs[0]->id);
+                $this->assertSame("You are too tired to search the forest any longer today. Perhaps tomorrow you will have more energy.", $paragraphs[0]->text);
+                return $stage;
+            });
 
         $stage->expects($this->once())
             ->method('addActionGroup');
@@ -483,7 +503,8 @@ class FightTemplateTest extends TestCase
             ->with('ROLE_CHEATS_ENABLED')
             ->willReturn(false);
 
-        $this->fightTemplate->searchAction($stage, $action, $scene);
+        $this->fightTemplate->setSceneChangeParameter($stage, $action, $scene);
+        $this->fightTemplate->searchAction();
     }
 
     public function testSearchActionNoCreatureFound(): void
@@ -517,8 +538,10 @@ class FightTemplateTest extends TestCase
             ->willReturn(null);
 
         $stage->expects($this->once())
-            ->method(PropertyHook::set("description"))
-            ->with('This place looks very peaceful.');
+            ->method(PropertyHook::set("paragraphs"))
+            ->willReturnCallback(function (array $value) {
+                $this->assertSame('This place looks very peaceful.', $value[0]->text);
+            });
 
         $this->character
             ->expects($this->atLeastOnce())
@@ -555,7 +578,8 @@ class FightTemplateTest extends TestCase
             ->with('ROLE_CHEATS_ENABLED')
             ->willReturn(false);
 
-        $this->fightTemplate->searchAction($stage, $action, $scene);
+        $this->fightTemplate->setSceneChangeParameter($stage, $action, $scene);
+        $this->fightTemplate->searchAction();
     }
 
     public function testSearchActionNoAttachment(): void
@@ -604,8 +628,17 @@ class FightTemplateTest extends TestCase
             ->willReturn(null);
 
         $stage->expects($this->once())
-            ->method(PropertyHook::set("description"))
-            ->with('You are too blind to see any monsters. Maybe prey to the gods and ask for why that is?');
+            ->method(PropertyHook::set("paragraphs"))
+            ->willReturnCallback(function (array $value) {
+                $this->assertSame(
+                    'lotgd2.paragraph.fightTemplate.noMonstersFound',
+                    $value[0]->id,
+                );
+                $this->assertSame(
+                    'You are too blind to see any monsters. Maybe prey to the gods and ask for why that is?',
+                    $value[0]->text,
+                );
+            });
 
         $this->logger->expects($this->once())
             ->method('critical')
@@ -637,7 +670,8 @@ class FightTemplateTest extends TestCase
             ->with('ROLE_CHEATS_ENABLED')
             ->willReturn(false);
 
-        $this->fightTemplate->searchAction($stage, $action, $scene);
+        $this->fightTemplate->setSceneChangeParameter($stage, $action, $scene);
+        $this->fightTemplate->searchAction();
     }
 
     public function testAddDefaultActionsWithCheats(): void
@@ -675,7 +709,8 @@ class FightTemplateTest extends TestCase
         $stage->expects($this->exactly(2))
             ->method('addActionGroup');
 
-        $this->fightTemplate->addDefaultActions($stage, $action, $scene);
+        $this->fightTemplate->setSceneChangeParameter($stage, $action, $scene);
+        $this->fightTemplate->addDefaultActions();
     }
 
     public function testAddDefaultActionsLevelOne(): void
@@ -720,7 +755,8 @@ class FightTemplateTest extends TestCase
                 return count($actionGroup->getActions()) === 2; // Only search and thrillseeking, no slumming
             }));
 
-        $this->fightTemplate->addDefaultActions($stage, $action, $scene);
+        $this->fightTemplate->setSceneChangeParameter($stage, $action, $scene);
+        $this->fightTemplate->addDefaultActions();
     }
 
     public function testGetRandomLevelChangeReturnsValidRange(): void

@@ -7,8 +7,7 @@ use LotGD2\Attribute\TemplateType;
 use LotGD2\Entity\Action;
 use LotGD2\Entity\ActionGroup;
 use LotGD2\Entity\Mapped\Character;
-use LotGD2\Entity\Mapped\Scene;
-use LotGD2\Entity\Mapped\Stage;
+use LotGD2\Entity\Paragraph;
 use LotGD2\Form\Scene\SceneTemplate\HealerTemplateType;
 use LotGD2\Game\Character\Gold;
 use LotGD2\Game\Character\Health;
@@ -33,7 +32,7 @@ use Symfony\Component\DependencyInjection\Attribute\Autoconfigure;
  */
 #[Autoconfigure(public: true)]
 #[TemplateType(HealerTemplateType::class)]
-readonly class HealerTemplate implements SceneTemplateInterface
+class HealerTemplate implements SceneTemplateInterface
 {
     use DefaultSceneTemplate;
 
@@ -42,20 +41,20 @@ readonly class HealerTemplate implements SceneTemplateInterface
     const ActionPartialHealing = "lotgd2.action.healerTemplate.partial";
 
     public function __construct(
-        private LoggerInterface $logger,
-        private Security $security,
-        private Health $health,
-        private Gold $gold,
+        private readonly LoggerInterface $logger,
+        private readonly Security $security,
+        private readonly Health $health,
+        private readonly Gold $gold,
     ) {
 
     }
 
-    public function onSceneChange(Stage $stage, Action $action, Scene $scene): void
+    public function onSceneChange(): void
     {
-        $op = $action->getParameter("op") ?? null;
+        $op = $this->action->getParameter("op") ?? null;
 
         if ($op === "cheat") {
-            $what = $action->getParameter("what") ?? null;
+            $what = $this->action->getParameter("what") ?? null;
 
             if ($what === "heal") {
                 $this->health->heal();
@@ -63,61 +62,89 @@ readonly class HealerTemplate implements SceneTemplateInterface
         }
 
         match($op) {
-            default => $this->defaultAction($stage, $action, $scene),
-            "heal" => $this->healAction($stage, $action, $scene),
+            default => $this->defaultAction(),
+            "heal" => $this->healAction(),
         };
     }
 
-    public function defaultAction(Stage $stage, Action $action, Scene $scene): void
+    public function defaultAction(): void
     {
         $this->logger->debug("Called HealerTemplate::defaultAction");
 
         if ($this->health->isAlive() === false) {
-            $stage->addDescription("You are dead and cannot get healing from the Healer's hut. Try waiting for a new day to continue playing.");
+            $this->stage->paragraphs = [
+                new Paragraph(
+                    "lotgd2.paragraph.healerTemplate.isDeadMessage",
+                    "You are dead and cannot get healing from the Healer's hut. Try waiting for a new day to continue playing."
+                ),
+            ];
         } elseif ($this->health->getHealth() < $this->health->getMaxHealth()) {
-            $stage->addDescription($scene->templateConfig["text"]["onEntryAndDamaged"]);
-            $stage->addContext("price", $this->getPrice($stage->owner));
-            $this->addPotionActions($stage, $scene);
-        } elseif ($this->health->getHealth() > $this->health->getMaxHealth() && ($scene->templateConfig["stealHealth"] ?? true) === true) {
-            $stage->addDescription($scene->templateConfig["text"]["onEntryAndOverhealed"]);
+            $this->stage->addParagraph(new Paragraph(
+                id: "lotgd2.paragraph.healerTemplate.onEntryAndDamaged",
+                text: $this->scene->templateConfig["text"]["onEntryAndDamaged"],
+                context: ["price" => $this->getPrice($this->character)],
+            ));
+
+            $this->addPotionActions();
+        } elseif ($this->health->getHealth() > $this->health->getMaxHealth() && ($this->scene->templateConfig["stealHealth"] ?? true) === true) {
+            $this->stage->addParagraph(new Paragraph(
+                id: "lotgd2.paragraph.healerTemplate.onEntryAndOverhealed",
+                text: $this->scene->templateConfig["text"]["onEntryAndOverhealed"],
+            ));
         } else {
-            $stage->addDescription($scene->templateConfig["text"]["onEntryAndHealthy"]);
+            $this->stage->addParagraph(new Paragraph(
+                id: "lotgd2.paragraph.healerTemplate.onEntryAndHealthy",
+                text: $this->scene->templateConfig["text"]["onEntryAndHealthy"],
+            ));
         }
 
         if ($this->security->isGranted("ROLE_CHEATS_ENABLED")) {
             $cheatsGroup = new ActionGroup("lotgd2.actionGroup.healerTemplate.cheats", "Cheats");
             $cheatsGroup->setActions([
                 new Action(
-                    scene: $scene,
+                    scene: $this->scene,
                     title: "#! Complete Heal",
                     parameters: ["op" => "cheat", "what" => "heal"],
                     reference: "lotgd2.action.healerTemplate.cheats.experience",
                 ),
             ]);
-            $stage->addActionGroup($cheatsGroup);
+            $this->stage->addActionGroup($cheatsGroup);
         }
     }
 
-    public function healAction(Stage $stage, Action $action, Scene $scene): void
+    public function healAction(): void
     {
         $this->logger->debug("Called HealerTemplate::defaultAction");
 
-        $character = $stage->owner;
-        $amount = $action->getParameter("amount") ?? 0;
-        $price = $action->getParameter("price") ?? 0;
+        $amount = $this->action->getParameter("amount") ?? 0;
+        $price = $this->action->getParameter("price") ?? 0;
 
         if ($price === 0 or $this->gold->getGold() >= $price) {
-            $this->logger->debug("{$character->id}: Healed by $amount for $price gold.");
+            $this->logger->debug("{$this->character->id}: Healed by $amount for $price gold.");
 
-            $stage->description = $scene->templateConfig["text"]["onHealEnoughGold"];
-            $stage->addContext("price", $price);
-            $stage->addContext("amount", $amount);
+            $this->stage->paragraphs = [
+                new Paragraph(
+                    id: "lotgd2.paragraph.healerTemplate.onHealEnoughGold",
+                    text: $this->scene->templateConfig["text"]["onHealEnoughGold"],
+                    context: [
+                        "price" => $price,
+                        "amount" => $amount,
+                    ],
+                )
+            ];
 
             $this->health->heal($amount);
             $this->gold->addGold(-$price);
         } else {
-            $stage->description = $scene->templateConfig["text"]["onHealNotEnoughGold"];
-            $stage->addContext("price", $price);
+            $this->stage->paragraphs = [
+                new Paragraph(
+                    id: "lotgd2.paragraph.healerTemplate.onHealNotEnoughGold",
+                    text: $this->scene->templateConfig["text"]["onHealNotEnoughGold"],
+                    context: [
+                        "price" => $price,
+                    ],
+                )
+            ];
         }
     }
 
@@ -129,19 +156,19 @@ readonly class HealerTemplate implements SceneTemplateInterface
         return (int)round($price);
     }
 
-    public function addPotionActions(Stage $stage, Scene $scene): void
+    public function addPotionActions(): void
     {
         $actionGroup = new ActionGroup(
             id: self::ActionGroupPotions,
-            title: $scene->templateConfig["actionGroupPotionTitle"],
+            title: $this->scene->templateConfig["actionGroupPotionTitle"],
         );
 
         $healthDelta = $this->health->getMaxHealth() - $this->health->getHealth();
-        $price = $this->getPrice($stage->owner);
+        $price = $this->getPrice($this->stage->owner);
 
         $actionGroup->addAction(new Action(
-            scene: $scene,
-            title: $scene->templateConfig["actionCompleteHealingTitle"],
+            scene: $this->scene,
+            title: $this->scene->templateConfig["actionCompleteHealingTitle"],
             parameters: ["op" => "heal", "amount" => $healthDelta, "price" => $price],
             reference: self::ActionCompleteHealing,
         ));
@@ -160,7 +187,7 @@ readonly class HealerTemplate implements SceneTemplateInterface
                 }
 
                 $actionGroup->addAction(new Action(
-                    scene: $scene,
+                    scene: $this->scene,
                     title: "Heal {$partialHeal} points for {$partialPrice} gold",
                     parameters: ["op" => "heal", "amount" => $partialHeal, "price" => $partialPrice],
                     reference: self::ActionPartialHealing . ".$i",
@@ -170,6 +197,6 @@ readonly class HealerTemplate implements SceneTemplateInterface
             }
         }
 
-        $stage->addActionGroup($actionGroup);
+        $this->stage->addActionGroup($actionGroup);
     }
 }

@@ -98,10 +98,17 @@ class SceneTest extends TestCase
     public function testTemplateClassAcceptsClassImplementingSceneTemplateInterface()
     {
         $class = new class implements SceneTemplateInterface {
-            public function onSceneLeave(Stage $stage, Action $action, Scene $leavingScene, Scene $enteringScene): bool {return true;}
-            public function onSceneEnter(Stage $stage, Action $action, ?Scene $leavingScene, Scene $enteringScene): bool {return true;}
-            public function onSceneChange(Stage $stage, Action $action, Scene $scene): void{}
-            public static function validateConfiguration(array $config): array{return $config;}
+            public function onSceneLeave(): bool {return true;}
+            public function onSceneEnter(): bool {return true;}
+            public function onSceneChange(): void {}
+            public function setSceneChangeParameter(
+                Stage $stage,
+                Action $action,
+                Scene $currentScene,
+                ?Scene $lastScene = null
+            ): SceneTemplateInterface {
+                return $this;
+            }
         };
 
         $scene = new Scene(
@@ -116,10 +123,17 @@ class SceneTest extends TestCase
         $scene = new Scene();
         
         $validClass = new class implements SceneTemplateInterface {
-            public function onSceneLeave(Stage $stage, Action $action, Scene $leavingScene, Scene $enteringScene): bool {return true;}
-            public function onSceneEnter(Stage $stage, Action $action, ?Scene $leavingScene, Scene $enteringScene): bool {return true;}
-            public function onSceneChange(Stage $stage, Action $action, Scene $scene): void{}
-            public static function validateConfiguration(array $config): array{return $config;}
+            public function onSceneLeave(): bool {return true;}
+            public function onSceneEnter(): bool {return true;}
+            public function onSceneChange(): void {}
+            public function setSceneChangeParameter(
+                Stage $stage,
+                Action $action,
+                Scene $currentScene,
+                ?Scene $lastScene = null
+            ): SceneTemplateInterface {
+                return $this;
+            }
         };
 
         $scene->templateClass = $validClass::class;
@@ -137,12 +151,16 @@ class SceneTest extends TestCase
     public function testTemplateConfigSetterWithValidTemplateClass()
     {
         $class = new class implements SceneTemplateInterface {
-            public function onSceneLeave(Stage $stage, Action $action, Scene $leavingScene, Scene $enteringScene): bool {return true;}
-            public function onSceneEnter(Stage $stage, Action $action, ?Scene $leavingScene, Scene $enteringScene): bool {return true;}
-            public function onSceneChange(Stage $stage, Action $action, Scene $scene): void{}
-            public static function validateConfiguration(array $config): array
-            {
-                return array_merge($config, ['validated' => true]);
+            public function onSceneLeave(): bool {return true;}
+            public function onSceneEnter(): bool {return true;}
+            public function onSceneChange(): void {}
+            public function setSceneChangeParameter(
+                Stage $stage,
+                Action $action,
+                Scene $currentScene,
+                ?Scene $lastScene = null
+            ): SceneTemplateInterface {
+                return $this;
             }
         };
 

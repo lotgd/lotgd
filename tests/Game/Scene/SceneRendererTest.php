@@ -11,6 +11,7 @@ use LotGD2\Entity\Mapped\Scene;
 use LotGD2\Entity\Mapped\SceneActionGroup;
 use LotGD2\Entity\Mapped\SceneConnection;
 use LotGD2\Entity\Mapped\Stage;
+use LotGD2\Entity\Paragraph;
 use LotGD2\Game\Character\Equipment;
 use LotGD2\Game\Character\Gold;
 use LotGD2\Game\Character\Health;
@@ -41,6 +42,7 @@ use Psr\Log\LoggerInterface;
 #[UsesClass(Health::class)]
 #[UsesClass(Stats::class)]
 #[UsesClass(ExpressionService::class)]
+#[UsesClass(Paragraph::class)]
 class SceneRendererTest extends TestCase
 {
     private SceneRenderer $renderer;
@@ -122,7 +124,8 @@ class SceneRendererTest extends TestCase
 
         $this->assertNotNull($stage);
         $this->assertSame("Test Scene", $stage->title);
-        $this->assertSame("A nice scenery", $stage->description);
+        $this->assertArrayHasKey(Stage::SceneText, $stage->paragraphs);
+        $this->assertSame("A nice scenery", array_first($stage->paragraphs)->text);
 
         $actionGroups = $stage->actionGroups;
     }

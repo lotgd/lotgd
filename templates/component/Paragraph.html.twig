@@ -1,0 +1,41 @@
+<div {{ attributes.defaults({
+    "class": "d-flex"
+}) }}>
+    <div class="flex">
+        {{ paragraph.text|parse({
+            "character": character,
+        }|merge(paragraph.context))|raw }}
+    </div>
+
+    {% if is_granted("ROLE_DEBUG") %}
+        {%- set tooltip -%}
+            <div class="p-2 text-white text-start">
+                <dl>
+                    <dt>id</dt>
+                    <dd>{{ paragraph.id }}</dd>
+                    <dt>translated</dt>
+                    <dd>{{ paragraph.translated ? "Yes" : "No" }}</dd>
+                    <dt>context</dt>
+                    <dd class="font-monospace preserve-breaks">{% if paragraph.context|length == 0 %}{}{% else %}{
+                            {% for param, value in paragraph.context -%}
+                                &nbsp;- {{ param }}: {{ value|stringify }},
+                            {% endfor -%}
+                            }{% endif %}</dd>
+                    <dt>kwargs</dt>
+                    <dd class="font-monospace preserve-breaks">{% if paragraph.kwargs|length == 0 %}{}{% else %}{
+                            {% for param, value in paragraph.kwargs -%}
+                                &nbsp;- {{ param }}: {{ value|stringify }},
+                            {% endfor -%}
+                            }{% endif %}</dd>
+                </dl>
+            </div>
+        {%- endset -%}
+
+        <div class=" flex-column flex-grow-0">
+            <span
+                    class="btn btn-outline-info"
+                    data-bs-toggle="tooltip" data-bs-html="true" data-bs-title="{{ tooltip|escape("html") }}"
+            >!</span>
+        </div>
+    {% endif %}
+</div>

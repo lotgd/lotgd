@@ -12,6 +12,7 @@ use LotGD2\Entity\Character\EquipmentItem;
 use LotGD2\Entity\Mapped\Character;
 use LotGD2\Entity\Mapped\Scene;
 use LotGD2\Entity\Mapped\Stage;
+use LotGD2\Entity\Paragraph;
 use LotGD2\Form\Scene\SceneTemplate\DragonTemplateType;
 use LotGD2\Game\Battle\Battle;
 use LotGD2\Game\Character\DragonCounter;
@@ -46,11 +47,6 @@ class DragonTemplate implements SceneTemplateInterface
     use DefaultSceneTemplate;
     use DefaultFightTrait;
 
-    private ?Stage $stage = null;
-    private ?Action $action = null; // @phpstan-ignore property.onlyWritten
-    private ?Scene $scene = null;
-    private ?Character $character = null;
-
     public function __construct(
         readonly private LoggerInterface $logger,
         readonly private DiceBagInterface $diceBag,
@@ -67,23 +63,14 @@ class DragonTemplate implements SceneTemplateInterface
 
     }
 
-    public function setSceneParameter(Stage $stage, Action $action, Scene $scene): void
+    public function onSceneChange(): void
     {
-        $this->stage = $stage;
-        $this->action = $action;
-        $this->scene = $scene;
-        $this->character = $stage->owner;
-    }
-
-    public function onSceneChange(Stage $stage, Action $action, Scene $scene): void
-    {
-        $op = $action->getParameter("op") ?? null;
-        $this->setSceneParameter($stage, $action, $scene);
+        $op = $this->action->getParameter("op") ?? null;
 
         match($op) {
             default => $this->defaultAction(),
             "start" => $this->startFight(),
-            "fight" => $this->fightAction($stage, $action, $scene),
+            "fight" => $this->fightAction(),
             "epilogue" => $this->epilogueAction(),
         };
     }
@@ -104,14 +91,14 @@ class DragonTemplate implements SceneTemplateInterface
 
     public function startFight(): void
     {
-        $this->stage->description = $this->scene->templateConfig["text"]["fightIntro"];
+        $description = $this->scene->templateConfig["text"]["fightIntro"] ?? null;
 
         $attachment = $this->attachmentRepository->findOneByAttachmentClass(BattleAttachment::class);
 
         // No attachment - fail early
         if ($attachment === null) {
             $this->logger->critical("Cannot attach attachment " . BattleAttachment::class . ": Not installed.");
-            $this->stage->description = "The dragon suddenly withdraws into the inner caves, closing its path with a 
+            $description = "The dragon suddenly withdraws into the inner caves, closing its path with a 
                 huge boulder. You don't much of a choice but to leave, and maybe inform the gods of this unnatural
                 behaviour.";
 
@@ -136,14 +123,24 @@ class DragonTemplate implements SceneTemplateInterface
         $this->stage->addAttachment($attachment, data: [
             "battleState" => $battleState,
         ]);
+
+        $this->stage->paragraphs = [
+            new Paragraph(
+                id: "lotgd2.paragraph.dragonTemplate.startFight",
+                text: $description,
+                context: [
+                    "badGuy" => $dragon,
+                ],
+            )
+        ];
     }
 
-    public function onFightWon(Stage $stage, Action $action, Scene $scene, BattleState $battleState): void
+    public function onFightWon(BattleState $battleState): void
     {
         $this->stats->levelUp();
         $this->health->heal();
 
-        $this->stage->description = <<<TEXT
+        $description = <<<TEXT
             With a mighty final blow, {{ badGuy.name }} lets out a tremendous bellow and falls at your feet, dead at last.
             TEXT;
 
@@ -159,13 +156,23 @@ class DragonTemplate implements SceneTemplateInterface
                 ]
             )
         );
+
+        $this->stage->paragraphs = [
+            new Paragraph(
+                id: "lotgd2.paragraph.dragonTemplate.fightWon",
+                text: $description,
+                context: [
+                    "badGuy" => $battleState->badGuy,
+                ],
+            )
+        ];
     }
 
     public function epilogueAction(): void
     {
         $this->stage->clearActionGroups();
         $this->stage->title = "Victory!";
-        $this->stage->description = $this->scene->templateConfig["text"]["epilogue"];
+        $description = $this->scene->templateConfig["text"]["epilogue"];
         $this->stage->addAction(ActionGroup::EMPTY, new Action(
             scene: $this->sceneRepository->getDefaultScene(),
             title: "Continue",
@@ -173,6 +180,15 @@ class DragonTemplate implements SceneTemplateInterface
 
         $this->dragonCounter->dragonCounter++;
         $this->newDay->resetNewDay($this->character);
+
+
+        $this->stage->paragraphs = [
+            new Paragraph(
+                id: "lotgd2.paragraph.dragonTemplate.epilogue",
+                text: $description,
+                context: [],
+            )
+        ];
 
         $this->resetCharacter();
     }

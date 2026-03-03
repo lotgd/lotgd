@@ -9,6 +9,7 @@ use LotGD2\Entity\ActionGroup;
 use LotGD2\Entity\Character\EquipmentItem;
 use LotGD2\Entity\Mapped\Scene;
 use LotGD2\Entity\Mapped\Stage;
+use LotGD2\Entity\Paragraph;
 use LotGD2\Form\Scene\SceneTemplate\SimpleShopTemplateType;
 use LotGD2\Game\Character\Equipment;
 use LotGD2\Game\Character\Gold;
@@ -35,86 +36,92 @@ use Symfony\Component\OptionsResolver\OptionsResolver;
  */
 #[Autoconfigure(public: true)]
 #[TemplateType(SimpleShopTemplateType::class)]
-readonly class SimpleShopTemplate implements SceneTemplateInterface
+class SimpleShopTemplate implements SceneTemplateInterface
 {
     use DefaultSceneTemplate;
 
     const string ActionGroupShop = "lotgd.actionGroup.shop";
 
     public function __construct(
-        private AttachmentRepository $attachmentRepository,
-        private LoggerInterface $logger,
-        private ActionService $actionService,
-        private Equipment $equipment,
-        private Gold $gold,
+        private readonly AttachmentRepository $attachmentRepository,
+        private readonly LoggerInterface $logger,
+        private readonly ActionService $actionService,
+        private readonly Equipment $equipment,
+        private readonly Gold $gold,
     ) {
     }
 
-    public function onSceneChange(Stage $stage, Action $action, Scene $scene): void
+    public function onSceneChange(): void
     {
-        $op = $action->getParameters()["op"] ?? "";
+        $op = $this->action->getParameters()["op"] ?? "";
         $this->logger->debug("Called SimpleShopTemplate::onSceneChange, op={$op}");
 
         match ($op) {
-            "peruse" => $this->peruseAction($stage, $action, $scene),
-            "buy" => $this->buyAction($stage, $action, $scene),
-            default => $this->defaultAction($stage, $action, $scene),
+            "peruse" => $this->peruseAction(),
+            "buy" => $this->buyAction(),
+            default => $this->defaultAction(),
         };
     }
 
-    public function defaultAction(Stage $stage, Action $action, Scene $scene): void
+    public function defaultAction(): void
     {
         $this->logger->debug("Called SimpleShopTemplate::defaultAction");
 
-        $this->addDefaultActions($stage, $scene);
+        $this->addDefaultActions();
     }
 
-    public function peruseAction(Stage $stage, Action $action, Scene $scene): void
+    public function peruseAction(): void
     {
         $this->logger->debug("Called SimpleShopTemplate::peruseAction");
 
-        $character = $stage->owner;
-        $slot = $scene->templateConfig["type"] === "armor" ? Equipment::ArmorSlot : Equipment::WeaponSlot;
+        $slot = $this->scene->templateConfig["type"] === "armor" ? Equipment::ArmorSlot : Equipment::WeaponSlot;
 
         $attachment = $this->attachmentRepository->findOneByAttachmentClass(SimpleShopAttachment::class);
         $this->logger->debug("Add SimpleShopAttachment (id={$attachment->id})");
 
-        $buyAction = new Action($scene, parameters: ["op" => "buy"]);
-        $this->actionService->addHiddenAction($stage, $buyAction);
+        $buyAction = new Action($this->scene, parameters: ["op" => "buy"]);
+        $this->actionService->addHiddenAction($this->stage, $buyAction);
 
         $oldItem = $this->equipment->getItemInSlot($slot);
 
-        $stage->description = $scene->templateConfig["text"]["peruse"];
-        $stage->context = [
-            "amount" => $this->getTradeInValue($oldItem?->getValue() ?? 0),
-            "item" => $oldItem?->getName() ?? "Fists",
+        $this->stage->paragraphs = [
+            new Paragraph(
+                id: "lotgd2.paragraph.dragonTemplate.epilogue",
+                text: $this->scene->templateConfig["text"]["peruse"],
+                context: [
+                    "amount" => $this->getTradeInValue($oldItem?->getValue() ?? 0),
+                    "item" => $oldItem?->getName() ?? "Fists",
+                ]
+            )
         ];
-        $stage->addAttachment(
+
+        $this->stage->addAttachment(
             $attachment, [
                 "buyActionId" => $buyAction->id,
-                "inventory" => $scene->templateConfig["items"],
+                "inventory" => $this->scene->templateConfig["items"],
             ]
         );
     }
 
-    public function buyAction(Stage $stage, Action $action, Scene $scene): void
+    public function buyAction(): void
     {
         $this->logger->debug("Called SimpleShopTemplate::buyAction");
 
-        $itemId = $action->getParameters()[SimpleShopAttachment::ActionParameterName] ?? -1;
-        $inventory = $scene->templateConfig["items"];
+        $itemId = $this->action->getParameters()[SimpleShopAttachment::ActionParameterName] ?? -1;
+        $inventory = $this->scene->templateConfig["items"];
         $item = $inventory[$itemId] ?? null;
-        $character = $stage->owner;
 
         if (!isset($inventory[$itemId])) {
             $this->logger->debug("Buying item with number {$itemId}, but does not exist.");
 
-            $description = $scene->templateConfig["text"]["itemNotFound"];
+            $paragraph = new Paragraph(
+                id: "lotgd2.paragraph.shopTemplate.boughtItemNotFound",
+                text: $this->scene->templateConfig["text"]["itemNotFound"],
+            );
         } else {
             $this->logger->debug("Buying item with number {$itemId}.");
 
-            $slot = $scene->templateConfig["type"] === "armor" ? Equipment::ArmorSlot : Equipment::WeaponSlot;
-            $description = $scene->templateConfig["text"]["buy"];
+            $slot = $this->scene->templateConfig["type"] === "armor" ? Equipment::ArmorSlot : Equipment::WeaponSlot;
             $equipmentItem = new EquipmentItem(
                 name: $item["name"],
                 strength: $item["strength"],
@@ -126,27 +133,44 @@ readonly class SimpleShopTemplate implements SceneTemplateInterface
             if ($this->gold->getGold() + $this->getTradeInValue($oldItem?->getValue() ?? 0) >= $equipmentItem->getValue()) {
                 $this->equipment->setItemInSlot($slot, $equipmentItem);
                 $this->gold->addGold(-($equipmentItem->getValue() - $this->getTradeInValue($oldItem?->getValue() ?? 0)));
+
+                $paragraph = new Paragraph(
+                    id: "lotgd2.paragraph.shopTemplate.buy",
+                    text: $this->scene->templateConfig["text"]["buy"],
+                );
             } else {
-                $description = $scene->templateConfig["text"]["notEnoughGold"];
+                $paragraph = new Paragraph(
+                    id: "lotgd2.paragraph.shopTemplate.boughtWithNotEnoughGold",
+                    text: $this->scene->templateConfig["text"]["notEnoughGold"],
+                );
             }
         }
 
-        $stage->description = $description;
-        $stage->context = [
-            "newitem" => $item["name"] ?? "Unknown item",
+        $paragraph->addContext("newItem", $item["name"] ?? "Unknown item");
+        $this->stage->paragraphs = [
+            $paragraph,
+            new Paragraph(
+                id: "lotgd2.paragraph.dragonTemplate.epilogue",
+                text: $this->scene->templateConfig["text"]["peruse"],
+                context: [
+                    "amount" => $this->getTradeInValue($oldItem?->getValue() ?? 0),
+                    "item" => $oldItem?->getName() ?? "Fists",
+                ]
+            )
         ];
-        $this->addDefaultActions($stage, $scene);
+
+        $this->addDefaultActions();
     }
 
-    public function addDefaultActions(Stage $stage, Scene $scene): void
+    public function addDefaultActions(): void
     {
-        $stage->addActionGroup(
-            new ActionGroup(self::ActionGroupShop, $scene->title, -10)
+        $this->stage->addActionGroup(
+            new ActionGroup(self::ActionGroupShop, $this->scene->title, -10)
         );
 
-        $stage->addAction(
+        $this->stage->addAction(
             self::ActionGroupShop,
-            new Action($scene, "Browse", ["op" => "peruse"])
+            new Action($this->scene, "Browse", ["op" => "peruse"])
         );
     }
 
