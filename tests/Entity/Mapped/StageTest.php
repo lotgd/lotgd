@@ -9,8 +9,10 @@ use LotGD2\Entity\Mapped\Attachment;
 use LotGD2\Entity\Mapped\Character;
 use LotGD2\Entity\Mapped\Scene;
 use LotGD2\Entity\Mapped\Stage;
+use LotGD2\Entity\Paragraph;
 use LotGD2\Game\Scene\SceneAttachment\SceneAttachmentInterface;
 use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\MockObject\Runtime\PropertyHook;
 use PHPUnit\Framework\TestCase;
 use TypeError;
 
@@ -40,25 +42,27 @@ class StageTest extends TestCase
         $actionGroup->method('getId')->willReturn('test-group');
         $actionGroups = ['test-group' => $actionGroup];
         $attachments = [];
-        $context = ['key' => 'value'];
+        $paragraphs = [
+            $this->createMock(Paragraph::class),
+        ];
+
+        $paragraphs[0]->method(PropertyHook::get("id"))->willReturn("id-1");
 
         $stage = new Stage(
             owner: $owner,
             title: "Forest Entrance",
-            description: "You stand at the edge of a dark forest.",
+            paragraphs: $paragraphs,
             scene: $scene,
             actionGroups: $actionGroups,
             attachments: $attachments,
-            context: $context
         );
 
         $this->assertSame($owner, $stage->owner);
         $this->assertSame("Forest Entrance", $stage->title);
-        $this->assertSame("You stand at the edge of a dark forest.", $stage->description);
         $this->assertSame($scene, $stage->scene);
         $this->assertEquals($actionGroups, $stage->actionGroups);
         $this->assertEquals($attachments, $stage->attachments);
-        $this->assertEquals($context, $stage->context);
+        $this->assertSame(["id-1" => $paragraphs[0]], $stage->paragraphs);
     }
 
     public function testIdProperty()
@@ -121,63 +125,6 @@ class StageTest extends TestCase
             $stage->title = $title;
             $this->assertSame($title, $stage->title);
         }
-    }
-
-    public function testDescriptionProperty()
-    {
-        $stage = new Stage();
-
-        // Test setter
-        $description = "A peaceful meadow with flowers blooming everywhere.";
-        $stage->description = $description;
-        $this->assertSame($description, $stage->description);
-
-        // Test constructor assignment
-        $constructorDescription = "Dark corridors echo with mysterious sounds.";
-        $stage2 = new Stage(description: $constructorDescription);
-        $this->assertSame($constructorDescription, $stage2->description);
-
-        // Test null assignment
-        $stage->description = null;
-        $this->assertNull($stage->description);
-
-        // Test empty string
-        $stage->description = "";
-        $this->assertSame("", $stage->description);
-
-        // Test long description
-        $longDescription = "This is a very long description that spans multiple lines and contains detailed information about the current location, including its atmosphere, surroundings, and potential interactions available to the player.";
-        $stage->description = $longDescription;
-        $this->assertSame($longDescription, $stage->description);
-    }
-
-    public function testAddDescription()
-    {
-        $stage = new Stage(description: "Initial description.");
-
-        $result = $stage->addDescription("Additional text.");
-
-        $this->assertSame($stage, $result); // Test fluent interface
-        $this->assertSame("Initial description.\n\nAdditional text.", $stage->description);
-    }
-
-    public function testAddDescriptionWithCustomPrefix()
-    {
-        $stage = new Stage(description: "Start");
-
-        $stage->addDescription("Middle", " -> ");
-        $stage->addDescription("End", " | ");
-
-        $this->assertSame("Start -> Middle | End", $stage->description);
-    }
-
-    public function testAddDescriptionToNullDescription()
-    {
-        $stage = new Stage();
-
-        $stage->addDescription("New description");
-
-        $this->assertSame("\n\nNew description", $stage->description);
     }
 
     public function testSceneProperty()
@@ -459,83 +406,6 @@ class StageTest extends TestCase
         $this->assertEquals([], $stage->attachments);
     }
 
-    public function testContextProperty()
-    {
-        $stage = new Stage();
-
-        // Test default null
-        $this->assertNull($stage->context);
-
-        // Test setter
-        $context = ['key' => 'value', 'number' => 42];
-        $stage->context = $context;
-        $this->assertEquals($context, $stage->context);
-
-        // Test constructor assignment
-        $stage2 = new Stage(context: ['test' => 'data']);
-        $this->assertEquals(['test' => 'data'], $stage2->context);
-
-        // Test null assignment
-        $stage->context = null;
-        $this->assertNull($stage->context);
-    }
-
-    public function testAddContext()
-    {
-        $stage = new Stage();
-
-        $result = $stage->addContext('player_level', 10);
-
-        $this->assertSame($stage, $result); // Test fluent interface
-        $this->assertEquals(['player_level' => 10], $stage->context);
-    }
-
-    public function testAddContextToNullContext()
-    {
-        $stage = new Stage();
-        $this->assertNull($stage->context);
-
-        $stage->addContext('key', 'value');
-
-        $this->assertEquals(['key' => 'value'], $stage->context);
-    }
-
-    public function testAddMultipleContextEntries()
-    {
-        $stage = new Stage();
-
-        $stage->addContext('health', 100)
-            ->addContext('mana', 50)
-            ->addContext('location', 'forest');
-
-        $expected = [
-            'health' => 100,
-            'mana' => 50,
-            'location' => 'forest'
-        ];
-
-        $this->assertEquals($expected, $stage->context);
-    }
-
-    public function testAddContextOverwritesExisting()
-    {
-        $stage = new Stage(context: ['key' => 'original']);
-
-        $stage->addContext('key', 'updated');
-
-        $this->assertEquals(['key' => 'updated'], $stage->context);
-    }
-
-    public function testClearContext()
-    {
-        $stage = new Stage(context: ['key' => 'value']);
-
-        $result = $stage->clearContext();
-
-        $this->assertSame($stage, $result); // Test fluent interface
-        $this->assertEquals([], $stage->context);
-    }
-
     public function testPreUpdateHook()
     {
         $actionGroup1 = $this->createMock(ActionGroup::class);
@@ -568,13 +438,28 @@ class StageTest extends TestCase
         // Create a complete stage scenario
         $owner = $this->createMock(Character::class);
         $scene = $this->createMock(Scene::class);
+        $paragraph = $this->createStub(Paragraph::class);
+        $paragraph
+            ->method(PropertyHook::get("id"))
+            ->willReturn('id-1');
+
+        $paragraph->method(PropertyHook::get("text"))->willReturn("Ancient trees tower above you.");
+        $paragraph->method(PropertyHook::get("context"))->willReturn(['time_of_day' => 'noon']);
+
+
+        $paragraph2 = $this->createStub(Paragraph::class);
+        $paragraph2
+            ->method(PropertyHook::get("id"))
+            ->willReturn('id-2');
+
+        $paragraph2->method(PropertyHook::get("text"))->willReturn("A gentle breeze rustles the leaves.");
+        $paragraph2->method(PropertyHook::get("context"))->willReturn(['weather' => 'sunny', "enemies_nearby", false]);
 
         $stage = new Stage(
             owner: $owner,
             title: "Enchanted Forest",
-            description: "Ancient trees tower above you.",
+            paragraphs: [$paragraph],
             scene: $scene,
-            context: ['time_of_day' => 'noon']
         );
 
         // Add action groups
@@ -587,12 +472,8 @@ class StageTest extends TestCase
         $stage->addActionGroup($combatGroup)
             ->addActionGroup($exploreGroup);
 
-        // Add description
-        $stage->addDescription("A gentle breeze rustles the leaves.");
-
-        // Add context
-        $stage->addContext('weather', 'sunny')
-            ->addContext('enemies_nearby', false);
+        // Add Paragraph
+        $stage->addParagraph($paragraph2);
 
         // Add attachment
         $attachment = $this->createMock(Attachment::class);
@@ -601,17 +482,13 @@ class StageTest extends TestCase
         // Verify the complete state
         $this->assertSame($owner, $stage->owner);
         $this->assertSame("Enchanted Forest", $stage->title);
-        $this->assertSame("Ancient trees tower above you.\n\nA gentle breeze rustles the leaves.", $stage->description);
         $this->assertSame($scene, $stage->scene);
         $this->assertCount(2, $stage->actionGroups);
         $this->assertCount(1, $stage->attachments);
 
-        $expectedContext = [
-            'time_of_day' => 'noon',
-            'weather' => 'sunny',
-            'enemies_nearby' => false
-        ];
-        $this->assertEquals($expectedContext, $stage->context);
+        $this->assertCount(2, $stage->paragraphs);
+        $this->assertSame($paragraph, $stage->paragraphs["id-1"]);
+        $this->assertSame($paragraph2, $stage->paragraphs["id-2"]);
     }
 
     public function testFluentInterfaceChaining()
@@ -621,19 +498,20 @@ class StageTest extends TestCase
         $actionGroup = $this->createMock(ActionGroup::class);
         $actionGroup->method('getId')->willReturn('test');
         $attachment = $this->createStub(Attachment::class);
+        $paragraph = $this->createStub(Paragraph::class);
 
         // Test method chaining
-        $result = $stage->addDescription("Initial description")
+        $result = $stage
             ->addActionGroup($actionGroup)
             ->addAttachment($attachment)
-            ->addContext('key', 'value')
+            ->addParagraph($paragraph)
             ->clearActionGroups()
             ->clearAttachments()
-            ->clearContext();
+            ->clearParagraphs();
 
         $this->assertSame($stage, $result);
         $this->assertEquals([], $stage->actionGroups);
         $this->assertEquals([], $stage->attachments);
-        $this->assertEquals([], $stage->context);
+        $this->assertEquals([], $stage->paragraphs);
     }
 }

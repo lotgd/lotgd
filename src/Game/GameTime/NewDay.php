@@ -76,7 +76,6 @@ class NewDay
             ),
         ];
         $stage->clearAttachments();
-        $stage->clearContext();
         $this->actionService->resetActionGroups($stage);
 
         $event = new StageChangeEvent($stage, $action, $scene);

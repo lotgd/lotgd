@@ -38,7 +38,6 @@ class Stage
     /**
      * @param array<string, ActionGroup> $actionGroups
      * @param null|array<int, AttachmentType> $attachments
-     * @param null|array<string, mixed> $context
      */
     public function __construct(
         #[ORM\OneToOne(inversedBy: 'stage', cascade: ['persist'])]
@@ -75,14 +74,6 @@ class Stage
             }
         },
 
-        #[ORM\Column(type: Types::TEXT)]
-        public ?string $description = null {
-            #[Deprecated]
-            get => $this->description;
-            #[Deprecated]
-            set => $value;
-        },
-
         #[ORM\ManyToOne]
         #[ORM\JoinColumn(nullable: true, onDelete: "SET NULL")]
         public ?Scene $scene = null {
@@ -111,14 +102,6 @@ class Stage
                 $this->attachments = $value;
             }
         },
-
-        #[ORM\Column(type: JsonDocumentType::NAME, nullable: true)]
-        public ?array $context = null {
-            #[Deprecated]
-            get => $this->context;
-            #[Deprecated]
-            set => $value;
-        },
     ) {
 
     }
@@ -132,13 +115,7 @@ class Stage
     public function preUpdate(): void
     {
         $this->actionGroups = array_map(fn ($x) => clone $x, $this->actionGroups);
-    }
-
-    #[Deprecated]
-    public function addDescription(string $description, string $prefix = "\n\n"): static
-    {
-        $this->description .= $prefix . $description;
-        return $this;
+        $this->paragraphs = array_map(fn ($x) => clone $x, $this->paragraphs);
     }
 
     public function addActionGroup(ActionGroup $actionGroup): self
@@ -194,27 +171,6 @@ class Stage
         return $this;
     }
 
-    #[Deprecated]
-    public function addContext(string $key, mixed $value): self
-    {
-        if (!is_array($this->context)) {
-            $this->context = [];
-        }
-
-        $context = $this->context;
-        $context[$key] = $value;
-
-        $this->context = $context;
-        return $this;
-    }
-
-    #[Deprecated]
-    public function clearContext(): self
-    {
-        $this->context = [];
-        return $this;
-    }
-
     public function addParagraph(Paragraph $paragraph): self
     {
         $this->paragraphs = array_merge($this->paragraphs, [$paragraph->id => $paragraph]);
@@ -232,7 +188,6 @@ class Stage
     public function clear(): self
     {
         $this->clearParagraphs();
-        $this->clearContext();
         $this->clearAttachments();
         $this->clearActionGroups();
 

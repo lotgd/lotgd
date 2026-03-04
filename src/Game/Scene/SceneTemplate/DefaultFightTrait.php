@@ -225,7 +225,6 @@ trait DefaultFightTrait
                     "bonusExperience" => $expBonus,
                     "experience" => $experience,
                     "gold" => $gold,
-                    "textDefeated", $battleState->badGuy->kwargs["textDefeated"] ?? null,
                     "textLost" => $battleState->badGuy->kwargs["textLost"] ?? null,
                 ]
             ),
@@ -259,7 +258,7 @@ trait DefaultFightTrait
                     "badGuy" => $battleState->badGuy,
                     "goldLost" => $this->gold->getGold(),
                     "experienceLost" => $experienceLost,
-                    "textDefeated", $battleState->badGuy->kwargs["textDefeated"] ?? null,
+                    "textDefeated" => $battleState->badGuy->kwargs["textDefeated"] ?? null,
                     "textLost" => $battleState->badGuy->kwargs["textLost"] ?? null,
                 ]
             ),

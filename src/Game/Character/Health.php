@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace LotGD2\Game\Character;
 
 use LotGD2\Entity\Mapped\Character;
+use LotGD2\Entity\Paragraph;
 use LotGD2\Event\StageChangeEvent;
 use LotGD2\Game\GameTime\NewDay;
 use Psr\Log\LoggerInterface;
@@ -171,27 +172,40 @@ readonly class Health
     {
         // Increase Age
         $this->addAge($event->character);
-        $event->stage->addDescription(<<<TXT
-            You open your eyes to discover that a new day has been bestowed upon you.
-            It is day number {{ age }}.
-            TXT);
-        $event->stage->addContext("age", $this->getAge($event->character));
+
+        $event->stage->addParagraph(new Paragraph(
+            id: "lotgd.paragraph.Health.newDay.age",
+            text: "You open your eyes to discover that a new day has been bestowed upon you. It is day number {{ age }}.",
+            context: ["age" => $this->getAge($event->character)]
+        ));
 
         // Reset turns
         $this->setTurns(character: $event->character);
-        $event->stage->addDescription("Turns for today set to {{ turns }} ");
-        $event->stage->addContext("turns", $this->getTurns($event->character));
 
-        // Add resurrection notice
+        $event->stage->addParagraph(new Paragraph(
+            id: "lotgd.paragraph.Health.newDay.turns",
+            text: "Turns for today set to {{ turns }}.",
+            context: ["turns" => $this->getTurns($event->character)]
+        ));
+
+        // Add a resurrection notice if the user was not alive prior to today
         if ($this->isAlive($event->character) === false) {
             $this->addResurrection($event->character);
-            $event->stage->addDescription("You are resurrected! This is resurrection number {{ resurrections }}");
-            $event->stage->addContext("resurrections", $this->getResurrections($event->character));
+
+            $event->stage->addParagraph(new Paragraph(
+                id: "lotgd.paragraph.Health.newDay.resurrection",
+                text: "You are resurrected! This is resurrection number {{ resurrections }}",
+                context: ["resurrections" => $this->getResurrections($event->character)]
+            ));
         }
 
         // Restore health completely
         $this->heal(character: $event->character);
-        $event->stage->addDescription("Your health was restored to {{ maxHealth }}.");
-        $event->stage->addContext("maxHealth", $this->getMaxHealth($event->character));
+
+        $event->stage->addParagraph(new Paragraph(
+            id: "lotgd.paragraph.Health.newDay.heal",
+            text: "Your health was restored to {{ maxHealth }}.",
+            context: ["maxHealth" => $this->getMaxHealth($event->character)]
+        ));
     }
 }

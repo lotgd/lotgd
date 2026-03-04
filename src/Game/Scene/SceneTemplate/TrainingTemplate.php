@@ -230,10 +230,6 @@ class TrainingTemplate implements SceneTemplateInterface
                     ]
                 )
             ];
-
-            $this->stage->context = [
-                "campLeader" => $this->scene->templateConfig["campLeader"],
-            ];
         }
     }
 
