@@ -52,8 +52,6 @@
                         <twig:Paragraph :paragraph="paragraph" />
                     {% endfor %}
 
-                    {{ dump(this.stage.description) }}
-
                     {# Attachments #}
                     {% for attachment in this.stage.attachments %}
                         {% if is_granted("ROLE_DEBUG") and app.environment == "dev" %}
