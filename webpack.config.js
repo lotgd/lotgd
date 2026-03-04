@@ -59,7 +59,15 @@ Encore
     })
 
     // enables Sass/SCSS support
-    .enableSassLoader()
+    .enableSassLoader((options) => {
+        options.sassOptions.silenceDeprecations = [
+            'color-functions',
+            'global-builtin',
+            'if-function',
+            'import',
+            'legacy-js-api',
+        ];
+    })
 
     // uncomment if you use TypeScript
     //.enableTypeScriptLoader()

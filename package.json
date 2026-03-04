@@ -11,7 +11,7 @@
         "@symfony/webpack-encore": "^4.0.0",
         "core-js": "^3.23.0",
         "regenerator-runtime": "^0.13.9",
-        "sass": "^1.64.2",
+        "sass": "^1.64.2 && < 1.78",
         "sass-loader": "^13.0.0",
         "vue": "^3.3.4",
         "vue-loader": "^17.2.2",
