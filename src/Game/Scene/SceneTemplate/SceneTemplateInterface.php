@@ -16,5 +16,8 @@ interface SceneTemplateInterface
     public function onSceneEnter(): bool;
     public function onSceneChange(): void;
 
+    /**
+     * @return self<TemplateConfiguration>
+     */
     public function setSceneChangeParameter(Stage $stage, Action $action, Scene $currentScene, ?Scene $lastScene=null): self;
 }

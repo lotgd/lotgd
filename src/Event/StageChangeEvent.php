@@ -38,7 +38,7 @@ class StageChangeEvent extends Event
      *     scene: Scene,
      * }
      */
-    private $_internal = [];
+    private array $_internal;
 
     public function __construct(
         Stage $stage,

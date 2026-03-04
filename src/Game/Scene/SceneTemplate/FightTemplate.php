@@ -71,9 +71,6 @@ class FightTemplate implements SceneTemplateInterface
 
     /**
      * Offers the default scene but adds navigation to pick battles.
-     * @param Stage $stage
-     * @param Action $action
-     * @param Scene $scene
      * @return void
      */
     public function defaultAction(): void
@@ -92,9 +89,6 @@ class FightTemplate implements SceneTemplateInterface
 
     /**
      * Searches for a
-     * @param Stage $stage
-     * @param Action $action
-     * @param Scene $scene
      * @return void
      */
     public function searchAction(): void

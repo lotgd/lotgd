@@ -283,9 +283,6 @@ class TrainingTemplate implements SceneTemplateInterface
      * Overwrites the default onFightList method.
      *
      * When a fight against a master is lost, the character doesn't die, but gets healed.
-     * @param Stage $stage
-     * @param Action $action
-     * @param Scene $scene
      * @param BattleState $battleState
      * @return void
      */

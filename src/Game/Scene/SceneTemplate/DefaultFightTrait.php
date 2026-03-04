@@ -95,9 +95,6 @@ trait DefaultFightTrait
 
     /**
      * Redefine what happens if the battle state disappears
-     * @param Stage $stage
-     * @param Action $action
-     * @param Scene $scene
      * @return void
      */
     public function onBattleStateDisappeared(): void
@@ -169,17 +166,11 @@ trait DefaultFightTrait
      *
      * If no special code is necessary, decisions can also be shifted to onFightWon and onFightList to only change
      * what happens in these specific cases.
-     * @param Stage $stage
-     * @param Action $action
-     * @param Scene $scene
      * @param BattleState $battleState
      * @return void
      */
     public function onFightEnds(BattleState $battleState): void
     {
-        $this->stage->addContext("textDefeated", $battleState->badGuy->kwargs["textDefeated"] ?? null);
-        $this->stage->addContext("textLost", $battleState->badGuy->kwargs["textLost"] ?? null);
-
         if ($battleState->result === BattleStateStatusEnum::GoodGuyWon) {
             $this->onFightWon($battleState);
         } else {
@@ -234,6 +225,8 @@ trait DefaultFightTrait
                     "bonusExperience" => $expBonus,
                     "experience" => $experience,
                     "gold" => $gold,
+                    "textDefeated", $battleState->badGuy->kwargs["textDefeated"] ?? null,
+                    "textLost" => $battleState->badGuy->kwargs["textLost"] ?? null,
                 ]
             ),
         ];
@@ -246,9 +239,6 @@ trait DefaultFightTrait
      * Sets the stage description to reflect that the fight has been lost, detailing the penalties incurred.
      * Logs the event and adjusts the gold and experience of the character to represent the loss.
      *
-     * @param Stage $stage The current stage of the game where the fight occurs.
-     * @param Action $action The action involved in the fight.
-     * @param Scene $scene The scene in which the fight takes place.
      * @param BattleState $battleState The state of the battle at the time of the loss.
      *
      * @return void
@@ -269,6 +259,8 @@ trait DefaultFightTrait
                     "badGuy" => $battleState->badGuy,
                     "goldLost" => $this->gold->getGold(),
                     "experienceLost" => $experienceLost,
+                    "textDefeated", $battleState->badGuy->kwargs["textDefeated"] ?? null,
+                    "textLost" => $battleState->badGuy->kwargs["textLost"] ?? null,
                 ]
             ),
         ];

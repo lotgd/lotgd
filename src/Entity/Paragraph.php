@@ -18,6 +18,9 @@ class Paragraph
         public string $text {
             get => $this->text;
         },
+        /**
+         * @var array<string, mixed>
+         */
         public array $context = [] {
             get => $this->context;
             set => $value;
@@ -25,6 +28,9 @@ class Paragraph
         public bool $translated = false {
             get => $this->translated;
         },
+        /**
+         * @var array<string, mixed>
+         */
         public array $kwargs = [] {
             get => $this->kwargs;
         }
