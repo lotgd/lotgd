@@ -63,7 +63,6 @@ class FightTemplateTest extends TestCase
         $this->battle = $this->createMock(Battle::class);
         $this->health = $this->createMock(Health::class);
         $this->gold = $this->createMock(Gold::class);
-        $this->character = $this->createMock(Character::class);
 
         $this->fightTemplate = new FightTemplate(
             $this->security,
@@ -84,6 +83,7 @@ class FightTemplateTest extends TestCase
         $stage = $this->createMock(Stage::class);
         $action = $this->createMock(Action::class);
         $scene = $this->createMock(Scene::class);
+        $character = $this->createMock(Character::class);
 
         $action->expects($this->once())
             ->method('getParameter')
@@ -117,13 +117,13 @@ class FightTemplateTest extends TestCase
             ->method(PropertyHook::get("title"))
             ->willReturn('Forest');
 
-        $this->character->expects($this->atLeastOnce())
+        $character->expects($this->atLeastOnce())
             ->method(PropertyHook::get("level"))
             ->willReturn(5);
 
         $stage->expects($this->atLeastOnce())
             ->method(PropertyHook::get("owner"))
-            ->willReturn($this->character);
+            ->willReturn($character);
 
         $stage->expects($this->once())
             ->method('addActionGroup');
@@ -144,6 +144,7 @@ class FightTemplateTest extends TestCase
         $scene = $this->createMock(Scene::class);
         $creature = $this->createMock(Creature::class);
         $attachment = $this->createMock(Attachment::class);
+        $character = $this->createStub(Character::class);
         $battleStateGoodGuy = $this->createMock(FighterInterface::class);
         $battleStateBadGuy = $this->createMock(FighterInterface::class);
         $battleState = $this->getMockBuilder(BattleState::class)
@@ -153,7 +154,7 @@ class FightTemplateTest extends TestCase
 
         $stage->expects($this->atLeastOnce())
             ->method(PropertyHook::get("owner"))
-            ->willReturn($this->character);
+            ->willReturn($character);
 
         $action->expects($this->exactly(2))
             ->method('getParameter')
@@ -242,6 +243,7 @@ class FightTemplateTest extends TestCase
         $scene = $this->createMock(Scene::class);
         $creature = $this->createMock(Creature::class);
         $attachment = $this->createMock(Attachment::class);
+        $character = $this->createStub(Character::class);
         $battleStateGoodGuy = $this->createMock(FighterInterface::class);
         $battleStateBadGuy = $this->createMock(FighterInterface::class);
         $battleState = $this->getMockBuilder(BattleState::class)
@@ -251,7 +253,7 @@ class FightTemplateTest extends TestCase
 
         $stage->expects($this->atLeastOnce())
             ->method(PropertyHook::get("owner"))
-            ->willReturn($this->character);
+            ->willReturn($character);
 
         $action->expects($this->exactly(2))
             ->method('getParameter')
@@ -334,8 +336,9 @@ class FightTemplateTest extends TestCase
         $stage = $this->createMock(Stage::class);
         $action = $this->createMock(Action::class);
         $scene = $this->createMock(Scene::class);
+        $character = $this->createStub(Character::class);
 
-        $stage->method(PropertyHook::get("owner"))->willReturn($this->character);
+        $stage->method(PropertyHook::get("owner"))->willReturn($character);
 
         $action->expects($this->atLeastOnce())
             ->method('getParameter')
@@ -360,6 +363,7 @@ class FightTemplateTest extends TestCase
         $stage = $this->createMock(Stage::class);
         $action = $this->createMock(Action::class);
         $scene = $this->createMock(Scene::class);
+        $character = $this->createMock(Character::class);
 
         $action->expects($this->exactly(2))
             ->method('getParameter')
@@ -397,13 +401,13 @@ class FightTemplateTest extends TestCase
             ->method(PropertyHook::get("title"))
             ->willReturn('Forest');
 
-        $this->character->expects($this->atLeastOnce())
+        $character->expects($this->atLeastOnce())
             ->method(PropertyHook::get("level"))
             ->willReturn(1); // Level 1 - no slumming option
 
         $stage->expects($this->atLeastOnce())
             ->method(PropertyHook::get("owner"))
-            ->willReturn($this->character);
+            ->willReturn($character);
 
         $stage->expects($this->exactly(2))
             ->method('addActionGroup');
@@ -417,8 +421,9 @@ class FightTemplateTest extends TestCase
         $stage = $this->createMock(Stage::class);
         $action = $this->createMock(Action::class);
         $scene = $this->createMock(Scene::class);
+        $character = $this->createStub(Character::class);
 
-        $stage->method(PropertyHook::get("owner"))->willReturn($this->character);
+        $stage->method(PropertyHook::get("owner"))->willReturn($character);
 
         $this->logger->expects($this->once())
             ->method('debug')
@@ -450,8 +455,9 @@ class FightTemplateTest extends TestCase
         $stage = $this->createMock(Stage::class);
         $action = $this->createMock(Action::class);
         $scene = $this->createMock(Scene::class);
+        $character = $this->createMock(Character::class);
 
-        $stage->method(PropertyHook::get("owner"))->willReturn($this->character);
+        $stage->method(PropertyHook::get("owner"))->willReturn($character);
 
         $this->health->expects($this->once())
             ->method('getTurns')
@@ -479,13 +485,13 @@ class FightTemplateTest extends TestCase
             ->method(PropertyHook::get("title"))
             ->willReturn('Forest');
 
-        $this->character->expects($this->atLeastOnce())
+        $character->expects($this->atLeastOnce())
             ->method(PropertyHook::get("level"))
             ->willReturn(1); // Level 1 - no slumming option
 
         $stage->expects($this->atLeastOnce())
             ->method(PropertyHook::get("owner"))
-            ->willReturn($this->character);
+            ->willReturn($character);
 
         $stage->expects($this->once())
             ->method(PropertyHook::set("paragraphs"))
@@ -512,6 +518,7 @@ class FightTemplateTest extends TestCase
         $stage = $this->createMock(Stage::class);
         $action = $this->createMock(Action::class);
         $scene = $this->createMock(Scene::class);
+        $character = $this->createMock(Character::class);
 
         $this->health->expects($this->once())
             ->method('getTurns')
@@ -543,14 +550,14 @@ class FightTemplateTest extends TestCase
                 $this->assertSame('This place looks very peaceful.', $value[0]->text);
             });
 
-        $this->character
+        $character
             ->expects($this->atLeastOnce())
             ->method(PropertyHook::get("id"))
             ->willReturn(123);
 
         $stage->expects($this->atLeastOnce())
             ->method(PropertyHook::get("owner"))
-            ->willReturn($this->character);
+            ->willReturn($character);
 
         $this->logger->expects($this->once())
             ->method('critical')
@@ -588,6 +595,7 @@ class FightTemplateTest extends TestCase
         $action = $this->createMock(Action::class);
         $scene = $this->createMock(Scene::class);
         $creature = $this->createMock(Creature::class);
+        $character = $this->createMock(Character::class);
 
         $this->health->expects($this->once())
             ->method('getTurns')
@@ -660,7 +668,7 @@ class FightTemplateTest extends TestCase
 
         $stage->expects($this->atLeastOnce())
             ->method(PropertyHook::get("owner"))
-            ->willReturn($this->character);
+            ->willReturn($character);
 
         $stage->expects($this->once())
             ->method('addActionGroup');
@@ -679,6 +687,7 @@ class FightTemplateTest extends TestCase
         $stage = $this->createMock(Stage::class);
         $action = $this->createMock(Action::class);
         $scene = $this->createMock(Scene::class);
+        $character = $this->createStub(Character::class);
 
         $this->health->expects($this->once())
             ->method('isAlive')
@@ -698,7 +707,7 @@ class FightTemplateTest extends TestCase
 
         $stage->expects($this->atLeastOnce())
             ->method(PropertyHook::get("owner"))
-            ->willReturn($this->character);
+            ->willReturn($character);
 
         $this->security->expects($this->once())
             ->method('isGranted')
@@ -718,6 +727,7 @@ class FightTemplateTest extends TestCase
         $stage = $this->createMock(Stage::class);
         $action = $this->createMock(Action::class);
         $scene = $this->createMock(Scene::class);
+        $character = $this->createMock(Character::class);
 
         $this->health->expects($this->once())
             ->method('isAlive')
@@ -736,13 +746,13 @@ class FightTemplateTest extends TestCase
             ->willReturn("Forest")
         ;
 
-        $this->character->expects($this->atLeastOnce())
+        $character->expects($this->atLeastOnce())
             ->method(PropertyHook::get("level"))
             ->willReturn(1); // Level 1 - no slumming option
 
         $stage->expects($this->atLeastOnce())
             ->method(PropertyHook::get("owner"))
-            ->willReturn($this->character);
+            ->willReturn($character);
 
         $this->security->expects($this->once())
             ->method('isGranted')

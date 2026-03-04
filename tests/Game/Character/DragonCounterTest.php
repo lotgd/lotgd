@@ -7,6 +7,7 @@ use LotGD2\Entity\Action;
 use LotGD2\Entity\ActionGroup;
 use LotGD2\Entity\Mapped\Character;
 use LotGD2\Entity\Mapped\Stage;
+use LotGD2\Entity\Paragraph;
 use LotGD2\Event\StageChangeEvent;
 use LotGD2\Game\Character\DragonCounter;
 use LotGD2\Game\Character\Health;
@@ -24,6 +25,7 @@ use Symfony\Component\Stopwatch\Stopwatch;
 
 #[CoversClass(DragonCounter::class)]
 #[UsesClass(Action::class)]
+#[UsesClass(Paragraph::class)]
 #[AllowMockObjectsWithoutExpectations]
 class DragonCounterTest extends TestCase
 {
@@ -396,12 +398,20 @@ class DragonCounterTest extends TestCase
             ->with('Dragon points');
 
         $stage->expects($this->once())
-            ->method(PropertyHook::set("description"))
-            ->with($this->stringContains('You earn one dragon point each time you slay the dragon'));
+            ->method(PropertyHook::set("paragraphs"))
+            ->willReturnCallback(function (array $paragraphs) {
+                $this->assertCount(1, $paragraphs);
 
-        $stage->expects($this->once())
-            ->method('addContext')
-            ->with('dragonPointsLeft', 1); // No choice was made, so full dragon point remains
+                /** @var Paragraph $paragraph */
+                $paragraph = $paragraphs[0];
+
+                $this->assertStringContainsString('You earn one dragon point each time you slay the dragon', $paragraph->text);
+                $this->assertArrayHasKey("dragonPointsLeft", $paragraph->context);
+                // No choice was made, so full dragon point remains
+                $this->assertSame(1, $paragraph->context["dragonPointsLeft"]);
+
+                return $paragraphs;
+            });
 
         $event->expects($this->exactly(3))
             ->method('addAction')
@@ -460,8 +470,18 @@ class DragonCounterTest extends TestCase
             ->with('Dragon points');
 
         $stage->expects($this->once())
-            ->method('addContext')
-            ->with('dragonPointsLeft', 1);
+            ->method(PropertyHook::set("paragraphs"))
+            ->willReturnCallback(function (array $paragraphs) {
+                $this->assertCount(1, $paragraphs);
+
+                /** @var Paragraph $paragraph */
+                $paragraph = $paragraphs[0];
+
+                $this->assertArrayHasKey("dragonPointsLeft", $paragraph->context);
+                $this->assertSame(1, $paragraph->context["dragonPointsLeft"]);
+
+                return $paragraphs;
+            });
 
         $event->expects($this->exactly(3))
             ->method('addAction');
