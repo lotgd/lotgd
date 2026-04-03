@@ -144,6 +144,13 @@ readonly class Health
         return $this;
     }
 
+    public function addTurns(int $turns, ?Character $character): self
+    {
+        $character = $character ?? $this->character;
+        $character->setProperty(self::Turns, $this->getTurns($character) + $turns);
+        return $this;
+    }
+
     public function decrementTurns(?Character $character = null): self
     {
         $character = $character ?? $this->character;

@@ -23,25 +23,28 @@ readonly class Stats
     ) {
     }
 
-    public function getExperience(): int
+    public function getExperience(?Character $character = null): int
     {
-        return $this->character->getProperty(self::ExperiencePropertyName, 0);
+        $character ??= $this->character;
+        return $character->getProperty(self::ExperiencePropertyName, 0);
     }
 
-    public function setExperience(int $experience): static
+    public function setExperience(int $experience, ?Character $character = null): static
     {
-        $this->logger->debug("{$this->character->id}: set experience to {$experience}");
-        $this->character->setProperty(self::ExperiencePropertyName, $experience);
+        $character ??= $this->character;
+        $this->logger->debug("{$character->id}: set experience to {$experience}");
+        $character->setProperty(self::ExperiencePropertyName, $experience);
         return $this;
     }
 
-    public function addExperience(int $experience): static
+    public function addExperience(int $experience, ?Character $character = null): static
     {
-        $this->setExperience($this->getExperience() + $experience);
+        $character ??= $this->character;
+        $this->setExperience($this->getExperience() + $experience, $character);
         return $this;
     }
 
-    public function getRequiredExperience(): ?int
+    public function getRequiredExperience(?Character $character = null): ?int
     {
         $requiredExperience = [
             100,
@@ -61,69 +64,80 @@ readonly class Stats
             43930,
         ];
 
-        return $requiredExperience[$this->character->level - 1] ?? null;
+        $character ??= $this->character;
+        return $requiredExperience[$character->level - 1] ?? null;
     }
 
-    public function getLevel(): int
+    public function getLevel(?Character $character = null): int
     {
-        return $this->character->level;
+        $character ??= $this->character;
+        return $character->level;
     }
 
-    public function getAttack(): int
+    public function getAttack(?Character $character = null): int
     {
-        return $this->character->getProperty(self::AttackPropertyName, 1);
+        $character ??= $this->character;
+        return $character->getProperty(self::AttackPropertyName, 1);
     }
 
-    public function getTotalAttack(): int
+    public function getTotalAttack(?Character $character = null): int
     {
-        return $this->getAttack() + ($this->equipment->getItemInSlot(Equipment::WeaponSlot)?->getStrength() ?? 0);
+        $character ??= $this->character;
+        return $this->getAttack($character) + ($this->equipment->getItemInSlot(Equipment::WeaponSlot, $character)?->getStrength() ?? 0);
     }
 
-    public function setAttack(int $attack): static
+    public function setAttack(int $attack, ?Character $character = null): static
     {
-        $this->logger?->debug("{$this->character->id}: attack set to {$attack} (was {$this->getAttack()}) before).");
-        $this->character->setProperty(self::AttackPropertyName, $attack);
+        $character ??= $this->character;
+        $this->logger?->debug("{$character->id}: attack set to {$attack} (was {$this->getAttack($character)}) before).");
+        $character->setProperty(self::AttackPropertyName, $attack);
         return $this;
     }
 
-    public function addAttack(int $attack): static
+    public function addAttack(int $attack, ?Character $character = null): static
     {
-        $this->setAttack($this->getAttack() + $attack);
+        $character ??= $this->character;
+        $this->setAttack($this->getAttack($character) + $attack, $character);
         return $this;
     }
 
-    public function getDefense(): int
+    public function getDefense(?Character $character = null): int
     {
-        return $this->character->getProperty(self::DefensePropertyName, 1);
+        $character ??= $this->character;
+        return $character->getProperty(self::DefensePropertyName, 1);
     }
 
-    public function setDefense(int $defense): static
+    public function setDefense(int $defense, ?Character $character = null): static
     {
-        $this->logger?->debug("{$this->character->id}: defense set to {$defense} (was {$this->getDefense()}) before).");
-        $this->character->setProperty(self::DefensePropertyName, $defense);
+        $character ??= $this->character;
+        $this->logger?->debug("{$character->id}: defense set to {$defense} (was {$this->getDefense($character)}) before).");
+        $character->setProperty(self::DefensePropertyName, $defense);
         return $this;
     }
 
-    public function addDefense(int $defense): static
+    public function addDefense(int $defense, ?Character $character = null): static
     {
-        $this->setDefense($this->getDefense() + $defense);
+        $character ??= $this->character;
+        $this->setDefense($this->getDefense() + $defense, $character);
         return $this;
     }
 
-    public function getTotalDefense(): int
+    public function getTotalDefense(?Character $character = null): int
     {
-        return $this->getDefense() + ($this->equipment->getItemInSlot(Equipment::ArmorSlot)?->getStrength() ?? 0);
+        $character ??= $this->character;
+        return $this->getDefense($character) + ($this->equipment->getItemInSlot(Equipment::ArmorSlot, $character)?->getStrength() ?? 0);
     }
 
-    public function levelUp(): static
+    public function levelUp(?Character $character = null): static
     {
-        $this->character->level = $this->character->level + 1;
+        $character ??= $this->character;
+        $character->level = $character->level + 1;
 
-        $this->logger?->debug("{$this->character->id}: Level increased to {$this->character->level}.");
+        $this->logger?->debug("{$character->id}: Level increased to {$character->level}.");
 
-        $this->addAttack(1);
-        $this->addDefense(1);
-        $this->health->addMaxHealth(10);
+        $this->addAttack(1, $character);
+        $this->addDefense(1, $character);
+        $this->health->addMaxHealth(10, $character);
 
         return $this;
     }

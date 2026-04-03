@@ -25,6 +25,7 @@ use LotGD2\Game\Random\DiceBagInterface;
 use LotGD2\Game\Scene\SceneAttachment\BattleAttachment;
 use LotGD2\Repository\AttachmentRepository;
 use LotGD2\Repository\SceneRepository;
+use Psr\EventDispatcher\EventDispatcherInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\DependencyInjection\Attribute\Autoconfigure;
 use Symfony\Component\OptionsResolver\OptionsResolver;
@@ -49,6 +50,7 @@ class DragonTemplate implements SceneTemplateInterface
 
     public function __construct(
         readonly private LoggerInterface $logger,
+        readonly private EventDispatcherInterface $eventDispatcher,
         readonly private DiceBagInterface $diceBag,
         readonly private AttachmentRepository $attachmentRepository,
         readonly private SceneRepository $sceneRepository,
@@ -213,5 +215,6 @@ class DragonTemplate implements SceneTemplateInterface
         ));
 
         // Later, offer the possibility to change this behaviour by raising events.
+        //$this->eventDispatcher->dispatch();
     }
 }

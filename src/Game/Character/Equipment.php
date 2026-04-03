@@ -22,25 +22,27 @@ readonly class Equipment
     ) {
     }
 
-    public function getItemInSlot(string $slot): ?EquipmentItem
+    public function getItemInSlot(string $slot, ?Character $character = null): ?EquipmentItem
     {
-        $equipment = $this->character->getProperty(self::PropertyName);
+        $character ??= $this->character;
+        $equipment = $character->getProperty(self::PropertyName);
         return $equipment[$slot] ?? null;
     }
 
-    public function setItemInSlot(string $slot, EquipmentItem $item): static
+    public function setItemInSlot(string $slot, EquipmentItem $item, ?Character $character = null): static
     {
-        $this->logger->debug("{$this->character->id}: set new item in slot ($slot): {$item->getName()} ({$item->getStrength()})", [
+        $character ??= $this->character;
+        $this->logger->debug("{$character->id}: set new item in slot ($slot): {$item->getName()} ({$item->getStrength()})", [
             "item" => $item,
         ]);
 
-        $equipment = $this->character->getProperty(self::PropertyName);
+        $equipment = $character->getProperty(self::PropertyName);
         if (is_array($equipment)) {
             $equipment[$slot] = $item;
         } else {
             $equipment = [$slot => $item];
         }
-        $this->character->setProperty(self::PropertyName, $equipment);
+        $character->setProperty(self::PropertyName, $equipment);
         return $this;
     }
 
@@ -53,8 +55,9 @@ readonly class Equipment
         };
     }
 
-    public function getName(string $slot): string
+    public function getName(string $slot, ?Character $character = null): string
     {
-        return $this->getItemInSlot($slot)?->getName() ?? $this->getEmptyName($slot);
+        $character ??= $this->character;
+        return $this->getItemInSlot($slot, $character)?->getName() ?? $this->getEmptyName($slot);
     }
 }

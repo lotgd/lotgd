@@ -8,8 +8,10 @@ use LotGD2\Entity\Mapped\Stage;
 use LotGD2\Game\Character\Equipment;
 use LotGD2\Game\Character\Gold;
 use LotGD2\Game\Character\Health;
+use LotGD2\Game\Character\Race;
 use LotGD2\Game\Character\Stats;
 use LotGD2\Game\GameLoop;
+use LotGD2\Repository\RaceRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\UX\LiveComponent\Attribute\AsLiveComponent;
 use Symfony\UX\LiveComponent\Attribute\LiveAction;
@@ -29,6 +31,7 @@ class Game extends AbstractController
 
     public function __construct(
         private readonly GameLoop $game,
+        private readonly RaceRepository $raceRepository,
     ) {
     }
 
@@ -48,10 +51,12 @@ class Game extends AbstractController
         $equipment = new Equipment(null, $this->character);
         $stats = new Stats(null, $equipment, $health, $this->character);
         $gold = new Gold(null, $this->character);
+        $race = new Race(null, null, null, $this->raceRepository);
 
         return [
             ["Character"],
             ["Name", $this->character->name],
+            ["Race", $race->getRaceName($this->character)],
             ["Level", $this->character->level],
             ["Experience", $stats->getExperience()],
             ["Turns", $health->getTurns(), $health->getMaxTurns()],
