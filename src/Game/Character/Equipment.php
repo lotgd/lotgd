@@ -5,9 +5,12 @@ namespace LotGD2\Game\Character;
 
 use LotGD2\Entity\Character\EquipmentItem;
 use LotGD2\Entity\Mapped\Character;
+use LotGD2\Event\CharacterChangeEvent;
 use LotGD2\Game\GameLoop;
+use LotGD2\Game\Scene\SceneTemplate\DragonTemplate;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
+use Symfony\Component\EventDispatcher\Attribute\AsEventListener;
 
 readonly class Equipment
 {
@@ -59,5 +62,29 @@ readonly class Equipment
     {
         $character ??= $this->character;
         return $this->getItemInSlot($slot, $character)?->getName() ?? $this->getEmptyName($slot);
+    }
+
+    #[AsEventListener(event: DragonTemplate::OnCharacterReset)]
+    public function onCharacterReset(CharacterChangeEvent $event): void
+    {
+        $this->setItemInSlot(
+            slot: Equipment::WeaponSlot,
+            item: new EquipmentItem(
+                name: $this->getEmptyName(Equipment::WeaponSlot),
+                strength: 0,
+                value: 0,
+            ),
+            character: $event->character,
+        );
+
+        $this->setItemInSlot(
+            slot: Equipment::ArmorSlot,
+            item: new EquipmentItem(
+                name: $this->getEmptyName(Equipment::ArmorSlot),
+                strength: 0,
+                value: 0,
+            ),
+            character: $event->character
+        );
     }
 }

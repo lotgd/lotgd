@@ -194,7 +194,7 @@ class BankTemplate implements SceneTemplateInterface
         $this->setGoldInBank($character, $templateConfig, $this->getGoldInBank($character, $templateConfig) + $amount);
     }
 
-    #[AsEventListener(event: NewDay::PostNewDay)]
+    #[AsEventListener(event: NewDay::OnNewDayAfter)]
     public function onNewDayEvent(StageChangeEvent $event): void
     {
         $this->stopwatch->start("lotgd2.BankTemplate.onNewDayEvent");

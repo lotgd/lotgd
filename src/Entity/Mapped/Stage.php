@@ -136,6 +136,11 @@ class Stage
 
         if (array_key_exists($actionGroupId, $this->actionGroups)) {
             $this->actionGroups[$actionGroupId]->addAction($action);
+        } else {
+            throw new \ValueError(<<<TXT
+                Action group $actionGroupId does not exist. If you cleared action groups with clearActionGroup, remember 
+                to add actions groups yourself. Or use the ActionService->resetActionGroups method instead.
+                TXT);
         }
 
         return $this;

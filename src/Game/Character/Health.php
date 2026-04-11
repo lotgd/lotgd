@@ -5,8 +5,10 @@ namespace LotGD2\Game\Character;
 
 use LotGD2\Entity\Mapped\Character;
 use LotGD2\Entity\Paragraph;
+use LotGD2\Event\CharacterChangeEvent;
 use LotGD2\Event\StageChangeEvent;
 use LotGD2\Game\GameTime\NewDay;
+use LotGD2\Game\Scene\SceneTemplate\DragonTemplate;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\EventDispatcher\Attribute\AsEventListener;
@@ -174,7 +176,7 @@ readonly class Health
         return $this;
     }
 
-    #[AsEventListener(event: NewDay::PostNewDay)]
+    #[AsEventListener(event: NewDay::OnNewDayAfter)]
     public function onNewDayEvent(StageChangeEvent $event): void
     {
         // Increase Age
@@ -214,5 +216,17 @@ readonly class Health
             text: "Your health was restored to {{ maxHealth }}.",
             context: ["maxHealth" => $this->getMaxHealth($event->character)]
         ));
+    }
+
+    #[AsEventListener(event: DragonTemplate::OnCharacterReset)]
+    public function onCharacterReset(CharacterChangeEvent $event): void
+    {
+        $deltaLevel = $event->characterBefore->level - $event->character->level;
+
+        if ($deltaLevel > 0) {
+            $deltaHealth = $deltaLevel * 10;
+            $this->addMaxHealth(-$deltaHealth, $event->character);
+            $this->heal(-$deltaHealth, $event->character);
+        }
     }
 }

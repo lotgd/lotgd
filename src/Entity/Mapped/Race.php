@@ -8,6 +8,7 @@ use Doctrine\ORM\Mapping as ORM;
 use Dunglas\DoctrineJsonOdm\Type\JsonDocumentType;
 use LotGD2\Game\Race\RaceInterface;
 use LotGD2\Repository\RaceRepository;
+use Stringable;
 use Symfony\Component\Validator\Constraints as Assert;
 
 /**
@@ -15,7 +16,7 @@ use Symfony\Component\Validator\Constraints as Assert;
  */
 #[ORM\Entity(repositoryClass: RaceRepository::class)]
 #[ORM\Index(fields: ["name"])]
-class Race
+class Race implements Stringable
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -70,5 +71,10 @@ class Race
         }
     ) {
 
+    }
+
+    public function __toString(): string
+    {
+        return "<Character#{$this->id} {$this->name}>";
     }
 }

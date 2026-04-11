@@ -9,26 +9,23 @@ use LotGD2\Entity\ActionGroup;
 use LotGD2\Entity\Battle\BattleState;
 use LotGD2\Entity\Battle\Fighter;
 use LotGD2\Entity\Character\EquipmentItem;
-use LotGD2\Entity\Mapped\Character;
-use LotGD2\Entity\Mapped\Scene;
-use LotGD2\Entity\Mapped\Stage;
 use LotGD2\Entity\Paragraph;
+use LotGD2\Event\CharacterChangeEvent;
 use LotGD2\Form\Scene\SceneTemplate\DragonTemplateType;
 use LotGD2\Game\Battle\Battle;
 use LotGD2\Game\Character\DragonCounter;
 use LotGD2\Game\Character\Equipment;
 use LotGD2\Game\Character\Gold;
-use LotGD2\Game\Character\Health;
 use LotGD2\Game\Character\Stats;
 use LotGD2\Game\GameTime\NewDay;
 use LotGD2\Game\Random\DiceBagInterface;
 use LotGD2\Game\Scene\SceneAttachment\BattleAttachment;
+use LotGD2\Game\Stage\ActionService;
 use LotGD2\Repository\AttachmentRepository;
 use LotGD2\Repository\SceneRepository;
-use Psr\EventDispatcher\EventDispatcherInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\DependencyInjection\Attribute\Autoconfigure;
-use Symfony\Component\OptionsResolver\OptionsResolver;
+use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
 /**
  * @phpstan-type DragonTemplateConfiguration array{
@@ -48,6 +45,8 @@ class DragonTemplate implements SceneTemplateInterface
     use DefaultSceneTemplate;
     use DefaultFightTrait;
 
+    const string OnCharacterReset = 'lotgd2.DragonTemplate.event.characterReset';
+
     public function __construct(
         readonly private LoggerInterface $logger,
         readonly private EventDispatcherInterface $eventDispatcher,
@@ -56,11 +55,10 @@ class DragonTemplate implements SceneTemplateInterface
         readonly private SceneRepository $sceneRepository,
         readonly private Battle $battle,
         readonly private NewDay $newDay,
-        readonly private Health $health,
         readonly private Gold $gold,
         readonly private Stats $stats,
-        readonly private Equipment $equipment,
         readonly private DragonCounter $dragonCounter,
+        private readonly ActionService $actionService,
     ) {
 
     }
@@ -113,9 +111,9 @@ class DragonTemplate implements SceneTemplateInterface
             name: $this->scene->templateConfig["dragonName"] ?? "The Green Dragon",
             level: 18,
             weapon: $this->scene->templateConfig["dragonWeapon"] ?? "Great Flaming Maw",
-            health: 160, # 300
-            attack: 35, #45,
-            defense: 20, #25,
+            health: 150, # 300
+            attack: 31, #45,
+            defense: 15, #25,
         );
 
         $battleState = $this->battle->start($dragon, allowFlee: false);
@@ -139,15 +137,13 @@ class DragonTemplate implements SceneTemplateInterface
 
     public function onFightWon(BattleState $battleState): void
     {
-        $this->stats->levelUp();
-        $this->health->heal();
-
         $description = <<<TEXT
             With a mighty final blow, {{ badGuy.name }} lets out a tremendous bellow and falls at your feet, dead at last.
             TEXT;
 
         $this->logger->debug("{$this->character->id}: Victory over the Dragon.");
 
+        $this->actionService->resetActionGroups($this->stage);
         $this->stage->addAction(
             ActionGroup::EMPTY,
             new Action(
@@ -158,6 +154,8 @@ class DragonTemplate implements SceneTemplateInterface
                 ]
             )
         );
+
+        dump($this->stage);
 
         $this->stage->paragraphs = [
             new Paragraph(
@@ -172,7 +170,7 @@ class DragonTemplate implements SceneTemplateInterface
 
     public function epilogueAction(): void
     {
-        $this->stage->clearActionGroups();
+        $this->actionService->resetActionGroups($this->stage);
         $this->stage->title = "Victory!";
         $description = $this->scene->templateConfig["text"]["epilogue"];
         $this->stage->addAction(ActionGroup::EMPTY, new Action(
@@ -197,24 +195,13 @@ class DragonTemplate implements SceneTemplateInterface
 
     public function resetCharacter(): void
     {
-        $this->character->level = 1;
-        $this->health->setMaxHealth(10);
-        $this->health->setHealth(10);
-        $this->stats->setExperience(0);
-        $this->stats->setAttack(1);
-        $this->stats->setDefense(1);
-        $this->equipment->setItemInSlot(Equipment::WeaponSlot, new EquipmentItem(
-            name: $this->equipment->getEmptyName(Equipment::WeaponSlot),
-            strength: 0,
-            value: 0,
-        ));
-        $this->equipment->setItemInSlot(Equipment::ArmorSlot, new EquipmentItem(
-            name: $this->equipment->getEmptyName(Equipment::ArmorSlot),
-            strength: 0,
-            value: 0,
-        ));
+        $characterBefore = clone $this->character;
 
-        // Later, offer the possibility to change this behaviour by raising events.
-        //$this->eventDispatcher->dispatch();
+        $this->character->level = 1;
+
+        $this->eventDispatcher->dispatch(
+            event: new CharacterChangeEvent($this->character, $characterBefore),
+            eventName: self::OnCharacterReset
+        );
     }
 }

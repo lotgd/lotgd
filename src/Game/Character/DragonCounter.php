@@ -10,6 +10,7 @@ use LotGD2\Entity\Paragraph;
 use LotGD2\Event\StageChangeEvent;
 use LotGD2\Game\GameTime\NewDay;
 use LotGD2\Game\Random\DiceBagInterface;
+use LotGD2\Game\Stage\ActionService;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\EventDispatcher\Attribute\AsEventListener;
@@ -33,7 +34,7 @@ class DragonCounter
         #[Autowire(expression: "service('lotgd2.game_loop').getCharacter()")]
         readonly private Character $character,
         readonly private Health $health,
-        readonly private Stats $stats,
+        readonly private Stats $stats, private readonly ActionService $actionService,
     ) {
     }
 
@@ -75,7 +76,7 @@ class DragonCounter
         return $this;
     }
 
-    #[AsEventListener(event: NewDay::PreNewDay, priority: 100)]
+    #[AsEventListener(event: NewDay::OnNewDayBefore, priority: 100)]
     public function onNewDayEvent(StageChangeEvent $event): void
     {
         $character = $event->character;
@@ -87,17 +88,17 @@ class DragonCounter
 
             switch ($event->action->parameters["dk"]) {
                 case "health":
-                    $this->health->addMaxHealth(5);
+                    $this->health->addMaxHealth(5, $character);
                     $success = true;
                     break;
 
                 case "strength":
-                    $this->stats->setAttack($this->stats->getAttack() + 1);
+                    $this->stats->setAttack($this->stats->getAttack() + 1, $character);
                     $success = true;
                     break;
 
                 case "defense":
-                    $this->stats->setDefense($this->stats->getDefense() + 1);
+                    $this->stats->setDefense($this->stats->getDefense() + 1, $character);
                     $success = true;
                     break;
             }
@@ -133,6 +134,8 @@ class DragonCounter
                     ]
                 )
             ];
+
+            $this->actionService->resetActionGroups($stage);
 
             $event->addAction(ActionGroup::EMPTY, new Action(
                 title: "+5 Health",

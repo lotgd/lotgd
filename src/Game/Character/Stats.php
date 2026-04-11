@@ -4,8 +4,11 @@ declare(strict_types=1);
 namespace LotGD2\Game\Character;
 
 use LotGD2\Entity\Mapped\Character;
+use LotGD2\Event\CharacterChangeEvent;
+use LotGD2\Game\Scene\SceneTemplate\DragonTemplate;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
+use Symfony\Component\EventDispatcher\Attribute\AsEventListener;
 
 readonly class Stats
 {
@@ -140,5 +143,19 @@ readonly class Stats
         $this->health->addMaxHealth(10, $character);
 
         return $this;
+    }
+
+    #[AsEventListener(event: DragonTemplate::OnCharacterReset)]
+    public function onCharacterReset(CharacterChangeEvent $event): void
+    {
+        $deltaLevel = $event->characterBefore->level - $event->character->level;
+
+        if ($deltaLevel > 0) {
+            $deltaIncrease = $deltaLevel;
+            $this->addAttack(-$deltaIncrease, $event->character);
+            $this->addDefense(-$deltaIncrease, $event->character);
+        }
+
+        $this->setExperience(0, $event->character);
     }
 }

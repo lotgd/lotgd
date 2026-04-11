@@ -18,8 +18,8 @@ use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 class NewDay
 {
     const string LastNewDayProperty = "lotgd2.internal.lastNewDay";
-    const string PreNewDay = "lotgd2.event.preNewDay";
-    const string PostNewDay = "lotgd2.event.postNewDay";
+    const string OnNewDayBefore = "lotgd2.NewDay.event.before";
+    const string OnNewDayAfter = "lotgd2.NewDay.event.after";
 
     public function __construct(
         private readonly LoggerInterface $logger,
@@ -79,26 +79,32 @@ class NewDay
         $this->actionService->resetActionGroups($stage);
 
         $event = new StageChangeEvent($stage, $action, $scene);
-        $this->eventDispatcher->dispatch($event, self::PreNewDay);
+        $this->eventDispatcher->dispatch($event, self::OnNewDayBefore);
 
         if ($event->stopRender) {
+            $this->logger->debug("NewDay: Render was stopped by OnNewDayBefore event.");
             return;
         }
 
-        // We do not add actions or set the current last day if the eventDispatcher was stopped.
+        // We do not set the current last day or add navigation if the eventDispatcher was stopped.
 
         // Connect to the originally targeted Scene
+        $this->addContinueAction($stage, $scene, $action);
+
+        // Set the last new day to the current day.
+        $this->setLastNewDay($character);
+
+        $event = new StageChangeEvent($stage, $action, $scene);
+        $this->eventDispatcher->dispatch($event, self::OnNewDayAfter);
+    }
+
+    private function addContinueAction(Stage $stage, Scene $scene, Action $action): void
+    {
         $stage->addAction(ActionGroup::EMPTY, new Action(
             scene: $scene,
             title: "Continue",
             parameters: $action->parameters,
             reference: $action->reference,
         ));
-
-        // Set last new day to the current day.
-        $this->setLastNewDay($character);
-
-        $event = new StageChangeEvent($stage, $action, $scene);
-        $this->eventDispatcher->dispatch($event, self::PostNewDay);
     }
 }

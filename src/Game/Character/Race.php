@@ -9,9 +9,11 @@ use LotGD2\Entity\ActionGroup;
 use LotGD2\Entity\Mapped\Character;
 use LotGD2\Entity\Mapped\Race as RaceEntity;
 use LotGD2\Entity\Paragraph;
+use LotGD2\Event\CharacterChangeEvent;
 use LotGD2\Event\StageChangeEvent;
 use LotGD2\Game\GameTime\NewDay;
 use LotGD2\Game\Race\RaceInterface;
+use LotGD2\Game\Scene\SceneTemplate\DragonTemplate;
 use LotGD2\Kernel;
 use LotGD2\Repository\RaceRepository;
 use Psr\Log\LoggerInterface;
@@ -45,7 +47,7 @@ class Race
         $this->container = $this->kernel?->getContainer();
     }
 
-    #[AsEventListener(event: NewDay::PreNewDay, priority: 90)]
+    #[AsEventListener(event: NewDay::OnNewDayBefore, priority: 90)]
     public function onNewDayEvent(StageChangeEvent $event): void
     {
         $this->stopWatch->start("lotgd2.Race.onNewDay", "lotgd");
@@ -94,6 +96,7 @@ class Race
         ));
 
         $this->setRace($event->character, $race);
+        $event->addAction(ActionGroup::EMPTY, new Action(title: "Continue"));
 
         return true;
     }
@@ -163,7 +166,13 @@ class Race
      */
     public function hasRace(Character $character): bool
     {
-        return $this->getRaceProperty($character) !== null;
+        $raceProperty = $this->getRaceProperty($character);
+
+        if ($raceProperty === null || count($raceProperty) === 0 || $this->getRace($character) === null) {
+            return false;
+        }
+
+        return true;
     }
 
     /**
@@ -173,7 +182,7 @@ class Race
     public function getRace(Character $character): ?RaceEntity
     {
         $race = $this->getRaceProperty($character);
-        return $race === null ? null : $this->raceRepository->find($race["id"]);
+        return $race === null ? null : (isset($race["id"]) ? $this->raceRepository->find($race["id"]) : null);
     }
 
     /**
@@ -183,17 +192,17 @@ class Race
     public function getRaceName(Character $character): ?string
     {
         $race = $this->getRaceProperty($character);
-        return $race === null ? null : $race["name"];
+        return $race === null ? null : ($race["name"] ?? "");
     }
 
     /**
      * @param Character $character
-     * @return string|null
+     * @return class-string<RaceInterface>|string|null
      */
     public function getRaceClass(Character $character): ?string
     {
         $race = $this->getRaceProperty($character);
-        return $race === null ? null : $race["className"];
+        return $race === null ? null : ($race["className"] ?? null);
     }
 
     /**
@@ -203,16 +212,22 @@ class Race
     public function getRaceConfiguration(Character $character): ?array
     {
         $race = $this->getRaceProperty($character);
-        return $race === null ? null : $race["configuration"];
+        return $race === null ? null : ($race["configuration"] ?? []);
     }
 
     /**
      * @param Character $character
-     * @param RaceEntity<array<string, mixed>> $race
+     * @param RaceEntity<array<string, mixed>>|null $race
      * @return void
      */
-    public function setRace(Character $character, RaceEntity $race): void
+    public function setRace(Character $character, ?RaceEntity $race): void
     {
+        if ($race === null) {
+            $character->setProperty("race", []);
+            // No race set - remove everything, and then return.
+            return;
+        }
+
         $character->setProperty("race", [
             "id" => $race->id,
             "name" => $race->name,
@@ -238,5 +253,24 @@ class Race
             // If the class does not exist, we log this as a critical error.
             $this->logger->critical("There was an issue with the race class {$race->className}. {$e->getMessage()}", context: ["exception" => $e]);
         }
+    }
+
+    #[AsEventListener(event: DragonTemplate::OnCharacterReset)]
+    public function onCharacterReset(CharacterChangeEvent $event): void
+    {
+        $race = $this->getRace($event->character);
+        $raceConfig = $this->getRaceConfiguration($event->character);
+        $className = $this->getRaceClass($event->character);
+
+        if ($className === null or !class_exists($className)) {
+            // @phpstan-ignore encapsedStringPart.nonString
+            $this->logger->critical("{$event->character}: The race class {$className} does not exist, rollback of configuration is not possible");
+        } else {
+            /** @var RaceInterface $raceClass */
+            $raceClass = $this->container->get($className);
+            $raceClass->onDeselect($event->character, $race, $raceConfig);
+        }
+
+        $this->setRace($event->character, null);
     }
 }
