@@ -77,6 +77,10 @@ class Game extends AbstractController
         #[LiveArg]
         string $actionId,
     ): void {
+        if ($this->character === null) {
+            throw $this->createNotFoundException("Character disappeared");
+        }
+
         $this->game->setCharacter($this->character);
         $stage = $this->game->takeAction($this->character, $actionId);
     }

@@ -17,8 +17,13 @@ class GameController extends AbstractController
     #[IsGranted("ROLE_USER")]
     public function view(
         GameLoop $gameLoop,
-        Character $character,
+        ?Character $character = null,
     ): Response {
+        if (null === $character) {
+            $this->addFlash("critical", "Character disappeared");
+            return $this->redirectToRoute("lotgd_main");
+        }
+
         $gameLoop->setCharacter($character);
 
         return $this->render("game/view.html.twig", [

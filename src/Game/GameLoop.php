@@ -48,7 +48,7 @@ class GameLoop
         return $this->character;
     }
 
-    public function setCharacter(Character $character): self
+    public function setCharacter(?Character $character): self
     {
         $this->character = $character;
         return $this;
