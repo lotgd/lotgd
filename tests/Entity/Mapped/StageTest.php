@@ -30,11 +30,10 @@ class StageTest extends TestCase
         $this->assertNull($stage->id);
         $this->assertNull($stage->owner);
         $this->assertNull($stage->title);
-        $this->assertNull($stage->description);
         $this->assertNull($stage->scene);
         $this->assertEquals([], $stage->actionGroups);
         $this->assertNull($stage->attachments);
-        $this->assertNull($stage->context);
+        $this->assertEmpty($stage->paragraphs);
     }
 
     public function testConstructorWithAllParameters()

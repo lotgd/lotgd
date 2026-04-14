@@ -106,7 +106,7 @@ class StandardRace implements RaceInterface
             }
 
             $this->health->addTurns($value, $character);
-            $this->logger->debug("Character $character->id: Increase health by $value for race {$race->name}.", $loggerContext);
+            $this->logger->debug("Character $character->id: Increase turns by $value for race {$race->name}.", $loggerContext);
             $event->stage->addParagraph(new Paragraph(
                 "lotgd2.paragraph.StandardRace.onNewDay",
                 text: <<<TXT

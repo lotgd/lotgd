@@ -21,7 +21,6 @@ class StatsTest extends TestCase
     private Stats $stats;
     private Character $character;
     private Equipment $equipment;
-    private Health $health;
     private ?LoggerInterface $logger;
 
     protected function setUp(): void
@@ -29,7 +28,6 @@ class StatsTest extends TestCase
         $this->character = $this->createMock(Character::class);
         $this->equipment = $this->createMock(Equipment::class);
         $this->logger = $this->createMock(LoggerInterface::class);
-        $this->health = $this->createMock(Health::class);
 
         $this->stats = new Stats(
             $this->logger,

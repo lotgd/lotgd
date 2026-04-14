@@ -28,14 +28,12 @@ class BattleTurnTest extends TestCase
 {
     private BattleTurn $battleTurn;
     private MockObject&DiceBagInterface $diceBag;
-    private MockObject&BattleState $battleState;
     private MockObject&CurrentCharacterFighter $currentCharacterFighter;
     private MockObject&FighterInterface $fighter;
 
     protected function setUp(): void
     {
         $this->diceBag = $this->createMock(DiceBagInterface::class);
-        $this->battleState = $this->createMock(BattleState::class);
         $this->currentCharacterFighter = $this->createMock(CurrentCharacterFighter::class);
         $this->fighter = $this->createMock(FighterInterface::class);
         
