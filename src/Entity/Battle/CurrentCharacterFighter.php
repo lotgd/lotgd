@@ -15,7 +15,7 @@ class CurrentCharacterFighter extends Fighter
     ): self {
         $health = new Health(null, $character);
         $equipment = new Equipment(null, $character);
-        $stats = new Stats(null, $equipment, $health, $character);
+        $stats = new Stats(null, $equipment, $character);
 
         $fighter =  new CurrentCharacterFighter(
             name: $character->name,

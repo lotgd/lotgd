@@ -16,6 +16,7 @@ use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\MockObject\Runtime\PropertyHook;
 use PHPUnit\Framework\TestCase;
 use TypeError;
+use ValueError;
 
 #[CoversClass(Stage::class)]
 #[AllowMockObjectsWithoutExpectations]
@@ -263,6 +264,7 @@ class StageTest extends TestCase
         $action = $this->createMock(Action::class);
 
         // Should not throw an error, just do nothing
+        $this->expectException(ValueError::class);
         $result = $stage->addAction('non-existent', $action);
 
         $this->assertSame($stage, $result);

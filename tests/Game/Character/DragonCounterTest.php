@@ -13,6 +13,7 @@ use LotGD2\Game\Character\DragonCounter;
 use LotGD2\Game\Character\Health;
 use LotGD2\Game\Character\Stats;
 use LotGD2\Game\Random\DiceBagInterface;
+use LotGD2\Game\Stage\ActionService;
 use PhpParser\Builder\Property;
 use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -22,6 +23,7 @@ use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\MockObject\MockObject;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Stopwatch\Stopwatch;
+use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
 
 #[CoversClass(DragonCounter::class)]
 #[UsesClass(Action::class)]
@@ -36,6 +38,7 @@ class DragonCounterTest extends TestCase
     private Character&MockObject $character;
     private Stats&MockObject $stats;
     private Health&MockObject $health;
+    private ActionService&MockObject $actionService;
 
     protected function setUp(): void
     {
@@ -45,6 +48,7 @@ class DragonCounterTest extends TestCase
         $this->character = $this->createMock(Character::class);
         $this->health = $this->createMock(Health::class);
         $this->stats = $this->createMock(Stats::class);
+        $this->actionService = $this->createMock(ActionService::class);
 
         $this->dragonCounter = new DragonCounter(
             $this->logger,
@@ -53,6 +57,7 @@ class DragonCounterTest extends TestCase
             $this->character,
             $this->health,
             $this->stats,
+            $this->actionService,
         );
     }
 

@@ -211,7 +211,6 @@ class StatsTest extends TestCase
         $statsWithNullLogger = new Stats(
             null,
             $this->equipment,
-            $this->health,
             $this->character
         );
 
@@ -308,7 +307,6 @@ class StatsTest extends TestCase
         $statsWithNullLogger = new Stats(
             null,
             $this->equipment,
-            $this->health,
             $this->character
         );
 
@@ -437,102 +435,6 @@ class StatsTest extends TestCase
             ->willReturn($armor);
 
         $this->assertEquals($expectedTotal, $this->stats->getTotalDefense());
-    }
-
-    public function testLevelUpIncreasesLevel(): void
-    {
-        $currentLevel = 5;
-        $expectedNewLevel = 6;
-
-        $this->character
-            ->expects($this->exactly(2))
-            ->method(PropertyHook::get("level"))
-            ->willReturn($currentLevel, $expectedNewLevel);
-
-        $this->character
-            ->expects($this->once())
-            ->method(PropertyHook::set("level"))
-            ->with($expectedNewLevel);
-
-        $this->character
-            ->expects($this->atLeastOnce())
-            ->method(PropertyHook::get("id"))
-            ->willReturn(6);
-
-        // Mock the calls for addAttack and addDefense
-        $this->character
-            ->method('getProperty')
-            ->willReturnMap([
-                [Stats::AttackPropertyName, 1, 10],
-                [Stats::AttackPropertyName, 1, 10], // Called again in debug
-                [Stats::DefensePropertyName, 1, 11],
-            ]);
-
-        $this->character
-            ->expects($this->exactly(2))
-            ->method('setProperty')
-            ->willReturnMap([
-                [Stats::AttackPropertyName, 11, $this->character],
-                [Stats::DefensePropertyName, 12, $this->character],
-            ]);
-
-        $this->health
-            ->expects($this->once())
-            ->method('addMaxHealth')
-            ->with(10);
-
-        $result = $this->stats->levelUp();
-
-        $this->assertSame($this->stats, $result);
-    }
-
-    public function testLevelUpWithNullLogger(): void
-    {
-        $statsWithNullLogger = new Stats(
-            null,
-            $this->equipment,
-            $this->health,
-            $this->character
-        );
-
-        $currentLevel = 5;
-        $expectedNewLevel = 6;
-
-        $this->character
-            ->expects($this->exactly(1))
-            ->method(PropertyHook::get("level"))
-            ->willReturn($currentLevel);
-
-        $this->character
-            ->expects($this->once())
-            ->method(PropertyHook::set("level"))
-            ->with($expectedNewLevel);
-
-        // Mock the calls for addAttack and addDefense
-        $this->character
-            ->expects($this->exactly(2))
-            ->method('getProperty')
-            ->willReturnMap([
-                [Stats::AttackPropertyName, 1, 10],
-                [Stats::DefensePropertyName, 1, 11],
-            ]);
-
-        $this->character
-            ->expects($this->exactly(2))
-            ->method('setProperty')
-            ->willReturnMap([
-                [Stats::AttackPropertyName, 11, $this->character],
-                [Stats::DefensePropertyName, 12, $this->character],
-            ]);
-
-        $this->health
-            ->expects($this->once())
-            ->method('addMaxHealth')
-            ->with(10);
-
-        $result = $statsWithNullLogger->levelUp();
-
-        $this->assertSame($statsWithNullLogger, $result);
     }
 
     public function testMultipleExperienceAdditions(): void
