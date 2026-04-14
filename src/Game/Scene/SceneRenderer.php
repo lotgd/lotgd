@@ -144,7 +144,7 @@ readonly class SceneRenderer
             $this->logger,
             $character,
             health: $health,
-            stats: new Stats($this->logger, $equipment, $health, $character),
+            stats: new Stats($this->logger, $equipment, $character),
             gold: new Gold($this->logger, $character),
             equipment: $equipment,
         );

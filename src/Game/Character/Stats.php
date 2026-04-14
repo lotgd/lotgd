@@ -6,6 +6,7 @@ namespace LotGD2\Game\Character;
 use LotGD2\Entity\Mapped\Character;
 use LotGD2\Event\CharacterChangeEvent;
 use LotGD2\Game\Scene\SceneTemplate\DragonTemplate;
+use LotGD2\Game\Scene\SceneTemplate\TrainingTemplate;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\EventDispatcher\Attribute\AsEventListener;
@@ -20,7 +21,6 @@ readonly class Stats
     public function __construct(
         private ?LoggerInterface $logger,
         private Equipment $equipment,
-        private Health $health,
         #[Autowire(expression: "service('lotgd2.game_loop').getCharacter()")]
         private Character $character,
     ) {
@@ -131,18 +131,14 @@ readonly class Stats
         return $this->getDefense($character) + ($this->equipment->getItemInSlot(Equipment::ArmorSlot, $character)?->getStrength() ?? 0);
     }
 
-    public function levelUp(?Character $character = null): static
+    #[AsEventListener(event: TrainingTemplate::OnCharacterLevelUp)]
+    public function onCharacterLevelIncrease(CharacterChangeEvent $event): void
     {
-        $character ??= $this->character;
-        $character->level = $character->level + 1;
+        $deltaLevel = $event->character->level - $event->characterBefore->level;
+        dump($deltaLevel);
 
-        $this->logger?->debug("{$character->id}: Level increased to {$character->level}.");
-
-        $this->addAttack(1, $character);
-        $this->addDefense(1, $character);
-        $this->health->addMaxHealth(10, $character);
-
-        return $this;
+        $this->addAttack(1*$deltaLevel, $event->character);
+        $this->addDefense(1*$deltaLevel, $event->character);
     }
 
     #[AsEventListener(event: DragonTemplate::OnCharacterReset)]

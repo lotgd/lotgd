@@ -9,6 +9,7 @@ use LotGD2\Event\CharacterChangeEvent;
 use LotGD2\Event\StageChangeEvent;
 use LotGD2\Game\GameTime\NewDay;
 use LotGD2\Game\Scene\SceneTemplate\DragonTemplate;
+use LotGD2\Game\Scene\SceneTemplate\TrainingTemplate;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\EventDispatcher\Attribute\AsEventListener;
@@ -216,6 +217,17 @@ readonly class Health
             text: "Your health was restored to {{ maxHealth }}.",
             context: ["maxHealth" => $this->getMaxHealth($event->character)]
         ));
+    }
+
+    #[AsEventListener(event: TrainingTemplate::OnCharacterLevelUp, priority: -100)]
+    public function onCharacterLevelIncrease(CharacterChangeEvent $event): void
+    {
+        $deltaLevel = $event->character->level - $event->characterBefore->level;
+
+        if ($deltaLevel > 0) {
+            $this->addMaxHealth($deltaLevel * 10, $event->character);
+            $this->heal(null, $event->character);
+        }
     }
 
     #[AsEventListener(event: DragonTemplate::OnCharacterReset)]

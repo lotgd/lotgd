@@ -11,6 +11,7 @@ use LotGD2\Entity\Mapped\Character;
 use LotGD2\Entity\Mapped\Scene;
 use LotGD2\Entity\Mapped\Stage;
 use LotGD2\Entity\Paragraph;
+use LotGD2\Event\CharacterChangeEvent;
 use LotGD2\Form\Scene\SceneTemplate\TrainingTemplateType;
 use LotGD2\Game\Battle\Battle;
 use LotGD2\Game\Character\Equipment;
@@ -24,6 +25,7 @@ use LotGD2\Repository\MasterRepository;
 use Psr\Log\LoggerInterface;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\DependencyInjection\Attribute\Autoconfigure;
+use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
 /**
@@ -45,13 +47,15 @@ class TrainingTemplate implements SceneTemplateInterface
     use DefaultSceneTemplate;
     use DefaultFightTrait;
 
-    const ActionGroupTraining = "lotgd2.actionGroup.trainingTemplate.training";
-    const ActionQuestion = "lotgd2.action.trainingTemplate.question";
-    const ActionChallenge = "lotgd2.action.trainingTemplate.challenge";
+    const string ActionGroupTraining = "lotgd2.actionGroup.trainingTemplate.training";
+    const string ActionQuestion = "lotgd2.action.trainingTemplate.question";
+    const string ActionChallenge = "lotgd2.action.trainingTemplate.challenge";
+    const string OnCharacterLevelUp = 'lotgd2.event.TrainingTemplate.levelUp';
 
     public function __construct(
         private readonly Security $security,
         private readonly LoggerInterface $logger,
+        private readonly EventDispatcherInterface $eventDispatcher,
         private readonly AttachmentRepository $attachmentRepository,
         private readonly MasterRepository $masterRepository,
         private readonly DiceBagInterface $diceBag,
@@ -242,9 +246,7 @@ class TrainingTemplate implements SceneTemplateInterface
      */
     public function onFightWon(BattleState $battleState): void
     {
-        $this->stats->levelUp();
-        $this->health->heal();
-
+        $this->levelUp();
 
         $this->stage->paragraphs = [
             new Paragraph(
@@ -342,14 +344,22 @@ class TrainingTemplate implements SceneTemplateInterface
                     scene: $this->scene,
                     title: "#! Unsee master",
                     parameters: ["op" => "cheat", "what" => "unseeMaster"],
-                    reference: "lotgd2.action.fightTemplate.cheats.experience",
+                    reference: "lotgd2.action.fightTemplate.cheats.unseeMaster",
                 ),
                 new Action(
                     scene: $this->scene,
                     title: "#! Gain 1 level",
                     parameters: ["op" => "cheat", "what" => "levelUp"],
-                    reference: "lotgd2.action.fightTemplate.cheats.gold",)
+                    reference: "lotgd2.action.fightTemplate.cheats.levelUp",
+                ),
+                new Action(
+                    scene: $this->scene,
+                    title: "#! Set level to 15",
+                    parameters: ["op" => "cheat", "what" => "level15"],
+                    reference: "lotgd2.action.fightTemplate.cheats.level15",
+                ),
             ]);
+
             $this->stage->addActionGroup($cheatsGroup);
         }
     }
@@ -359,7 +369,29 @@ class TrainingTemplate implements SceneTemplateInterface
         if ($cheat === "unseeMaster") {
             $this->setSeenMaster($character);
         } elseif ($cheat === "levelUp") {
-            $this->stats->levelUp();
+            $this->levelUp();
+        } elseif ($cheat === "level15") {
+            $this->levelUp(15);
         }
+    }
+
+    /**
+     * @return void
+     */
+    public function levelUp(?int $targetLevel = null): void
+    {
+        $oldCharacter = clone $this->character;
+
+        if ($targetLevel === null) {
+            $level = 1;
+        } else {
+            $level = $targetLevel - $this->character->level;
+        }
+
+        $this->character->level += $level;
+        $this->logger->debug("{$this->character}: Level increased to {$this->character->level}.");
+        $event = new CharacterChangeEvent($this->character, $oldCharacter);
+
+        $this->eventDispatcher->dispatch($event, self::OnCharacterLevelUp);
     }
 }

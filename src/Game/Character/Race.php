@@ -263,7 +263,6 @@ class Race
         $className = $this->getRaceClass($event->character);
 
         if ($className === null or !class_exists($className)) {
-            // @phpstan-ignore encapsedStringPart.nonString
             $this->logger->critical("{$event->character}: The race class {$className} does not exist, rollback of configuration is not possible");
         } else {
             /** @var RaceInterface $raceClass */

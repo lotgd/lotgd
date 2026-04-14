@@ -45,7 +45,7 @@ class DragonTemplate implements SceneTemplateInterface
     use DefaultSceneTemplate;
     use DefaultFightTrait;
 
-    const string OnCharacterReset = 'lotgd2.DragonTemplate.event.characterReset';
+    const string OnCharacterReset = 'lotgd2.event.DragonTemplate.characterReset';
 
     public function __construct(
         readonly private LoggerInterface $logger,

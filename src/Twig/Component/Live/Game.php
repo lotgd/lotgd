@@ -49,7 +49,7 @@ class Game extends AbstractController
     {
         $health = new Health(null, $this->character);
         $equipment = new Equipment(null, $this->character);
-        $stats = new Stats(null, $equipment, $health, $this->character);
+        $stats = new Stats(null, $equipment, $this->character);
         $gold = new Gold(null, $this->character);
         $race = new Race(null, null, null, $this->raceRepository);
 

@@ -75,6 +75,6 @@ class Race implements Stringable
 
     public function __toString(): string
     {
-        return "<Character#{$this->id} {$this->name}>";
+        return "<Race#{$this->id} {$this->name}>";
     }
 }

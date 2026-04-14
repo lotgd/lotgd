@@ -7,11 +7,12 @@ use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Dunglas\DoctrineJsonOdm\Type\JsonDocumentType;
 use LotGD2\Repository\CharacterRepository;
+use Stringable;
 use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: CharacterRepository::class)]
 #[ORM\Table(name: '`character`')]
-class Character
+class Character implements Stringable
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -74,6 +75,11 @@ class Character
             set => $value;
         },
     ) {
+    }
+
+    public function __toString(): string
+    {
+        return "<Character#{$this->id}, {$this->name}>";
     }
 
     public function getProperty(string $name, mixed $default = null): mixed
