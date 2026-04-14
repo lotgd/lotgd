@@ -8,7 +8,7 @@
         "@symfony/ux-live-component": "file:vendor/symfony/ux-live-component/assets",
         "@symfony/ux-turbo": "file:vendor/symfony/ux-turbo/assets",
         "@symfony/ux-vue": "file:vendor/symfony/ux-vue/assets",
-        "@symfony/webpack-encore": "^4.0.0",
+        "@symfony/webpack-encore": "^5.0.0",
         "core-js": "^3.23.0",
         "regenerator-runtime": "^0.13.9",
         "sass": "^1.64.2 && < 1.78",
