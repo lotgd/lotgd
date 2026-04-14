@@ -7,10 +7,12 @@ use Doctrine\Common\Collections\ArrayCollection;
 use LotGD2\Entity\Mapped\Scene;
 use LotGD2\Entity\Mapped\SceneActionGroup;
 use LotGD2\Entity\Mapped\SceneConnection;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 
 #[CoversClass(SceneActionGroup::class)]
+#[AllowMockObjectsWithoutExpectations]
 class SceneActionGroupTest extends TestCase
 {
     public function testEmptyConstructor()

@@ -5,11 +5,13 @@ namespace LotGD2\Tests\Entity\Mapped;
 
 use LotGD2\Entity\Mapped\Character;
 use LotGD2\Entity\Mapped\Stage;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\MockObject\Runtime\PropertyHook;
 use PHPUnit\Framework\TestCase;
 
 #[CoversClass(Character::class)]
+#[AllowMockObjectsWithoutExpectations]
 class CharacterTest extends TestCase
 {
     public function testEmptyConstructor()

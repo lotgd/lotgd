@@ -23,6 +23,7 @@ use LotGD2\Game\Scene\SceneAttachment\BattleAttachment;
 use LotGD2\Game\Scene\SceneTemplate\FightTemplate;
 use LotGD2\Repository\AttachmentRepository;
 use LotGD2\Repository\CreatureRepository;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\UsesClass;
 use PHPUnit\Framework\MockObject\Runtime\PropertyHook;
@@ -37,6 +38,7 @@ use Symfony\Bundle\SecurityBundle\Security;
 #[UsesClass(DiceBag::class)]
 #[UsesClass(Paragraph::class)]
 #[UsesClass(BattleState::class)]
+#[AllowMockObjectsWithoutExpectations]
 class FightTemplateTest extends TestCase
 {
     private FightTemplate $fightTemplate;

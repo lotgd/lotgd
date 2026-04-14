@@ -7,6 +7,7 @@ use LotGD2\Entity\Battle\BattleMessage;
 use LotGD2\Entity\Battle\CurrentCharacterFighter;
 use LotGD2\Entity\Battle\FighterInterface;
 use LotGD2\Game\Battle\BattleEvent\DeathEvent;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DoesNotPerformAssertions;
 use PHPUnit\Framework\Attributes\UsesClass;
@@ -18,6 +19,7 @@ use Symfony\Component\OptionsResolver\Exception\UndefinedOptionsException;
 
 #[CoversClass(DeathEvent::class)]
 #[UsesClass(BattleMessage::class)]
+#[AllowMockObjectsWithoutExpectations]
 class DeathEventTest extends TestCase
 {
     private FighterInterface $attacker;

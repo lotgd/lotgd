@@ -5,10 +5,12 @@ namespace LotGD2\Tests\Entity\Battle;
 
 use LotGD2\Entity\Battle\BattleRoundMessage;
 use LotGD2\Entity\Battle\BattleMessage;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 
 #[CoversClass(BattleRoundMessage::class)]
+#[AllowMockObjectsWithoutExpectations]
 class BattleRoundMessageTest extends TestCase
 {
     private BattleRoundMessage $battleRoundMessage;

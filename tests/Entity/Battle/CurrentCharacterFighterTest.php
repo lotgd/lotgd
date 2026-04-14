@@ -8,6 +8,7 @@ use LotGD2\Entity\Mapped\Character;
 use LotGD2\Game\Character\Equipment;
 use LotGD2\Game\Character\Health;
 use LotGD2\Game\Character\Stats;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\UsesClass;
 use PHPUnit\Framework\MockObject\Runtime\PropertyHook;
@@ -17,6 +18,7 @@ use PHPUnit\Framework\TestCase;
 #[UsesClass(Health::class)]
 #[UsesClass(Stats::class)]
 #[UsesClass(Equipment::class)]
+#[AllowMockObjectsWithoutExpectations]
 class CurrentCharacterFighterTest extends TestCase
 {
     public function testCharacterIsClonedProperlyAsAFighter(): void

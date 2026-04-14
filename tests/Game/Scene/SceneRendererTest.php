@@ -21,6 +21,7 @@ use LotGD2\Game\Random\DiceBag;
 use LotGD2\Game\Scene\SceneRenderer;
 use LotGD2\Game\Stage\ActionService;
 use LotGD2\Repository\SceneRepository;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\UsesClass;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -43,6 +44,7 @@ use Psr\Log\LoggerInterface;
 #[UsesClass(Stats::class)]
 #[UsesClass(ExpressionService::class)]
 #[UsesClass(Paragraph::class)]
+#[AllowMockObjectsWithoutExpectations]
 class SceneRendererTest extends TestCase
 {
     private SceneRenderer $renderer;

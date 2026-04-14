@@ -11,12 +11,14 @@ use LotGD2\Entity\Mapped\Scene;
 use LotGD2\Entity\Mapped\Stage;
 use LotGD2\Entity\Paragraph;
 use LotGD2\Game\Scene\SceneAttachment\SceneAttachmentInterface;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\MockObject\Runtime\PropertyHook;
 use PHPUnit\Framework\TestCase;
 use TypeError;
 
 #[CoversClass(Stage::class)]
+#[AllowMockObjectsWithoutExpectations]
 class StageTest extends TestCase
 {
     public function testEmptyConstructor()

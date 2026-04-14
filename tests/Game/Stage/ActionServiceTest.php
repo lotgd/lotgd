@@ -9,6 +9,7 @@ use LotGD2\Entity\ActionGroup;
 use LotGD2\Entity\Mapped\Stage;
 use LotGD2\Game\Random\DiceBag;
 use LotGD2\Game\Stage\ActionService;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\UsesClass;
 use PHPUnit\Framework\MockObject\Runtime\PropertyHook;
@@ -18,6 +19,7 @@ use PHPUnit\Framework\TestCase;
 #[UsesClass(DiceBag::class)]
 #[UsesClass(Action::class)]
 #[UsesClass(ActionGroup::class)]
+#[AllowMockObjectsWithoutExpectations]
 class ActionServiceTest extends TestCase
 {
     private ActionService $actionService;

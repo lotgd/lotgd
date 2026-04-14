@@ -7,6 +7,7 @@ use LotGD2\Entity\Battle\BattleRoundMessage;
 use LotGD2\Entity\Battle\CurrentCharacterFighter;
 use LotGD2\Entity\Mapped\Character;
 use LotGD2\Game\Character\Health;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\UsesClass;
 use PHPUnit\Framework\MockObject\Runtime\PropertyHook;
@@ -21,6 +22,7 @@ use PHPUnit\Framework\MockObject\MockObject;
 #[UsesClass(BattleMessage::class)]
 #[UsesClass(BattleRoundMessage::class)]
 #[UsesClass(Health::class)]
+#[AllowMockObjectsWithoutExpectations]
 class BattleStateTest extends TestCase
 {
     private FighterInterface&MockObject $goodGuyMock;

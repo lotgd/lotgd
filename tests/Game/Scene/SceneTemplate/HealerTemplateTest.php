@@ -13,6 +13,7 @@ use LotGD2\Game\Character\Gold;
 use LotGD2\Game\Character\Health;
 use LotGD2\Game\Random\DiceBag;
 use LotGD2\Game\Scene\SceneTemplate\HealerTemplate;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\UsesClass;
 use PHPUnit\Framework\MockObject\Runtime\PropertyHook;
@@ -26,6 +27,7 @@ use Symfony\Bundle\SecurityBundle\Security;
 #[UsesClass(ActionGroup::class)]
 #[UsesClass(DiceBag::class)]
 #[UsesClass(Paragraph::class)]
+#[AllowMockObjectsWithoutExpectations]
 class HealerTemplateTest extends TestCase
 {
     private HealerTemplate $healerTemplate;

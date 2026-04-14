@@ -7,6 +7,7 @@ use LotGD2\Entity\Action;
 use LotGD2\Entity\Mapped\Scene;
 use LotGD2\Game\Random\DiceBag;
 use LotGD2\Game\Random\DiceBagInterface;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\UsesClass;
 use PHPUnit\Framework\MockObject\Runtime\PropertyHook;
@@ -14,6 +15,7 @@ use PHPUnit\Framework\TestCase;
 
 #[CoversClass(Action::class)]
 #[UsesClass(DiceBag::class)]
+#[AllowMockObjectsWithoutExpectations]
 class ActionTest extends TestCase
 {
     public function testConstructorWithoutParameters(): void

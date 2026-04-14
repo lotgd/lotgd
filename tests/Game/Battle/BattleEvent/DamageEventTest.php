@@ -6,6 +6,7 @@ use LotGD2\Entity\Battle\BattleMessage;
 use LotGD2\Entity\Battle\CurrentCharacterFighter;
 use LotGD2\Entity\Battle\FighterInterface;
 use LotGD2\Game\Battle\BattleEvent\DamageEvent;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\UsesClass;
 use PHPUnit\Framework\MockObject\Runtime\PropertyHook;
@@ -13,6 +14,7 @@ use PHPUnit\Framework\TestCase;
 
 #[CoversClass(DamageEvent::class)]
 #[UsesClass(BattleMessage::class)]
+#[AllowMockObjectsWithoutExpectations]
 class DamageEventTest extends TestCase
 {
     private FighterInterface $attacker;

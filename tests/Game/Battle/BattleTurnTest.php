@@ -11,6 +11,7 @@ use LotGD2\Game\Battle\BattleEvent\CriticalHitEvent;
 use LotGD2\Game\Battle\BattleEvent\DamageEvent;
 use LotGD2\Game\Battle\BattleTurn;
 use LotGD2\Game\Random\DiceBagInterface;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\UsesClass;
@@ -22,6 +23,7 @@ use PHPUnit\Framework\TestCase;
 #[UsesClass(BattleState::class)]
 #[UsesClass(DamageEvent::class)]
 #[UsesClass(CriticalHitEvent::class)]
+#[AllowMockObjectsWithoutExpectations]
 class BattleTurnTest extends TestCase
 {
     private BattleTurn $battleTurn;

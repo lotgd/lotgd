@@ -5,6 +5,7 @@ namespace LotGD2\Tests\Game\Character;
 
 use LotGD2\Entity\Mapped\Character;
 use LotGD2\Game\Character\Health;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\TestWith;
@@ -14,6 +15,7 @@ use Psr\Log\LoggerInterface;
 
 #[CoversClass(Health::class)]
 #[UsesClass(Character::class)]
+#[AllowMockObjectsWithoutExpectations]
 final class HealthTest extends TestCase
 {
     public static function getHealthProvider(): array

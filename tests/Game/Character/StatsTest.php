@@ -8,12 +8,14 @@ use LotGD2\Entity\Mapped\Character;
 use LotGD2\Game\Character\Equipment;
 use LotGD2\Game\Character\Health;
 use LotGD2\Game\Character\Stats;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\MockObject\Runtime\PropertyHook;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 
 #[CoversClass(Stats::class)]
+#[AllowMockObjectsWithoutExpectations]
 class StatsTest extends TestCase
 {
     private Stats $stats;
@@ -32,7 +34,6 @@ class StatsTest extends TestCase
         $this->stats = new Stats(
             $this->logger,
             $this->equipment,
-            $this->health,
             $this->character
         );
     }

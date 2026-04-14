@@ -13,6 +13,7 @@ use LotGD2\Entity\Mapped\SceneConnection;
 use LotGD2\Entity\Mapped\Stage;
 use LotGD2\Game\Enum\SceneConnectionType;
 use LotGD2\Game\Scene\SceneTemplate\SceneTemplateInterface;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\UsesClass;
 use PHPUnit\Framework\MockObject\Runtime\PropertyHook;
@@ -21,6 +22,7 @@ use ValueError;
 
 #[CoversClass(Scene::class)]
 #[UsesClass(SceneConnection::class)]
+#[AllowMockObjectsWithoutExpectations]
 class SceneTest extends TestCase
 {
     public function testEmptyConstructor()

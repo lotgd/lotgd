@@ -5,6 +5,7 @@ namespace LotGD2\Tests\Game\Character;
 
 use LotGD2\Entity\Mapped\Character;
 use LotGD2\Game\Character\Gold;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\UsesClass;
@@ -13,6 +14,7 @@ use Psr\Log\LoggerInterface;
 
 #[CoversClass(Gold::class)]
 #[UsesClass(Character::class)]
+#[AllowMockObjectsWithoutExpectations]
 class GoldTest extends TestCase
 {
     public static function getGoldProvider(): array

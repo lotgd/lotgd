@@ -6,6 +6,7 @@ namespace LotGD2\Tests\Game\Character;
 use LotGD2\Entity\Character\EquipmentItem;
 use LotGD2\Entity\Mapped\Character;
 use LotGD2\Game\Character\Equipment;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\UsesClass;
 use PHPUnit\Framework\TestCase;
@@ -14,6 +15,7 @@ use Psr\Log\LoggerInterface;
 #[CoversClass(Equipment::class)]
 #[UsesClass(Character::class)]
 #[UsesClass(EquipmentItem::class)]
+#[AllowMockObjectsWithoutExpectations]
 class EquipmentTest extends TestCase
 {
     public function testGetEquipment(): void

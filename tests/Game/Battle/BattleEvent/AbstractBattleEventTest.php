@@ -6,10 +6,12 @@ namespace LotGD2\Tests\Game\Battle\BattleEvent;
 use LotGD2\Entity\Battle\FighterInterface;
 use LotGD2\Game\Battle\BattleEvent\AbstractBattleEvent;
 use LotGD2\Game\Error\BattleEventError;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 
 #[CoversClass(AbstractBattleEvent::class)]
+#[AllowMockObjectsWithoutExpectations]
 class AbstractBattleEventTest extends TestCase
 {
     private AbstractBattleEvent $battleEvent;

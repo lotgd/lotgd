@@ -25,6 +25,7 @@ use LotGD2\Game\Character\Equipment;
 use LotGD2\Game\Character\Health;
 use LotGD2\Game\Character\Stats;
 use LotGD2\Game\Random\DiceBag;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Depends;
 use PHPUnit\Framework\Attributes\UsesClass;
@@ -53,6 +54,7 @@ use Symfony\Component\Serializer\Serializer;
 #[UsesClass(BattleMessage::class)]
 #[UsesClass(BattleRoundMessage::class)]
 #[UsesClass(DeathEvent::class)]
+#[AllowMockObjectsWithoutExpectations]
 class BattleTest extends KernelTestCase
 {
     private Battle $battle;
