@@ -57,6 +57,7 @@ class StageChangeEvent extends Event
     public function setStopRender(bool $stopRender = true): void
     {
         $this->stopRender = $stopRender;
+        $this->stopPropagation();
     }
 
     /**
