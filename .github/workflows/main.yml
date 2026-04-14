@@ -26,17 +26,18 @@ jobs:
           --health-cmd "healthcheck.sh --connect --innodb_initialized || mysqladmin ping --protocol tcp --silent"
 
     steps:
+      - uses: actions/checkout@v6
+
       - name: Install PHP version
-        uses: shivammathur/setup-php@2cb9b829437ee246e9b3cac53555a39208ca6d28
+        uses: shivammathur/setup-php@2.37.0
         with:
           php-version: '8.4'
 
       - name: Use Node.js 22.x
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: 22.x
-          
-      - uses: actions/checkout@v4
+          cache: "yarn"
       
       - name: Copy .env.test.local
         run: php -r "file_exists('.env.test.local') || copy('.env.test', '.env.test.local');"
@@ -46,7 +47,7 @@ jobs:
 
       - name: Cache Composer packages
         id: composer-cache
-        uses: actions/cache@v3
+        uses: actions/cache@v5
         with:
           path: vendor
           key: ${{ runner.os }}-php-${{ hashFiles('**/composer.lock') }}
@@ -57,12 +58,12 @@ jobs:
         run: composer install -q --no-ansi --no-interaction --no-scripts --no-progress --prefer-dist
 
       - name: Run install
-        uses: borales/actions-yarn@v4
+        uses: borales/actions-yarn@v5
         with:
           cmd: install
 
       - name: Build webpack
-        uses: borales/actions-yarn@v4
+        uses: borales/actions-yarn@v5
         with:
           cmd: run build
 
