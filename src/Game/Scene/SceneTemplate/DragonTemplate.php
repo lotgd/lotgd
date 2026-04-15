@@ -12,9 +12,9 @@ use LotGD2\Entity\Paragraph;
 use LotGD2\Event\CharacterChangeEvent;
 use LotGD2\Form\Scene\SceneTemplate\DragonTemplateType;
 use LotGD2\Game\Battle\Battle;
-use LotGD2\Game\Character\DragonCounter;
-use LotGD2\Game\Character\Gold;
-use LotGD2\Game\Character\Stats;
+use LotGD2\Game\Handler\DragonCounterHandler;
+use LotGD2\Game\Handler\GoldHandler;
+use LotGD2\Game\Handler\StatsHandler;
 use LotGD2\Game\GameTime\NewDay;
 use LotGD2\Game\Random\DiceBagInterface;
 use LotGD2\Game\Scene\SceneAttachment\BattleAttachment;
@@ -53,9 +53,9 @@ class DragonTemplate implements SceneTemplateInterface
         readonly private SceneRepository $sceneRepository,
         readonly private Battle $battle,
         readonly private NewDay $newDay,
-        readonly private Gold $gold,
-        readonly private Stats $stats,
-        readonly private DragonCounter $dragonCounter,
+        readonly private GoldHandler $gold,
+        readonly private StatsHandler $stats,
+        readonly private DragonCounterHandler $dragonCounter,
         private readonly ActionService $actionService,
     ) {
 

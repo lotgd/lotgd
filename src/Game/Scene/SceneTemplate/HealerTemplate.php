@@ -9,8 +9,8 @@ use LotGD2\Entity\ActionGroup;
 use LotGD2\Entity\Mapped\Character;
 use LotGD2\Entity\Paragraph;
 use LotGD2\Form\Scene\SceneTemplate\HealerTemplateType;
-use LotGD2\Game\Character\Gold;
-use LotGD2\Game\Character\Health;
+use LotGD2\Game\Handler\GoldHandler;
+use LotGD2\Game\Handler\HealthHandler;
 use Psr\Log\LoggerInterface;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\DependencyInjection\Attribute\Autoconfigure;
@@ -43,8 +43,8 @@ class HealerTemplate implements SceneTemplateInterface
     public function __construct(
         private readonly LoggerInterface $logger,
         private readonly Security $security,
-        private readonly Health $health,
-        private readonly Gold $gold,
+        private readonly HealthHandler $health,
+        private readonly GoldHandler $gold,
     ) {
 
     }

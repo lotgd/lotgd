@@ -6,7 +6,7 @@ namespace LotGD2\Entity\Battle;
 use Doctrine\Common\Collections\ArrayCollection;
 use LotGD2\Entity\Mapped\Character;
 use LotGD2\Game\Battle\BattleStateStatusEnum;
-use LotGD2\Game\Character\Health;
+use LotGD2\Game\Handler\HealthHandler;
 use Symfony\Component\Serializer\Attribute\Ignore;
 
 /**
@@ -77,7 +77,7 @@ class BattleState
         }
 
         if ($this->goodGuy instanceof CurrentCharacterFighter) {
-            $health = new Health(null, $this->character);
+            $health = new HealthHandler(null, $this->character);
             $health->setHealth($this->goodGuy->health);
         }
     }

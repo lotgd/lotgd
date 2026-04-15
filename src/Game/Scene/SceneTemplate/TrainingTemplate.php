@@ -13,10 +13,10 @@ use LotGD2\Entity\Paragraph;
 use LotGD2\Event\CharacterChangeEvent;
 use LotGD2\Form\Scene\SceneTemplate\TrainingTemplateType;
 use LotGD2\Game\Battle\Battle;
-use LotGD2\Game\Character\Equipment;
-use LotGD2\Game\Character\Gold;
-use LotGD2\Game\Character\Health;
-use LotGD2\Game\Character\Stats;
+use LotGD2\Game\Handler\EquipmentHandler;
+use LotGD2\Game\Handler\GoldHandler;
+use LotGD2\Game\Handler\HealthHandler;
+use LotGD2\Game\Handler\StatsHandler;
 use LotGD2\Game\Random\DiceBagInterface;
 use LotGD2\Game\Scene\SceneAttachment\BattleAttachment;
 use LotGD2\Repository\AttachmentRepository;
@@ -58,10 +58,10 @@ class TrainingTemplate implements SceneTemplateInterface
         private readonly MasterRepository $masterRepository,
         private readonly DiceBagInterface $diceBag,
         private readonly Battle $battle,
-        private readonly Equipment $equipment,
-        private readonly Stats $stats,
-        private readonly Health $health,
-        private readonly Gold $gold, // @phpstan-ignore property.onlyWritten
+        private readonly EquipmentHandler $equipment,
+        private readonly StatsHandler $stats,
+        private readonly HealthHandler $health,
+        private readonly GoldHandler $gold, // @phpstan-ignore property.onlyWritten
     ) {
     }
 
@@ -73,8 +73,8 @@ class TrainingTemplate implements SceneTemplateInterface
         return [
             "experience" => $this->stats->getExperience(),
             "requiredExperience" => $this->stats->getRequiredExperience(),
-            "weapon" => $this->equipment->getItemInSlot(Equipment::WeaponSlot)?->getName() ?? "Fists",
-            "armor" => $this->equipment->getItemInSlot(Equipment::ArmorSlot)?->getName() ?? "T-Shirt",
+            "weapon" => $this->equipment->getItemInSlot(EquipmentHandler::WeaponSlot)?->getName() ?? "Fists",
+            "armor" => $this->equipment->getItemInSlot(EquipmentHandler::ArmorSlot)?->getName() ?? "T-Shirt",
         ];
     }
 

@@ -11,9 +11,9 @@ use LotGD2\Entity\Mapped\Stage;
 use LotGD2\Entity\Paragraph;
 use LotGD2\Form\Scene\SceneTemplate\FightTemplateType;
 use LotGD2\Game\Battle\Battle;
-use LotGD2\Game\Character\Gold;
-use LotGD2\Game\Character\Health;
-use LotGD2\Game\Character\Stats;
+use LotGD2\Game\Handler\GoldHandler;
+use LotGD2\Game\Handler\HealthHandler;
+use LotGD2\Game\Handler\StatsHandler;
 use LotGD2\Game\Random\DiceBagInterface;
 use LotGD2\Game\Scene\SceneAttachment\BattleAttachment;
 use LotGD2\Repository\AttachmentRepository;
@@ -45,13 +45,13 @@ class FightTemplate implements SceneTemplateInterface
         private readonly LoggerInterface $logger,
         private readonly EventDispatcherInterface $eventDispatcher,
         private readonly AttachmentRepository $attachmentRepository,
-        private readonly Stats $experience,
+        private readonly StatsHandler $experience,
         private readonly DiceBagInterface $diceBag,
         private readonly CreatureRepository $creatureRepository,
         private readonly Battle $battle,
-        private readonly Health $health,
-        private readonly Stats $stats,
-        private readonly Gold $gold,
+        private readonly HealthHandler $health,
+        private readonly StatsHandler $stats,
+        private readonly GoldHandler $gold,
     ) {
     }
 

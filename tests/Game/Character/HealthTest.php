@@ -4,7 +4,7 @@ declare(strict_types=1);
 namespace LotGD2\Tests\Game\Character;
 
 use LotGD2\Entity\Mapped\Character;
-use LotGD2\Game\Character\Health;
+use LotGD2\Game\Handler\HealthHandler;
 use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -13,7 +13,7 @@ use PHPUnit\Framework\Attributes\UsesClass;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 
-#[CoversClass(Health::class)]
+#[CoversClass(HealthHandler::class)]
 #[UsesClass(Character::class)]
 #[AllowMockObjectsWithoutExpectations]
 final class HealthTest extends TestCase
@@ -31,10 +31,10 @@ final class HealthTest extends TestCase
     {
         $character = new Character();
         $character->properties = [
-            Health::HealthPropertyName => $isHealth,
+            HealthHandler::HealthPropertyName => $isHealth,
         ];
 
-        $health = new Health($this->createMock(LoggerInterface::class), $character);
+        $health = new HealthHandler($this->createMock(LoggerInterface::class), $character);
 
         $this->assertEquals($isHealth, $health->getHealth());
     }
@@ -53,13 +53,13 @@ final class HealthTest extends TestCase
     {
         $character = new Character();
         $character->properties = [
-            Health::HealthPropertyName => $isHealth,
+            HealthHandler::HealthPropertyName => $isHealth,
         ];
 
         $loggerMock = $this->createMock(LoggerInterface::class);
         $loggerMock->expects($this->once())->method("debug");
 
-        $health = new Health($loggerMock, $character);
+        $health = new HealthHandler($loggerMock, $character);
 
         $health->setHealth($setHealth);
 
@@ -84,11 +84,11 @@ final class HealthTest extends TestCase
     {
         $character = new Character();
         $character->properties = [
-            Health::HealthPropertyName => $isHealth,
-            Health::MaxHealthPropertyName => $isMaxHealth,
+            HealthHandler::HealthPropertyName => $isHealth,
+            HealthHandler::MaxHealthPropertyName => $isMaxHealth,
         ];
 
-        $health = new Health($this->createMock(LoggerInterface::class), $character);
+        $health = new HealthHandler($this->createMock(LoggerInterface::class), $character);
 
         $health->heal( $healAmount);
         $this->assertEquals($newHealth, $health->getHealth());
@@ -100,11 +100,11 @@ final class HealthTest extends TestCase
     {
         $character = new Character();
         $character->properties = [
-            Health::HealthPropertyName => $isHealth,
-            Health::MaxHealthPropertyName => $maxHealth,
+            HealthHandler::HealthPropertyName => $isHealth,
+            HealthHandler::MaxHealthPropertyName => $maxHealth,
         ];
 
-        $health = new Health($this->createMock(LoggerInterface::class), $character);
+        $health = new HealthHandler($this->createMock(LoggerInterface::class), $character);
         $health->heal();
 
         $this->assertEquals($expectedHealth, $health->getHealth());
@@ -115,10 +115,10 @@ final class HealthTest extends TestCase
     {
         $character = new Character();
         $character->properties = [
-            Health::MaxHealthPropertyName => $isHealth,
+            HealthHandler::MaxHealthPropertyName => $isHealth,
         ];
 
-        $health = new Health($this->createMock(LoggerInterface::class), $character);
+        $health = new HealthHandler($this->createMock(LoggerInterface::class), $character);
 
         $this->assertEquals($isHealth, $health->getMaxHealth());
     }
@@ -128,13 +128,13 @@ final class HealthTest extends TestCase
     {
         $character = new Character();
         $character->properties = [
-            Health::MaxHealthPropertyName => $isMaxHealth,
+            HealthHandler::MaxHealthPropertyName => $isMaxHealth,
         ];
 
         $loggerMock = $this->createMock(LoggerInterface::class);
         $loggerMock->expects($this->once())->method("debug");
 
-        $health = new Health($loggerMock, $character);
+        $health = new HealthHandler($loggerMock, $character);
 
         $health->setMaxHealth($setMaxHealth);
 
@@ -154,10 +154,10 @@ final class HealthTest extends TestCase
     {
         $character = new Character();
         $character->properties = [
-            Health::HealthPropertyName => $setHealth,
+            HealthHandler::HealthPropertyName => $setHealth,
         ];
 
-        $health = new Health($this->createMock(LoggerInterface::class), $character);
+        $health = new HealthHandler($this->createMock(LoggerInterface::class), $character);
 
         $this->assertEquals($aliveStatus, $health->isAlive());
     }
@@ -168,10 +168,10 @@ final class HealthTest extends TestCase
     {
         $character = new Character();
         $character->properties = [
-            Health::MaxHealthPropertyName => $initialMaxHealth,
+            HealthHandler::MaxHealthPropertyName => $initialMaxHealth,
         ];
 
-        $health = new Health($this->createMock(LoggerInterface::class), $character);
+        $health = new HealthHandler($this->createMock(LoggerInterface::class), $character);
 
         $health->addMaxHealth($addMaxHealth);
 

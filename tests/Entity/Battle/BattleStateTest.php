@@ -6,7 +6,7 @@ namespace LotGD2\Tests\Entity\Battle;
 use LotGD2\Entity\Battle\BattleRoundMessage;
 use LotGD2\Entity\Battle\CurrentCharacterFighter;
 use LotGD2\Entity\Mapped\Character;
-use LotGD2\Game\Character\Health;
+use LotGD2\Game\Handler\HealthHandler;
 use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\UsesClass;
@@ -21,7 +21,7 @@ use PHPUnit\Framework\MockObject\MockObject;
 #[CoversClass(BattleState::class)]
 #[UsesClass(BattleMessage::class)]
 #[UsesClass(BattleRoundMessage::class)]
-#[UsesClass(Health::class)]
+#[UsesClass(HealthHandler::class)]
 #[AllowMockObjectsWithoutExpectations]
 class BattleStateTest extends TestCase
 {
@@ -104,7 +104,7 @@ class BattleStateTest extends TestCase
     public function testSynchronizeToCharacterWithoutCharacterSynchronizes(): void
     {
         $character = $this->createMock(Character::class);
-        $character->expects($this->once())->method("setProperty")->with(Health::HealthPropertyName, 10);
+        $character->expects($this->once())->method("setProperty")->with(HealthHandler::HealthPropertyName, 10);
 
         $goodGuy = $this->createMock(CurrentCharacterFighter::class);
         $goodGuy->expects($this->once())->method(PropertyHook::get("health"))->willReturn(10);

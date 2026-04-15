@@ -11,8 +11,8 @@ use LotGD2\Entity\Mapped\Scene;
 use LotGD2\Entity\Mapped\Stage;
 use LotGD2\Entity\Paragraph;
 use LotGD2\Form\Scene\SceneTemplate\SimpleShopTemplateType;
-use LotGD2\Game\Character\Equipment;
-use LotGD2\Game\Character\Gold;
+use LotGD2\Game\Handler\EquipmentHandler;
+use LotGD2\Game\Handler\GoldHandler;
 use LotGD2\Game\Scene\SceneAttachment\SimpleShopAttachment;
 use LotGD2\Game\Stage\ActionService;
 use LotGD2\Repository\AttachmentRepository;
@@ -46,8 +46,8 @@ class SimpleShopTemplate implements SceneTemplateInterface
         private readonly AttachmentRepository $attachmentRepository,
         private readonly LoggerInterface $logger,
         private readonly ActionService $actionService,
-        private readonly Equipment $equipment,
-        private readonly Gold $gold,
+        private readonly EquipmentHandler $equipment,
+        private readonly GoldHandler $gold,
     ) {
     }
 
@@ -74,7 +74,7 @@ class SimpleShopTemplate implements SceneTemplateInterface
     {
         $this->logger->debug("Called SimpleShopTemplate::peruseAction");
 
-        $slot = $this->scene->templateConfig["type"] === "armor" ? Equipment::ArmorSlot : Equipment::WeaponSlot;
+        $slot = $this->scene->templateConfig["type"] === "armor" ? EquipmentHandler::ArmorSlot : EquipmentHandler::WeaponSlot;
 
         $attachment = $this->attachmentRepository->findOneByAttachmentClass(SimpleShopAttachment::class);
         $this->logger->debug("Add SimpleShopAttachment (id={$attachment->id})");
@@ -121,7 +121,7 @@ class SimpleShopTemplate implements SceneTemplateInterface
         } else {
             $this->logger->debug("Buying item with number {$itemId}.");
 
-            $slot = $this->scene->templateConfig["type"] === "armor" ? Equipment::ArmorSlot : Equipment::WeaponSlot;
+            $slot = $this->scene->templateConfig["type"] === "armor" ? EquipmentHandler::ArmorSlot : EquipmentHandler::WeaponSlot;
             $equipmentItem = new EquipmentItem(
                 name: $item["name"],
                 strength: $item["strength"],

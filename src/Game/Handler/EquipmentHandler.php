@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-namespace LotGD2\Game\Character;
+namespace LotGD2\Game\Handler;
 
 use LotGD2\Entity\Character\EquipmentItem;
 use LotGD2\Entity\Mapped\Character;
@@ -12,7 +12,7 @@ use Psr\Log\LoggerInterface;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\EventDispatcher\Attribute\AsEventListener;
 
-readonly class Equipment
+readonly class EquipmentHandler
 {
     const string ArmorSlot = "armor";
     const string WeaponSlot = "weapon";
@@ -52,8 +52,8 @@ readonly class Equipment
     public function getEmptyName(string $slot): string
     {
         return match ($slot) {
-            Equipment::WeaponSlot => "Fists",
-            Equipment::ArmorSlot => "T-Shirt",
+            EquipmentHandler::WeaponSlot => "Fists",
+            EquipmentHandler::ArmorSlot => "T-Shirt",
             default => "Nothing",
         };
     }
@@ -68,9 +68,9 @@ readonly class Equipment
     public function onCharacterReset(CharacterChangeEvent $event): void
     {
         $this->setItemInSlot(
-            slot: Equipment::WeaponSlot,
+            slot: EquipmentHandler::WeaponSlot,
             item: new EquipmentItem(
-                name: $this->getEmptyName(Equipment::WeaponSlot),
+                name: $this->getEmptyName(EquipmentHandler::WeaponSlot),
                 strength: 0,
                 value: 0,
             ),
@@ -78,9 +78,9 @@ readonly class Equipment
         );
 
         $this->setItemInSlot(
-            slot: Equipment::ArmorSlot,
+            slot: EquipmentHandler::ArmorSlot,
             item: new EquipmentItem(
-                name: $this->getEmptyName(Equipment::ArmorSlot),
+                name: $this->getEmptyName(EquipmentHandler::ArmorSlot),
                 strength: 0,
                 value: 0,
             ),

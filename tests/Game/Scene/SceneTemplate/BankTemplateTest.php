@@ -9,7 +9,7 @@ use LotGD2\Entity\Mapped\Character;
 use LotGD2\Entity\Mapped\Scene;
 use LotGD2\Entity\Mapped\Stage;
 use LotGD2\Entity\Paragraph;
-use LotGD2\Game\Character\Gold;
+use LotGD2\Game\Handler\GoldHandler;
 use LotGD2\Game\Random\DiceBag;
 use LotGD2\Game\Random\DiceBagInterface;
 use LotGD2\Game\Scene\SceneAttachment\SimpleFormAttachment;
@@ -40,7 +40,7 @@ class BankTemplateTest extends TestCase
     private readonly SceneRepository&Stub $sceneRepository;
     private readonly DiceBagInterface&Stub $diceBag;
     private readonly ActionService&MockObject $actionService;
-    private readonly Gold&MockObject $gold;
+    private readonly GoldHandler&MockObject $gold;
 
     protected function setUp(): void
     {
@@ -50,7 +50,7 @@ class BankTemplateTest extends TestCase
         $this->sceneRepository = $this->createStub(SceneRepository::class);
         $this->diceBag = $this->createStub(DiceBagInterface::class);
         $this->actionService = $this->createMock(ActionService::class);
-        $this->gold = $this->createMock(Gold::class);
+        $this->gold = $this->createMock(GoldHandler::class);
 
         $this->bankTemplate = new BankTemplate(
             $this->logger,

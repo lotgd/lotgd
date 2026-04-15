@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-namespace LotGD2\Game\Character;
+namespace LotGD2\Game\Handler;
 
 use LotGD2\Entity\Character\LootPosition;
 use LotGD2\Entity\Mapped\Character;
@@ -12,7 +12,7 @@ use Psr\Log\LoggerInterface;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\EventDispatcher\Attribute\AsEventListener;
 
-readonly class Gold
+readonly class GoldHandler
 {
     const string PropertyName = 'gold';
     const string GoldLoot = "lotgd2.loot.Gold";

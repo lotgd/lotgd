@@ -5,9 +5,9 @@ namespace LotGD2\Tests\Entity\Battle;
 
 use LotGD2\Entity\Battle\CurrentCharacterFighter;
 use LotGD2\Entity\Mapped\Character;
-use LotGD2\Game\Character\Equipment;
-use LotGD2\Game\Character\Health;
-use LotGD2\Game\Character\Stats;
+use LotGD2\Game\Handler\EquipmentHandler;
+use LotGD2\Game\Handler\HealthHandler;
+use LotGD2\Game\Handler\StatsHandler;
 use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\UsesClass;
@@ -15,9 +15,9 @@ use PHPUnit\Framework\MockObject\Runtime\PropertyHook;
 use PHPUnit\Framework\TestCase;
 
 #[CoversClass(CurrentCharacterFighter::class)]
-#[UsesClass(Health::class)]
-#[UsesClass(Stats::class)]
-#[UsesClass(Equipment::class)]
+#[UsesClass(HealthHandler::class)]
+#[UsesClass(StatsHandler::class)]
+#[UsesClass(EquipmentHandler::class)]
 #[AllowMockObjectsWithoutExpectations]
 class CurrentCharacterFighterTest extends TestCase
 {
@@ -27,10 +27,10 @@ class CurrentCharacterFighterTest extends TestCase
         $character->method(PropertyHook::get("level"))->willReturn(1);
         $character->method(PropertyHook::get("name"))->willReturn("Character");
         $character->method("getProperty")->willReturnMap([
-            [Health::HealthPropertyName, 10, 10],
-            [Stats::AttackPropertyName, 1, 1],
-            [Stats::DefensePropertyName, 1, 2],
-            [Health::MaxHealthPropertyName, 10, 10],
+            [HealthHandler::HealthPropertyName, 10, 10],
+            [StatsHandler::AttackPropertyName, 1, 1],
+            [StatsHandler::DefensePropertyName, 1, 2],
+            [HealthHandler::MaxHealthPropertyName, 10, 10],
         ]);
 
         $fighter = CurrentCharacterFighter::fromCharacter($character);

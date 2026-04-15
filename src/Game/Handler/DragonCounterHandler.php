@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-namespace LotGD2\Game\Character;
+namespace LotGD2\Game\Handler;
 
 use LotGD2\Entity\Action;
 use LotGD2\Entity\ActionGroup;
@@ -22,7 +22,7 @@ use Symfony\Component\Stopwatch\Stopwatch;
  *     age?: int,
  * }&array<string, mixed>
  */
-class DragonCounter
+class DragonCounterHandler
 {
     const string CounterPropertyName = "dragonCounter";
     const string ChoicePropertyName = "dragonCounterChoice";
@@ -33,8 +33,8 @@ class DragonCounter
         readonly private ?Stopwatch $stopWatch,
         #[Autowire(expression: "service('lotgd2.game_loop').getCharacter()")]
         readonly private Character $character,
-        readonly private Health $health,
-        readonly private Stats $stats, private readonly ActionService $actionService,
+        readonly private HealthHandler $health,
+        readonly private StatsHandler $stats, private readonly ActionService $actionService,
     ) {
     }
 

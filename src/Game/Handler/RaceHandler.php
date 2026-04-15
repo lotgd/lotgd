@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-namespace LotGD2\Game\Character;
+namespace LotGD2\Game\Handler;
 
 use Exception;
 use LotGD2\Entity\Action;
@@ -35,7 +35,7 @@ use UnexpectedValueException;
  *     configuration: array<string, mixed>,
  * }
  */
-class Race
+class RaceHandler
 {
     private ?ContainerInterface $container;
 

@@ -9,9 +9,9 @@ use LotGD2\Entity\Mapped\Character;
 use LotGD2\Entity\Mapped\Stage;
 use LotGD2\Entity\Paragraph;
 use LotGD2\Event\StageChangeEvent;
-use LotGD2\Game\Character\DragonCounter;
-use LotGD2\Game\Character\Health;
-use LotGD2\Game\Character\Stats;
+use LotGD2\Game\Handler\DragonCounterHandler;
+use LotGD2\Game\Handler\HealthHandler;
+use LotGD2\Game\Handler\StatsHandler;
 use LotGD2\Game\Random\DiceBagInterface;
 use LotGD2\Game\Stage\ActionService;
 use PhpParser\Builder\Property;
@@ -25,19 +25,19 @@ use Psr\Log\LoggerInterface;
 use Symfony\Component\Stopwatch\Stopwatch;
 use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
 
-#[CoversClass(DragonCounter::class)]
+#[CoversClass(DragonCounterHandler::class)]
 #[UsesClass(Action::class)]
 #[UsesClass(Paragraph::class)]
 #[AllowMockObjectsWithoutExpectations]
 class DragonCounterTest extends TestCase
 {
-    private DragonCounter $dragonCounter;
+    private DragonCounterHandler $dragonCounter;
     private LoggerInterface&MockObject $logger;
     private DiceBagInterface&MockObject $diceBag;
     private Stopwatch&MockObject $stopwatch;
     private Character&MockObject $character;
-    private Stats&MockObject $stats;
-    private Health&MockObject $health;
+    private StatsHandler&MockObject $stats;
+    private HealthHandler&MockObject $health;
     private ActionService&MockObject $actionService;
 
     protected function setUp(): void
@@ -46,11 +46,11 @@ class DragonCounterTest extends TestCase
         $this->diceBag = $this->createMock(DiceBagInterface::class);
         $this->stopwatch = $this->createMock(Stopwatch::class);
         $this->character = $this->createMock(Character::class);
-        $this->health = $this->createMock(Health::class);
-        $this->stats = $this->createMock(Stats::class);
+        $this->health = $this->createMock(HealthHandler::class);
+        $this->stats = $this->createMock(StatsHandler::class);
         $this->actionService = $this->createMock(ActionService::class);
 
-        $this->dragonCounter = new DragonCounter(
+        $this->dragonCounter = new DragonCounterHandler(
             $this->logger,
             $this->diceBag,
             $this->stopwatch,
@@ -65,7 +65,7 @@ class DragonCounterTest extends TestCase
     {
         $this->character->expects($this->once())
             ->method('getProperty')
-            ->with(DragonCounter::CounterPropertyName, 0)
+            ->with(DragonCounterHandler::CounterPropertyName, 0)
             ->willReturn(5);
 
         $this->assertEquals(5, $this->dragonCounter->dragonCounter);
@@ -75,7 +75,7 @@ class DragonCounterTest extends TestCase
     {
         $this->character->expects($this->once())
             ->method('getProperty')
-            ->with(DragonCounter::CounterPropertyName, 0)
+            ->with(DragonCounterHandler::CounterPropertyName, 0)
             ->willReturn(0);
 
         $this->assertEquals(0, $this->dragonCounter->dragonCounter);
@@ -93,7 +93,7 @@ class DragonCounterTest extends TestCase
 
         $this->character->expects($this->once())
             ->method('setProperty')
-            ->with(DragonCounter::CounterPropertyName, 7);
+            ->with(DragonCounterHandler::CounterPropertyName, 7);
 
         $this->dragonCounter->dragonCounter = 7;
     }
@@ -107,7 +107,7 @@ class DragonCounterTest extends TestCase
 
         $this->character->expects($this->once())
             ->method('getProperty')
-            ->with(DragonCounter::ChoicePropertyName, [])
+            ->with(DragonCounterHandler::ChoicePropertyName, [])
             ->willReturn($expectedChoices);
 
         $this->assertEquals($expectedChoices, $this->dragonCounter->choices);
@@ -117,7 +117,7 @@ class DragonCounterTest extends TestCase
     {
         $this->character->expects($this->once())
             ->method('getProperty')
-            ->with(DragonCounter::ChoicePropertyName, [])
+            ->with(DragonCounterHandler::ChoicePropertyName, [])
             ->willReturn([]);
 
         $this->assertEquals([], $this->dragonCounter->choices);
@@ -129,7 +129,7 @@ class DragonCounterTest extends TestCase
 
         $this->character->expects($this->once())
             ->method('setProperty')
-            ->with(DragonCounter::ChoicePropertyName, $choices);
+            ->with(DragonCounterHandler::ChoicePropertyName, $choices);
 
         $this->dragonCounter->choices = $choices;
     }
@@ -148,7 +148,7 @@ class DragonCounterTest extends TestCase
 
         $this->character->expects($this->once())
             ->method('getProperty')
-            ->with(DragonCounter::ChoicePropertyName, [])
+            ->with(DragonCounterHandler::ChoicePropertyName, [])
             ->willReturn($existingChoices);
 
         $this->logger->expects($this->once())
@@ -157,7 +157,7 @@ class DragonCounterTest extends TestCase
 
         $this->character->expects($this->once())
             ->method('setProperty')
-            ->with(DragonCounter::ChoicePropertyName, $expectedChoices);
+            ->with(DragonCounterHandler::ChoicePropertyName, $expectedChoices);
 
         $result = $this->dragonCounter->addChoice('strength');
 
@@ -178,7 +178,7 @@ class DragonCounterTest extends TestCase
 
         $this->character->expects($this->once())
             ->method('getProperty')
-            ->with(DragonCounter::ChoicePropertyName, [])
+            ->with(DragonCounterHandler::ChoicePropertyName, [])
             ->willReturn($existingChoices);
 
         $this->logger->expects($this->once())
@@ -187,7 +187,7 @@ class DragonCounterTest extends TestCase
 
         $this->character->expects($this->once())
             ->method('setProperty')
-            ->with(DragonCounter::ChoicePropertyName, $expectedChoices);
+            ->with(DragonCounterHandler::ChoicePropertyName, $expectedChoices);
 
         $result = $this->dragonCounter->addChoice('defense', $kwargs);
 
@@ -232,14 +232,14 @@ class DragonCounterTest extends TestCase
         // Expected to have property set
         $character->expects($this->once())
             ->method('setProperty')
-            ->with(DragonCounter::ChoicePropertyName, [['choice' => 'health']]);
+            ->with(DragonCounterHandler::ChoicePropertyName, [['choice' => 'health']]);
 
         // Mock character properties for the DragonCounter instance
         // Length of ChoiceProperty shoud match CounterProperty to have 0 points left.
         $character->expects($this->atLeastOnce())
             ->method('getProperty')
             ->willReturnMap([
-                [DragonCounter::CounterPropertyName, 0, 0]
+                [DragonCounterHandler::CounterPropertyName, 0, 0]
             ]);
 
         // Mock for adding health
@@ -279,7 +279,7 @@ class DragonCounterTest extends TestCase
         $character->expects($this->once())
             ->method('setProperty')
             ->willReturnMap([
-                [DragonCounter::ChoicePropertyName, [['choice' => 'strength']], $character],
+                [DragonCounterHandler::ChoicePropertyName, [['choice' => 'strength']], $character],
             ]);
 
         $this->stats->expects($this->exactly(1))
@@ -332,7 +332,7 @@ class DragonCounterTest extends TestCase
         // Mock character properties
         $character->expects($this->once())
             ->method('setProperty')
-            ->with(DragonCounter::ChoicePropertyName, [['choice' => 'defense']]);
+            ->with(DragonCounterHandler::ChoicePropertyName, [['choice' => 'defense']]);
 
         // Mock for stats modification
         $this->stats->expects($this->exactly(1))
@@ -389,8 +389,8 @@ class DragonCounterTest extends TestCase
         $character->expects($this->exactly(2))
             ->method('getProperty')
             ->willReturnMap([
-                [DragonCounter::ChoicePropertyName, [], []],
-                [DragonCounter::CounterPropertyName, 0, 1]
+                [DragonCounterHandler::ChoicePropertyName, [], []],
+                [DragonCounterHandler::CounterPropertyName, 0, 1]
             ]);
 
         // Should NOT set property for invalid choice
@@ -461,8 +461,8 @@ class DragonCounterTest extends TestCase
         $character->expects($this->exactly(2))
             ->method('getProperty')
             ->willReturnMap([
-                [DragonCounter::ChoicePropertyName, [], []],
-                [DragonCounter::CounterPropertyName, 0, 1]
+                [DragonCounterHandler::ChoicePropertyName, [], []],
+                [DragonCounterHandler::CounterPropertyName, 0, 1]
             ]);
 
         // Should NOT set any properties since no choice was made
@@ -525,8 +525,8 @@ class DragonCounterTest extends TestCase
         $character->expects($this->exactly(2))
             ->method('getProperty')
             ->willReturnMap([
-                [DragonCounter::ChoicePropertyName, [], [['choice' => 'health']]],
-                [DragonCounter::CounterPropertyName, 0, 1]
+                [DragonCounterHandler::ChoicePropertyName, [], [['choice' => 'health']]],
+                [DragonCounterHandler::CounterPropertyName, 0, 1]
             ]);
 
         // Should NOT interact with stage since dragon points left < 0
@@ -541,7 +541,7 @@ class DragonCounterTest extends TestCase
 
     public function testConstants(): void
     {
-        $this->assertEquals("dragonCounter", DragonCounter::CounterPropertyName);
-        $this->assertEquals("dragonCounterChoice", DragonCounter::ChoicePropertyName);
+        $this->assertEquals("dragonCounter", DragonCounterHandler::CounterPropertyName);
+        $this->assertEquals("dragonCounterChoice", DragonCounterHandler::ChoicePropertyName);
     }
 }

@@ -14,9 +14,9 @@ use LotGD2\Entity\Mapped\Scene;
 use LotGD2\Entity\Mapped\Stage;
 use LotGD2\Entity\Paragraph;
 use LotGD2\Game\Battle\Battle;
-use LotGD2\Game\Character\Gold;
-use LotGD2\Game\Character\Health;
-use LotGD2\Game\Character\Stats;
+use LotGD2\Game\Handler\GoldHandler;
+use LotGD2\Game\Handler\HealthHandler;
+use LotGD2\Game\Handler\StatsHandler;
 use LotGD2\Game\Random\DiceBag;
 use LotGD2\Game\Random\DiceBagInterface;
 use LotGD2\Game\Scene\SceneAttachment\BattleAttachment;
@@ -46,13 +46,13 @@ class FightTemplateTest extends TestCase
     private Security&MockObject $security;
     private LoggerInterface&MockObject $logger;
     private AttachmentRepository&MockObject $attachmentRepository;
-    private Stats&MockObject $experience;
-    private Stats&MockObject $stats;
+    private StatsHandler&MockObject $experience;
+    private StatsHandler&MockObject $stats;
     private DiceBagInterface&MockObject $diceBag;
     private CreatureRepository&MockObject $creatureRepository;
     private Battle&MockObject $battle;
-    private Health&MockObject $health;
-    private Gold&MockObject $gold;
+    private HealthHandler&MockObject $health;
+    private GoldHandler&MockObject $gold;
     private EventDispatcherInterface $eventDispatcher;
 
     protected function setUp(): void
@@ -60,13 +60,13 @@ class FightTemplateTest extends TestCase
         $this->security = $this->createMock(Security::class);
         $this->logger = $this->createMock(LoggerInterface::class);
         $this->attachmentRepository = $this->createMock(AttachmentRepository::class);
-        $this->experience = $this->createMock(Stats::class);
-        $this->stats = $this->createMock(Stats::class);
+        $this->experience = $this->createMock(StatsHandler::class);
+        $this->stats = $this->createMock(StatsHandler::class);
         $this->diceBag = $this->createMock(DiceBagInterface::class);
         $this->creatureRepository = $this->createMock(CreatureRepository::class);
         $this->battle = $this->createMock(Battle::class);
-        $this->health = $this->createMock(Health::class);
-        $this->gold = $this->createMock(Gold::class);
+        $this->health = $this->createMock(HealthHandler::class);
+        $this->gold = $this->createMock(GoldHandler::class);
         $this->eventDispatcher = $this->createMock(EventDispatcherInterface::class);
 
         $this->fightTemplate = new FightTemplate(

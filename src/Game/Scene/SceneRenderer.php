@@ -10,10 +10,10 @@ use LotGD2\Entity\Mapped\Scene;
 use LotGD2\Entity\Mapped\SceneConnection;
 use LotGD2\Entity\Mapped\Stage;
 use LotGD2\Entity\Paragraph;
-use LotGD2\Game\Character\Equipment;
-use LotGD2\Game\Character\Gold;
-use LotGD2\Game\Character\Health;
-use LotGD2\Game\Character\Stats;
+use LotGD2\Game\Handler\EquipmentHandler;
+use LotGD2\Game\Handler\GoldHandler;
+use LotGD2\Game\Handler\HealthHandler;
+use LotGD2\Game\Handler\StatsHandler;
 use LotGD2\Game\ExpressionService;
 use LotGD2\Game\Random\DiceBagInterface;
 use LotGD2\Game\Stage\ActionService;
@@ -137,15 +137,15 @@ readonly class SceneRenderer
         Scene $scene,
     ): void {
         $character = $stage->owner;
-        $equipment = new Equipment($this->logger, $character);
-        $health = new Health($this->logger, $character);
+        $equipment = new EquipmentHandler($this->logger, $character);
+        $health = new HealthHandler($this->logger, $character);
 
         $expressionService = new ExpressionService(
             $this->logger,
             $character,
             health: $health,
-            stats: new Stats($this->logger, $equipment, $character),
-            gold: new Gold($this->logger, $character),
+            stats: new StatsHandler($this->logger, $equipment, $character),
+            gold: new GoldHandler($this->logger, $character),
             equipment: $equipment,
         );
 

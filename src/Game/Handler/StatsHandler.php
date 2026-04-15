@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-namespace LotGD2\Game\Character;
+namespace LotGD2\Game\Handler;
 
 use LotGD2\Entity\Character\LootPosition;
 use LotGD2\Entity\Mapped\Character;
@@ -15,7 +15,7 @@ use Psr\Log\LoggerInterface;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\EventDispatcher\Attribute\AsEventListener;
 
-readonly class Stats
+readonly class StatsHandler
 {
     const string ExperiencePropertyName = 'experience';
     const string LevelPropertyName = 'level';
@@ -26,7 +26,7 @@ readonly class Stats
 
     public function __construct(
         private ?LoggerInterface $logger,
-        private Equipment $equipment,
+        private EquipmentHandler $equipment,
         #[Autowire(expression: "service('lotgd2.game_loop').getCharacter()")]
         private Character $character,
     ) {
@@ -92,7 +92,7 @@ readonly class Stats
     public function getTotalAttack(?Character $character = null): int
     {
         $character ??= $this->character;
-        return $this->getAttack($character) + ($this->equipment->getItemInSlot(Equipment::WeaponSlot, $character)?->getStrength() ?? 0);
+        return $this->getAttack($character) + ($this->equipment->getItemInSlot(EquipmentHandler::WeaponSlot, $character)?->getStrength() ?? 0);
     }
 
     public function setAttack(int $attack, ?Character $character = null): static
@@ -134,7 +134,7 @@ readonly class Stats
     public function getTotalDefense(?Character $character = null): int
     {
         $character ??= $this->character;
-        return $this->getDefense($character) + ($this->equipment->getItemInSlot(Equipment::ArmorSlot, $character)?->getStrength() ?? 0);
+        return $this->getDefense($character) + ($this->equipment->getItemInSlot(EquipmentHandler::ArmorSlot, $character)?->getStrength() ?? 0);
     }
 
     #[AsEventListener(event: TrainingTemplate::OnCharacterLevelUp)]

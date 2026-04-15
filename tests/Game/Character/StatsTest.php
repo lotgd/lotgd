@@ -5,31 +5,31 @@ namespace LotGD2\Tests\Game\Character;
 
 use LotGD2\Entity\Character\EquipmentItem;
 use LotGD2\Entity\Mapped\Character;
-use LotGD2\Game\Character\Equipment;
-use LotGD2\Game\Character\Health;
-use LotGD2\Game\Character\Stats;
+use LotGD2\Game\Handler\EquipmentHandler;
+use LotGD2\Game\Handler\HealthHandler;
+use LotGD2\Game\Handler\StatsHandler;
 use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\MockObject\Runtime\PropertyHook;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 
-#[CoversClass(Stats::class)]
+#[CoversClass(StatsHandler::class)]
 #[AllowMockObjectsWithoutExpectations]
 class StatsTest extends TestCase
 {
-    private Stats $stats;
+    private StatsHandler $stats;
     private Character $character;
-    private Equipment $equipment;
+    private EquipmentHandler $equipment;
     private ?LoggerInterface $logger;
 
     protected function setUp(): void
     {
         $this->character = $this->createMock(Character::class);
-        $this->equipment = $this->createMock(Equipment::class);
+        $this->equipment = $this->createMock(EquipmentHandler::class);
         $this->logger = $this->createMock(LoggerInterface::class);
 
-        $this->stats = new Stats(
+        $this->stats = new StatsHandler(
             $this->logger,
             $this->equipment,
             $this->character
@@ -41,7 +41,7 @@ class StatsTest extends TestCase
         $this->character
             ->expects($this->once())
             ->method('getProperty')
-            ->with(Stats::ExperiencePropertyName, 0)
+            ->with(StatsHandler::ExperiencePropertyName, 0)
             ->willReturn(0);
 
         $this->assertEquals(0, $this->stats->getExperience());
@@ -53,7 +53,7 @@ class StatsTest extends TestCase
         $this->character
             ->expects($this->once())
             ->method('getProperty')
-            ->with(Stats::ExperiencePropertyName, 0)
+            ->with(StatsHandler::ExperiencePropertyName, 0)
             ->willReturn($expectedExperience);
 
         $this->assertEquals($expectedExperience, $this->stats->getExperience());
@@ -65,7 +65,7 @@ class StatsTest extends TestCase
         $this->character
             ->expects($this->once())
             ->method('setProperty')
-            ->with(Stats::ExperiencePropertyName, $experience);
+            ->with(StatsHandler::ExperiencePropertyName, $experience);
 
         $result = $this->stats->setExperience($experience);
 
@@ -80,7 +80,7 @@ class StatsTest extends TestCase
 
         $result = $this->stats->setExperience(100);
 
-        $this->assertInstanceOf(Stats::class, $result);
+        $this->assertInstanceOf(StatsHandler::class, $result);
     }
 
     public function testAddExperienceAddsToCurrentValue(): void
@@ -92,13 +92,13 @@ class StatsTest extends TestCase
         $this->character
             ->expects($this->once())
             ->method('getProperty')
-            ->with(Stats::ExperiencePropertyName, 0)
+            ->with(StatsHandler::ExperiencePropertyName, 0)
             ->willReturn($currentExperience);
 
         $this->character
             ->expects($this->once())
             ->method('setProperty')
-            ->with(Stats::ExperiencePropertyName, $expectedTotal);
+            ->with(StatsHandler::ExperiencePropertyName, $expectedTotal);
 
         $result = $this->stats->addExperience($addedExperience);
 
@@ -112,13 +112,13 @@ class StatsTest extends TestCase
         $this->character
             ->expects($this->once())
             ->method('getProperty')
-            ->with(Stats::ExperiencePropertyName, 0)
+            ->with(StatsHandler::ExperiencePropertyName, 0)
             ->willReturn(0);
 
         $this->character
             ->expects($this->once())
             ->method('setProperty')
-            ->with(Stats::ExperiencePropertyName, $addedExperience);
+            ->with(StatsHandler::ExperiencePropertyName, $addedExperience);
 
         $this->stats->addExperience($addedExperience);
     }
@@ -136,7 +136,7 @@ class StatsTest extends TestCase
 
         $result = $this->stats->addExperience(50);
 
-        $this->assertInstanceOf(Stats::class, $result);
+        $this->assertInstanceOf(StatsHandler::class, $result);
     }
 
     public function testGetLevelCallsCharacterGetLevel(): void
@@ -155,7 +155,7 @@ class StatsTest extends TestCase
         $this->character
             ->expects($this->once())
             ->method('getProperty')
-            ->with(Stats::AttackPropertyName, 1)
+            ->with(StatsHandler::AttackPropertyName, 1)
             ->willReturn(1);
 
         $this->assertEquals(1, $this->stats->getAttack());
@@ -167,7 +167,7 @@ class StatsTest extends TestCase
         $this->character
             ->expects($this->once())
             ->method('getProperty')
-            ->with(Stats::AttackPropertyName, 1)
+            ->with(StatsHandler::AttackPropertyName, 1)
             ->willReturn($expectedAttack);
 
         $this->assertEquals($expectedAttack, $this->stats->getAttack());
@@ -181,13 +181,13 @@ class StatsTest extends TestCase
         $this->character
             ->expects($this->once())
             ->method('getProperty')
-            ->with(Stats::AttackPropertyName, 1)
+            ->with(StatsHandler::AttackPropertyName, 1)
             ->willReturn($currentAttack);
 
         $this->character
             ->expects($this->once())
             ->method('setProperty')
-            ->with(Stats::AttackPropertyName, $attack);
+            ->with(StatsHandler::AttackPropertyName, $attack);
 
 
         $this->character
@@ -207,7 +207,7 @@ class StatsTest extends TestCase
 
     public function testSetAttackWithNullLogger(): void
     {
-        $statsWithNullLogger = new Stats(
+        $statsWithNullLogger = new StatsHandler(
             null,
             $this->equipment,
             $this->character
@@ -218,7 +218,7 @@ class StatsTest extends TestCase
         $this->character
             ->expects($this->once())
             ->method('setProperty')
-            ->with(Stats::AttackPropertyName, $attack);
+            ->with(StatsHandler::AttackPropertyName, $attack);
 
         $result = $statsWithNullLogger->setAttack($attack);
 
@@ -234,13 +234,13 @@ class StatsTest extends TestCase
         $this->character
             ->expects($this->exactly(2))
             ->method('getProperty')
-            ->with(Stats::AttackPropertyName, 1)
+            ->with(StatsHandler::AttackPropertyName, 1)
             ->willReturn($currentAttack, $currentAttack); // Called twice: once in getAttack, once in setAttack debug
 
         $this->character
             ->expects($this->once())
             ->method('setProperty')
-            ->with(Stats::AttackPropertyName, $expectedTotal);
+            ->with(StatsHandler::AttackPropertyName, $expectedTotal);
 
         $result = $this->stats->addAttack($addedAttack);
 
@@ -252,7 +252,7 @@ class StatsTest extends TestCase
         $this->character
             ->expects($this->once())
             ->method('getProperty')
-            ->with(Stats::DefensePropertyName, 1)
+            ->with(StatsHandler::DefensePropertyName, 1)
             ->willReturn(1);
 
         $this->assertEquals(1, $this->stats->getDefense());
@@ -264,7 +264,7 @@ class StatsTest extends TestCase
         $this->character
             ->expects($this->once())
             ->method('getProperty')
-            ->with(Stats::DefensePropertyName, 1)
+            ->with(StatsHandler::DefensePropertyName, 1)
             ->willReturn($expectedDefense);
 
         $this->assertEquals($expectedDefense, $this->stats->getDefense());
@@ -278,13 +278,13 @@ class StatsTest extends TestCase
         $this->character
             ->expects($this->once())
             ->method('getProperty')
-            ->with(Stats::DefensePropertyName, 1)
+            ->with(StatsHandler::DefensePropertyName, 1)
             ->willReturn($currentDefense);
 
         $this->character
             ->expects($this->once())
             ->method('setProperty')
-            ->with(Stats::DefensePropertyName, $defense);
+            ->with(StatsHandler::DefensePropertyName, $defense);
 
         $this->character
             ->expects($this->once())
@@ -303,7 +303,7 @@ class StatsTest extends TestCase
 
     public function testSetDefenseWithNullLogger(): void
     {
-        $statsWithNullLogger = new Stats(
+        $statsWithNullLogger = new StatsHandler(
             null,
             $this->equipment,
             $this->character
@@ -314,7 +314,7 @@ class StatsTest extends TestCase
         $this->character
             ->expects($this->once())
             ->method('setProperty')
-            ->with(Stats::DefensePropertyName, $defense);
+            ->with(StatsHandler::DefensePropertyName, $defense);
 
         $result = $statsWithNullLogger->setDefense($defense);
 
@@ -332,14 +332,14 @@ class StatsTest extends TestCase
             ->expects($this->exactly(2))
             ->method('getProperty')
             ->willReturnMap([
-                [Stats::DefensePropertyName, 1, $currentDefense],
-                [Stats::DefensePropertyName, 1, 10]
+                [StatsHandler::DefensePropertyName, 1, $currentDefense],
+                [StatsHandler::DefensePropertyName, 1, 10]
             ]);
 
         $this->character
             ->expects($this->once())
             ->method('setProperty')
-            ->with(Stats::DefensePropertyName, 11);
+            ->with(StatsHandler::DefensePropertyName, 11);
 
         $result = $this->stats->addDefense($addedDefense);
 
@@ -352,13 +352,13 @@ class StatsTest extends TestCase
         $this->character
             ->expects($this->once())
             ->method('getProperty')
-            ->with(Stats::AttackPropertyName, 1)
+            ->with(StatsHandler::AttackPropertyName, 1)
             ->willReturn($baseAttack);
 
         $this->equipment
             ->expects($this->once())
             ->method('getItemInSlot')
-            ->with(Equipment::WeaponSlot)
+            ->with(EquipmentHandler::WeaponSlot)
             ->willReturn(null);
 
         $this->assertEquals($baseAttack, $this->stats->getTotalAttack());
@@ -373,7 +373,7 @@ class StatsTest extends TestCase
         $this->character
             ->expects($this->once())
             ->method('getProperty')
-            ->with(Stats::AttackPropertyName, 1)
+            ->with(StatsHandler::AttackPropertyName, 1)
             ->willReturn($baseAttack);
 
         $weapon = $this->createMock(EquipmentItem::class);
@@ -385,7 +385,7 @@ class StatsTest extends TestCase
         $this->equipment
             ->expects($this->once())
             ->method('getItemInSlot')
-            ->with(Equipment::WeaponSlot)
+            ->with(EquipmentHandler::WeaponSlot)
             ->willReturn($weapon);
 
         $this->assertEquals($expectedTotal, $this->stats->getTotalAttack());
@@ -397,13 +397,13 @@ class StatsTest extends TestCase
         $this->character
             ->expects($this->once())
             ->method('getProperty')
-            ->with(Stats::DefensePropertyName, 1)
+            ->with(StatsHandler::DefensePropertyName, 1)
             ->willReturn($baseDefense);
 
         $this->equipment
             ->expects($this->once())
             ->method('getItemInSlot')
-            ->with(Equipment::ArmorSlot)
+            ->with(EquipmentHandler::ArmorSlot)
             ->willReturn(null);
 
         $this->assertEquals($baseDefense, $this->stats->getTotalDefense());
@@ -418,7 +418,7 @@ class StatsTest extends TestCase
         $this->character
             ->expects($this->once())
             ->method('getProperty')
-            ->with(Stats::DefensePropertyName, 1)
+            ->with(StatsHandler::DefensePropertyName, 1)
             ->willReturn($baseDefense);
 
         $armor = $this->createMock(EquipmentItem::class);
@@ -430,7 +430,7 @@ class StatsTest extends TestCase
         $this->equipment
             ->expects($this->once())
             ->method('getItemInSlot')
-            ->with(Equipment::ArmorSlot)
+            ->with(EquipmentHandler::ArmorSlot)
             ->willReturn($armor);
 
         $this->assertEquals($expectedTotal, $this->stats->getTotalDefense());
@@ -441,23 +441,23 @@ class StatsTest extends TestCase
         $this->character
             ->expects($this->once())
             ->method('getProperty')
-            ->with(Stats::ExperiencePropertyName, 0)
+            ->with(StatsHandler::ExperiencePropertyName, 0)
             ->willReturn(100);
 
         $this->character
             ->expects($this->once())
             ->method('setProperty')
-            ->with(Stats::ExperiencePropertyName, 150);
+            ->with(StatsHandler::ExperiencePropertyName, 150);
 
         $this->stats->addExperience(50);
     }
 
     public function testConstantsAreCorrectlyDefined(): void
     {
-        $this->assertEquals('experience', Stats::ExperiencePropertyName);
-        $this->assertEquals('level', Stats::LevelPropertyName);
-        $this->assertEquals('attack', Stats::AttackPropertyName);
-        $this->assertEquals('defense', Stats::DefensePropertyName);
+        $this->assertEquals('experience', StatsHandler::ExperiencePropertyName);
+        $this->assertEquals('level', StatsHandler::LevelPropertyName);
+        $this->assertEquals('attack', StatsHandler::AttackPropertyName);
+        $this->assertEquals('defense', StatsHandler::DefensePropertyName);
     }
 
     public function testRequiredExperienceAlwaysIncreases(): void

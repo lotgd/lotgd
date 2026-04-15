@@ -4,10 +4,10 @@ declare(strict_types=1);
 namespace LotGD2\Game;
 
 use LotGD2\Entity\Mapped\Character;
-use LotGD2\Game\Character\Equipment;
-use LotGD2\Game\Character\Gold;
-use LotGD2\Game\Character\Health;
-use LotGD2\Game\Character\Stats;
+use LotGD2\Game\Handler\EquipmentHandler;
+use LotGD2\Game\Handler\GoldHandler;
+use LotGD2\Game\Handler\HealthHandler;
+use LotGD2\Game\Handler\StatsHandler;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\ExpressionLanguage\ExpressionLanguage;
@@ -19,10 +19,10 @@ class ExpressionService
     public function __construct(
         private LoggerInterface $logger,
         private Character $character,
-        private Health $health,
-        private Stats $stats,
-        private Gold $gold,
-        private Equipment $equipment,
+        private HealthHandler $health,
+        private StatsHandler $stats,
+        private GoldHandler $gold,
+        private EquipmentHandler $equipment,
     ) {
 
     }
@@ -49,8 +49,8 @@ class ExpressionService
             ],
             "gold" => $this->gold->getGold(null),
             "equipment" => (object)[
-                "weapon" => $this->equipment->getName(Equipment::WeaponSlot),
-                "armor" => $this->equipment->getName(Equipment::ArmorSlot),
+                "weapon" => $this->equipment->getName(EquipmentHandler::WeaponSlot),
+                "armor" => $this->equipment->getName(EquipmentHandler::ArmorSlot),
             ]
         ];
 

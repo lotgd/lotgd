@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-namespace LotGD2\Game\Character;
+namespace LotGD2\Game\Handler;
 
 use LotGD2\Entity\Mapped\Character;
 use LotGD2\Entity\Paragraph;
@@ -14,7 +14,7 @@ use Psr\Log\LoggerInterface;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\EventDispatcher\Attribute\AsEventListener;
 
-readonly class Health
+readonly class HealthHandler
 {
     const string HealthPropertyName = 'health';
     const string MaxHealthPropertyName = 'maxHealth';

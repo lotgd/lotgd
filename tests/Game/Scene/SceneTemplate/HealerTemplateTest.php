@@ -9,8 +9,8 @@ use LotGD2\Entity\Mapped\Character;
 use LotGD2\Entity\Mapped\Scene;
 use LotGD2\Entity\Mapped\Stage;
 use LotGD2\Entity\Paragraph;
-use LotGD2\Game\Character\Gold;
-use LotGD2\Game\Character\Health;
+use LotGD2\Game\Handler\GoldHandler;
+use LotGD2\Game\Handler\HealthHandler;
 use LotGD2\Game\Random\DiceBag;
 use LotGD2\Game\Scene\SceneTemplate\HealerTemplate;
 use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
@@ -33,15 +33,15 @@ class HealerTemplateTest extends TestCase
     private HealerTemplate $healerTemplate;
     private LoggerInterface|MockObject $logger;
     private Security|MockObject $security;
-    private Health|MockObject $health;
-    private Gold|MockObject $gold;
+    private HealthHandler|MockObject $health;
+    private GoldHandler|MockObject $gold;
 
     protected function setUp(): void
     {
         $this->logger = $this->createMock(LoggerInterface::class);
         $this->security = $this->createMock(Security::class);
-        $this->health = $this->createMock(Health::class);
-        $this->gold = $this->createMock(Gold::class);
+        $this->health = $this->createMock(HealthHandler::class);
+        $this->gold = $this->createMock(GoldHandler::class);
 
         $this->healerTemplate = new HealerTemplate(
             $this->logger,

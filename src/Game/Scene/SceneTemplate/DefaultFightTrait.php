@@ -12,8 +12,8 @@ use LotGD2\Entity\Paragraph;
 use LotGD2\Event\LootBagEvent;
 use LotGD2\Game\Battle\BattleStateStatusEnum;
 use LotGD2\Game\Battle\BattleTurn;
-use LotGD2\Game\Character\Gold;
-use LotGD2\Game\Character\Stats;
+use LotGD2\Game\Handler\GoldHandler;
+use LotGD2\Game\Handler\StatsHandler;
 use LotGD2\Game\Random\DiceBagInterface;
 use LotGD2\Game\Scene\SceneAttachment\BattleAttachment;
 use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
@@ -21,8 +21,8 @@ use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
 trait DefaultFightTrait
 {
     private readonly DiceBagInterface $diceBag;
-    private readonly Gold $gold;
-    private readonly Stats $stats;
+    private readonly GoldHandler $gold;
+    private readonly StatsHandler $stats;
     private readonly EventDispatcherInterface $eventDispatcher;
 
     const string OnLootBagFill = "lotgd2.event.DefaultFight.lootBagFill";

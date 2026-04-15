@@ -5,11 +5,11 @@ namespace LotGD2\Twig\Component\Live;
 
 use LotGD2\Entity\Mapped\Character;
 use LotGD2\Entity\Mapped\Stage;
-use LotGD2\Game\Character\Equipment;
-use LotGD2\Game\Character\Gold;
-use LotGD2\Game\Character\Health;
-use LotGD2\Game\Character\Race;
-use LotGD2\Game\Character\Stats;
+use LotGD2\Game\Handler\EquipmentHandler;
+use LotGD2\Game\Handler\GoldHandler;
+use LotGD2\Game\Handler\HealthHandler;
+use LotGD2\Game\Handler\RaceHandler;
+use LotGD2\Game\Handler\StatsHandler;
 use LotGD2\Game\GameLoop;
 use LotGD2\Repository\RaceRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -47,11 +47,11 @@ class Game extends AbstractController
     #[ExposeInTemplate]
     public function getCharStats(): array
     {
-        $health = new Health(null, $this->character);
-        $equipment = new Equipment(null, $this->character);
-        $stats = new Stats(null, $equipment, $this->character);
-        $gold = new Gold(null, $this->character);
-        $race = new Race(null, null, null, $this->raceRepository);
+        $health = new HealthHandler(null, $this->character);
+        $equipment = new EquipmentHandler(null, $this->character);
+        $stats = new StatsHandler(null, $equipment, $this->character);
+        $gold = new GoldHandler(null, $this->character);
+        $race = new RaceHandler(null, null, null, $this->raceRepository);
 
         return [
             ["Character"],
@@ -66,8 +66,8 @@ class Game extends AbstractController
             ["Defense", $stats->getTotalDefense()],
             ["Inventory"],
             ["Gold in Hand", $gold->getGold(null)],
-            ["Weapon", $equipment->getItemInSlot(Equipment::WeaponSlot)?->getName() ?? "Fists"],
-            ["Armor", $equipment->getItemInSlot(Equipment::ArmorSlot)?->getName() ?? "T-Shirt"],
+            ["Weapon", $equipment->getItemInSlot(EquipmentHandler::WeaponSlot)?->getName() ?? "Fists"],
+            ["Armor", $equipment->getItemInSlot(EquipmentHandler::ArmorSlot)?->getName() ?? "T-Shirt"],
         ];
     }
 

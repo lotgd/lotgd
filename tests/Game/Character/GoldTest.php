@@ -4,7 +4,7 @@ declare(strict_types=1);
 namespace LotGD2\Tests\Game\Character;
 
 use LotGD2\Entity\Mapped\Character;
-use LotGD2\Game\Character\Gold;
+use LotGD2\Game\Handler\GoldHandler;
 use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -12,7 +12,7 @@ use PHPUnit\Framework\Attributes\UsesClass;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 
-#[CoversClass(Gold::class)]
+#[CoversClass(GoldHandler::class)]
 #[UsesClass(Character::class)]
 #[AllowMockObjectsWithoutExpectations]
 class GoldTest extends TestCase
@@ -31,12 +31,12 @@ class GoldTest extends TestCase
     {
         $character = new Character();
         $character->properties = [
-            Gold::PropertyName => $goldAmount,
+            GoldHandler::PropertyName => $goldAmount,
         ];
 
         $loggerMock = $this->createMock(LoggerInterface::class);
 
-        $gold = new Gold($loggerMock, $character);
+        $gold = new GoldHandler($loggerMock, $character);
 
         $this->assertEquals($goldAmount, $gold->getGold(null));
     }
@@ -55,13 +55,13 @@ class GoldTest extends TestCase
     {
         $character = new Character();
         $character->properties = [
-            Gold::PropertyName => $initialGoldAmount,
+            GoldHandler::PropertyName => $initialGoldAmount,
         ];
 
         $loggerMock = $this->createMock(LoggerInterface::class);
         $loggerMock->expects($this->once())->method("debug");
 
-        $gold = new Gold($loggerMock, $character);
+        $gold = new GoldHandler($loggerMock, $character);
 
         $gold->setGold(null, $setGoldAmount);
         $this->assertEquals($setGoldAmount, $gold->getGold(null));
@@ -81,13 +81,13 @@ class GoldTest extends TestCase
     {
         $character = new Character();
         $character->properties = [
-            Gold::PropertyName => $initialGoldAmount,
+            GoldHandler::PropertyName => $initialGoldAmount,
         ];
 
         $loggerMock = $this->createMock(LoggerInterface::class);
         $loggerMock->expects($this->once())->method("debug");
 
-        $gold = new Gold($loggerMock, $character);
+        $gold = new GoldHandler($loggerMock, $character);
 
         $gold->addGold(null, $setGoldAmount);
         $this->assertEquals($finalGoldAmount, $gold->getGold(null));

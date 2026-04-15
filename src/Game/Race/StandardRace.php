@@ -11,10 +11,10 @@ use LotGD2\Entity\Paragraph;
 use LotGD2\Event\LootBagEvent;
 use LotGD2\Event\StageChangeEvent;
 use LotGD2\Form\Race\StandardRaceType;
-use LotGD2\Game\Character\Gold;
-use LotGD2\Game\Character\Health;
-use LotGD2\Game\Character\Race as RaceHandler;
-use LotGD2\Game\Character\Stats;
+use LotGD2\Game\Handler\GoldHandler;
+use LotGD2\Game\Handler\HealthHandler;
+use LotGD2\Game\Handler\RaceHandler as RaceHandler;
+use LotGD2\Game\Handler\StatsHandler;
 use LotGD2\Game\GameTime\NewDay;
 use LotGD2\Game\Scene\SceneTemplate\FightTemplate;
 use Psr\Log\LoggerInterface;
@@ -38,8 +38,8 @@ class StandardRace implements RaceInterface
 {
     public function __construct(
         private LoggerInterface $logger,
-        private Stats $stats,
-        private Health $health,
+        private StatsHandler $stats,
+        private HealthHandler $health,
         private RaceHandler $race,
     ) {
     }
@@ -154,7 +154,7 @@ class StandardRace implements RaceInterface
             return;
         }
 
-        $lootPosition = $lootBag->get(Gold::GoldLoot);
+        $lootPosition = $lootBag->get(GoldHandler::GoldLoot);
 
         if ($lootPosition === null) {
             $this->logger->info("The LootBag does not have a gold position. Cannot change gold reward.");
@@ -184,7 +184,7 @@ class StandardRace implements RaceInterface
             return;
         }
 
-        $lootPosition = $lootBag->get(Stats::ExperienceLoot);
+        $lootPosition = $lootBag->get(StatsHandler::ExperienceLoot);
 
         if ($lootPosition === null) {
             $this->logger->info("The LootBag does not have an experience position. Cannot change experience reward.");

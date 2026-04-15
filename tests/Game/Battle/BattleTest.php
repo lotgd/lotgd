@@ -21,9 +21,9 @@ use LotGD2\Game\Battle\BattleEvent\CriticalHitEvent;
 use LotGD2\Game\Battle\BattleEvent\DamageEvent;
 use LotGD2\Game\Battle\BattleEvent\DeathEvent;
 use LotGD2\Game\Battle\BattleTurn;
-use LotGD2\Game\Character\Equipment;
-use LotGD2\Game\Character\Health;
-use LotGD2\Game\Character\Stats;
+use LotGD2\Game\Handler\EquipmentHandler;
+use LotGD2\Game\Handler\HealthHandler;
+use LotGD2\Game\Handler\StatsHandler;
 use LotGD2\Game\Random\DiceBag;
 use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -41,9 +41,9 @@ use Symfony\Component\Serializer\Serializer;
 
 #[CoversClass(Battle::class)]
 #[UsesClass(Character::class)]
-#[UsesClass(Health::class)]
-#[UsesClass(Equipment::class)]
-#[UsesClass(Stats::class)]
+#[UsesClass(HealthHandler::class)]
+#[UsesClass(EquipmentHandler::class)]
+#[UsesClass(StatsHandler::class)]
 #[UsesClass(BattleState::class)]
 #[UsesClass(Fighter::class)]
 #[UsesClass(CurrentCharacterFighter::class)]
