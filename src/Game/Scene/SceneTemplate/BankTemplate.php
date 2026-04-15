@@ -247,11 +247,11 @@ class BankTemplate implements SceneTemplateInterface
                 if ($goldInBank > $maxGoldInBank) {
                     // Character has more gold than the maximum; the bank does not pay out interest.
                     $interest = 0;
-                    $text = "The bank <.{{ bankName }}.> does not pay our your interest to retain solvency. You have already enough savings.";
+                    $text = "The bank <.{{ bankName }}.> does not pay out your interest to retain solvency. You have already enough savings.";
                 } elseif ($turnsLeftBeforeInterest >= 0 && $turnsLeftBeforeInterest <= $oldHealth->getTurns()) {
                     $text = "The bank <.{{ bankName }}.>'s interest rate today is {{ bankInterestRate }}%, but you will not earn interest. This bank only gives interest to those who work.";
                 } else {
-                    $text = "The bank <.{{ bankName{$i} }}.>'s interest rate today is {{ bankInterestRate{$i} }}%. You earned {{ bankInterest{$i}|abs }} gold interest.";
+                    $text = "The bank <.{{ bankName }}.>'s interest rate today is {{ bankInterestRate }}%. You earned {{ bankInterest|abs }} gold interest.";
                 }
             }
 
