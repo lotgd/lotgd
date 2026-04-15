@@ -21,6 +21,7 @@ use LotGD2\Game\Battle\BattleEvent\CriticalHitEvent;
 use LotGD2\Game\Battle\BattleEvent\DamageEvent;
 use LotGD2\Game\Battle\BattleEvent\DeathEvent;
 use LotGD2\Game\Battle\BattleTurn;
+use LotGD2\Game\Handler\BuffHandler;
 use LotGD2\Game\Handler\EquipmentHandler;
 use LotGD2\Game\Handler\HealthHandler;
 use LotGD2\Game\Handler\StatsHandler;
@@ -63,6 +64,7 @@ class BattleTest extends KernelTestCase
     private BattleTurn $turn;
     private NormalizerInterface&DenormalizerInterface $normalizer;
     private LoggerInterface $logger;
+    private BuffHandler&MockObject $buffHandler;
 
     public function setUp(): void
     {
@@ -74,11 +76,13 @@ class BattleTest extends KernelTestCase
         $this->logger = $this->createMock(LoggerInterface::class);
         $this->character = new Character(name: "Test", level: 1);
         $this->turn = $this->createMock(BattleTurn::class);
+        $this->buffHandler = $this->createMock(BuffHandler::class);
 
         $this->battle = new Battle(
             logger: $this->logger,
             normalizer: $this->normalizer,
             turn: $this->turn,
+            buffHandler: $this->buffHandler,
             character: $this->character,
         );
     }

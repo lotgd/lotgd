@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace LotGD2\Tests\Entity\Battle;
 
 use LotGD2\Entity\Battle\BattleRoundMessage;
+use LotGD2\Entity\Battle\BuffList;
 use LotGD2\Entity\Battle\CurrentCharacterFighter;
 use LotGD2\Entity\Mapped\Character;
 use LotGD2\Game\Handler\HealthHandler;
@@ -98,13 +99,19 @@ class BattleStateTest extends TestCase
         $this->expectException(\LogicException::class);
         $this->expectExceptionMessage("You must set the character first before synchronizing");
 
-        $this->battleState->syncronizeToCharacter();
+        $buffList = $this->createStub(BuffList::class);
+        $buffList->method(PropertyHook::get("buffs"))->willReturn([]);
+
+        $this->battleState->synchronizeToCharacter($buffList);
     }
 
     public function testSynchronizeToCharacterWithoutCharacterSynchronizes(): void
     {
         $character = $this->createMock(Character::class);
         $character->expects($this->once())->method("setProperty")->with(HealthHandler::HealthPropertyName, 10);
+
+        $buffList = $this->createStub(BuffList::class);
+        $buffList->method(PropertyHook::get("buffs"))->willReturn([]);
 
         $goodGuy = $this->createMock(CurrentCharacterFighter::class);
         $goodGuy->expects($this->once())->method(PropertyHook::get("health"))->willReturn(10);
@@ -116,7 +123,7 @@ class BattleStateTest extends TestCase
 
         $battleState->setCharacter($character);
 
-        $battleState->syncronizeToCharacter();
+        $battleState->synchronizeToCharacter($buffList);
     }
 
     public function testIncrementRound(): void

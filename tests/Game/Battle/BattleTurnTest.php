@@ -5,6 +5,7 @@ namespace LotGD2\Tests\Game\Battle;
 
 use Doctrine\Common\Collections\ArrayCollection;
 use LotGD2\Entity\Battle\BattleState;
+use LotGD2\Entity\Battle\BuffList;
 use LotGD2\Entity\Battle\CurrentCharacterFighter;
 use LotGD2\Entity\Battle\FighterInterface;
 use LotGD2\Game\Battle\BattleEvent\CriticalHitEvent;
@@ -80,11 +81,21 @@ class BattleTurnTest extends TestCase
 
         $this->assertTrue($battleState->isRiposteEnabled);
 
+        $buffList = $this->createStub(BuffList::class);
+        $buffList->method(PropertyHook::get("goodGuyAttackModifier"))->willReturn(1.);
+        $buffList->method(PropertyHook::get("badGuyAttackModifier"))->willReturn(1.);
+        $buffList->method(PropertyHook::get("goodGuyDefenseModifier"))->willReturn(1.);
+        $buffList->method(PropertyHook::get("badGuyDefenseModifier"))->willReturn(1.);
+        $buffList->method(PropertyHook::get("goodGuyDamageModifier"))->willReturn(1.);
+        $buffList->method(PropertyHook::get("badGuyDamageModifier"))->willReturn(1.);
+
         // Execute
         $result = $this->battleTurn->partialTurn(
             $battleState,
             $this->currentCharacterFighter,
-            $this->fighter
+            $this->fighter,
+            $buffList,
+            $buffList,
         );
 
         // Assert
@@ -128,12 +139,21 @@ class BattleTurnTest extends TestCase
         ;
 
         $this->assertTrue($battleState->isRiposteEnabled);
+        $buffList = $this->createStub(BuffList::class);
+        $buffList->method(PropertyHook::get("goodGuyAttackModifier"))->willReturn(1.);
+        $buffList->method(PropertyHook::get("badGuyAttackModifier"))->willReturn(1.);
+        $buffList->method(PropertyHook::get("goodGuyDefenseModifier"))->willReturn(1.);
+        $buffList->method(PropertyHook::get("badGuyDefenseModifier"))->willReturn(1.);
+        $buffList->method(PropertyHook::get("goodGuyDamageModifier"))->willReturn(1.);
+        $buffList->method(PropertyHook::get("badGuyDamageModifier"))->willReturn(1.);
 
         // Execute
         $result = $this->battleTurn->partialTurn(
             $battleState,
             $this->currentCharacterFighter,
-            $this->fighter
+            $this->fighter,
+            $buffList,
+            $buffList,
         );
 
         // Assert
@@ -177,12 +197,19 @@ class BattleTurnTest extends TestCase
         ;
 
         $this->assertFalse($battleState->isRiposteEnabled);
+        $buffList = $this->createStub(BuffList::class);
+        $buffList->method(PropertyHook::get("goodGuyAttackModifier"))->willReturn(1.);
+        $buffList->method(PropertyHook::get("badGuyAttackModifier"))->willReturn(1.);
+        $buffList->method(PropertyHook::get("goodGuyDefenseModifier"))->willReturn(1.);
+        $buffList->method(PropertyHook::get("badGuyDefenseModifier"))->willReturn(1.);
 
         // Execute
         $result = $this->battleTurn->partialTurn(
             $battleState,
             $this->currentCharacterFighter,
-            $this->fighter
+            $this->fighter,
+            $buffList,
+            $buffList,
         );
 
         // Assert
@@ -233,11 +260,21 @@ class BattleTurnTest extends TestCase
 
         $this->assertFalse($battleState->isRiposteEnabled);
 
+        $buffList = $this->createStub(BuffList::class);
+        $buffList->method(PropertyHook::get("goodGuyAttackModifier"))->willReturn(1.);
+        $buffList->method(PropertyHook::get("badGuyAttackModifier"))->willReturn(1.);
+        $buffList->method(PropertyHook::get("goodGuyDefenseModifier"))->willReturn(1.);
+        $buffList->method(PropertyHook::get("badGuyDefenseModifier"))->willReturn(1.);
+        $buffList->method(PropertyHook::get("goodGuyDamageModifier"))->willReturn(1.);
+        $buffList->method(PropertyHook::get("badGuyDamageModifier"))->willReturn(1.);
+
         // Execute
         $result = $this->battleTurn->partialTurn(
             $battleState,
             $this->currentCharacterFighter,
-            $this->fighter
+            $this->fighter,
+            $buffList,
+            $buffList,
         );
 
         // Assert
@@ -345,8 +382,9 @@ class BattleTurnTest extends TestCase
 
         $battleTurn->expects($this->exactly($partialTurnCalls))->method("partialTurn")->willReturn(... $willReturn);
 
+        $buffList = $this->createStub(BuffList::class);
 
-        $turns = $battleTurn->getHalfTurns($battleState);
+        $turns = $battleTurn->getHalfTurns($battleState, $buffList, $buffList);
         $this->assertSame($willReturn[count($willReturn) - 2], $turns[0]);
         $this->assertSame($willReturn[count($willReturn) - 1], $turns[1]);
     }
@@ -372,7 +410,13 @@ class BattleTurnTest extends TestCase
         $this->fighter->method(PropertyHook::get("defense"))->willReturn(10);
         $this->fighter->method(PropertyHook::get("level"))->willReturn(10);
 
-        [$attack, $defense] = $this->battleTurn->calculateAttackAndDefense($battleState, $this->currentCharacterFighter, $this->fighter);
+        $buffList = $this->createStub(BuffList::class);
+        $buffList->method(PropertyHook::get("goodGuyAttackModifier"))->willReturn(1.);
+        $buffList->method(PropertyHook::get("badGuyAttackModifier"))->willReturn(1.);
+        $buffList->method(PropertyHook::get("goodGuyDefenseModifier"))->willReturn(1.);
+        $buffList->method(PropertyHook::get("badGuyDefenseModifier"))->willReturn(1.);
+
+        [$attack, $defense] = $this->battleTurn->calculateAttackAndDefense($battleState, $this->currentCharacterFighter, $this->fighter, $buffList, $buffList);
 
         $this->assertSame(15, $attack);
         $this->assertSame(10, $defense);
@@ -400,7 +444,13 @@ class BattleTurnTest extends TestCase
         $this->fighter->method(PropertyHook::get("defense"))->willReturn(10);
         $this->fighter->method(PropertyHook::get("level"))->willReturn(5);
 
-        [$attack, $defense] = $this->battleTurn->calculateAttackAndDefense($battleState, $this->currentCharacterFighter, $this->fighter);
+        $buffList = $this->createStub(BuffList::class);
+        $buffList->method(PropertyHook::get("goodGuyAttackModifier"))->willReturn(1.);
+        $buffList->method(PropertyHook::get("badGuyAttackModifier"))->willReturn(1.);
+        $buffList->method(PropertyHook::get("goodGuyDefenseModifier"))->willReturn(1.);
+        $buffList->method(PropertyHook::get("badGuyDefenseModifier"))->willReturn(1.);
+
+        [$attack, $defense] = $this->battleTurn->calculateAttackAndDefense($battleState, $this->currentCharacterFighter, $this->fighter, $buffList, $buffList);
 
         $this->assertSame(15, $attack);
         $this->assertLessThan(10, $defense);
@@ -429,7 +479,13 @@ class BattleTurnTest extends TestCase
         $this->fighter->method(PropertyHook::get("defense"))->willReturn(10);
         $this->fighter->method(PropertyHook::get("level"))->willReturn(15);
 
-        [$attack, $defense] = $this->battleTurn->calculateAttackAndDefense($battleState, $this->currentCharacterFighter, $this->fighter);
+        $buffList = $this->createStub(BuffList::class);
+        $buffList->method(PropertyHook::get("goodGuyAttackModifier"))->willReturn(1.);
+        $buffList->method(PropertyHook::get("badGuyAttackModifier"))->willReturn(1.);
+        $buffList->method(PropertyHook::get("goodGuyDefenseModifier"))->willReturn(1.);
+        $buffList->method(PropertyHook::get("badGuyDefenseModifier"))->willReturn(1.);
+
+        [$attack, $defense] = $this->battleTurn->calculateAttackAndDefense($battleState, $this->currentCharacterFighter, $this->fighter, $buffList, $buffList);
 
         $this->assertSame(15, $attack);
         $this->assertGreaterThan(10, $defense);
@@ -457,7 +513,13 @@ class BattleTurnTest extends TestCase
         $this->fighter->method(PropertyHook::get("defense"))->willReturn(10);
         $this->fighter->method(PropertyHook::get("level"))->willReturn(5);
 
-        [$attack, $defense] = $this->battleTurn->calculateAttackAndDefense($battleState, $this->fighter, $this->currentCharacterFighter);
+        $buffList = $this->createStub(BuffList::class);
+        $buffList->method(PropertyHook::get("goodGuyAttackModifier"))->willReturn(1.);
+        $buffList->method(PropertyHook::get("badGuyAttackModifier"))->willReturn(1.);
+        $buffList->method(PropertyHook::get("goodGuyDefenseModifier"))->willReturn(1.);
+        $buffList->method(PropertyHook::get("badGuyDefenseModifier"))->willReturn(1.);
+
+        [$attack, $defense] = $this->battleTurn->calculateAttackAndDefense($battleState, $this->fighter, $this->currentCharacterFighter, $buffList, $buffList);
 
         $this->assertSame(15, $attack);
         $this->assertGreaterThan(10, $defense);
@@ -485,7 +547,13 @@ class BattleTurnTest extends TestCase
         $this->fighter->method(PropertyHook::get("defense"))->willReturn(10);
         $this->fighter->method(PropertyHook::get("level"))->willReturn(15);
 
-        [$attack, $defense] = $this->battleTurn->calculateAttackAndDefense($battleState, $this->fighter, $this->currentCharacterFighter);
+        $buffList = $this->createStub(BuffList::class);
+        $buffList->method(PropertyHook::get("goodGuyAttackModifier"))->willReturn(1.);
+        $buffList->method(PropertyHook::get("badGuyAttackModifier"))->willReturn(1.);
+        $buffList->method(PropertyHook::get("goodGuyDefenseModifier"))->willReturn(1.);
+        $buffList->method(PropertyHook::get("badGuyDefenseModifier"))->willReturn(1.);
+
+        [$attack, $defense] = $this->battleTurn->calculateAttackAndDefense($battleState, $this->fighter, $this->currentCharacterFighter, $buffList, $buffList);
 
         $this->assertSame(15, $attack);
         $this->assertLessThan(10, $defense);

@@ -5,6 +5,8 @@ namespace LotGD2\Game\Battle;
 
 use Doctrine\Common\Collections\ArrayCollection;
 use LotGD2\Entity\Battle\BattleState;
+use LotGD2\Entity\Battle\Buff;
+use LotGD2\Entity\Battle\BuffList;
 use LotGD2\Entity\Battle\CurrentCharacterFighter;
 use LotGD2\Entity\Battle\FighterInterface;
 use LotGD2\Game\Battle\BattleEvent\AbstractBattleEvent;
@@ -33,11 +35,17 @@ readonly class BattleTurn
      * @param FighterInterface $defender
      * @return ArrayCollection<int, AbstractBattleEvent>
      */
-    public function partialTurn(BattleState $battleState, FighterInterface $attacker, FighterInterface $defender): ArrayCollection
-    {
+    public function partialTurn(
+        BattleState $battleState,
+        FighterInterface $attacker,
+        FighterInterface $defender,
+        BuffList $attackersBuffs,
+        BuffList $defendersBuffs,
+    ): ArrayCollection {
+        /** @var ArrayCollection<int, AbstractBattleEvent> $events */
         $events = new ArrayCollection();
 
-        [$attackersAttack, $defendersDefense] = $this->calculateAttackAndDefense($battleState, $attacker, $defender);
+        [$attackersAttack, $defendersDefense] = $this->calculateAttackAndDefense($battleState, $attacker, $defender, $attackersBuffs, $defendersBuffs);
 
         // Lets "roll the dice".
         $attackersAtkRoll = $this->diceBag->pseudoBell(0, $attackersAttack);
@@ -50,6 +58,21 @@ readonly class BattleTurn
             $events->add(new CriticalHitEvent($attacker, $defender, ["criticalAttackValue" => $attackersAttack]));
         }
 
+        // Handle invincibility
+        $attackerIsInvulnerable = $attackersBuffs->goodGuyInvulnerable || $defendersBuffs->badGuyInvulnerable;
+        $defenderIsInvulnerable = $attackersBuffs->badGuyInvulnerable || $defendersBuffs->goodGuyInvulnerable;
+
+        if ($attackerIsInvulnerable && $defenderIsInvulnerable) {
+            // Both are invulnerable. We cannot set the damage to 0.
+            $damage = 1;
+        } elseif ($attackerIsInvulnerable) {
+            // Attaker is invulnurable, damage is always > 0 (there is no riposte)
+            $damage = abs($damage);
+        } elseif ($defenderIsInvulnerable) {
+            // Defender is invulnurable, damage is always < 0 (defender always ripostes)
+            $damage = -abs($damage);
+        }
+
         // Set damage to 0 if riposte has been disabled
         // This *will* increase the number of tries required to get a damaging round, as the probability of not doing
         //  damage increases.
@@ -58,9 +81,19 @@ readonly class BattleTurn
                 // If the damage is less then 0, it's a RIPOSTE. They are only half
                 // as damaging than normal attacks.
                 $damage /= 2;
+
+                // Apply damage modification. It's a RIPOSTE, so the defender makes the damage. Therefore, we need to take
+                //  the defender's goodGuyDamagerModifier into account and the attacker's badGuyDamageModifier
+                $damage *= $defendersBuffs->goodGuyDamageModifier
+                    * $attackersBuffs->badGuyDamageModifier;
             } else {
                 $damage = 0;
             }
+        } else {
+            // Apply damage modification. It normal attack, so the attacker makes the damage. Therefore, we need to take
+            //  the attackers's goodGuyDamagerModifier into account and the defenders's badGuyDamageModifier
+            $damage *= $attackersBuffs->goodGuyDamageModifier
+                * $defendersBuffs->badGuyDamageModifier;
         }
 
         // Round the damage value and convert to int.
@@ -69,7 +102,25 @@ readonly class BattleTurn
         // Add the damage event
         $events->add(new DamageEvent($attacker, $defender, ["damage" => $damage]));
 
-        return $events;
+        // Do all the other buff effects. Modifiers are calculated separatly and do not need activation
+        $attackersBuffStartEvents = $attackersBuffs->activate(Buff::ACTIVATES_ON_OFFENSE_TURN, $attacker, $defender);
+        $defendersBuffStartEvents = $defendersBuffs->activate(Buff::ACTIVATES_ON_DEFENSE_TURN, $attacker, $defender);
+
+        $attackersDirectBuffEvents = $attackersBuffs->processDirectBuffs(Buff::ACTIVATES_ON_OFFENSE_TURN, $attacker, $defender);
+        $defendersDirectBuffEvents = $defendersBuffs->processDirectBuffs(Buff::ACTIVATES_ON_DEFENSE_TURN, $defender, $attacker);
+
+        $attackersDamageDependentBuffEvents = $attackersBuffs->processDamageDependentBuffs(Buff::ACTIVATES_ON_OFFENSE_TURN, $damage, $attacker, $defender);
+        $defendersDamageDependentBuffEvents = $defendersBuffs->processDamageDependentBuffs(Buff::ACTIVATES_ON_DEFENSE_TURN, -$damage, $defender, $attacker);
+
+        return new ArrayCollection([
+            ...$attackersBuffStartEvents,
+            ...$attackersDirectBuffEvents,
+            ...$defendersBuffStartEvents,
+            ...$defendersDirectBuffEvents,
+            ...$events->toArray(),
+            ...$attackersDamageDependentBuffEvents,
+            ...$defendersDamageDependentBuffEvents,
+        ]);
     }
 
     /**
@@ -78,15 +129,17 @@ readonly class BattleTurn
      * Rounds where nobody hits are not interesting. To prevent this, the calculation of both half-turns is repeated
      * until at least one of the events is not 0.
      * @param BattleState $battleState
+     * @param BuffList $goodGuyBuffList
+     * @param BuffList $badGuyBuffList
      * @return array{ArrayCollection<int, covariant BattleEventInterface>, ArrayCollection<int, covariant BattleEventInterface>}
      * @internal
      */
-    public function getHalfTurns(BattleState $battleState): array
+    public function getHalfTurns(BattleState $battleState, BuffList $goodGuyBuffList, BuffList $badGuyBuffList): array
     {
         // Repeat as long as possible to prevent rounds where nobody hits.
         while (true) {
-            $offenseTurn = $this->partialTurn($battleState, $battleState->goodGuy, $battleState->badGuy);
-            $defenseTurn = $this->partialTurn($battleState, $battleState->badGuy, $battleState->goodGuy);
+            $offenseTurn = $this->partialTurn($battleState, $battleState->goodGuy, $battleState->badGuy, $goodGuyBuffList, $badGuyBuffList);
+            $defenseTurn = $this->partialTurn($battleState, $battleState->badGuy, $battleState->goodGuy, $badGuyBuffList, $goodGuyBuffList);
 
             $offenseDamageEvent = $offenseTurn->findFirst(fn(int $k, BattleEventInterface $e) => $e instanceof DamageEvent);
             $defenseDamageEvent = $defenseTurn->findFirst(fn(int $k, BattleEventInterface $e) => $e instanceof DamageEvent);
@@ -115,8 +168,13 @@ readonly class BattleTurn
      * @param FighterInterface $defender
      * @return int[]
      */
-    public function calculateAttackAndDefense(BattleState $battleState, FighterInterface $attacker, FighterInterface $defender): array
-    {
+    public function calculateAttackAndDefense(
+        BattleState $battleState,
+        FighterInterface $attacker,
+        FighterInterface $defender,
+        BuffList $attackersBuffs,
+        BuffList $defendersBuffs,
+    ): array {
         $adjustment = 1.0;
         $defenseAdjustment = 1.0;
 
@@ -142,8 +200,19 @@ readonly class BattleTurn
             }
         }
 
-        $attackersAttack = $attacker->attack;
-        $defendersDefense = $defender->defense * $defenseAdjustment;
+        // Apply buff scaling for the attacker's attack. This needs to take into account the attacker's goodGuyAttackModifier,
+        //  and the defender's badGuyAttackModifier.
+        $attackersAttack = $attacker->attack
+            * $attackersBuffs->goodGuyAttackModifier
+            * $defendersBuffs->badGuyAttackModifier
+        ;
+
+        // Apply buff scaling for the defender's defense. This needs to take into account the defender's goodGuyDefenseModifier,
+        //  and the attacker's badGuyDefenseModifier
+        $defendersDefense = $defender->defense * $defenseAdjustment
+            * $defendersBuffs->goodGuyDefenseModifier
+            * $attackersBuffs->badGuyDefenseModifier
+        ;
 
         // If the player is the attacker, we enable critical hits with a chance of 2.63%.
         if ($battleState->isCriticalHitEnabled && $attacker instanceof CurrentCharacterFighter) {

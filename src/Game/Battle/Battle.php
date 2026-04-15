@@ -8,6 +8,7 @@ use LotGD2\Entity\Action;
 use LotGD2\Entity\ActionGroup;
 use LotGD2\Entity\Battle\BasicFighterInterface;
 use LotGD2\Entity\Battle\BattleState;
+use LotGD2\Entity\Battle\Buff;
 use LotGD2\Entity\Battle\CurrentCharacterFighter;
 use LotGD2\Entity\Battle\Fighter;
 use LotGD2\Entity\Mapped\Character;
@@ -16,6 +17,7 @@ use LotGD2\Entity\Mapped\Stage;
 use LotGD2\Game\Battle\BattleEvent\BattleEventInterface;
 use LotGD2\Game\Battle\BattleEvent\DamageEvent;
 use LotGD2\Game\Battle\BattleEvent\DeathEvent;
+use LotGD2\Game\Handler\BuffHandler;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\Serializer\Normalizer\DenormalizerInterface;
@@ -40,6 +42,7 @@ class Battle
         private LoggerInterface $logger,
         private readonly DenormalizerInterface&NormalizerInterface $normalizer,
         private readonly BattleTurn $turn,
+        private readonly BuffHandler $buffHandler,
         #[Autowire(expression: "service('lotgd2.game_loop').getCharacter()")]
         private Character $character,
     ) {
@@ -135,7 +138,14 @@ class Battle
     {
         $battleState->setCharacter($this->character);
 
-        [$offenseTurn, $defenseTurn] = $this->turn->getHalfTurns($battleState);
+        $goodGuyBuffs = $this->buffHandler->getBuffs($this->character);
+        $badGuyBuffs = $this->buffHandler->getBuffs($battleState->badGuy);
+
+        // Activate on round start comes before the calculation of the half turns
+        $goodGuyBuffStartEvents = $goodGuyBuffs->activate(Buff::ACTIVATES_ON_ROUNDSTART, $battleState->goodGuy, $battleState->badGuy);
+        $badGuyBuffStartEvents = $badGuyBuffs->activate(Buff::ACTIVATES_ON_ROUNDSTART, $battleState->badGuy, $battleState->goodGuy);
+
+        [$offenseTurn, $defenseTurn] = $this->turn->getHalfTurns($battleState, $goodGuyBuffs, $badGuyBuffs);
 
         // Only add offense turns if its part of the current round
         $offenseTurnEvents = $damageRound & BattleTurn::DamageTurnGoodGuy ? $offenseTurn : [];
@@ -143,18 +153,37 @@ class Battle
         // Only add defense turns if its part of the current round
         $defenseTurnEvents = $damageRound & BattleTurn::DamageTurnBadGuy ? $defenseTurn : [];
 
+        // Activate on round end.
+        $goodGuyBuffEndEvents = $goodGuyBuffs->activate(Buff::ACTIVATES_ON_ROUNDEND, $battleState->goodGuy, $battleState->badGuy);
+        $badGuyBuffEndEvents = $badGuyBuffs->activate(Buff::ACTIVATES_ON_ROUNDEND, $battleState->badGuy, $battleState->goodGuy);
+
+        // Expire buffs if necessary
+        $goodGuyExpiredBuffEvents = $goodGuyBuffs->expireOneRound($battleState->goodGuy, $battleState->badGuy);
+        $badGuyExpiredBuffEvents = $badGuyBuffs->expireOneRound($battleState->badGuy, $battleState->goodGuy);
+
         // Process events
-        $events = new ArrayCollection([... $offenseTurnEvents, ... $defenseTurnEvents]);
+        $events = new ArrayCollection([
+            ... $goodGuyBuffStartEvents,
+            ... $badGuyBuffStartEvents,
+            ... $offenseTurnEvents,
+            ... $defenseTurnEvents,
+            ... $goodGuyBuffEndEvents,
+            ... $badGuyBuffEndEvents,
+            ... $goodGuyExpiredBuffEvents,
+            ... $badGuyExpiredBuffEvents,
+        ]);
+
+        // Filters and applies events up until the fight ends. All events after the raised DeathEvent are skipped.
         $eventsToAdd = $this->processBattleEvents($events, $battleState);
 
         // Post round clean-up
         $battleState->incrementRound();
         $battleState->addMessages($eventsToAdd->map(fn (BattleEventInterface $event) => $event->decorate()));
-        $battleState->syncronizeToCharacter();
+        $battleState->synchronizeToCharacter($goodGuyBuffs);
     }
 
     /**
-     * @param BattleEventCollection $events
+     * @param ArrayCollection<int, BattleEventInterface> $events
      * @param BattleState $battleState
      * @return BattleEventCollection
      */
