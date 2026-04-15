@@ -4,15 +4,19 @@ declare(strict_types=1);
 namespace LotGD2\Game\Race;
 
 use LotGD2\Attribute\TemplateType;
+use LotGD2\Entity\Character\LootBag;
 use LotGD2\Entity\Mapped\Character;
 use LotGD2\Entity\Mapped\Race;
 use LotGD2\Entity\Paragraph;
+use LotGD2\Event\LootBagEvent;
 use LotGD2\Event\StageChangeEvent;
 use LotGD2\Form\Race\StandardRaceType;
+use LotGD2\Game\Character\Gold;
 use LotGD2\Game\Character\Health;
 use LotGD2\Game\Character\Race as RaceHandler;
 use LotGD2\Game\Character\Stats;
 use LotGD2\Game\GameTime\NewDay;
+use LotGD2\Game\Scene\SceneTemplate\FightTemplate;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\DependencyInjection\Attribute\Autoconfigure;
 use Symfony\Component\EventDispatcher\Attribute\AsEventListener;
@@ -116,5 +120,86 @@ class StandardRace implements RaceInterface
                 context: ["value" => $value],
             ));
         }
+    }
+
+
+
+    #[AsEventListener(FightTemplate::OnLootBagFill, priority: -10)]
+    public function onLootBagFill(LootBagEvent $event): void
+    {
+        $raceClass = $this->race->getRaceClass($event->character);
+
+        if ($raceClass !== self::class) {
+            return;
+        }
+
+        $raceConfiguration = $this->race->getRaceConfiguration($event->character);
+
+        if ($raceConfiguration === null) {
+            return;
+        }
+
+        $this->changeGoldLoot($raceConfiguration, $event->lootBag);
+        $this->changeExperienceReward($raceConfiguration, $event->lootBag);
+    }
+
+    /**
+     * @param StandardRaceConfiguration $raceConfiguration
+     * @param LootBag $lootBag
+     * @return void
+     */
+    public function changeGoldLoot(array $raceConfiguration, LootBag $lootBag): void
+    {
+        if (!isset($raceConfiguration["goldFactor"])) {
+            return;
+        }
+
+        $lootPosition = $lootBag->get(Gold::GoldLoot);
+
+        if ($lootPosition === null) {
+            $this->logger->info("The LootBag does not have a gold position. Cannot change gold reward.");
+            return;
+        }
+
+        $lootConfig = $lootPosition->loot;
+        $lootConfig["maxValue"] = (int)ceil($lootConfig["maxValue"] * $raceConfiguration["goldFactor"]);
+
+        // Required to keep track if we modified this position
+        $lootConfig["mod.StandardRace"] = $raceConfiguration["goldFactor"];
+
+        // Set loot back
+        $lootPosition->loot = $lootConfig;
+
+        $this->logger->debug("Modified gold reward by factor {$raceConfiguration['goldFactor']}.");
+    }
+
+    /**
+     * @param StandardRaceConfiguration $raceConfiguration
+     * @param LootBag $lootBag
+     * @return void
+     */
+    public function changeExperienceReward(array $raceConfiguration, LootBag $lootBag): void
+    {
+        if (!isset($raceConfiguration["experienceFactor"])) {
+            return;
+        }
+
+        $lootPosition = $lootBag->get(Stats::ExperienceLoot);
+
+        if ($lootPosition === null) {
+            $this->logger->info("The LootBag does not have an experience position. Cannot change experience reward.");
+            return;
+        }
+
+        $lootConfig = $lootPosition->loot;
+        $lootConfig["experience"] = (int)ceil($lootConfig["experience"] * $raceConfiguration["experienceFactor"]);
+
+        // Required to keep track if we modified this position
+        $lootConfig["mod.StandardRace"] = $raceConfiguration["experienceFactor"];
+
+        // Set loot back
+        $lootPosition->loot = $lootConfig;
+
+        $this->logger->debug("Modified experience reward by factor {$raceConfiguration['goldFactor']}.");
     }
 }

@@ -119,7 +119,7 @@ class HealerTemplate implements SceneTemplateInterface
         $amount = $this->action->getParameter("amount") ?? 0;
         $price = $this->action->getParameter("price") ?? 0;
 
-        if ($price === 0 or $this->gold->getGold() >= $price) {
+        if ($price === 0 or $this->gold->getGold(null) >= $price) {
             $this->logger->debug("{$this->character->id}: Healed by $amount for $price gold.");
 
             $this->stage->paragraphs = [
@@ -134,7 +134,7 @@ class HealerTemplate implements SceneTemplateInterface
             ];
 
             $this->health->heal($amount);
-            $this->gold->addGold(-$price);
+            $this->gold->addGold(null, -$price);
         } else {
             $this->stage->paragraphs = [
                 new Paragraph(

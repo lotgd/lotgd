@@ -3,9 +3,13 @@ declare(strict_types=1);
 
 namespace LotGD2\Game\Character;
 
+use LotGD2\Entity\Character\LootPosition;
 use LotGD2\Entity\Mapped\Character;
+use LotGD2\Entity\Paragraph;
 use LotGD2\Event\CharacterChangeEvent;
+use LotGD2\Event\LootBagEvent;
 use LotGD2\Game\Scene\SceneTemplate\DragonTemplate;
+use LotGD2\Game\Scene\SceneTemplate\FightTemplate;
 use LotGD2\Game\Scene\SceneTemplate\TrainingTemplate;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
@@ -17,6 +21,8 @@ readonly class Stats
     const string LevelPropertyName = 'level';
     const string AttackPropertyName = 'attack';
     const string DefensePropertyName = 'defense';
+    const string ExperienceLoot = "lotgd2.loot.Stats.experience";
+    const string ExperienceLootClaimParagraph = "lotgd2.paragraph.Sstats.LootBagClaim";
 
     public function __construct(
         private ?LoggerInterface $logger,
@@ -35,7 +41,7 @@ readonly class Stats
     public function setExperience(int $experience, ?Character $character = null): static
     {
         $character ??= $this->character;
-        $this->logger->debug("{$character->id}: set experience to {$experience}");
+        $this->logger->debug("{$character}: set experience to {$experience}");
         $character->setProperty(self::ExperiencePropertyName, $experience);
         return $this;
     }
@@ -92,7 +98,7 @@ readonly class Stats
     public function setAttack(int $attack, ?Character $character = null): static
     {
         $character ??= $this->character;
-        $this->logger?->debug("{$character->id}: attack set to {$attack} (was {$this->getAttack($character)}) before).");
+        $this->logger?->debug("{$character}: attack set to {$attack} (was {$this->getAttack($character)}) before).");
         $character->setProperty(self::AttackPropertyName, $attack);
         return $this;
     }
@@ -113,7 +119,7 @@ readonly class Stats
     public function setDefense(int $defense, ?Character $character = null): static
     {
         $character ??= $this->character;
-        $this->logger?->debug("{$character->id}: defense set to {$defense} (was {$this->getDefense($character)}) before).");
+        $this->logger?->debug("{$character}: defense set to {$defense} (was {$this->getDefense($character)}) before).");
         $character->setProperty(self::DefensePropertyName, $defense);
         return $this;
     }
@@ -135,7 +141,6 @@ readonly class Stats
     public function onCharacterLevelIncrease(CharacterChangeEvent $event): void
     {
         $deltaLevel = $event->character->level - $event->characterBefore->level;
-        dump($deltaLevel);
 
         $this->addAttack(1*$deltaLevel, $event->character);
         $this->addDefense(1*$deltaLevel, $event->character);
@@ -153,5 +158,79 @@ readonly class Stats
         }
 
         $this->setExperience(0, $event->character);
+    }
+
+    #[AsEventListener(FightTemplate::OnLootBagFill)]
+    public function onLootBagFill(LootBagEvent $event): void
+    {
+        $experience = $event->battleState->badGuy->kwargs["experience"] ?? 1;
+
+        $event->lootBag->add(new LootPosition(self::ExperienceLoot, [
+            "experience" => $experience,
+            "experienceFlux" => 0.1,
+            "experienceBonus" => 0.25,
+        ]));
+    }
+
+    #[AsEventListener(FightTemplate::OnLootBagClaim)]
+    public function onLootBagClaim(LootBagEvent $event): void
+    {
+        $lootBag = $event->lootBag;
+        $position = $lootBag->get(self::ExperienceLoot);
+
+        if ($position === null) {
+            $this->logger->debug("Impossible to claim experience loot: No experience loot exists.");
+            return;
+        }
+
+        if (!isset($position->loot["experience"])) {
+            $this->logger->debug("There is no experience on ExperienceLoot position. It was probably removed accidentally. Set to 1.");
+        }
+
+        if (!isset($position->loot["experienceFlux"])) {
+            $this->logger->debug("There is no experienceFlux on ExperienceLoot position. It was probably removed accidentally. Set to 0.1");
+        }
+
+        if (!isset($position->loot["experienceBonus"])) {
+            $this->logger->debug("There is no experienceBonus on ExperienceLoot position. It was probably removed accidentally. Set to 0.25");
+        }
+
+        $experience = $position->loot["experience"] ?? 1;
+        $experienceFlux = $position->loot["experienceFlux"] ?? 0.1;
+        $experienceBonus = $position->loot["experienceBonus"] ?? 0.25;
+
+        $experienceFlux = (int)round($experience * $experienceFlux);
+        $experienceFlux = $event->lootBag->diceBag->pseudoBell(-$experienceFlux, $experienceFlux);
+
+        // $deltaLevel is positive of BadGuy was stronger, and negative of BadGuy was weaker.
+        $deltaLevel = $event->battleState->badGuy->level - $event->character->level;
+        $experienceBonus = $experienceBonus * $experience * $deltaLevel;
+
+        $totalExperience = (int)round($experience + $experienceFlux + $experienceBonus);
+
+        $this->logger->debug("Experience reward: {$totalExperience} total experience", [
+            "experience" => $experience,
+            "experienceFlux" => $experienceFlux,
+            "experienceBonus" => $experienceBonus,
+        ]);
+
+        $this->addExperience($totalExperience, $event->character);
+
+        $event->stage?->addParagraph(new Paragraph(
+            self::ExperienceLootClaimParagraph,
+            text: <<<TXT
+                {% if bonusExperience < 0 %}
+                    Due to how easy this fight was, you earn {{ bonusExperience|abs }} less experience points. In total, you earn {{ experience }} experience points!
+                {% elseif bonusExperience > 0 %}
+                    Due to how difficult this fight was, you earn additional {{ bonusExperience }} experience points. In total, you earn {{ experience }} experience points!
+                {% else %}
+                    You earn {{ experience }} experience points!
+                {% endif %}
+                TXT,
+            context: [
+                "bonusExperience" => $experienceBonus,
+                "experience" => $totalExperience,
+            ]
+        ));
     }
 }

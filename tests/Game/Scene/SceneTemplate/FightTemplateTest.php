@@ -31,6 +31,7 @@ use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\MockObject\MockObject;
 use Psr\Log\LoggerInterface;
 use Symfony\Bundle\SecurityBundle\Security;
+use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
 
 #[CoversClass(FightTemplate::class)]
 #[UsesClass(Action::class)]
@@ -52,6 +53,7 @@ class FightTemplateTest extends TestCase
     private Battle&MockObject $battle;
     private Health&MockObject $health;
     private Gold&MockObject $gold;
+    private EventDispatcherInterface $eventDispatcher;
 
     protected function setUp(): void
     {
@@ -65,10 +67,12 @@ class FightTemplateTest extends TestCase
         $this->battle = $this->createMock(Battle::class);
         $this->health = $this->createMock(Health::class);
         $this->gold = $this->createMock(Gold::class);
+        $this->eventDispatcher = $this->createMock(EventDispatcherInterface::class);
 
         $this->fightTemplate = new FightTemplate(
             $this->security,
             $this->logger,
+            $this->eventDispatcher,
             $this->attachmentRepository,
             $this->experience,
             $this->diceBag,
@@ -837,7 +841,7 @@ class FightTemplateTest extends TestCase
     {
         $this->gold->expects($this->once())
             ->method('addGold')
-            ->with(1000);
+            ->with(null, 1000);
 
         $this->fightTemplate->handleCheats('gold');
     }

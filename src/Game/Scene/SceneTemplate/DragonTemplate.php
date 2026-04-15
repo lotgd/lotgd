@@ -8,13 +8,11 @@ use LotGD2\Entity\Action;
 use LotGD2\Entity\ActionGroup;
 use LotGD2\Entity\Battle\BattleState;
 use LotGD2\Entity\Battle\Fighter;
-use LotGD2\Entity\Character\EquipmentItem;
 use LotGD2\Entity\Paragraph;
 use LotGD2\Event\CharacterChangeEvent;
 use LotGD2\Form\Scene\SceneTemplate\DragonTemplateType;
 use LotGD2\Game\Battle\Battle;
 use LotGD2\Game\Character\DragonCounter;
-use LotGD2\Game\Character\Equipment;
 use LotGD2\Game\Character\Gold;
 use LotGD2\Game\Character\Stats;
 use LotGD2\Game\GameTime\NewDay;
@@ -25,7 +23,7 @@ use LotGD2\Repository\AttachmentRepository;
 use LotGD2\Repository\SceneRepository;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\DependencyInjection\Attribute\Autoconfigure;
-use Symfony\Component\EventDispatcher\EventDispatcherInterface;
+use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
 
 /**
  * @phpstan-type DragonTemplateConfiguration array{

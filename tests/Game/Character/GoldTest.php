@@ -38,7 +38,7 @@ class GoldTest extends TestCase
 
         $gold = new Gold($loggerMock, $character);
 
-        $this->assertEquals($goldAmount, $gold->getGold());
+        $this->assertEquals($goldAmount, $gold->getGold(null));
     }
 
     public static function setGoldProvider(): array
@@ -63,8 +63,8 @@ class GoldTest extends TestCase
 
         $gold = new Gold($loggerMock, $character);
 
-        $gold->setGold($setGoldAmount);
-        $this->assertEquals($setGoldAmount, $gold->getGold());
+        $gold->setGold(null, $setGoldAmount);
+        $this->assertEquals($setGoldAmount, $gold->getGold(null));
     }
 
     public static function addGoldProvider(): array
@@ -89,7 +89,7 @@ class GoldTest extends TestCase
 
         $gold = new Gold($loggerMock, $character);
 
-        $gold->addGold($setGoldAmount);
-        $this->assertEquals($finalGoldAmount, $gold->getGold());
+        $gold->addGold(null, $setGoldAmount);
+        $this->assertEquals($finalGoldAmount, $gold->getGold(null));
     }
 }

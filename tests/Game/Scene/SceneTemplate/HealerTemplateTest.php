@@ -193,7 +193,7 @@ class HealerTemplateTest extends TestCase
 
         $this->gold->expects($this->once())
             ->method('addGold')
-            ->with(-100);
+            ->with(null, -100);
 
         $this->healerTemplate->setSceneChangeParameter($stage, $action, $scene);
         $this->healerTemplate->onSceneChange();
@@ -586,7 +586,7 @@ class HealerTemplateTest extends TestCase
 
         $this->gold->expects($this->once())
             ->method('addGold')
-            ->with(-50);
+            ->with(null, -50);
 
         $this->healerTemplate->setSceneChangeParameter($stage, $action, $scene);
         $this->healerTemplate->healAction();

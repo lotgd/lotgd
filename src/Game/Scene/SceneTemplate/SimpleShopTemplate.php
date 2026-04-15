@@ -130,9 +130,9 @@ class SimpleShopTemplate implements SceneTemplateInterface
 
             $oldItem = $this->equipment->getItemInSlot($slot);
 
-            if ($this->gold->getGold() + $this->getTradeInValue($oldItem?->getValue() ?? 0) >= $equipmentItem->getValue()) {
+            if ($this->gold->getGold(null) + $this->getTradeInValue($oldItem?->getValue() ?? 0) >= $equipmentItem->getValue()) {
                 $this->equipment->setItemInSlot($slot, $equipmentItem);
-                $this->gold->addGold(-($equipmentItem->getValue() - $this->getTradeInValue($oldItem?->getValue() ?? 0)));
+                $this->gold->addGold(null, -($equipmentItem->getValue() - $this->getTradeInValue($oldItem?->getValue() ?? 0)));
 
                 $paragraph = new Paragraph(
                     id: "lotgd2.paragraph.shopTemplate.buy",

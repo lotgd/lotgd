@@ -65,7 +65,7 @@ class Game extends AbstractController
             ["Attack", $stats->getTotalAttack()],
             ["Defense", $stats->getTotalDefense()],
             ["Inventory"],
-            ["Gold in Hand", $gold->getGold()],
+            ["Gold in Hand", $gold->getGold(null)],
             ["Weapon", $equipment->getItemInSlot(Equipment::WeaponSlot)?->getName() ?? "Fists"],
             ["Armor", $equipment->getItemInSlot(Equipment::ArmorSlot)?->getName() ?? "T-Shirt"],
         ];

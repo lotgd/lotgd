@@ -5,21 +5,28 @@ namespace LotGD2\Game\Scene\SceneTemplate;
 
 use LotGD2\Entity\Action;
 use LotGD2\Entity\Battle\BattleState;
+use LotGD2\Entity\Character\LootBag;
 use LotGD2\Entity\Mapped\Scene;
 use LotGD2\Entity\Mapped\Stage;
 use LotGD2\Entity\Paragraph;
+use LotGD2\Event\LootBagEvent;
 use LotGD2\Game\Battle\BattleStateStatusEnum;
 use LotGD2\Game\Battle\BattleTurn;
 use LotGD2\Game\Character\Gold;
 use LotGD2\Game\Character\Stats;
 use LotGD2\Game\Random\DiceBagInterface;
 use LotGD2\Game\Scene\SceneAttachment\BattleAttachment;
+use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
 
 trait DefaultFightTrait
 {
     private readonly DiceBagInterface $diceBag;
     private readonly Gold $gold;
     private readonly Stats $stats;
+    private readonly EventDispatcherInterface $eventDispatcher;
+
+    const string OnLootBagFill = "lotgd2.event.DefaultFight.lootBagFill";
+    const string OnLootBagClaim = "lotgd2.event.DefaultFight.lootBagClaim";
 
     public function fightAction(): void {
         $how = $this->action->getParameter("how");
@@ -189,46 +196,37 @@ trait DefaultFightTrait
      */
     public function onFightWon(BattleState $battleState): void
     {
-        // Calculate how much gold to drop
-        $gold = $this->diceBag->pseudoBell(0, $battleState->badGuy->kwargs["gold"] ?? 1);
-        $this->gold->addGold($gold);
-
-        // Calculate how much experience to earn
-        $experience = $battleState->badGuy->kwargs["experience"] ?? 1;
-        // Add a bit of variation
-        $expFlux = (int)round($experience / 10);
-        $experience += (int)round($this->diceBag->bell(-$expFlux, $experience));
-        // Add level difference bonus
-        $expBonus = max(0, (int)round($experience * (0.25 * ($battleState->badGuy->level - $battleState->goodGuy->level)), 0));
-        $experience += $expBonus;
-        $this->stats->addExperience($experience);
+        # Only dispatch event and create loot if the event dispatcher has been set.
+        if (isset($this->eventDispatcher)) {
+            $lootBagEvent = new LootBagEvent($battleState);
+            $lootBagEvent = $this->eventDispatcher->dispatch($lootBagEvent, self::OnLootBagFill);
+        } else {
+            $this->logger->info("No LootBagEvent dispatched as the EventDispatcher was not set in the class using this trait.");
+            $lootBagEvent = null;
+        }
 
         $this->stage->paragraphs = [
             new Paragraph(
                 id: "lotgd.paragraph.DefaultFightTrait.onFightWon",
                 text:<<<TEXT
                     You have slain <.{{ badGuy.name }}.>. {% if textDefeated %}<<{{ textDefeated }}>>{% endif %}
-                    
-                    You earn {{ gold }} gold.
-                    
-                    {% if bonusExperience < 0 %}
-                        Due to how easy this fight was, you earn {{ bonusExperience|abs }} less. In total, you earn {{ experience }} experience points!
-                    {% elseif bonusExperience > 0 %}
-                        Due to how difficult this fight was, you earn additional {{ bonusExperience }}. In total, you earn {{ experience }} experience points!
-                    {% else %}
-                        You earn {{ experience }} experience points!
-                    {% endif %}
                     TEXT,
                 context: [
                     "badGuy" => $battleState->badGuy,
                     "textDefeated" => $battleState->badGuy->kwargs["textDefeated"] ?? null,
-                    "bonusExperience" => $expBonus,
-                    "experience" => $experience,
-                    "gold" => $gold,
                     "textLost" => $battleState->badGuy->kwargs["textLost"] ?? null,
                 ]
             ),
         ];
+
+        if ($lootBagEvent instanceof LootBagEvent) {
+            $lootBag = $lootBagEvent->lootBag;
+            $lootBag->lock();
+            $lootBagEvent = new LootBagEvent($battleState, $lootBag, $this->stage);
+            $this->eventDispatcher->dispatch($lootBagEvent, self::OnLootBagClaim);
+        } else {
+            $this->logger->critical("Loot bag event disappeared.", ["event", $lootBagEvent]);
+        }
     }
 
     /**
@@ -256,7 +254,7 @@ trait DefaultFightTrait
                     TEXT,
                 context: [
                     "badGuy" => $battleState->badGuy,
-                    "goldLost" => $this->gold->getGold(),
+                    "goldLost" => $this->gold->getGold(null),
                     "experienceLost" => $experienceLost,
                     "textDefeated" => $battleState->badGuy->kwargs["textDefeated"] ?? null,
                     "textLost" => $battleState->badGuy->kwargs["textLost"] ?? null,
@@ -264,8 +262,8 @@ trait DefaultFightTrait
             ),
         ];
 
-        $this->logger->debug("Character {$this->stage->owner->id} has been slain and lost {$this->gold->getGold()}.");
-        $this->gold->setGold(0);
+        $this->logger->debug("Character {$this->stage->owner->id} has been slain and lost {$this->gold->getGold(null)}.");
+        $this->gold->setGold(null, 0);
         $this->stats->addExperience(-$experienceLost);
     }
 }

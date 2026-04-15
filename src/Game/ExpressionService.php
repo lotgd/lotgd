@@ -47,7 +47,7 @@ class ExpressionService
                 "experience" => $this->stats->getExperience(),
                 "required" => $this->stats->getRequiredExperience(),
             ],
-            "gold" => $this->gold->getGold(),
+            "gold" => $this->gold->getGold(null),
             "equipment" => (object)[
                 "weapon" => $this->equipment->getName(Equipment::WeaponSlot),
                 "armor" => $this->equipment->getName(Equipment::ArmorSlot),

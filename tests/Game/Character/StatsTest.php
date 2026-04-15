@@ -189,15 +189,16 @@ class StatsTest extends TestCase
             ->method('setProperty')
             ->with(Stats::AttackPropertyName, $attack);
 
+
         $this->character
             ->expects($this->once())
-            ->method(PropertyHook::get("id"))
-            ->willReturn(1);
+            ->method("__toString")
+            ->willReturn("<Character 1>");
 
         $this->logger
             ->expects($this->once())
             ->method('debug')
-            ->with('1: attack set to 15 (was 10) before).');
+            ->with('<Character 1>: attack set to 15 (was 10) before).');
 
         $result = $this->stats->setAttack($attack);
 
@@ -287,13 +288,13 @@ class StatsTest extends TestCase
 
         $this->character
             ->expects($this->once())
-            ->method(PropertyHook::get("id"))
-            ->willReturn(1);
+            ->method("__toString")
+            ->willReturn("<Character 1>");
 
         $this->logger
             ->expects($this->once())
             ->method('debug')
-            ->with('1: defense set to 12 (was 8) before).');
+            ->with('<Character 1>: defense set to 12 (was 8) before).');
 
         $result = $this->stats->setDefense($defense);
 

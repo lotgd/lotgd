@@ -21,6 +21,7 @@ use LotGD2\Repository\CreatureRepository;
 use Psr\Log\LoggerInterface;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\DependencyInjection\Attribute\Autoconfigure;
+use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
 
 /**
  * @phpstan-type FightTemplateConfiguration array{
@@ -42,6 +43,7 @@ class FightTemplate implements SceneTemplateInterface
     public function __construct(
         private readonly Security $security,
         private readonly LoggerInterface $logger,
+        private readonly EventDispatcherInterface $eventDispatcher,
         private readonly AttachmentRepository $attachmentRepository,
         private readonly Stats $experience,
         private readonly DiceBagInterface $diceBag,
@@ -293,7 +295,7 @@ class FightTemplate implements SceneTemplateInterface
         if ($cheat === "experience") {
             $this->stats->addExperience(1000);
         } elseif ($cheat === "gold") {
-            $this->gold->addGold(1000);
+            $this->gold->addGold(null, 1000);
         }
     }
 }

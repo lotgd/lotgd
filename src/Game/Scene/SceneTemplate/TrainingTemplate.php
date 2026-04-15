@@ -8,7 +8,6 @@ use LotGD2\Entity\Action;
 use LotGD2\Entity\ActionGroup;
 use LotGD2\Entity\Battle\BattleState;
 use LotGD2\Entity\Mapped\Character;
-use LotGD2\Entity\Mapped\Scene;
 use LotGD2\Entity\Mapped\Stage;
 use LotGD2\Entity\Paragraph;
 use LotGD2\Event\CharacterChangeEvent;
@@ -25,8 +24,7 @@ use LotGD2\Repository\MasterRepository;
 use Psr\Log\LoggerInterface;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\DependencyInjection\Attribute\Autoconfigure;
-use Symfony\Component\EventDispatcher\EventDispatcherInterface;
-use Symfony\Component\OptionsResolver\OptionsResolver;
+use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
 
 /**
  * @phpstan-type TrainingTemplateConfiguration array{
