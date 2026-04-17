@@ -80,10 +80,10 @@ class BattleTest extends KernelTestCase
 
         $this->battle = new Battle(
             logger: $this->logger,
+            stopWatch: null,
             normalizer: $this->normalizer,
             turn: $this->turn,
-            buffHandler: $this->buffHandler,
-            character: $this->character,
+            buffHandler: $this->buffHandler, character: $this->character,
         );
     }
 

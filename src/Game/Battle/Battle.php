@@ -22,6 +22,7 @@ use Psr\Log\LoggerInterface;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\Serializer\Normalizer\DenormalizerInterface;
 use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
+use Symfony\Component\Stopwatch\Stopwatch;
 use function round;
 
 /**
@@ -40,6 +41,7 @@ class Battle
 
     public function __construct(
         private LoggerInterface $logger,
+        private readonly ?Stopwatch $stopWatch,
         private readonly DenormalizerInterface&NormalizerInterface $normalizer,
         private readonly BattleTurn $turn,
         private readonly BuffHandler $buffHandler,
@@ -136,6 +138,8 @@ class Battle
      */
     public function fightOneRound(BattleState $battleState, int $damageRound): void
     {
+        $this->stopWatch?->start("lotgd2.Battle.fightOneRound");
+
         $battleState->setCharacter($this->character);
 
         $goodGuyBuffs = $this->buffHandler->getBuffs($this->character);
@@ -180,6 +184,8 @@ class Battle
         $battleState->incrementRound();
         $battleState->addMessages($eventsToAdd->map(fn (BattleEventInterface $event) => $event->decorate()));
         $battleState->synchronizeToCharacter($goodGuyBuffs);
+
+        $this->stopWatch?->stop("lotgd2.Battle.fightOneRound");
     }
 
     /**

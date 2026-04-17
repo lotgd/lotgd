@@ -14,6 +14,8 @@ use LotGD2\Game\Battle\BattleEvent\BattleEventInterface;
 use LotGD2\Game\Battle\BattleEvent\CriticalHitEvent;
 use LotGD2\Game\Battle\BattleEvent\DamageEvent;
 use LotGD2\Game\Random\DiceBagInterface;
+use Psr\Log\LoggerInterface;
+use Symfony\Component\Stopwatch\Stopwatch;
 
 readonly class BattleTurn
 {
@@ -23,6 +25,8 @@ readonly class BattleTurn
 
     public function __construct(
         private DiceBagInterface $diceBag,
+        private ?LoggerInterface $logger = null,
+        private ?Stopwatch $stopwatch = null,
     ) {
 
     }
@@ -42,6 +46,8 @@ readonly class BattleTurn
         BuffList $attackersBuffs,
         BuffList $defendersBuffs,
     ): ArrayCollection {
+        $this->stopwatch?->start("lotgd2.BattleTurn.partialTurn");
+
         /** @var ArrayCollection<int, AbstractBattleEvent> $events */
         $events = new ArrayCollection();
 
@@ -112,7 +118,7 @@ readonly class BattleTurn
         $attackersDamageDependentBuffEvents = $attackersBuffs->processDamageDependentBuffs(Buff::ACTIVATES_ON_OFFENSE_TURN, $damage, $attacker, $defender);
         $defendersDamageDependentBuffEvents = $defendersBuffs->processDamageDependentBuffs(Buff::ACTIVATES_ON_DEFENSE_TURN, -$damage, $defender, $attacker);
 
-        return new ArrayCollection([
+        $events = new ArrayCollection([
             ...$attackersBuffStartEvents,
             ...$attackersDirectBuffEvents,
             ...$defendersBuffStartEvents,
@@ -121,6 +127,9 @@ readonly class BattleTurn
             ...$attackersDamageDependentBuffEvents,
             ...$defendersDamageDependentBuffEvents,
         ]);
+
+        $this->stopwatch?->stop("lotgd2.BattleTurn.partialTurn");
+        return $events;
     }
 
     /**
