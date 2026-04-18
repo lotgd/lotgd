@@ -84,6 +84,8 @@ class BuffList
      */
     public function activate(int $activation, FighterInterface $goodGuy, FighterInterface $badGuy): array
     {
+        $this->logger->debug("BuffList: Activate on {$activation} for gg:{$goodGuy->name} and bg:{$badGuy->name}");
+
         if ((($activation & ($activation - 1)) != 0) === true) {
             throw new ValueError("Only one type of buff activation is permitted to activate at a time");
         }
@@ -100,6 +102,8 @@ class BuffList
                 continue;
             }
 
+            $this->logger->debug("BuffList: Activate: {$buff->name}");
+
             $this->activeBuffs[$activation][] = $buff;
 
             $buffMessage = $this->getBuffMessage($buff);
@@ -108,6 +112,7 @@ class BuffList
             }
 
             if ($this->hasBuffBeenUsed($buff) === false) {
+                $this->logger->debug("BuffList: Mark as used: {$buff->name}");
                 $this->usedBuffs[] = $buff;
             }
         }
@@ -345,9 +350,14 @@ class BuffList
 
     public function remove(Buff $buff): void
     {
-        $offset = array_search($buff, $this->buffs, true);
+        $this->logger->debug("Removing buff: {$buff->name}.");
+
+        $buffs = $this->buffs;
+        $offset = array_search($buff, $buffs, true);
         if ($offset !== false) {
-            array_splice($this->buffs, $offset, 1);
+            array_splice($buffs, $offset, 1);
         }
+
+        $this->buffs = $buffs;
     }
 }

@@ -25,6 +25,8 @@ class BuffHandler
     {
         if ($fighter instanceof Character) {
             $buffs = $fighter->getProperty("buffs", []);
+
+            $this->logger->debug("{$fighter}: Returns new BuffList");
         } else {
             $buffs = $fighter->kwargs["buffs"] ?? [];
         }
@@ -40,12 +42,24 @@ class BuffHandler
      * @param Buff[] $buffs
      * @return void
      */
-    public function setBuffs(Character|FighterInterface $fighter, BuffList $buffs)
+    public function setBuffs(Character|FighterInterface $fighter, BuffList $buffs): void
     {
+        $oldLength = count($this->getBuffs($fighter)->buffs);
+        $newLength = count($buffs->buffs);
         if ($fighter instanceof Character) {
+            $this->logger->debug("{$fighter}: Set BuffList (New length: {$newLength}, Old length: {$oldLength})");
             $fighter->setProperty("buffs", $buffs->buffs);
         } else {
             $fighter->kwargs["buffs"] = $buffs->buffs;
+        }
+    }
+
+    public function addBuff(Character|FighterInterface $fighter, Buff $buff): void
+    {
+        if ($fighter instanceof Character) {
+            $fighter->setProperty("buffs", array_merge($fighter->getProperty("buffs", []), [$buff]));
+        } else {
+            $fighter->kwargs["buffs"][] = $buff;
         }
     }
 }

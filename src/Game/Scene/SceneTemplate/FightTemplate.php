@@ -11,6 +11,7 @@ use LotGD2\Entity\Mapped\Stage;
 use LotGD2\Entity\Paragraph;
 use LotGD2\Form\Scene\SceneTemplate\FightTemplateType;
 use LotGD2\Game\Battle\Battle;
+use LotGD2\Game\Handler\BuffHandler;
 use LotGD2\Game\Handler\GoldHandler;
 use LotGD2\Game\Handler\HealthHandler;
 use LotGD2\Game\Handler\StatsHandler;
@@ -52,6 +53,7 @@ class FightTemplate implements SceneTemplateInterface
         private readonly HealthHandler $health,
         private readonly StatsHandler $stats,
         private readonly GoldHandler $gold,
+        private readonly BuffHandler $buffs,
     ) {
     }
 

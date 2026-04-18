@@ -5,6 +5,7 @@ namespace LotGD2\Game\Scene\SceneTemplate;
 
 use LotGD2\Entity\Action;
 use LotGD2\Entity\Battle\BattleState;
+use LotGD2\Entity\Battle\Buff;
 use LotGD2\Entity\Character\LootBag;
 use LotGD2\Entity\Mapped\Scene;
 use LotGD2\Entity\Mapped\Stage;
@@ -12,6 +13,7 @@ use LotGD2\Entity\Paragraph;
 use LotGD2\Event\LootBagEvent;
 use LotGD2\Game\Battle\BattleStateStatusEnum;
 use LotGD2\Game\Battle\BattleTurn;
+use LotGD2\Game\Handler\BuffHandler;
 use LotGD2\Game\Handler\GoldHandler;
 use LotGD2\Game\Handler\StatsHandler;
 use LotGD2\Game\Random\DiceBagInterface;
@@ -23,7 +25,9 @@ trait DefaultFightTrait
     private readonly DiceBagInterface $diceBag;
     private readonly GoldHandler $gold;
     private readonly StatsHandler $stats;
+    private readonly BuffHandler $buffs;
     private readonly EventDispatcherInterface $eventDispatcher;
+    private Stage $stage;
 
     const string OnLootBagFill = "lotgd2.event.DefaultFight.lootBagFill";
     const string OnLootBagClaim = "lotgd2.event.DefaultFight.lootBagClaim";
@@ -63,6 +67,26 @@ trait DefaultFightTrait
 
                 if ($success) {
                     return;
+                }
+            }
+
+            if ($how === "skill") {
+                $skill = $this->action->getParameter("skill");
+
+                if ($skill === "godmode") {
+                    $this->logger->debug("{$this->stage->owner}: Godmode buff called.");
+
+                    $this->buffs->addBuff($this->stage->owner, new Buff(
+                        id: "lotgd2.buff.DefaultFightTrait.GodMode",
+                        name: "GOD MODE",
+                        activatesAt: Buff::ACTIVATES_ON_ROUNDSTART,
+                        rounds: 1,
+                        startMessage: "You feel god-like",
+                        endMessage: "You are mortal again",
+                        goodGuyAttackModifier: 25,
+                        goodGuyDefenseModifier: 25,
+                        goodGuyInvulnerable: true,
+                    ));
                 }
             }
 

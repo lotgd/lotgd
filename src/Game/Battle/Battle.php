@@ -19,6 +19,7 @@ use LotGD2\Game\Battle\BattleEvent\DamageEvent;
 use LotGD2\Game\Battle\BattleEvent\DeathEvent;
 use LotGD2\Game\Handler\BuffHandler;
 use Psr\Log\LoggerInterface;
+use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\Serializer\Normalizer\DenormalizerInterface;
 use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
@@ -42,6 +43,7 @@ class Battle
     public function __construct(
         private LoggerInterface $logger,
         private readonly ?Stopwatch $stopWatch,
+        private readonly ?Security $security,
         private readonly DenormalizerInterface&NormalizerInterface $normalizer,
         private readonly BattleTurn $turn,
         private readonly BuffHandler $buffHandler,
@@ -128,6 +130,20 @@ class Battle
 
         $stage->addActionGroup($actionGroup);
         $stage->addActionGroup($autoActionGroup);
+
+        if ($this->security->isGranted("ROLE_CHEATS_ENABLED")) {
+            $cheatActionGroup = new ActionGroup("nothing", "Auto", -200);
+            $actionGroup->addAction(new Action(
+                $scene,
+                "God mode", [
+                ... $actionParams,
+                "how" => "skill",
+                "skill" => "godmode",
+                "battleState" => $battleState],
+                reference: self::FightActionAutoAll,
+            ));
+            $stage->addActionGroup($cheatActionGroup);
+        }
     }
 
     /**
@@ -183,7 +199,7 @@ class Battle
         // Post round clean-up
         $battleState->incrementRound();
         $battleState->addMessages($eventsToAdd->map(fn (BattleEventInterface $event) => $event->decorate()));
-        $battleState->synchronizeToCharacter($goodGuyBuffs);
+        $battleState->synchronizeToCharacter($this->logger, $goodGuyBuffs);
 
         $this->stopWatch?->stop("lotgd2.Battle.fightOneRound");
     }

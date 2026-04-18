@@ -8,6 +8,7 @@ use LotGD2\Entity\Mapped\Character;
 use LotGD2\Game\Battle\BattleStateStatusEnum;
 use LotGD2\Game\Handler\BuffHandler;
 use LotGD2\Game\Handler\HealthHandler;
+use Psr\Log\LoggerInterface;
 use Symfony\Component\Serializer\Attribute\Ignore;
 
 /**
@@ -71,19 +72,21 @@ class BattleState
      * Call to synchronize the damage with the current character
      * @return void
      */
-    public function synchronizeToCharacter(BuffList $buffList): void
+    public function synchronizeToCharacter(LoggerInterface $logger, BuffList $buffList): void
     {
         if ($this->character === null) {
             throw new \LogicException("You must set the character first before synchronizing");
         }
 
+        $logger->debug("BattleState: Synchronize back to the character.");
+
         if ($this->goodGuy instanceof CurrentCharacterFighter) {
-            $health = new HealthHandler(null, $this->character);
+            $health = new HealthHandler($logger, $this->character);
             $health->setHealth($this->goodGuy->health);
 
             // Synchronize buff list
-            $buffs = new BuffHandler(null, null);
-            $buffs->setBuffs($this->goodGuy, $buffList);
+            $buffs = new BuffHandler($logger, null);
+            $buffs->setBuffs($this->character, $buffList);
         }
     }
 

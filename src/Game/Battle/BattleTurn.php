@@ -58,6 +58,8 @@ readonly class BattleTurn
         $defendersDefRoll = $this->diceBag->pseudoBell(0, $defendersDefense);
         $damage = $attackersAtkRoll - $defendersDefRoll;
 
+        $this->logger->debug("BattleTurn: Damage rolled: {$damage}");
+
         // If the attacker's attack after modification is bigger than before,
         // we call it a critical hit and apply the CriticalHitEvent.
         if ($battleState->isCriticalHitEnabled && $attackersAttack > $attacker->attack) {
@@ -67,6 +69,8 @@ readonly class BattleTurn
         // Handle invincibility
         $attackerIsInvulnerable = $attackersBuffs->goodGuyInvulnerable || $defendersBuffs->badGuyInvulnerable;
         $defenderIsInvulnerable = $attackersBuffs->badGuyInvulnerable || $defendersBuffs->goodGuyInvulnerable;
+
+        $this->logger->debug("BattleTurn: Invincibility check: Attacker ({$attackerIsInvulnerable}, Defender: {$defenderIsInvulnerable})");
 
         if ($attackerIsInvulnerable && $defenderIsInvulnerable) {
             // Both are invulnerable. We cannot set the damage to 0.
@@ -78,6 +82,8 @@ readonly class BattleTurn
             // Defender is invulnurable, damage is always < 0 (defender always ripostes)
             $damage = -abs($damage);
         }
+
+        $this->logger->debug("BattleTurn: Damage after invincibility check: {$damage}");
 
         // Set damage to 0 if riposte has been disabled
         // This *will* increase the number of tries required to get a damaging round, as the probability of not doing
@@ -92,6 +98,9 @@ readonly class BattleTurn
                 //  the defender's goodGuyDamagerModifier into account and the attacker's badGuyDamageModifier
                 $damage *= $defendersBuffs->goodGuyDamageModifier
                     * $attackersBuffs->badGuyDamageModifier;
+
+                $this->logger->debug("BattleTurn: Damage modification upon RIPOSTE: {$damage} "
+                    ."(def:gg:{$defendersBuffs->goodGuyDamageModifier}, atk:bg:{$attackersBuffs->badGuyDamageModifier})");
             } else {
                 $damage = 0;
             }
@@ -100,10 +109,15 @@ readonly class BattleTurn
             //  the attackers's goodGuyDamagerModifier into account and the defenders's badGuyDamageModifier
             $damage *= $attackersBuffs->goodGuyDamageModifier
                 * $defendersBuffs->badGuyDamageModifier;
+
+            $this->logger->debug("BattleTurn: Damage modification: {$damage} "
+                ."(atk:gg:{$attackersBuffs->goodGuyDamageModifier}, def:bg:{$defendersBuffs->badGuyDamageModifier})");
         }
 
         // Round the damage value and convert to int.
         $damage = (int)round($damage, 0);
+
+        $this->logger->debug("BattleTurn: Final damage: {$damage}");
 
         // Add the damage event
         $events->add(new DamageEvent($attacker, $defender, ["damage" => $damage]));
@@ -145,13 +159,34 @@ readonly class BattleTurn
      */
     public function getHalfTurns(BattleState $battleState, BuffList $goodGuyBuffList, BuffList $badGuyBuffList): array
     {
+        $i = 0;
+
         // Repeat as long as possible to prevent rounds where nobody hits.
         while (true) {
+            $this->logger->debug("BattleTurn: Try #{$i}");
+
             $offenseTurn = $this->partialTurn($battleState, $battleState->goodGuy, $battleState->badGuy, $goodGuyBuffList, $badGuyBuffList);
             $defenseTurn = $this->partialTurn($battleState, $battleState->badGuy, $battleState->goodGuy, $badGuyBuffList, $goodGuyBuffList);
 
+            $this->logger->debug("BattleTurn: Result", [
+                "offense" => $offenseTurn,
+                "defense" => $defenseTurn,
+            ]);
+
             $offenseDamageEvent = $offenseTurn->findFirst(fn(int $k, BattleEventInterface $e) => $e instanceof DamageEvent);
             $defenseDamageEvent = $defenseTurn->findFirst(fn(int $k, BattleEventInterface $e) => $e instanceof DamageEvent);
+
+            if ($i >= 20) {
+                $this->logger->critical("There is something wrong with a battle; it should not need 20 evaluations.", context: [
+                    "battleState" => $battleState,
+                    "goodGuy" => $battleState->goodGuy,
+                    "badGuy" => $battleState->badGuy,
+                    "goodGuyBuffList" => $goodGuyBuffList,
+                    "badGuyBuffList" => $badGuyBuffList,
+                ]);
+
+                break;
+            }
 
             if ((
                     $offenseDamageEvent instanceof DamageEvent and $offenseDamageEvent->getDamage() <> 0
@@ -160,6 +195,8 @@ readonly class BattleTurn
                 )) {
                 break;
             }
+
+            $i++;
         }
 
         return [$offenseTurn, $defenseTurn];
@@ -216,6 +253,9 @@ readonly class BattleTurn
             * $defendersBuffs->badGuyAttackModifier
         ;
 
+        $this->logger->debug("BattleTurn: Attackers Attack ($attacker->name}: $attackersAttack "
+            ."({$attacker->attack} * {$attackersBuffs->goodGuyAttackModifier} * {$defendersBuffs->badGuyAttackModifier})");
+
         // Apply buff scaling for the defender's defense. This needs to take into account the defender's goodGuyDefenseModifier,
         //  and the attacker's badGuyDefenseModifier
         $defendersDefense = $defender->defense * $defenseAdjustment
@@ -223,12 +263,16 @@ readonly class BattleTurn
             * $attackersBuffs->badGuyDefenseModifier
         ;
 
+        $this->logger->debug("BattleTurn: Defenders Defense ($defender->name}: $defendersDefense "
+            ."({$defender->defense} * {$defenseAdjustment} * {$defendersBuffs->goodGuyDefenseModifier} * {$attackersBuffs->badGuyDefenseModifier})");
+
         // If the player is the attacker, we enable critical hits with a chance of 2.63%.
         if ($battleState->isCriticalHitEnabled && $attacker instanceof CurrentCharacterFighter) {
             // Players can land critical hits
             // The original code asks for e_rand(1,20)==1
             // This equals to a chance of (1/19)/2=0.0263 (20 possible states, but two are half as likely)
             if ($this->diceBag->chance(0.0263, precision: 4)) {
+                $this->logger->debug("BattleTurn: Enable critical hit.");
                 $attackersAttack *= 3;
             }
         }
@@ -236,6 +280,8 @@ readonly class BattleTurn
         // Conversion from float to int, since the random number generator takes int values.
         $attackersAttack = (int)round($attackersAttack, 0);
         $defendersDefense = (int)round($defendersDefense, 0);
+
+        $this->logger->debug("Definite Attack ({$attacker->name}): $attackersAttack, defense: $defendersDefense");
 
         return [$attackersAttack, $defendersDefense];
     }
