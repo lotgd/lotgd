@@ -33,11 +33,13 @@ readonly class BattleTurn
 
     /**
      * Processes a half-turn.
-     * @internal
      * @param BattleState $battleState
      * @param FighterInterface $attacker
      * @param FighterInterface $defender
+     * @param BuffList $attackersBuffs
+     * @param BuffList $defendersBuffs
      * @return ArrayCollection<int, AbstractBattleEvent>
+     * @internal
      */
     public function partialTurn(
         BattleState $battleState,
@@ -53,7 +55,7 @@ readonly class BattleTurn
 
         [$attackersAttack, $defendersDefense] = $this->calculateAttackAndDefense($battleState, $attacker, $defender, $attackersBuffs, $defendersBuffs);
 
-        // Lets "roll the dice".
+        // Lets "roll the dice" to determine damage.
         $attackersAtkRoll = $this->diceBag->pseudoBell(0, $attackersAttack);
         $defendersDefRoll = $this->diceBag->pseudoBell(0, $defendersDefense);
         $damage = $attackersAtkRoll - $defendersDefRoll;
@@ -76,10 +78,10 @@ readonly class BattleTurn
             // Both are invulnerable. We cannot set the damage to 0.
             $damage = 1;
         } elseif ($attackerIsInvulnerable) {
-            // Attaker is invulnurable, damage is always > 0 (there is no riposte)
+            // Attacker is invulnerable, damage is always > 0 (there is no riposte)
             $damage = abs($damage);
         } elseif ($defenderIsInvulnerable) {
-            // Defender is invulnurable, damage is always < 0 (defender always ripostes)
+            // Defender is invulnerable, damage is always < 0 (defender always ripostes)
             $damage = -abs($damage);
         }
 
@@ -90,8 +92,8 @@ readonly class BattleTurn
         //  damage increases.
         if ($damage < 0) {
             if ($battleState->isRiposteEnabled) {
-                // If the damage is less then 0, it's a RIPOSTE. They are only half
-                // as damaging than normal attacks.
+                // If the damage is less than 0, it's a RIPOSTE. They are only half
+                // as damaging as normal attacks.
                 $damage /= 2;
 
                 // Apply damage modification. It's a RIPOSTE, so the defender makes the damage. Therefore, we need to take
@@ -105,8 +107,8 @@ readonly class BattleTurn
                 $damage = 0;
             }
         } else {
-            // Apply damage modification. It normal attack, so the attacker makes the damage. Therefore, we need to take
-            //  the attackers's goodGuyDamagerModifier into account and the defenders's badGuyDamageModifier
+            // Apply damage modification. It is a normal attack, so the attacker makes the damage. Therefore, we need to take
+            //  the attacker's goodGuyDamagerModifier into account and the defender's badGuyDamageModifier
             $damage *= $attackersBuffs->goodGuyDamageModifier
                 * $defendersBuffs->badGuyDamageModifier;
 
@@ -122,15 +124,25 @@ readonly class BattleTurn
         // Add the damage event
         $events->add(new DamageEvent($attacker, $defender, ["damage" => $damage]));
 
-        // Do all the other buff effects. Modifiers are calculated separatly and do not need activation
+        // Do all the other buff effects. Modifiers are calculated separately and do not need activation
+
+        // Activates buffs to yield "activation" messages if necessary. Only activated buffs are processed by the BuffList
         $attackersBuffStartEvents = $attackersBuffs->activate(Buff::ACTIVATES_ON_OFFENSE_TURN, $attacker, $defender);
         $defendersBuffStartEvents = $defendersBuffs->activate(Buff::ACTIVATES_ON_DEFENSE_TURN, $attacker, $defender);
 
+        // Process direct buffs. Direct buffs are buffs that summon minions that cause damage
         $attackersDirectBuffEvents = $attackersBuffs->processDirectBuffs(Buff::ACTIVATES_ON_OFFENSE_TURN, $attacker, $defender);
         $defendersDirectBuffEvents = $defendersBuffs->processDirectBuffs(Buff::ACTIVATES_ON_DEFENSE_TURN, $defender, $attacker);
 
+        // Process damage-dependent buffs like life tap or damage reflection
         $attackersDamageDependentBuffEvents = $attackersBuffs->processDamageDependentBuffs(Buff::ACTIVATES_ON_OFFENSE_TURN, $damage, $attacker, $defender);
         $defendersDamageDependentBuffEvents = $defendersBuffs->processDamageDependentBuffs(Buff::ACTIVATES_ON_DEFENSE_TURN, -$damage, $defender, $attacker);
+
+        // The sequence of battle events does not depend on the status of the current round. We can freely resort the events now.
+        // First, the attacker's buffs are announced and applied
+        // Then, the defender's buffs are announced and applied
+        // Then the normal battle-round begins
+        // Damage-dependent buffs come last. Life-saving life-taps only help if the applicant doesn't die (yet).
 
         $events = new ArrayCollection([
             ...$attackersBuffStartEvents,
@@ -162,9 +174,11 @@ readonly class BattleTurn
         $i = 0;
 
         // Repeat as long as possible to prevent rounds where nobody hits.
+        // This is how fights worked in 0.9.7+jt. Damages caused by buffs _do not count_.
         while (true) {
             $this->logger->debug("BattleTurn: Try #{$i}");
 
+            // Evaluate both half-turns (offense and defense)
             $offenseTurn = $this->partialTurn($battleState, $battleState->goodGuy, $battleState->badGuy, $goodGuyBuffList, $badGuyBuffList);
             $defenseTurn = $this->partialTurn($battleState, $battleState->badGuy, $battleState->goodGuy, $badGuyBuffList, $goodGuyBuffList);
 
@@ -173,9 +187,11 @@ readonly class BattleTurn
                 "defense" => $defenseTurn,
             ]);
 
+            // Return any raised DamageEvent.
             $offenseDamageEvent = $offenseTurn->findFirst(fn(int $k, BattleEventInterface $e) => $e instanceof DamageEvent);
             $defenseDamageEvent = $defenseTurn->findFirst(fn(int $k, BattleEventInterface $e) => $e instanceof DamageEvent);
 
+            // If this was the 21st time, let's call it a day. The probability of this result changing is at this point trivial
             if ($i >= 20) {
                 $this->logger->critical("There is something wrong with a battle; it should not need 20 evaluations.", context: [
                     "battleState" => $battleState,
@@ -188,6 +204,7 @@ readonly class BattleTurn
                 break;
             }
 
+            // If at least one of the two damage events is not zero, we stop the cycle to return the events.
             if ((
                     $offenseDamageEvent instanceof DamageEvent and $offenseDamageEvent->getDamage() <> 0
                 ) || (
@@ -203,15 +220,17 @@ readonly class BattleTurn
     }
 
     /**
-     * Makes different adjustments to the attacker's attack and the defenders defense and returns the modified values
+     * Makes different adjustments to the attacker's attack and the defender's defense and returns the modified values
      * Adjustments:
-     *  - Level adjustment (defenders with lower levels have decreased defense; such with higher levels have increased defense)
+     *  - Level adjustment (defenders with lower levels have decreased defense; such with higher levels has increased defense)
      *  - Critical hit adjustments
      *  - Buffs (later)
      *
      * @param BattleState $battleState
      * @param FighterInterface $attacker
      * @param FighterInterface $defender
+     * @param BuffList $attackersBuffs
+     * @param BuffList $defendersBuffs
      * @return int[]
      */
     public function calculateAttackAndDefense(
@@ -224,11 +243,11 @@ readonly class BattleTurn
         $adjustment = 1.0;
         $defenseAdjustment = 1.0;
 
-        // Adjustement makes fights versus monsters with lower level easier;
+        // Adjustment makes fights versus monsters with lower level easier;
         // and more difficult if the monster has a higher level by adjusting
         // the monster's defense value.
         // For example, if a level 10 player attacks a level 9 monster, the
-        // defenseAdjustement value for the monster is 0.81, reducing the monster's
+        // defenseAdjustment value for the monster is 0.81, reducing the monster's
         // defense by 20% and making it more likely for the player to land a hit.
         // On the other hand, the player's defense is increased by ~ 10%, making it
         // less likely for the enemy to hit the player.

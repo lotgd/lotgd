@@ -24,7 +24,6 @@ use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\Serializer\Normalizer\DenormalizerInterface;
 use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
 use Symfony\Component\Stopwatch\Stopwatch;
-use function round;
 
 /**
  * @phpstan-import-type BattleEventCollection from BattleEventInterface
@@ -147,7 +146,7 @@ class Battle
     }
 
     /**
-     * Fights exactly one round (1 offense and 1 defense turn)
+     * Fights exactly one round (1 offence and 1 defence turn)
      * @param BattleState $battleState
      * @param int $damageRound
      * @return void
@@ -161,16 +160,16 @@ class Battle
         $goodGuyBuffs = $this->buffHandler->getBuffs($this->character);
         $badGuyBuffs = $this->buffHandler->getBuffs($battleState->badGuy);
 
-        // Activate on round start comes before the calculation of the half turns
+        // Activate on round start comes before the calculation of the half-turns
         $goodGuyBuffStartEvents = $goodGuyBuffs->activate(Buff::ACTIVATES_ON_ROUNDSTART, $battleState->goodGuy, $battleState->badGuy);
         $badGuyBuffStartEvents = $badGuyBuffs->activate(Buff::ACTIVATES_ON_ROUNDSTART, $battleState->badGuy, $battleState->goodGuy);
 
         [$offenseTurn, $defenseTurn] = $this->turn->getHalfTurns($battleState, $goodGuyBuffs, $badGuyBuffs);
 
-        // Only add offense turns if its part of the current round
+        // Only add offence turns if it's part of the current round
         $offenseTurnEvents = $damageRound & BattleTurn::DamageTurnGoodGuy ? $offenseTurn : [];
 
-        // Only add defense turns if its part of the current round
+        // Only add defence turns if it's part of the current round
         $defenseTurnEvents = $damageRound & BattleTurn::DamageTurnBadGuy ? $defenseTurn : [];
 
         // Activate on round end.
