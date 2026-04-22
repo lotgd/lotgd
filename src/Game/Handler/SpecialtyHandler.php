@@ -9,8 +9,8 @@ use Psr\Log\LoggerInterface;
 class SpecialtyHandler
 {
     public function __construct(
-        private ?LoggerInterface $logger = null,
-        private ?DiceBagInterface $diceBag = null,
+        private ?LoggerInterface $logger = null, // @phpstan-ignore property.onlyWritten
+        private ?DiceBagInterface $diceBag = null, // @phpstan-ignore property.onlyWritten
     ) {
 
     }

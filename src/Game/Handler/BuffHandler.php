@@ -41,7 +41,8 @@ class BuffHandler
     }
 
     /**
-     * @param Buff[] $buffs
+     * @param Character|FighterInterface $fighter
+     * @param BuffList $buffs
      * @return void
      */
     public function setBuffs(Character|FighterInterface $fighter, BuffList $buffs): void

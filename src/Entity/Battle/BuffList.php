@@ -66,7 +66,6 @@ class BuffList
      * @param Buff[] $buffs
      */
     public function __construct(
-        // @phpstan-ignore property.onlyWritten
         private LoggerInterface $logger,
         private DiceBagInterface $diceBag,
         protected(set) array $buffs = [] {

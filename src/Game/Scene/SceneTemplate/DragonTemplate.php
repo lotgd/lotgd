@@ -12,6 +12,7 @@ use LotGD2\Entity\Paragraph;
 use LotGD2\Event\CharacterChangeEvent;
 use LotGD2\Form\Scene\SceneTemplate\DragonTemplateType;
 use LotGD2\Game\Battle\Battle;
+use LotGD2\Game\Handler\BuffHandler;
 use LotGD2\Game\Handler\DragonCounterHandler;
 use LotGD2\Game\Handler\GoldHandler;
 use LotGD2\Game\Handler\StatsHandler;
@@ -57,6 +58,7 @@ class DragonTemplate implements SceneTemplateInterface
         readonly private StatsHandler $stats,
         readonly private DragonCounterHandler $dragonCounter,
         private readonly ActionService $actionService,
+        private readonly BuffHandler $buffs,
     ) {
 
     }

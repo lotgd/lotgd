@@ -13,6 +13,7 @@ use LotGD2\Entity\Paragraph;
 use LotGD2\Event\CharacterChangeEvent;
 use LotGD2\Form\Scene\SceneTemplate\TrainingTemplateType;
 use LotGD2\Game\Battle\Battle;
+use LotGD2\Game\Handler\BuffHandler;
 use LotGD2\Game\Handler\EquipmentHandler;
 use LotGD2\Game\Handler\GoldHandler;
 use LotGD2\Game\Handler\HealthHandler;
@@ -62,6 +63,7 @@ class TrainingTemplate implements SceneTemplateInterface
         private readonly StatsHandler $stats,
         private readonly HealthHandler $health,
         private readonly GoldHandler $gold, // @phpstan-ignore property.onlyWritten
+        private readonly BuffHandler $buffs,
     ) {
     }
 
