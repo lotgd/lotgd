@@ -9,6 +9,7 @@ use LotGD2\Entity\Battle\CurrentCharacterFighter;
 use LotGD2\Entity\Mapped\Character;
 use LotGD2\Game\Handler\BuffHandler;
 use LotGD2\Game\Handler\HealthHandler;
+use LotGD2\Game\Random\DiceBag;
 use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\UsesClass;
@@ -19,13 +20,16 @@ use LotGD2\Game\Battle\BattleStateStatusEnum;
 use LotGD2\Entity\Battle\FighterInterface;
 use LotGD2\Entity\Battle\BattleMessage;
 use PHPUnit\Framework\MockObject\MockObject;
+use Psr\Log\LoggerInterface;
 
 #[CoversClass(BattleState::class)]
 #[UsesClass(BattleMessage::class)]
 #[UsesClass(BattleRoundMessage::class)]
 #[UsesClass(HealthHandler::class)]
-#[AllowMockObjectsWithoutExpectations]
 #[UsesClass(BuffHandler::class)]
+#[UsesClass(BuffList::class)]
+#[UsesClass(DiceBag::class)]
+#[AllowMockObjectsWithoutExpectations]
 class BattleStateTest extends TestCase
 {
     private FighterInterface&MockObject $goodGuyMock;
@@ -101,22 +105,42 @@ class BattleStateTest extends TestCase
         $this->expectException(\LogicException::class);
         $this->expectExceptionMessage("You must set the character first before synchronizing");
 
+        $logger = $this->createStub(LoggerInterface::class);
+
         $buffList = $this->createStub(BuffList::class);
         $buffList->method(PropertyHook::get("buffs"))->willReturn([]);
 
-        $this->battleState->synchronizeToCharacter($buffList);
+        $this->battleState->synchronizeToCharacter($logger, $buffList);
     }
 
     public function testSynchronizeToCharacterWithoutCharacterSynchronizes(): void
     {
         $character = $this->createMock(Character::class);
-        $character->expects($this->once())->method("setProperty")->with(HealthHandler::HealthPropertyName, 10);
+        $character->expects($this->atLeastOnce())->method("setProperty")->willReturnCallback(function ($property, $value) use ($character) {
+            if ($property === HealthHandler::HealthPropertyName) {
+                $this->assertSame($value, 10);
+            } elseif ($property === BuffHandler::BuffPropertyName) {
+                $this->assertIsArray($value);
+                $this->assertEmpty($value);
+            }
+
+            return $character;
+        });
+
+        $character->expects($this->atLeastOnce())->method("getProperty")->willReturnCallback(function ($property, $default) {
+            return match ($property) {
+                HealthHandler::HealthPropertyName => 20,
+                default => $default,
+            };
+        });
 
         $buffList = $this->createStub(BuffList::class);
         $buffList->method(PropertyHook::get("buffs"))->willReturn([]);
 
         $goodGuy = $this->createMock(CurrentCharacterFighter::class);
         $goodGuy->expects($this->once())->method(PropertyHook::get("health"))->willReturn(10);
+
+        $logger = $this->createStub(LoggerInterface::class);
 
         $battleState = new BattleState(
             goodGuy: $goodGuy,
@@ -125,7 +149,7 @@ class BattleStateTest extends TestCase
 
         $battleState->setCharacter($character);
 
-        $battleState->synchronizeToCharacter($buffList);
+        $battleState->synchronizeToCharacter($logger, $buffList);
     }
 
     public function testIncrementRound(): void

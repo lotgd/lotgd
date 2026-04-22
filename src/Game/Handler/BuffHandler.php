@@ -14,6 +14,8 @@ use Psr\Log\NullLogger;
 
 class BuffHandler
 {
+    const string BuffPropertyName = "buffs";
+
     public function __construct(
         private ?LoggerInterface $logger = null,
         private ?DiceBagInterface $diceBag = null,
@@ -24,11 +26,11 @@ class BuffHandler
     public function getBuffs(Character|FighterInterface $fighter): BuffList
     {
         if ($fighter instanceof Character) {
-            $buffs = $fighter->getProperty("buffs", []);
+            $buffs = $fighter->getProperty(self::BuffPropertyName, []);
 
             $this->logger->debug("{$fighter}: Returns new BuffList");
         } else {
-            $buffs = $fighter->kwargs["buffs"] ?? [];
+            $buffs = $fighter->kwargs[self::BuffPropertyName] ?? [];
         }
 
         return new BuffList(
@@ -48,18 +50,18 @@ class BuffHandler
         $newLength = count($buffs->buffs);
         if ($fighter instanceof Character) {
             $this->logger->debug("{$fighter}: Set BuffList (New length: {$newLength}, Old length: {$oldLength})");
-            $fighter->setProperty("buffs", $buffs->buffs);
+            $fighter->setProperty(self::BuffPropertyName , $buffs->buffs);
         } else {
-            $fighter->kwargs["buffs"] = $buffs->buffs;
+            $fighter->kwargs[self::BuffPropertyName] = $buffs->buffs;
         }
     }
 
     public function addBuff(Character|FighterInterface $fighter, Buff $buff): void
     {
         if ($fighter instanceof Character) {
-            $fighter->setProperty("buffs", array_merge($fighter->getProperty("buffs", []), [$buff]));
+            $fighter->setProperty(self::BuffPropertyName, array_merge($fighter->getProperty(self::BuffPropertyName, []), [$buff]));
         } else {
-            $fighter->kwargs["buffs"][] = $buff;
+            $fighter->kwargs[self::BuffPropertyName][] = $buff;
         }
     }
 }

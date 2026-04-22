@@ -14,6 +14,7 @@ use LotGD2\Entity\Mapped\Scene;
 use LotGD2\Entity\Mapped\Stage;
 use LotGD2\Entity\Paragraph;
 use LotGD2\Game\Battle\Battle;
+use LotGD2\Game\Handler\BuffHandler;
 use LotGD2\Game\Handler\GoldHandler;
 use LotGD2\Game\Handler\HealthHandler;
 use LotGD2\Game\Handler\StatsHandler;
@@ -46,21 +47,20 @@ class FightTemplateTest extends TestCase
     private Security&MockObject $security;
     private LoggerInterface&MockObject $logger;
     private AttachmentRepository&MockObject $attachmentRepository;
-    private StatsHandler&MockObject $experience;
     private StatsHandler&MockObject $stats;
     private DiceBagInterface&MockObject $diceBag;
     private CreatureRepository&MockObject $creatureRepository;
     private Battle&MockObject $battle;
     private HealthHandler&MockObject $health;
     private GoldHandler&MockObject $gold;
-    private EventDispatcherInterface $eventDispatcher;
+    private EventDispatcherInterface&MockObject $eventDispatcher;
+    private BuffHandler&MockObject $buffs;
 
     protected function setUp(): void
     {
         $this->security = $this->createMock(Security::class);
         $this->logger = $this->createMock(LoggerInterface::class);
         $this->attachmentRepository = $this->createMock(AttachmentRepository::class);
-        $this->experience = $this->createMock(StatsHandler::class);
         $this->stats = $this->createMock(StatsHandler::class);
         $this->diceBag = $this->createMock(DiceBagInterface::class);
         $this->creatureRepository = $this->createMock(CreatureRepository::class);
@@ -68,19 +68,20 @@ class FightTemplateTest extends TestCase
         $this->health = $this->createMock(HealthHandler::class);
         $this->gold = $this->createMock(GoldHandler::class);
         $this->eventDispatcher = $this->createMock(EventDispatcherInterface::class);
+        $this->buffs = $this->createMock(BuffHandler::class);
 
         $this->fightTemplate = new FightTemplate(
             $this->security,
             $this->logger,
             $this->eventDispatcher,
             $this->attachmentRepository,
-            $this->experience,
             $this->diceBag,
             $this->creatureRepository,
             $this->battle,
             $this->health,
             $this->stats,
-            $this->gold
+            $this->gold,
+            $this->buffs,
         );
     }
 
@@ -181,7 +182,7 @@ class FightTemplateTest extends TestCase
             ->method('decrementTurns')
             ->willReturn($this->health);
 
-        $this->experience->expects($this->once())
+        $this->stats->expects($this->once())
             ->method('getLevel')
             ->willReturn(5);
 
@@ -276,7 +277,7 @@ class FightTemplateTest extends TestCase
             ->method('getTurns')
             ->willReturn(10);
 
-        $this->experience->expects($this->once())
+        $this->stats->expects($this->once())
             ->method('getLevel')
             ->willReturn(5);
 
@@ -538,7 +539,7 @@ class FightTemplateTest extends TestCase
         $this->logger->expects($this->exactly(2))
             ->method('debug');
 
-        $this->experience->expects($this->once())
+        $this->stats->expects($this->once())
             ->method('getLevel')
             ->willReturn(5);
 
@@ -612,7 +613,7 @@ class FightTemplateTest extends TestCase
             ->with('level', 0)
             ->willReturn(0);
 
-        $this->experience->expects($this->once())
+        $this->stats->expects($this->once())
             ->method('getLevel')
             ->willReturn(5);
 

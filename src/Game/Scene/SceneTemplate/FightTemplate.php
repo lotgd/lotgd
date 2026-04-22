@@ -46,7 +46,6 @@ class FightTemplate implements SceneTemplateInterface
         private readonly LoggerInterface $logger,
         private readonly EventDispatcherInterface $eventDispatcher,
         private readonly AttachmentRepository $attachmentRepository,
-        private readonly StatsHandler $experience,
         private readonly DiceBagInterface $diceBag,
         private readonly CreatureRepository $creatureRepository,
         private readonly Battle $battle,
@@ -113,7 +112,7 @@ class FightTemplate implements SceneTemplateInterface
         $level = intval($this->action->getParameter("level", 0));
         $this->logger->debug("Called FightTemplate::searchAction, with level={$level}");
         $level += $this->getRandomLevelChange();
-        $level = max(1, $this->experience->getLevel() + $level); // Make sure the level is at least 1
+        $level = max(1, $this->stats->getLevel() + $level); // Make sure the level is at least 1
         $this->logger->debug("FightTemplate::searchAction, level adjusted to {$level}");
 
         // Find creature

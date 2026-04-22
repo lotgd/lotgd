@@ -18,7 +18,9 @@ use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\UsesClass;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\MockObject\Runtime\PropertyHook;
+use PHPUnit\Framework\MockObject\Stub;
 use PHPUnit\Framework\TestCase;
+use Psr\Log\LoggerInterface;
 
 #[CoversClass(BattleTurn::class)]
 #[UsesClass(BattleState::class)]
@@ -31,14 +33,19 @@ class BattleTurnTest extends TestCase
     private MockObject&DiceBagInterface $diceBag;
     private MockObject&CurrentCharacterFighter $currentCharacterFighter;
     private MockObject&FighterInterface $fighter;
+    private LoggerInterface&Stub $logger;
 
     protected function setUp(): void
     {
         $this->diceBag = $this->createMock(DiceBagInterface::class);
         $this->currentCharacterFighter = $this->createMock(CurrentCharacterFighter::class);
         $this->fighter = $this->createMock(FighterInterface::class);
+        $this->logger = $this->createStub(LoggerInterface::class);
         
-        $this->battleTurn = new BattleTurn($this->diceBag);
+        $this->battleTurn = new BattleTurn(
+            $this->diceBag,
+            $this->logger,
+        );
     }
 
     public function testConstantsAreCorrect(): void
@@ -326,6 +333,7 @@ class BattleTurnTest extends TestCase
             ->enableOriginalConstructor()
             ->setConstructorArgs([
                 $this->diceBag,
+                $this->logger,
             ])
             ->onlyMethods(["partialTurn"])
             ->getMock();

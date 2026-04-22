@@ -34,6 +34,7 @@ use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\MockObject\Runtime\PropertyHook;
 use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
+use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\Serializer\Encoder\JsonEncoder;
 use Symfony\Component\Serializer\Normalizer\DenormalizerInterface;
 use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
@@ -61,10 +62,11 @@ class BattleTest extends KernelTestCase
     private Battle $battle;
 
     private Character $character;
-    private BattleTurn $turn;
+    private BattleTurn&MockObject $turn;
     private NormalizerInterface&DenormalizerInterface $normalizer;
-    private LoggerInterface $logger;
+    private LoggerInterface&MockObject $logger;
     private BuffHandler&MockObject $buffHandler;
+    private Security&MockObject $security;
 
     public function setUp(): void
     {
@@ -77,10 +79,13 @@ class BattleTest extends KernelTestCase
         $this->character = new Character(name: "Test", level: 1);
         $this->turn = $this->createMock(BattleTurn::class);
         $this->buffHandler = $this->createMock(BuffHandler::class);
+        $this->security = $this->createMock(Security::class);
+        $this->security->expects($this->atLeast(0))->method("isGranted")->willReturn(false);
 
         $this->battle = new Battle(
             logger: $this->logger,
             stopWatch: null,
+            security: $this->security,
             normalizer: $this->normalizer,
             turn: $this->turn,
             buffHandler: $this->buffHandler, character: $this->character,
