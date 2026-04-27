@@ -40,6 +40,8 @@ use Symfony\Component\Serializer\Normalizer\DenormalizerInterface;
 use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
 use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
 use Symfony\Component\Serializer\Serializer;
+use Symfony\Component\Stopwatch\Stopwatch;
+use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
 
 #[CoversClass(Battle::class)]
 #[UsesClass(Character::class)]
@@ -67,6 +69,7 @@ class BattleTest extends KernelTestCase
     private LoggerInterface&MockObject $logger;
     private BuffHandler&MockObject $buffHandler;
     private Security&MockObject $security;
+    private EventDispatcherInterface&MockObject $eventDispatcher;
 
     public function setUp(): void
     {
@@ -81,10 +84,13 @@ class BattleTest extends KernelTestCase
         $this->buffHandler = $this->createMock(BuffHandler::class);
         $this->security = $this->createMock(Security::class);
         $this->security->expects($this->atLeast(0))->method("isGranted")->willReturn(false);
+        $this->eventDispatcher = $this->createMock(EventDispatcherInterface::class);
+        $stopWatch = $this->createStub(Stopwatch::class);
 
         $this->battle = new Battle(
             logger: $this->logger,
-            stopWatch: null,
+            stopWatch: $stopWatch,
+            eventDispatcher: $this->eventDispatcher,
             security: $this->security,
             normalizer: $this->normalizer,
             turn: $this->turn,

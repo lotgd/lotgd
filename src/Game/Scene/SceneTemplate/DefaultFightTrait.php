@@ -10,6 +10,7 @@ use LotGD2\Entity\Character\LootBag;
 use LotGD2\Entity\Mapped\Scene;
 use LotGD2\Entity\Mapped\Stage;
 use LotGD2\Entity\Paragraph;
+use LotGD2\Event\BattleSkillActivationEvent;
 use LotGD2\Event\LootBagEvent;
 use LotGD2\Game\Battle\BattleStateStatusEnum;
 use LotGD2\Game\Battle\BattleTurn;
@@ -31,6 +32,7 @@ trait DefaultFightTrait
 
     const string OnLootBagFill = "lotgd2.event.DefaultFight.lootBagFill";
     const string OnLootBagClaim = "lotgd2.event.DefaultFight.lootBagClaim";
+    const string OnSkillActivationEvent = "lotgd2.event.DefaultFight.skillActivationEvent";
 
     public function fightAction(): void {
         $how = $this->action->getParameter("how");
@@ -70,24 +72,12 @@ trait DefaultFightTrait
                 }
             }
 
-            if ($how === "skill") {
+            if ($how === "skill" and $this->stage->owner) {
+                // I feel like this handling here generally should move to Battle class
                 $skill = $this->action->getParameter("skill");
 
-                if ($skill === "godmode") {
-                    $this->logger->debug("{$this->stage->owner}: Godmode buff called.");
-
-                    $this->buffs->addBuff($this->stage->owner, new Buff(
-                        id: "lotgd2.buff.DefaultFightTrait.GodMode",
-                        name: "GOD MODE",
-                        activatesAt: Buff::ACTIVATES_ON_ROUNDSTART,
-                        rounds: 1,
-                        startMessage: "You feel god-like",
-                        endMessage: "You are mortal again",
-                        goodGuyAttackModifier: 25,
-                        goodGuyDefenseModifier: 25,
-                        goodGuyInvulnerable: true,
-                    ));
-                }
+                $battleSkillActivationEvent = new BattleSkillActivationEvent($this->stage->owner, $this->buffs, $skill);
+                $this->eventDispatcher->dispatch($battleSkillActivationEvent, self::OnSkillActivationEvent);
             }
 
             $this->stage->addAttachment($attachment, data: [

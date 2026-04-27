@@ -14,6 +14,7 @@ use LotGD2\Entity\Battle\Fighter;
 use LotGD2\Entity\Mapped\Character;
 use LotGD2\Entity\Mapped\Scene;
 use LotGD2\Entity\Mapped\Stage;
+use LotGD2\Event\BattleNavigationChangeEvent;
 use LotGD2\Game\Battle\BattleEvent\BattleEventInterface;
 use LotGD2\Game\Battle\BattleEvent\DamageEvent;
 use LotGD2\Game\Battle\BattleEvent\DeathEvent;
@@ -24,6 +25,7 @@ use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\Serializer\Normalizer\DenormalizerInterface;
 use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
 use Symfony\Component\Stopwatch\Stopwatch;
+use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
 
 /**
  * @phpstan-import-type BattleEventCollection from BattleEventInterface
@@ -39,9 +41,12 @@ class Battle
     const string FightActionAutoTen = "lotgd2.action.auto10";
     const string FightActionAutoAll = "lotgd2.action.autoAll";
 
+    const string OnAddFightActions = "lotgd2.event.battle.addFightActions";
+
     public function __construct(
         private LoggerInterface $logger,
         private readonly ?Stopwatch $stopWatch,
+        private EventDispatcherInterface $eventDispatcher,
         private readonly ?Security $security,
         private readonly DenormalizerInterface&NormalizerInterface $normalizer,
         private readonly BattleTurn $turn,
@@ -86,63 +91,52 @@ class Battle
     public function addFightActions(Stage $stage, Scene $scene, BattleState $battleState, array $actionParams = []): void
     {
         $this->logger->debug("Adding Battle Actions");
-        $actionGroup = new ActionGroup(self::ActionGroupBattle, "Fight", -100);
 
-        $actionGroup->setActions([
-            new Action($scene, "Attack", [... $actionParams, "how" => "attack", "battleState" => $battleState], reference: self::FightActionAttack),
-        ]);
+        $actionGroups = [
+            new ActionGroup(self::ActionGroupBattle, "Fight", -100)
+                ->setActions([
+                    new Action($scene, "Attack", [... $actionParams, "how" => "attack", "battleState" => $battleState], reference: self::FightActionAttack),
+                ]),
+            new ActionGroup(self::ActionGroupAutoBattle, "Auto", -90)
+                ->setActions([
+                    new Action(
+                        $scene,
+                        "for 5 rounds", [
+                        ... $actionParams,
+                        "how" => "attack",
+                        "rounds" => 5,
+                        "battleState" => $battleState],
+                        reference: self::FightActionAutoFive,
+                    ),
+                    new Action(
+                        $scene,
+                        "for 10 rounds", [
+                        ... $actionParams,
+                        "how" => "attack",
+                        "rounds" => 10,
+                        "battleState" => $battleState],
+                        reference: self::FightActionAutoTen,
+                    ),
+                    new Action(
+                        $scene,
+                        "until the bitter end", [
+                        ... $actionParams,
+                        "how" => "attack",
+                        "rounds" => -1,
+                        "battleState" => $battleState],
+                        reference: self::FightActionAutoAll,
+                    ),
+                ])
+        ];
 
         if ($battleState->allowFlee) {
-            $actionGroup->addAction(new Action($scene, "Flee", [... $actionParams, "how" => "flee", "battleState" => $battleState], reference: self::FightActionFlee));
+            $actionGroups[0]->addAction(new Action($scene, "Flee", [... $actionParams, "how" => "flee", "battleState" => $battleState], reference: self::FightActionFlee));
         }
 
-        $autoActionGroup = new ActionGroup(self::ActionGroupAutoBattle, "Auto", -99);
-        $autoActionGroup->setActions([
-            new Action(
-                $scene,
-                "for 5 rounds", [
-                    ... $actionParams,
-                    "how" => "attack",
-                    "rounds" => 5,
-                    "battleState" => $battleState],
-                reference: self::FightActionAutoFive,
-            ),
-            new Action(
-                $scene,
-                "for 10 rounds", [
-                ... $actionParams,
-                "how" => "attack",
-                "rounds" => 10,
-                "battleState" => $battleState],
-                reference: self::FightActionAutoTen,
-            ),
-            new Action(
-                $scene,
-                "until the bitter end", [
-                ... $actionParams,
-                "how" => "attack",
-                "rounds" => -1,
-                "battleState" => $battleState],
-                reference: self::FightActionAutoAll,
-            ),
-        ]);
+        $battleNavigationEvent = new BattleNavigationChangeEvent($this->character, $battleState, $actionGroups, $scene, $actionParams);
+        $battleNavigationEvent = $this->eventDispatcher->dispatch($battleNavigationEvent, self::OnAddFightActions);
 
-        $stage->addActionGroup($actionGroup);
-        $stage->addActionGroup($autoActionGroup);
-
-        if ($this->security->isGranted("ROLE_CHEATS_ENABLED")) {
-            $cheatActionGroup = new ActionGroup("nothing", "Auto", -200);
-            $actionGroup->addAction(new Action(
-                $scene,
-                "God mode", [
-                ... $actionParams,
-                "how" => "skill",
-                "skill" => "godmode",
-                "battleState" => $battleState],
-                reference: self::FightActionAutoAll,
-            ));
-            $stage->addActionGroup($cheatActionGroup);
-        }
+        array_map(fn (ActionGroup $actionGroup) => $stage->addActionGroup($actionGroup), $battleNavigationEvent->actionGroups);
     }
 
     /**
