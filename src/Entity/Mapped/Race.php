@@ -5,7 +5,7 @@ namespace LotGD2\Entity\Mapped;
 
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
-use Dunglas\DoctrineJsonOdm\Type\JsonDocumentType;
+use LotGD2\Doctrine\ClassNameType;
 use LotGD2\Game\Race\RaceInterface;
 use LotGD2\Repository\RaceRepository;
 use Stringable;
@@ -52,12 +52,20 @@ class Race implements Stringable
             set => $value;
         },
 
-        // @phpstan-ignore doctrine.columnType
-        #[ORM\Column(length: 255)]
+        #[ORM\Column(type: ClassNameType::NAME, length: 255)]
         #[Assert\NotBlank()]
         public ?string $className = null {
             get => $this->className;
-            set => $value;
+            set {
+                if ($value === null) {
+                    $this->className = null;
+                } elseif (is_subclass_of($value, RaceInterface::class)) {
+                    /** @var class-string<RaceInterface> $value */ // Required for PHPStorm
+                    $this->className = $value;
+                } else {
+                    throw new \ValueError("Race class must implement " . RaceInterface::class);
+                }
+            }
         },
 
         /**
@@ -68,7 +76,7 @@ class Race implements Stringable
         public array $configuration = [] {
             get => $this->configuration;
             set => $value;
-        }
+        },
     ) {
 
     }
