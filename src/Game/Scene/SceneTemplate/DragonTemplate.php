@@ -143,7 +143,7 @@ class DragonTemplate implements SceneTemplateInterface
         $event->stage->addAction(
             ActionGroup::EMPTY,
             new Action(
-                scene: $this->scene,
+                scene: $event->scene,
                 title: "Continue",
                 parameters: [
                     "op" => "epilogue",

@@ -355,10 +355,11 @@ class Battle
         } while ($anotherOne);
 
         if ($battleState->isOver()) {
+            // First add actions, then dispatch event. Offer default actions first, then let the event listener decide what to do with this.
+            $this->sceneRenderer->addActions($event->stage, $event->scene);
+
             $simpleStageEvent = new SimpleStageParameterEvent($event->stage, $event->action, $event->scene, battleState: $battleState);
             $simpleStageEvent = $this->eventDispatcher->dispatch($simpleStageEvent, self::OnFightEnds);
-
-            $this->sceneRenderer->addActions($event->stage, $event->scene);
         } else {
             // Only add fight actions if the fight is not over
             $this->addFightActions($event->stage, $event->scene, $battleState, ["op" => self::FightOpParamValue]);
