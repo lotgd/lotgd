@@ -19,6 +19,7 @@ services:
             - '../src/DependencyInjection/'
             - '../src/Entity/'
             - '../src/Kernel.php'
+            - '../src/Event/'
 
     Gglnx\TwigTryCatch\Extension\TryCatchExtension:
         tags: [twig.extension]
