@@ -9,6 +9,8 @@ use LotGD2\Entity\Battle\Buff;
 use LotGD2\Event\BattleNavigationChangeEvent;
 use LotGD2\Event\BattleSkillActivationEvent;
 use LotGD2\Game\Battle\Battle;
+use LotGD2\Game\Random\DiceBagAwareInterface;
+use LotGD2\Game\Random\DiceBagAwareTrait;
 use LotGD2\Game\Random\DiceBagInterface;
 use LotGD2\Game\Scene\SceneTemplate\DefaultFightTrait;
 use LotGD2\Game\Scene\SceneTemplate\FightTemplate;
@@ -16,14 +18,15 @@ use Psr\Log\LoggerInterface;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\EventDispatcher\Attribute\AsEventListener;
 
-class SpecialtyHandler
+class SpecialtyHandler implements DiceBagAwareInterface
 {
+    use DiceBagAwareTrait;
+
     const string ActionGodMode = "lotgd2.action.SpecialtyHandler.godMode";
 
     public function __construct(
-        private LoggerInterface $logger, // @phpstan-ignore property.onlyWritten
+        private LoggerInterface $logger,
         private Security $security,
-        private ?DiceBagInterface $diceBag = null, // @phpstan-ignore property.onlyWritten
     ) {
 
     }

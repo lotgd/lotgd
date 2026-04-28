@@ -9,6 +9,7 @@ use LotGD2\Entity\ActionGroup;
 use LotGD2\Entity\Mapped\Character;
 use LotGD2\Entity\Mapped\Scene;
 use LotGD2\Entity\Mapped\Stage;
+use LotGD2\Event\StageChangeEvent;
 use LotGD2\Game\Error\InvalidActionError;
 use LotGD2\Game\GameTime\NewDay;
 use LotGD2\Game\Scene\SceneRenderer;
@@ -21,11 +22,14 @@ use Symfony\Component\DependencyInjection\Attribute\AsAlias;
 use Symfony\Component\DependencyInjection\Attribute\Autoconfigure;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\Stopwatch\Stopwatch;
+use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
 
 #[AsAlias(id: "lotgd2.game_loop", public: true)]
 #[Autoconfigure(public: true)]
 class GameLoop
 {
+    const string OnBeforeSameSceneChange = "lotgd2.event.GameLoop.BeforeSameSceneChange";
+
     private ContainerInterface $container;
 
     private ?Character $character = null;
@@ -35,6 +39,7 @@ class GameLoop
         readonly private Stopwatch $stopwatch,
         readonly private EntityManagerInterface $entityManager,
         readonly private LoggerInterface $logger,
+        readonly private EventDispatcherInterface $dispatcher,
         readonly private SceneRenderer $renderer,
         readonly private SceneRepository $sceneRepository,
         readonly private ActionService $actionService,
@@ -107,6 +112,13 @@ class GameLoop
 
             if ($renderDefault && $targetScene?->templateClass !== null and !$skipOnSceneEnter) {
                 $renderDefault = $this->renderOnSceneEnter($stage, $selectedAction, $currentScene, $targetScene);
+            }
+        } else {
+            $sceneChangeEvent = new StageChangeEvent($character->stage, $selectedAction, $currentScene);
+            $sceneChangeEvent = $this->dispatcher->dispatch($sceneChangeEvent, self::OnBeforeSameSceneChange);
+
+            if ($sceneChangeEvent->isPropagationStopped()) {
+                $renderDefault = false;
             }
         }
 

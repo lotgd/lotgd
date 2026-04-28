@@ -10,14 +10,13 @@ use LotGD2\Entity\Battle\BattleState;
 use LotGD2\Entity\Battle\Fighter;
 use LotGD2\Entity\Paragraph;
 use LotGD2\Event\CharacterChangeEvent;
+use LotGD2\Event\SimpleStageParameterEvent;
 use LotGD2\Form\Scene\SceneTemplate\DragonTemplateType;
 use LotGD2\Game\Battle\Battle;
-use LotGD2\Game\Handler\BuffHandler;
 use LotGD2\Game\Handler\DragonCounterHandler;
 use LotGD2\Game\Handler\GoldHandler;
 use LotGD2\Game\Handler\StatsHandler;
 use LotGD2\Game\GameTime\NewDay;
-use LotGD2\Game\Random\DiceBagInterface;
 use LotGD2\Game\Scene\SceneAttachment\BattleAttachment;
 use LotGD2\Game\Stage\ActionService;
 use LotGD2\Repository\AttachmentRepository;
@@ -49,7 +48,6 @@ class DragonTemplate implements SceneTemplateInterface
     public function __construct(
         readonly private LoggerInterface $logger,
         readonly private EventDispatcherInterface $eventDispatcher,
-        readonly private DiceBagInterface $diceBag,
         readonly private AttachmentRepository $attachmentRepository,
         readonly private SceneRepository $sceneRepository,
         readonly private Battle $battle,
@@ -58,7 +56,6 @@ class DragonTemplate implements SceneTemplateInterface
         readonly private StatsHandler $stats,
         readonly private DragonCounterHandler $dragonCounter,
         private readonly ActionService $actionService,
-        private readonly BuffHandler $buffs,
     ) {
 
     }
@@ -70,7 +67,6 @@ class DragonTemplate implements SceneTemplateInterface
         match($op) {
             default => $this->defaultAction(),
             "start" => $this->startFight(),
-            "fight" => $this->fightAction(),
             "epilogue" => $this->epilogueAction(),
         };
     }
@@ -135,16 +131,16 @@ class DragonTemplate implements SceneTemplateInterface
         ];
     }
 
-    public function onFightWon(BattleState $battleState): void
+    public function onFightWon(SimpleStageParameterEvent $event, BattleState $battleState): void
     {
         $description = <<<TEXT
             With a mighty final blow, {{ badGuy.name }} lets out a tremendous bellow and falls at your feet, dead at last.
             TEXT;
 
-        $this->logger->debug("{$this->character->id}: Victory over the Dragon.");
+        $this->logger->debug("{$event->character->id}: Victory over the Dragon.");
 
-        $this->actionService->resetActionGroups($this->stage);
-        $this->stage->addAction(
+        $this->actionService->resetActionGroups($event->stage);
+        $event->stage->addAction(
             ActionGroup::EMPTY,
             new Action(
                 scene: $this->scene,
@@ -155,9 +151,7 @@ class DragonTemplate implements SceneTemplateInterface
             )
         );
 
-        dump($this->stage);
-
-        $this->stage->paragraphs = [
+        $event->stage->paragraphs = [
             new Paragraph(
                 id: "lotgd2.paragraph.dragonTemplate.fightWon",
                 text: $description,

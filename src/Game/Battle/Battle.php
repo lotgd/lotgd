@@ -14,14 +14,25 @@ use LotGD2\Entity\Battle\Fighter;
 use LotGD2\Entity\Mapped\Character;
 use LotGD2\Entity\Mapped\Scene;
 use LotGD2\Entity\Mapped\Stage;
+use LotGD2\Entity\Paragraph;
 use LotGD2\Event\BattleNavigationChangeEvent;
+use LotGD2\Event\BattleSkillActivationEvent;
+use LotGD2\Event\SimpleStageParameterEvent;
+use LotGD2\Event\StageChangeEvent;
 use LotGD2\Game\Battle\BattleEvent\BattleEventInterface;
 use LotGD2\Game\Battle\BattleEvent\DamageEvent;
 use LotGD2\Game\Battle\BattleEvent\DeathEvent;
+use LotGD2\Game\GameLoop;
 use LotGD2\Game\Handler\BuffHandler;
+use LotGD2\Game\Random\DiceBagInterface;
+use LotGD2\Game\Scene\SceneAttachment\BattleAttachment;
+use LotGD2\Game\Scene\SceneRenderer;
+use LotGD2\Game\Stage\ActionService;
+use LotGD2\Repository\AttachmentRepository;
 use Psr\Log\LoggerInterface;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
+use Symfony\Component\EventDispatcher\Attribute\AsEventListener;
 use Symfony\Component\Serializer\Normalizer\DenormalizerInterface;
 use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
 use Symfony\Component\Stopwatch\Stopwatch;
@@ -42,14 +53,29 @@ class Battle
     const string FightActionAutoAll = "lotgd2.action.autoAll";
 
     const string OnAddFightActions = "lotgd2.event.battle.addFightActions";
+    const string OnSkillActivationEvent = "lotgd2.event.DefaultFight.skillActivationEvent";
+    const string OnFightFlee = "lotgd2.event.DefaultFight.flee";
+    const string OnFightFled = "lotgd2.event.DefaultFight.fled";
+    const string OnFightEnds = "lotgd2.event.DefaultFight.ends";
+
+    const string FightOpParamValue = "fight";
+    const string SurpriseActionParam = "surprise";
+    const string FightActionParam = "how";
+    const string FleeFightActionParamValue = "flee";
+    const string SkillFightActionParamValue = "skill";
+    const string SkillActionParam = "skill";
+    const string RoundsActionParam = "rounds";
 
     public function __construct(
         private LoggerInterface $logger,
         private readonly ?Stopwatch $stopWatch,
         private EventDispatcherInterface $eventDispatcher,
-        private readonly ?Security $security,
         private readonly DenormalizerInterface&NormalizerInterface $normalizer,
         private readonly BattleTurn $turn,
+        private readonly SceneRenderer $sceneRenderer,
+        private readonly ActionService $actionService,
+        private readonly AttachmentRepository $attachmentRepository,
+        private readonly DiceBagInterface $diceBag,
         private readonly BuffHandler $buffHandler,
         #[Autowire(expression: "service('lotgd2.game_loop').getCharacter()")]
         private Character $character,
@@ -91,6 +117,7 @@ class Battle
     public function addFightActions(Stage $stage, Scene $scene, BattleState $battleState, array $actionParams = []): void
     {
         $this->logger->debug("Adding Battle Actions");
+        $this->actionService->resetActionGroups($stage);
 
         $actionGroups = [
             new ActionGroup(self::ActionGroupBattle, "Fight", -100)
@@ -228,5 +255,130 @@ class Battle
         }
 
         return $eventsToAdd;
+    }
+
+    #[AsEventListener(GameLoop::OnBeforeSameSceneChange)]
+    public function onBeforeSameSceneChange(StageChangeEvent $event): StageChangeEvent
+    {
+        $battleState = $event->action->getParameter("battleState");
+
+        if (!($battleState instanceof BattleState)) {
+            return $event;
+        }
+
+        // Find attachment
+        $attachment = $this->attachmentRepository->findOneByAttachmentClass(BattleAttachment::class);
+
+        if (!$attachment) {
+            // If attachment was not found, exit event without stopping propagation.
+            $this->logger->critical("Attachment not found.");
+            return $event;
+        }
+
+        // Manually reset stage
+        $event->stage->clearParagraphs();
+        $event->stage->clearAttachments();
+        $this->actionService->resetActionGroups($event->stage);
+
+        // Make sure the changes made here are not overwritten by the default event handling.
+        $event->stopPropagation();
+
+        // What has been selected in the fight?
+        $how = $event->action->getParameter(self::FightActionParam);
+
+        $event->stage->paragraphs = [
+            new Paragraph(
+                id: "lotgd2.paragraph.DefaultFightTrait.FightMessage",
+                text: "You are in the middle of the fight against <.{{ badGuy.name }}.>.",
+                context: [
+                    "badGuy" => $battleState->badGuy,
+                ]
+            )
+        ];
+
+        //
+        if ($event->action->getParameter(self::SurpriseActionParam, false) === true) {
+            $battleTurn = BattleTurn::DamageTurnGoodGuy;
+        } else {
+            $battleTurn = BattleTurn::DamageTurnBoth;
+        }
+
+        // Handle 'flee' options
+        if ($battleState->allowFlee and $how === self::FleeFightActionParamValue) {
+            // If "flee" was used, we dispatch an event and delegate its handling to somewhere else
+            // But we do offer a default event listener inside the battle class with low priority
+            $simpleStageEvent = new SimpleStageParameterEvent($event->stage, $event->action, $event->scene, success: false, punishment: false);
+            $simpleStageEvent = $this->eventDispatcher->dispatch($simpleStageEvent, self::OnFightFlee);
+
+            if ($simpleStageEvent->params["success"] === true) {
+                // If character has fled successfully, we emit another event allowing scenes to reset navigation
+                $fightFledEvent = new SimpleStageParameterEvent($event->stage, $event->action, $event->scene);
+                $fightFledEvent = $this->eventDispatcher->dispatch($fightFledEvent, self::OnFightFled);
+
+                // Return on success
+                return $event;
+            }
+
+            if ($simpleStageEvent->params["punishment"] === true) {
+                $battleTurn = BattleTurn::DamageTurnBadGuy;
+            }
+        }
+
+        // Handle 'skill activation'
+        if ($how === self::SkillFightActionParamValue) {
+            $skill = $event->action->getParameter(self::SkillActionParam);
+
+            $battleSkillActivationEvent = new BattleSkillActivationEvent($event->character, $this->buffHandler, $skill);
+            $this->eventDispatcher->dispatch($battleSkillActivationEvent, self::OnSkillActivationEvent);
+        }
+
+        $event->stage->addAttachment($attachment, data: [
+            "battleState" => $battleState,
+        ]);
+
+        $rounds = $event->action->getParameter(self::RoundsActionParam) ?? 1;
+
+        do {
+            $rounds -= 1;
+            $this->fightOneRound($battleState, $battleTurn);
+
+            if ($battleState->isOver()) {
+                break;
+            }
+
+            // If ¨$rounds is not 0, we continue with the next round. If $rounds is 0, we stop.
+            // That means, if rounds is negative, the fight continues until someone dies.
+            $anotherOne = $rounds !== 0;
+
+            // Set battle Turn back to default to remove the 'surprised' element after the first round.
+            $battleTurn = BattleTurn::DamageTurnBoth;
+        } while ($anotherOne);
+
+        if ($battleState->isOver()) {
+            $simpleStageEvent = new SimpleStageParameterEvent($event->stage, $event->action, $event->scene, battleState: $battleState);
+            $simpleStageEvent = $this->eventDispatcher->dispatch($simpleStageEvent, self::OnFightEnds);
+
+            $this->sceneRenderer->addActions($event->stage, $event->scene);
+        } else {
+            // Only add fight actions if the fight is not over
+            $this->addFightActions($event->stage, $event->scene, $battleState, ["op" => self::FightOpParamValue]);
+        }
+
+        return $event;
+    }
+
+    #[AsEventListener(self::OnFightFlee, priority: -100)]
+    public function onFightFlee(SimpleStageParameterEvent $event): SimpleStageParameterEvent
+    {
+        if ($event->action->getParameter(self::SurpriseActionParam, false) === true || $this->diceBag->chance(0.3333, precision: 4)) {
+            $this->logger->critical("Successfully escaped from the enemy.");
+
+            $event->params["success"] = true;
+        } else {
+            $event->params["success"] = false;
+            $event->params["punishment"] = true;
+        }
+
+        return $event;
     }
 }

@@ -15,6 +15,7 @@ use LotGD2\Entity\Battle\FighterInterface;
 use LotGD2\Entity\Mapped\Character;
 use LotGD2\Entity\Mapped\Scene;
 use LotGD2\Entity\Mapped\Stage;
+use LotGD2\Event\BattleNavigationChangeEvent;
 use LotGD2\Game\Battle\Battle;
 use LotGD2\Game\Battle\BattleEvent\BattleEventInterface;
 use LotGD2\Game\Battle\BattleEvent\CriticalHitEvent;
@@ -26,6 +27,9 @@ use LotGD2\Game\Handler\EquipmentHandler;
 use LotGD2\Game\Handler\HealthHandler;
 use LotGD2\Game\Handler\StatsHandler;
 use LotGD2\Game\Random\DiceBag;
+use LotGD2\Game\Scene\SceneRenderer;
+use LotGD2\Game\Stage\ActionService;
+use LotGD2\Repository\AttachmentRepository;
 use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Depends;
@@ -58,6 +62,7 @@ use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
 #[UsesClass(BattleMessage::class)]
 #[UsesClass(BattleRoundMessage::class)]
 #[UsesClass(DeathEvent::class)]
+#[UsesClass(BattleNavigationChangeEvent::class)]
 #[AllowMockObjectsWithoutExpectations]
 class BattleTest extends KernelTestCase
 {
@@ -68,8 +73,11 @@ class BattleTest extends KernelTestCase
     private NormalizerInterface&DenormalizerInterface $normalizer;
     private LoggerInterface&MockObject $logger;
     private BuffHandler&MockObject $buffHandler;
-    private Security&MockObject $security;
     private EventDispatcherInterface&MockObject $eventDispatcher;
+    private SceneRenderer&MockObject $sceneRenderer;
+    private ActionService&MockObject $actionService;
+    private AttachmentRepository&MockObject $attachmentRepository;
+    private DiceBag&MockObject $diceBag;
 
     public function setUp(): void
     {
@@ -82,19 +90,25 @@ class BattleTest extends KernelTestCase
         $this->character = new Character(name: "Test", level: 1);
         $this->turn = $this->createMock(BattleTurn::class);
         $this->buffHandler = $this->createMock(BuffHandler::class);
-        $this->security = $this->createMock(Security::class);
-        $this->security->expects($this->atLeast(0))->method("isGranted")->willReturn(false);
         $this->eventDispatcher = $this->createMock(EventDispatcherInterface::class);
+        $this->sceneRenderer = $this->createMock(SceneRenderer::class);
+        $this->actionService = $this->createMock(ActionService::class);
+        $this->attachmentRepository = $this->createMock(AttachmentRepository::class);
+        $this->diceBag = $this->createMock(DiceBag::class);
         $stopWatch = $this->createStub(Stopwatch::class);
 
         $this->battle = new Battle(
             logger: $this->logger,
             stopWatch: $stopWatch,
             eventDispatcher: $this->eventDispatcher,
-            security: $this->security,
             normalizer: $this->normalizer,
             turn: $this->turn,
-            buffHandler: $this->buffHandler, character: $this->character,
+            sceneRenderer: $this->sceneRenderer,
+            actionService: $this->actionService,
+            attachmentRepository: $this->attachmentRepository,
+            diceBag: $this->diceBag,
+            buffHandler: $this->buffHandler,
+            character: $this->character,
         );
     }
 
@@ -118,6 +132,11 @@ class BattleTest extends KernelTestCase
             owner: $this->character,
             scene: $scene,
         );
+
+        $this->eventDispatcher->expects($this->once())->method('dispatch')->willReturnCallback(function (BattleNavigationChangeEvent $event, string $eventName) {
+            $this->assertSame(Battle::OnAddFightActions, $eventName);
+            return $event;
+        });
 
         $this->battle->addFightActions($stage, $scene, $battleState);
 
@@ -152,6 +171,11 @@ class BattleTest extends KernelTestCase
             scene: $scene,
         );
         $params = ["op" => "fight"];
+
+        $this->eventDispatcher->expects($this->once())->method('dispatch')->willReturnCallback(function (BattleNavigationChangeEvent $event, string $eventName) {
+            $this->assertSame(Battle::OnAddFightActions, $eventName);
+            return $event;
+        });
 
         $this->battle->addFightActions($stage, $scene, $battleState, $params);
 

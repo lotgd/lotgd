@@ -8,12 +8,13 @@ use LotGD2\Entity\Action;
 use LotGD2\Entity\ActionGroup;
 use LotGD2\Entity\Battle\BattleState;
 use LotGD2\Entity\Mapped\Character;
+use LotGD2\Entity\Mapped\Scene;
 use LotGD2\Entity\Mapped\Stage;
 use LotGD2\Entity\Paragraph;
 use LotGD2\Event\CharacterChangeEvent;
+use LotGD2\Event\SimpleStageParameterEvent;
 use LotGD2\Form\Scene\SceneTemplate\TrainingTemplateType;
 use LotGD2\Game\Battle\Battle;
-use LotGD2\Game\Handler\BuffHandler;
 use LotGD2\Game\Handler\EquipmentHandler;
 use LotGD2\Game\Handler\GoldHandler;
 use LotGD2\Game\Handler\HealthHandler;
@@ -57,13 +58,11 @@ class TrainingTemplate implements SceneTemplateInterface
         private readonly EventDispatcherInterface $eventDispatcher,
         private readonly AttachmentRepository $attachmentRepository,
         private readonly MasterRepository $masterRepository,
-        private readonly DiceBagInterface $diceBag,
         private readonly Battle $battle,
         private readonly EquipmentHandler $equipment,
         private readonly StatsHandler $stats,
         private readonly HealthHandler $health,
         private readonly GoldHandler $gold, // @phpstan-ignore property.onlyWritten
-        private readonly BuffHandler $buffs,
     ) {
     }
 
@@ -93,7 +92,6 @@ class TrainingTemplate implements SceneTemplateInterface
             default => $this->defaultAction(),
             "ask" => $this->askAction(),
             "challenge" => $this->challengeAction(),
-            "fight" => $this->fightAction(),
         };
     }
 
@@ -102,6 +100,18 @@ class TrainingTemplate implements SceneTemplateInterface
         $master = $this->masterRepository->getByLevel($this->character->level);
 
         // If this returns null, the max level has been reached.
+        if ($this->health->isAlive() === false) {
+            $this->stage->paragraphs = [
+                new Paragraph(
+                    id: "lotgd2.paragraph.trainingTemplate.idDead",
+                    text: "You are dead. Dead people cannot challenge their master.",
+                    context: [],
+                )
+            ];
+
+            return;
+        }
+
         if ($master === null) {
             $this->stage->paragraphs = [
                 new Paragraph(
@@ -114,7 +124,7 @@ class TrainingTemplate implements SceneTemplateInterface
                 )
             ];
         } else {
-            $this->addDefaultActions();
+            $this->addDefaultActions($this->stage, $this->scene);
 
             $sceneParagraph = $this->stage->paragraphs[Stage::SceneText] ?? null;
             $sceneParagraph->addContext("master", $master->name);
@@ -142,7 +152,7 @@ class TrainingTemplate implements SceneTemplateInterface
             )
         ];
 
-        $this->addDefaultActions();
+        $this->addDefaultActions($this->stage, $this->scene);
     }
 
     public function challengeAction(): void
@@ -241,14 +251,15 @@ class TrainingTemplate implements SceneTemplateInterface
      * Overwrites the default onFightWon method.
      *
      * When a master has been defeated, no gold or experience is gained - instead, the level is increased.
+     * @param SimpleStageParameterEvent $event
      * @param BattleState $battleState
      * @return void
      */
-    public function onFightWon(BattleState $battleState): void
+    public function onFightWon(SimpleStageParameterEvent $event, BattleState $battleState): void
     {
-        $this->levelUp();
+        $this->levelUp($event->character);
 
-        $this->stage->paragraphs = [
+        $event->stage->paragraphs = [
             new Paragraph(
                 id: "lotgd2.paragraph.trainingTemplate.maxLevelReached",
                 text: <<<TEXT
@@ -265,28 +276,28 @@ class TrainingTemplate implements SceneTemplateInterface
                     {% endif %}
                     TEXT,
                 context: [
-                    "campLeader" => $this->scene->templateConfig["campLeader"],
+                    "campLeader" => $event->scene->templateConfig["campLeader"],
                     "badGuy" => $battleState->badGuy,
                     "maxHealth" => $this->health->getMaxHealth(),
                 ]
             )
         ];
 
-        $this->setSeenMaster($this->character, false);
-
-        $this->logger->debug("Character {$this->character->id} won against his master and is now on level {$this->character->level}.");
+        $this->setSeenMaster($event->character, false);
+        $this->logger->debug("Character {$event->character->id} won against his master and is now on level {$event->character->level}.");
     }
 
     /**
      * Overwrites the default onFightList method.
      *
      * When a fight against a master is lost, the character doesn't die, but gets healed.
+     * @param SimpleStageParameterEvent $event
      * @param BattleState $battleState
      * @return void
      */
-    public function onFightLost(BattleState $battleState): void
+    public function onFightLost(SimpleStageParameterEvent $event, BattleState $battleState): void
     {
-        $this->stage->paragraphs = [
+        $event->stage->paragraphs = [
             new Paragraph(
                 id: "lotgd2.paragraph.trainingTemplate.maxLevelReached",
                 text: <<<TEXT
@@ -296,7 +307,7 @@ class TrainingTemplate implements SceneTemplateInterface
                     {% if textLost %}<<{{ textLost }}>>{% endif %}
                     TEXT,
                 context: [
-                    "campLeader" => $this->scene->templateConfig["campLeader"],
+                    "campLeader" => $event->scene->templateConfig["campLeader"],
                     "badGuy" => $battleState->badGuy,
                     "maxHealth" => $this->health->getMaxHealth(),
                     "textLost" => $battleState->badGuy->kwargs["textLost"] ?? null,
@@ -305,7 +316,7 @@ class TrainingTemplate implements SceneTemplateInterface
         ];
 
         $this->health->heal();
-        $this->setSeenMaster($this->stage->owner);
+        $this->setSeenMaster($event->character);
     }
 
     public function getSeenMaster(Character $character): bool
@@ -318,79 +329,81 @@ class TrainingTemplate implements SceneTemplateInterface
         $character->setProperty("lotgd2.trainingTemplate.seenMaster", $seenMaster);
     }
 
-    public function addDefaultActions(): void
+    public function addDefaultActions(Stage $stage, Scene $scene): void
     {
         $actionGroup = new ActionGroup(self::ActionGroupTraining, "Training");
         $actionGroup->addAction(new Action(
-            $this->scene,
+            $scene,
             title: "Question Master",
             parameters: ["op" => "ask"],
             reference: self::ActionQuestion,
         ));
         $actionGroup->addAction(new Action(
-            $this->scene,
+            $scene,
             title: "Challenge Master",
             parameters: ["op" => "challenge"],
             reference: self::ActionChallenge,
         ));
 
-        $this->stage->addActionGroup($actionGroup);
+        $stage->addActionGroup($actionGroup);
 
 
         if ($this->security->isGranted("ROLE_CHEATS_ENABLED")) {
             $cheatsGroup = new ActionGroup("lotgd2.actionGroup.fightTemplate.cheats", "Cheats");
             $cheatsGroup->setActions([
                 new Action(
-                    scene: $this->scene,
+                    scene: $scene,
                     title: "#! Unsee master",
                     parameters: ["op" => "cheat", "what" => "unseeMaster"],
                     reference: "lotgd2.action.fightTemplate.cheats.unseeMaster",
                 ),
                 new Action(
-                    scene: $this->scene,
+                    scene: $scene,
                     title: "#! Gain 1 level",
                     parameters: ["op" => "cheat", "what" => "levelUp"],
                     reference: "lotgd2.action.fightTemplate.cheats.levelUp",
                 ),
                 new Action(
-                    scene: $this->scene,
+                    scene: $scene,
                     title: "#! Set level to 15",
                     parameters: ["op" => "cheat", "what" => "level15"],
                     reference: "lotgd2.action.fightTemplate.cheats.level15",
                 ),
             ]);
 
-            $this->stage->addActionGroup($cheatsGroup);
+            $stage->addActionGroup($cheatsGroup);
         }
     }
 
     public function handleCheats(Character $character, string $cheat): void
     {
         if ($cheat === "unseeMaster") {
-            $this->setSeenMaster($character);
+            $this->setSeenMaster($character, false);
         } elseif ($cheat === "levelUp") {
-            $this->levelUp();
+            $this->levelUp($character);
         } elseif ($cheat === "level15") {
-            $this->levelUp(15);
+            $this->levelUp($character, 15);
         }
     }
 
     /**
+     * @param Character $character
+     * @param int|null $targetLevel
      * @return void
      */
-    public function levelUp(?int $targetLevel = null): void
+    public function levelUp(Character $character, ?int $targetLevel = null): void
     {
-        $oldCharacter = clone $this->character;
+        $oldCharacter = clone $character;
 
         if ($targetLevel === null) {
             $level = 1;
         } else {
-            $level = $targetLevel - $this->character->level;
+            $level = $targetLevel - $character->level;
         }
 
-        $this->character->level += $level;
-        $this->logger->debug("{$this->character}: Level increased to {$this->character->level}.");
-        $event = new CharacterChangeEvent($this->character, $oldCharacter);
+        $character->level += $level;
+        $this->logger->debug("{$character}: Level increased to {$character->level}.");
+        $event = new CharacterChangeEvent($character, $oldCharacter);
 
         $this->eventDispatcher->dispatch($event, self::OnCharacterLevelUp);
     }

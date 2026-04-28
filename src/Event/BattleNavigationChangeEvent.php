@@ -17,6 +17,8 @@ class BattleNavigationChangeEvent extends Event
      * @param Character $character
      * @param BattleState $battleState
      * @param ActionGroup[] $actionGroups
+     * @param Scene $scene
+     * @param array<string, mixed> $actionParams
      */
     public function __construct(
         protected(set) Character $character,

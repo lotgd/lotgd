@@ -52,7 +52,6 @@ class FightTemplate implements SceneTemplateInterface
         private readonly HealthHandler $health,
         private readonly StatsHandler $stats,
         private readonly GoldHandler $gold,
-        private readonly BuffHandler $buffs,
     ) {
     }
 
@@ -67,7 +66,6 @@ class FightTemplate implements SceneTemplateInterface
 
         match($op) {
             "search" => $this->searchAction(),
-            "fight" => $this->fightAction(),
             default => $this->defaultAction(),
         };
     }
@@ -87,7 +85,7 @@ class FightTemplate implements SceneTemplateInterface
             ));
         }
 
-        $this->addDefaultActions();
+        $this->addDefaultActions($this->stage ,$this->scene);
     }
 
     /**
@@ -119,7 +117,7 @@ class FightTemplate implements SceneTemplateInterface
         $creature = $this->creatureRepository->getRandomCreature($level);
 
         if (!$creature) {
-            $this->addDefaultActions();
+            $this->addDefaultActions($this->stage, $this->scene);
             $this->stage->paragraphs = [
                 new Paragraph(
                     id: "lotgd2.paragraph.fightTemplate.tooPeaceful",
@@ -185,29 +183,31 @@ class FightTemplate implements SceneTemplateInterface
             $this->stage->paragraphs = [
                 new Paragraph(
                     id: "lotgd2.paragraph.fightTemplate.noMonstersFound",
-                    text: "You are too blind to see any monsters. Maybe prey to the gods and ask for why that is?",
+                    text: "You are too blind to see any monsters. Maybe pray to the gods and ask for why that is?",
                 )
             ];
 
             $this->logger->critical("Cannot attach attachment " . BattleAttachment::class . ": Not installed.");
 
-            $this->addDefaultActions();
+            $this->addDefaultActions($this->stage, $this->scene);
         }
     }
 
     /**
      * Adds the actions required to search for a fight. The level action parameter defines the difficulty.
+     * @param Stage $stage
+     * @param Scene $scene
      * @return void
      */
-    public function addDefaultActions(): void
+    public function addDefaultActions(Stage $stage, Scene $scene): void
     {
         if ($this->health->isAlive()) {
-            $actionGroup = new ActionGroup(self::ActionGroupSearch, $this->scene->title);
+            $actionGroup = new ActionGroup(self::ActionGroupSearch, $scene->title);
 
             $actionGroup->addAction(
                 new Action(
-                    scene: $this->scene,
-                    title: $this->scene->templateConfig["searchFightAction"],
+                    scene: $scene,
+                    title: $scene->templateConfig["searchFightAction"],
                     parameters: [
                         "op" => "search",
                         "level" => 0,
@@ -218,11 +218,11 @@ class FightTemplate implements SceneTemplateInterface
             // Only allow searching for easy battles if the level is larger than 1.
             //  Enemies can only be level 1 or higher, so it wouldn't make sense
             //  to offer this option on level 1.
-            if ($this->character->level > 1) {
+            if ($stage->owner->level > 1) {
                 $actionGroup->addAction(
                     new Action(
-                        scene: $this->scene,
-                        title: $this->scene->templateConfig["searchSlummingAction"] ?? "Go slumming",
+                        scene: $scene,
+                        title: $scene->templateConfig["searchSlummingAction"] ?? "Go slumming",
                         parameters: [
                             "op" => "search",
                             "level" => -1,
@@ -233,8 +233,8 @@ class FightTemplate implements SceneTemplateInterface
 
             $actionGroup->addAction(
                 new Action(
-                    scene: $this->scene,
-                    title: $this->scene->templateConfig["searchThrillseekingAction"] ?? "Go thrillseeking",
+                    scene: $scene,
+                    title: $scene->templateConfig["searchThrillseekingAction"] ?? "Go thrillseeking",
                     parameters: [
                         "op" => "search",
                         "level" => 1,
@@ -242,26 +242,26 @@ class FightTemplate implements SceneTemplateInterface
                 )
             );
 
-            $this->stage->addActionGroup($actionGroup);
+            $stage->addActionGroup($actionGroup);
         }
 
         if ($this->security->isGranted("ROLE_CHEATS_ENABLED")) {
             $cheatsGroup = new ActionGroup("lotgd2.actionGroup.fightTemplate.cheats", "Cheats");
             $cheatsGroup->setActions([
                 new Action(
-                    scene: $this->scene,
+                    scene: $scene,
                     title: "#! Gain 1000 experience",
                     parameters: ["op" => "cheat", "what" => "experience"],
                     reference: "lotgd2.action.fightTemplate.cheats.experience",
                 ),
                 new Action(
-                    scene: $this->scene,
+                    scene: $scene,
                     title: "#! Gain 1000 gold",
                     parameters: ["op" => "cheat", "what" => "gold"],
                     reference: "lotgd2.action.fightTemplate.cheats.gold",)
             ]);
 
-            $this->stage->addActionGroup($cheatsGroup);
+            $stage->addActionGroup($cheatsGroup);
         }
     }
 
@@ -284,7 +284,7 @@ class FightTemplate implements SceneTemplateInterface
         // This is a 50% chance for 2, and a 25% chance for 1 and 3, making this effectively a 25% chance
         $level -= $this->diceBag->chance(0.25, 4) ? 1 : 0;
 
-        // There is are, effectively, 3 outcomes here:
+        // There are 3 outcomes here:
         //  -  5.47% chance for a positive increase (P(plev) * (1-P(nlev))
         //  - 11.71% chance for a negative increase ((1-P(plev) * P(nlev))
         //  - 82.81% chance for no change (1 - P(plev) * (1-P(nlev) - (1-P(plev) * P(nlev))

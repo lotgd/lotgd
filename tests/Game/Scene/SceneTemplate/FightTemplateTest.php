@@ -354,15 +354,22 @@ class FightTemplateTest extends TestCase
                 ["how", null],
             ]);
 
-        $this->logger->expects($this->once())
+        $found = false;
+        $this->logger->expects($this->atLeastOnce())
             ->method('debug')
-            ->with('Called FightTemplate::onSceneChange, op=fight');
+            ->willReturnCallback(function (string $message, array $context) use (&$found) {
+                if ($message === 'Called FightTemplate::onSceneChange, op=fight') {
+                    $found = true;
+                }
+            });
 
         // Mock the fightAction method by expecting it to be called
         // Since fightAction is likely implemented in DefaultFightTrait, 
         // we just verify the method dispatch works correctly
         $this->fightTemplate->setSceneChangeParameter($stage, $action, $scene);
         $this->fightTemplate->onSceneChange();
+
+        $this->assertTrue($found);
     }
 
     public function testOnSceneChangeWithCheats(): void
@@ -650,7 +657,7 @@ class FightTemplateTest extends TestCase
                     $value[0]->id,
                 );
                 $this->assertSame(
-                    'You are too blind to see any monsters. Maybe prey to the gods and ask for why that is?',
+                    'You are too blind to see any monsters. Maybe pray to the gods and ask for why that is?',
                     $value[0]->text,
                 );
             });
@@ -726,7 +733,7 @@ class FightTemplateTest extends TestCase
             ->method('addActionGroup');
 
         $this->fightTemplate->setSceneChangeParameter($stage, $action, $scene);
-        $this->fightTemplate->addDefaultActions();
+        $this->fightTemplate->addDefaultActions($stage, $scene);
     }
 
     public function testAddDefaultActionsLevelOne(): void
@@ -773,7 +780,7 @@ class FightTemplateTest extends TestCase
             }));
 
         $this->fightTemplate->setSceneChangeParameter($stage, $action, $scene);
-        $this->fightTemplate->addDefaultActions();
+        $this->fightTemplate->addDefaultActions($stage, $scene);
     }
 
     public function testGetRandomLevelChangeReturnsValidRange(): void
