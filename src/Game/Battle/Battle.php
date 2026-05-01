@@ -185,6 +185,9 @@ class Battle
         $goodGuyBuffStartEvents = $goodGuyBuffs->activate(Buff::ACTIVATES_ON_ROUNDSTART, $battleState->goodGuy, $battleState->badGuy);
         $badGuyBuffStartEvents = $badGuyBuffs->activate(Buff::ACTIVATES_ON_ROUNDSTART, $battleState->badGuy, $battleState->goodGuy);
 
+        $goodGuyRoundStartBuffEvents = $goodGuyBuffs->processDirectBuffs(Buff::ACTIVATES_ON_ROUNDSTART, $battleState->goodGuy, $battleState->badGuy);
+        $badGuyRoundStartBuffEvents = $goodGuyBuffs->processDirectBuffs(Buff::ACTIVATES_ON_ROUNDSTART, $battleState->badGuy, $battleState->goodGuy);
+
         [$offenseTurn, $defenseTurn] = $this->turn->getHalfTurns($battleState, $goodGuyBuffs, $badGuyBuffs);
 
         // Only add offence turns if it's part of the current round
@@ -197,6 +200,9 @@ class Battle
         $goodGuyBuffEndEvents = $goodGuyBuffs->activate(Buff::ACTIVATES_ON_ROUNDEND, $battleState->goodGuy, $battleState->badGuy);
         $badGuyBuffEndEvents = $badGuyBuffs->activate(Buff::ACTIVATES_ON_ROUNDEND, $battleState->badGuy, $battleState->goodGuy);
 
+        $goodGuyRoundEndBuffEvents = $goodGuyBuffs->processDirectBuffs(Buff::ACTIVATES_ON_ROUNDEND, $battleState->goodGuy, $battleState->badGuy);
+        $badGuyRoundEndBuffEvents = $goodGuyBuffs->processDirectBuffs(Buff::ACTIVATES_ON_ROUNDEND, $battleState->badGuy, $battleState->goodGuy);
+
         // Expire buffs if necessary
         $goodGuyExpiredBuffEvents = $goodGuyBuffs->expireOneRound($battleState->goodGuy, $battleState->badGuy);
         $badGuyExpiredBuffEvents = $badGuyBuffs->expireOneRound($battleState->badGuy, $battleState->goodGuy);
@@ -204,11 +210,15 @@ class Battle
         // Process events
         $events = new ArrayCollection([
             ... $goodGuyBuffStartEvents,
+            ... $goodGuyRoundStartBuffEvents,
             ... $badGuyBuffStartEvents,
+            ... $badGuyRoundStartBuffEvents,
             ... $offenseTurnEvents,
             ... $defenseTurnEvents,
             ... $goodGuyBuffEndEvents,
+            ... $goodGuyRoundEndBuffEvents,
             ... $badGuyBuffEndEvents,
+            ... $badGuyRoundEndBuffEvents,
             ... $goodGuyExpiredBuffEvents,
             ... $badGuyExpiredBuffEvents,
         ]);
