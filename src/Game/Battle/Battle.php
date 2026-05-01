@@ -328,7 +328,7 @@ class Battle
         if ($how === self::SkillFightActionParamValue) {
             $skill = $event->action->getParameter(self::SkillActionParam);
 
-            $battleSkillActivationEvent = new BattleSkillActivationEvent($event->character, $this->buffHandler, $skill);
+            $battleSkillActivationEvent = new BattleSkillActivationEvent($event->character, $this->buffHandler, $skill, $event->action);
             $this->eventDispatcher->dispatch($battleSkillActivationEvent, self::OnSkillActivationEvent);
         }
 

@@ -107,14 +107,14 @@ readonly class SceneRenderer
             $action->title = $sceneConnection->sourceLabel ?? $sceneConnection->targetScene->title;
             $action->sceneId = $sceneConnection->targetScene;
 
-            if (!$expressionService->evaluate($sceneConnection->sourceExpression)) {
+            if (!$expressionService->evaluateBoolean($sceneConnection->sourceExpression)) {
                 $add =false;
             }
         } elseif ($sceneConnection->targetScene === $scene) {
             $action->title = $sceneConnection->targetLabel ?? $sceneConnection->sourceScene->title;
             $action->sceneId = $sceneConnection->sourceScene;
 
-            if (!$expressionService->evaluate($sceneConnection->targetExpression)) {
+            if (!$expressionService->evaluateBoolean($sceneConnection->targetExpression)) {
                 $add =false;
             }
         } else {

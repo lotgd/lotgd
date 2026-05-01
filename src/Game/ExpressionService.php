@@ -14,6 +14,7 @@ use Symfony\Component\ExpressionLanguage\ExpressionLanguage;
 use Symfony\Component\ExpressionLanguage\Parser;
 use Symfony\Component\ExpressionLanguage\SyntaxError;
 
+
 class ExpressionService
 {
     public function __construct(
@@ -27,10 +28,10 @@ class ExpressionService
 
     }
 
-    public function evaluate(?string $expression): bool
+    public function evaluate(?string $expression): mixed
     {
         if ($expression === null || strlen($expression) === 0) {
-            return true;
+            return null;
         }
 
         $expressionLanguage = new ExpressionLanguage();
@@ -46,6 +47,8 @@ class ExpressionService
             "stats" => (object)[
                 "experience" => $this->stats->getExperience(),
                 "required" => $this->stats->getRequiredExperience(),
+                "attack" => $this->stats->getTotalAttack(),
+                "defense" => $this->stats->getTotalDefense(),
             ],
             "gold" => $this->gold->getGold(null),
             "equipment" => (object)[
@@ -58,11 +61,44 @@ class ExpressionService
 
         try {
             $expressionLanguage->lint($expression, $names, $flags);
-            return (bool)$expressionLanguage->evaluate($expression, $names);
+            return $expressionLanguage->evaluate($expression, $names);
         } catch (SyntaxError $e) {
             // Allow connection to be made if expression contains an error
             $this->logger->warning("Expression was faulty: {$expression}. {$e->getMessage()}");
-            return true;
+            return null;
+        }
+    }
+
+    public function evaluateBoolean(?string $expression, $default = true): bool
+    {
+        $value = $this->evaluate($expression);
+
+        if ($value === null) {
+            return $default;
+        } else {
+            return (bool)$value;
+        }
+    }
+
+    public function evaluateInteger(?string $expression, $default = 0): int
+    {
+        $value = $this->evaluate($expression);
+
+        if ($value === null) {
+            return $default;
+        } else {
+            return (int)round($value);
+        }
+    }
+
+    public function evaluateFloat(?string $expression, $default = 1.): float
+    {
+        $value = $this->evaluate($expression);
+
+        if ($value === null) {
+            return $default;
+        } else {
+            return (float)$value;
         }
     }
 }

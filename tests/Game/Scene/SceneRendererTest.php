@@ -153,7 +153,7 @@ class SceneRendererTest extends TestCase
         $actionService = $this->createStub(ActionService::class);
 
         $expressionService = $this->createMock(ExpressionService::class);
-        $expressionService->expects($this->once())->method("evaluate")->willReturn(true);
+        $expressionService->expects($this->once())->method("evaluateBoolean")->willReturn(true);
 
         $sceneRenderer = new SceneRenderer($sceneRepository, $diceBag, $actionService, $this->logger);
 
@@ -182,7 +182,7 @@ class SceneRendererTest extends TestCase
         $actionService = $this->createStub(ActionService::class);
 
         $expressionService = $this->createMock(ExpressionService::class);
-        $expressionService->expects($this->once())->method("evaluate")->willReturn(true);
+        $expressionService->expects($this->once())->method("evaluateBoolean")->willReturn(true);
 
         $sceneRenderer = new SceneRenderer($sceneRepository, $diceBag, $actionService, $this->logger);
 
@@ -212,7 +212,7 @@ class SceneRendererTest extends TestCase
         $diceBag = new DiceBag();
         $actionService = $this->createStub(ActionService::class);
         $expressionService = $this->createMock(ExpressionService::class);
-        $expressionService->expects($this->exactly(0))->method("evaluate")->willReturn(true);
+        $expressionService->expects($this->exactly(0))->method("evaluateBoolean")->willReturn(true);
 
         $sceneRenderer = new SceneRenderer($sceneRepository, $diceBag, $actionService, $this->logger);
 
