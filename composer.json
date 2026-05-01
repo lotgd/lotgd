@@ -63,7 +63,8 @@
     "autoload": {
         "psr-4": {
             "LotGD2\\": "src/"
-        }
+        },
+        "files": ["src/functions.php"]
     },
     "autoload-dev": {
         "psr-4": {

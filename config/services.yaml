@@ -18,8 +18,9 @@ services:
         exclude:
             - '../src/DependencyInjection/'
             - '../src/Entity/'
-            - '../src/Kernel.php'
             - '../src/Event/'
+            - '../src/Kernel.php'
+            - '../src/functions.php'
 
     Gglnx\TwigTryCatch\Extension\TryCatchExtension:
         tags: [twig.extension]
