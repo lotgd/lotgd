@@ -114,6 +114,10 @@ class BuffHandler
             minionMaxGoodGuyDamage: is_string($protoBuff->minionMaxGoodGuyDamage) ? $expressionService->evaluateInteger($protoBuff->minionMaxGoodGuyDamage, 0) : $protoBuff->minionMaxGoodGuyDamage,
         );
 
+        $this->logger->debug("{$character}: Adds a buff from a proto buff", context: [
+            "protoBuff" => $protoBuff,
+            "buff" => $buff,
+        ]);
 
         $this->addBuff($character, $buff);
     }
