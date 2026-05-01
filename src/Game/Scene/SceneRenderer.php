@@ -89,10 +89,11 @@ readonly class SceneRenderer
     /**
      * Internal helper method. Creates an action to switch scenes based on a connection.
      *
-     * @internal
      * @param Scene $scene
      * @param SceneConnection $sceneConnection
+     * @param ExpressionService $expressionService
      * @return ?Action
+     * @internal
      */
     public function createActionFromConnection(
         Scene $scene,
