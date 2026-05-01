@@ -186,7 +186,7 @@ class Battle
         $badGuyBuffStartEvents = $badGuyBuffs->activate(Buff::ACTIVATES_ON_ROUNDSTART, $battleState->badGuy, $battleState->goodGuy);
 
         $goodGuyRoundStartBuffEvents = $goodGuyBuffs->processDirectBuffs(Buff::ACTIVATES_ON_ROUNDSTART, $battleState->goodGuy, $battleState->badGuy);
-        $badGuyRoundStartBuffEvents = $goodGuyBuffs->processDirectBuffs(Buff::ACTIVATES_ON_ROUNDSTART, $battleState->badGuy, $battleState->goodGuy);
+        $badGuyRoundStartBuffEvents = $badGuyBuffs->processDirectBuffs(Buff::ACTIVATES_ON_ROUNDSTART, $battleState->badGuy, $battleState->goodGuy);
 
         [$offenseTurn, $defenseTurn] = $this->turn->getHalfTurns($battleState, $goodGuyBuffs, $badGuyBuffs);
 
@@ -201,7 +201,7 @@ class Battle
         $badGuyBuffEndEvents = $badGuyBuffs->activate(Buff::ACTIVATES_ON_ROUNDEND, $battleState->badGuy, $battleState->goodGuy);
 
         $goodGuyRoundEndBuffEvents = $goodGuyBuffs->processDirectBuffs(Buff::ACTIVATES_ON_ROUNDEND, $battleState->goodGuy, $battleState->badGuy);
-        $badGuyRoundEndBuffEvents = $goodGuyBuffs->processDirectBuffs(Buff::ACTIVATES_ON_ROUNDEND, $battleState->badGuy, $battleState->goodGuy);
+        $badGuyRoundEndBuffEvents = $badGuyBuffs->processDirectBuffs(Buff::ACTIVATES_ON_ROUNDEND, $battleState->badGuy, $battleState->goodGuy);
 
         // Expire buffs if necessary
         $goodGuyExpiredBuffEvents = $goodGuyBuffs->expireOneRound($battleState->goodGuy, $battleState->badGuy);
