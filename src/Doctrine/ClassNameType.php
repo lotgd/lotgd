@@ -22,7 +22,9 @@ class ClassNameType extends StringType
      */
     public function convertToPHPValue(mixed $value, AbstractPlatform $platform): ?string
     {
-        if (class_exists($value)) {
+        if ($value === null) {
+            return null;
+        } elseif (class_exists($value)) {
             return $value;
         } else {
             return null;
