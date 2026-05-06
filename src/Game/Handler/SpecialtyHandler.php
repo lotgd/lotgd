@@ -12,12 +12,16 @@ use LotGD2\Entity\Mapped\Specialty;
 use LotGD2\Entity\Paragraph;
 use LotGD2\Event\BattleNavigationChangeEvent;
 use LotGD2\Event\BattleSkillActivationEvent;
+use LotGD2\Event\CharacterChangeEvent;
 use LotGD2\Event\StageChangeEvent;
 use LotGD2\Game\Battle\Battle;
 use LotGD2\Game\GameTime\NewDay;
+use LotGD2\Game\Race\RaceInterface;
 use LotGD2\Game\Random\DiceBagAwareInterface;
 use LotGD2\Game\Random\DiceBagAwareTrait;
+use LotGD2\Game\Scene\SceneTemplate\DragonTemplate;
 use LotGD2\Game\Scene\SceneTemplate\FightTemplate;
+use LotGD2\Game\Scene\SceneTemplate\TrainingTemplate;
 use LotGD2\Repository\SpecialtyRepository;
 use Psr\Log\LoggerInterface;
 use Symfony\Bundle\SecurityBundle\Security;
@@ -135,6 +139,30 @@ class SpecialtyHandler implements DiceBagAwareInterface
             }
         } else {
             return $id !== null && $id === $specialty->id;
+        }
+    }
+
+    /**
+     * @param Character $character
+     * @param int $level
+     * @return bool Return true if a new use has been added
+     */
+    public function incrementMainSpecialty(Character $character, int $level): bool
+    {
+        $specialty = $this->getMainCharacterSpecialty($character);
+        $specialty->level += $level;
+
+        $oldUses = $specialty->uses;
+        $specialty->uses = (int)floor($specialty->level / 3);
+
+        $this->logger->debug("{$character}: Specialty level of {$specialty->name} increased to {$specialty->level}, uses now: {$specialty->uses} (was {$oldUses} before)", [
+            "characterSpecialty" => $specialty,
+        ]);
+
+        if ($specialty->uses > $oldUses) {
+            return true;
+        } else {
+            return false;
         }
     }
 
@@ -475,5 +503,44 @@ class SpecialtyHandler implements DiceBagAwareInterface
 
             $event->stopPropagation();
         }
+    }
+
+    #[AsEventListener(event: TrainingTemplate::OnCharacterLevelUp, priority: -120)]
+    public function onCharacterLevelIncrease(CharacterChangeEvent $event): void
+    {
+        $deltaLevel = $event->character->level - $event->characterBefore->level;
+
+        if ($deltaLevel > 0) {
+            $mainSpecialty = $this->getMainCharacterSpecialty($event->character);
+            $hasMoreUses = $this->incrementMainSpecialty($event->character, $deltaLevel);
+
+            $event->stage?->addParagraph(new Paragraph(
+                id: "lotgd2.paragraph.SpecialtyHandler.specialtyIncrement",
+                text: <<<TXT
+                    You gain {{ level == 1 ? "a" : level }} level in {{ specialtyName }} to {{ specialtyLevel}},
+                    {% if hasMoreUses %}
+                        you gain an extra use point!
+                    {% else %}
+                        only {{ levelsUntilNext }} more skill levels until you gain an extra use point!
+                    {% endif %}
+                    
+                    TXT,
+                context: [
+                    "level" => $deltaLevel,
+                    "specialtyName" => $mainSpecialty->name,
+                    "specialtyLevel" => $mainSpecialty->level,
+                    "hasMoreUses" => $hasMoreUses,
+                    "levelsUntilNext" => 3 - $mainSpecialty%3,
+                ]
+            ));
+        }
+    }
+
+    #[AsEventListener(event: DragonTemplate::OnCharacterReset)]
+    public function onCharacterReset(CharacterChangeEvent $event): void
+    {
+        $this->logger->debug("{$event->character}: Resetting specialties.");
+        $event->character->setProperty(self::MainSpecialtyProperty, null);
+        $event->character->setProperty(self::SpecialtyProperty, []);
     }
 }

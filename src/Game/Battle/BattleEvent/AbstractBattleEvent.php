@@ -6,14 +6,17 @@ namespace LotGD2\Game\Battle\BattleEvent;
 use LotGD2\Entity\Battle\BattleMessage;
 use LotGD2\Game\Error\BattleEventError;
 
+/**
+ * @template TContext of array = array<string, mixed>
+ */
 abstract class AbstractBattleEvent implements BattleEventInterface
 {
     private bool $applied = false;
-    /** @var array<string, mixed> */
+    /** @var TContext */
     protected array $context = [];
 
     /**
-     * @return array<string, mixed>
+     * @return TContext
      */
     public function getContext(): array
     {

@@ -257,7 +257,7 @@ class TrainingTemplate implements SceneTemplateInterface
      */
     public function onFightWon(SimpleStageParameterEvent $event, BattleState $battleState): void
     {
-        $this->levelUp($event->character);
+        $this->levelUp($event->character, stage: $event->stage);
 
         $event->stage->paragraphs = [
             new Paragraph(
@@ -391,7 +391,7 @@ class TrainingTemplate implements SceneTemplateInterface
      * @param int|null $targetLevel
      * @return void
      */
-    public function levelUp(Character $character, ?int $targetLevel = null): void
+    public function levelUp(Character $character, ?int $targetLevel = null, ?Stage $stage = null): void
     {
         $oldCharacter = clone $character;
 
@@ -403,7 +403,7 @@ class TrainingTemplate implements SceneTemplateInterface
 
         $character->level += $level;
         $this->logger->debug("{$character}: Level increased to {$character->level}.");
-        $event = new CharacterChangeEvent($character, $oldCharacter);
+        $event = new CharacterChangeEvent($character, $oldCharacter, $stage);
 
         $this->eventDispatcher->dispatch($event, self::OnCharacterLevelUp);
     }
