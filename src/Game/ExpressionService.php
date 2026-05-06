@@ -69,7 +69,7 @@ class ExpressionService
         }
     }
 
-    public function evaluateBoolean(?string $expression, $default = true): bool
+    public function evaluateBoolean(?string $expression, bool $default = true): bool
     {
         $value = $this->evaluate($expression);
 
@@ -80,7 +80,7 @@ class ExpressionService
         }
     }
 
-    public function evaluateInteger(?string $expression, $default = 0): int
+    public function evaluateInteger(?string $expression, int $default = 0): int
     {
         $value = $this->evaluate($expression);
 
@@ -91,7 +91,7 @@ class ExpressionService
         }
     }
 
-    public function evaluateFloat(?string $expression, $default = 1.): float
+    public function evaluateFloat(?string $expression, float $default = 1.): float
     {
         $value = $this->evaluate($expression);
 
