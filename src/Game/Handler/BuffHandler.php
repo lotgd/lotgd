@@ -8,11 +8,15 @@ use LotGD2\Entity\Battle\BuffList;
 use LotGD2\Entity\Battle\FighterInterface;
 use LotGD2\Entity\Battle\ProtoBuff;
 use LotGD2\Entity\Mapped\Character;
+use LotGD2\Entity\Paragraph;
+use LotGD2\Event\StageChangeEvent;
 use LotGD2\Game\ExpressionService;
+use LotGD2\Game\GameTime\NewDay;
 use LotGD2\Game\Random\DiceBag;
 use LotGD2\Game\Random\DiceBagInterface;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
+use Symfony\Component\EventDispatcher\Attribute\AsEventListener;
 
 class BuffHandler
 {
@@ -24,7 +28,7 @@ class BuffHandler
     ) {
     }
 
-    public function getBuffs(Character|FighterInterface $fighter): BuffList
+    public function getBuffList(Character|FighterInterface $fighter): BuffList
     {
         if ($fighter instanceof Character) {
             $buffs = $fighter->getProperty(self::BuffPropertyName, []);
@@ -43,18 +47,38 @@ class BuffHandler
 
     /**
      * @param Character|FighterInterface $fighter
-     * @param BuffList $buffs
+     * @return Buff[]
+     */
+    public function getBuffs(Character|FighterInterface $fighter): array
+    {
+        if ($fighter instanceof Character) {
+            $buffs = $fighter->getProperty(self::BuffPropertyName, []);
+        } else {
+            $buffs = $fighter->kwargs[self::BuffPropertyName] ?? [];
+        }
+
+        return $buffs;
+    }
+
+    /**
+     * @param Character|FighterInterface $fighter
+     * @param BuffList|Buff[] $buffs
      * @return void
      */
-    public function setBuffs(Character|FighterInterface $fighter, BuffList $buffs): void
+    public function setBuffs(Character|FighterInterface $fighter, BuffList|array $buffs): void
     {
-        $oldLength = count($this->getBuffs($fighter)->buffs);
-        $newLength = count($buffs->buffs);
+        if ($buffs instanceof BuffList) {
+            $buffs = $buffs->buffs;
+        }
+
+        $oldLength = count($this->getBuffs($fighter));
+        $newLength = count($buffs);
+
         if ($fighter instanceof Character) {
             $this->logger->debug("{$fighter}: Set BuffList (New length: {$newLength}, Old length: {$oldLength})");
-            $fighter->setProperty(self::BuffPropertyName , $buffs->buffs);
+            $fighter->setProperty(self::BuffPropertyName , $buffs);
         } else {
-            $fighter->kwargs[self::BuffPropertyName] = $buffs->buffs;
+            $fighter->kwargs[self::BuffPropertyName] = $buffs;
         }
     }
 
@@ -120,5 +144,37 @@ class BuffHandler
         ]);
 
         $this->addBuff($character, $buff);
+    }
+
+    #[AsEventListener(event: NewDay::OnNewDayAfter, priority: -20)]
+    public function expireBuffsOnNewDay(StageChangeEvent $event): void
+    {
+        $buffs = $this->getBuffs($event->character);
+        $survivedBuffs = [];
+        $i = 0;
+        foreach ($buffs as $buff) {
+            if ($buff->expiresOnNewDay === true) {
+                $this->logger->debug("BuffHandler::expireBuffsOnNewDay: {$buff->name} was expired.");
+                continue;
+            }
+
+            $survivedBuffs[] = $buff;
+
+            $this->logger->debug("BuffHandler::expireBuffsOnNewDay: {$buff->name} survives new day.");
+
+            if ($buff->newDayMessage === null) {
+                continue;
+            }
+
+            $event->stage->addParagraph(new Paragraph(
+                id: "lotgd2.paragraph.BuffHandler.OnNewDay.{$i}",
+                text: $buff->newDayMessage,
+            ));
+
+            // Only increment if a message was posted.
+            $i++;
+        }
+
+        $this->setBuffs($event->character, $survivedBuffs);
     }
 }

@@ -178,8 +178,8 @@ class Battle
 
         $battleState->setCharacter($this->character);
 
-        $goodGuyBuffs = $this->buffHandler->getBuffs($this->character);
-        $badGuyBuffs = $this->buffHandler->getBuffs($battleState->badGuy);
+        $goodGuyBuffs = $this->buffHandler->getBuffList($this->character);
+        $badGuyBuffs = $this->buffHandler->getBuffList($battleState->badGuy);
 
         // Activate on round start comes before the calculation of the half-turns
         $goodGuyBuffStartEvents = $goodGuyBuffs->activate(Buff::ACTIVATES_ON_ROUNDSTART, $battleState->goodGuy, $battleState->badGuy);
