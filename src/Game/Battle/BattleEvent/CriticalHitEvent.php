@@ -8,17 +8,23 @@ use LotGD2\Entity\Battle\CurrentCharacterFighter;
 use LotGD2\Entity\Battle\FighterInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
+/**
+ * @phpstan-type CriticalHitContext array{
+ *     criticalAttackValue: int,
+ * }
+ * @extends AbstractBattleEvent<CriticalHitContext>
+ */
 class CriticalHitEvent extends AbstractBattleEvent
 {
     /**
      * @param FighterInterface $attacker
      * @param FighterInterface $defender
-     * @param array{criticalAttackValue: int} $context
+     * @param CriticalHitContext $context
      */
     public function __construct(
         private FighterInterface $attacker,
         private FighterInterface $defender,
-        protected array $context,
+        array $context,
     ) {
         $resolver = new OptionsResolver();
         $resolver->define("criticalAttackValue")->allowedTypes("int")->required();

@@ -7,18 +7,22 @@ use LotGD2\Entity\Battle\BattleMessage;
 use LotGD2\Entity\Battle\FighterInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
+/**
+ * @phpstan-type MinionDamageContext array{
+ *      target: "attacker"|"defender",
+ *      damage: int,
+ *      effectSucceeds?: ?string,
+ *      effectFails?: ?string,
+ *      noEffect?: ?string,
+ *  }
+ * @extends AbstractBattleEvent<MinionDamageContext>
+ */
 class MinionDamageEvent extends AbstractBattleEvent
 {
     /**
      * @param FighterInterface $attacker
      * @param FighterInterface $defender
-     * @param array{
-     *     target: "attacker"|"defender",
-     *     damage: int,
-     *     effectSucceeds?: ?string,
-     *     effectFails?: ?string,
-     *     noEffect?: ?string,
-     * } $context
+     * @param MinionDamageContext $context
      */
     public function __construct(
         private readonly FighterInterface $attacker,

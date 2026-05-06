@@ -8,6 +8,7 @@ use LotGD2\Game\Error\BattleEventError;
 
 /**
  * @template TContext of array = array<string, mixed>
+ * @implements BattleEventInterface<TContext>
  */
 abstract class AbstractBattleEvent implements BattleEventInterface
 {

@@ -13,18 +13,22 @@ use Symfony\Component\OptionsResolver\OptionsResolver;
  * Damage event gets added for each normal attack
  *
  * @phpstan-type DamageEventCollection ArrayCollection<int, DamageEvent>
+ * @phpstan-type DamageEventContext array{
+ *     damage: int,
+ * }
+ * @extends AbstractBattleEvent<DamageEventContext>
  */
 class DamageEvent extends AbstractBattleEvent
 {
     /**
      * @param FighterInterface $attacker
      * @param FighterInterface $defender
-     * @param array{damage: int} $context
+     * @param DamageEventContext $context
      */
     public function __construct(
         private FighterInterface $attacker,
         private FighterInterface $defender,
-        protected array $context,
+        array $context,
     ) {
         $resolver = new OptionsResolver();
         $resolver->define("damage")->allowedTypes("int")->required();

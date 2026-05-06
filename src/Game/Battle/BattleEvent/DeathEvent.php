@@ -10,19 +10,23 @@ use Symfony\Component\OptionsResolver\OptionsResolver;
 
 /**
  * DeathEvent gets added to the battle log if a fighter dies.
+ *
+ * @phpstan-type DeathContext array{
+ *     victim: FighterInterface,
+ * }
+ * @extends AbstractBattleEvent<DeathContext>
  */
 class DeathEvent extends AbstractBattleEvent
 {
     /**
      * @param FighterInterface $attacker
      * @param FighterInterface $defender
-     * @param array{victim: FighterInterface} $context
+     * @param DeathContext $context
      */
     public function __construct(
         FighterInterface $attacker,
         FighterInterface $defender,
-        /** @var  */
-        protected array $context,
+        array $context,
     ) {
         $resolver = new OptionsResolver();
         $resolver->define("victim")->allowedTypes(FighterInterface::class)->required();

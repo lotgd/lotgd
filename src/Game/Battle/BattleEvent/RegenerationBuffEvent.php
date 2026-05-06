@@ -7,17 +7,21 @@ use LotGD2\Entity\Battle\BattleMessage;
 use LotGD2\Entity\Battle\FighterInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
+/**
+ * @phpstan-type RegenerationBuffContext array{
+ *      healAmount: int,
+ *      effectSucceeds?: ?string,
+ *      effectFails?: ?string,
+ *      target: "attacker"|"defender",
+ *  }
+ * @extends AbstractBattleEvent<RegenerationBuffContext>
+ */
 class RegenerationBuffEvent extends AbstractBattleEvent
 {
     /**
      * @param FighterInterface $attacker
      * @param FighterInterface $defender
-     * @param array{
-     *     healAmount: int,
-     *     effectSucceeds?: ?string,
-     *     effectFails?: ?string,
-     *     target: "attacker"|"defender",
-     * } $context
+     * @param RegenerationBuffContext $context
      */
     public function __construct(
         private FighterInterface $attacker,

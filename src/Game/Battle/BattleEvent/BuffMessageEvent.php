@@ -7,13 +7,19 @@ use LotGD2\Entity\Battle\BattleMessage;
 use LotGD2\Entity\Battle\FighterInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
+/**
+ * @phpstan-type BuffMessageContext array{
+ *     message: string,
+ * }
+ * @extends AbstractBattleEvent<BuffMessageContext>
+ */
 class BuffMessageEvent extends AbstractBattleEvent
 {
 
     /**
      * @param FighterInterface $attacker
      * @param FighterInterface $defender
-     * @param array{message: string} $context
+     * @param BuffMessageContext $context
      */
     public function __construct(
         private readonly FighterInterface $attacker,

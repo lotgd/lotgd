@@ -9,13 +9,14 @@ use LotGD2\Entity\Battle\FighterInterface;
 
 /**
  * @phpstan-type BattleEventCollection ArrayCollection<int, BattleEventInterface>
+ * @template TContext of array = array<string, mixed>
  */
 interface BattleEventInterface
 {
     /**
      * @param FighterInterface $attacker
      * @param FighterInterface $defender
-     * @param array<string, mixed> $context
+     * @param TContext $context
      */
     public function __construct(
         FighterInterface $attacker,
@@ -26,7 +27,7 @@ interface BattleEventInterface
     public function decorate(): ?BattleMessage;
 
     /**
-     * @return array<string, mixed>
+     * @return TContext
      */
     public function getContext(): array;
 }

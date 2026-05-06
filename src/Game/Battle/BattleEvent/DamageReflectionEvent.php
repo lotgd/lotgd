@@ -7,6 +7,17 @@ use LotGD2\Entity\Battle\BattleMessage;
 use LotGD2\Entity\Battle\FighterInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
+/**
+ * @phpstan-type DamageReflectionContext array{
+ *       target: "attacker"|"defender",
+ *       damage: int,
+ *       reflection: float,
+ *       effectSucceeds?: ?string,
+ *       effectFails?: ?string,
+ *       noEffect?: ?string,
+ *  }
+ * @extends AbstractBattleEvent<DamageReflectionContext>
+ */
 class DamageReflectionEvent extends AbstractBattleEvent
 {
     private ?string $message = null;
@@ -16,14 +27,7 @@ class DamageReflectionEvent extends AbstractBattleEvent
     /**
      * @param FighterInterface $attacker
      * @param FighterInterface $defender
-     * @param array{
-     *      target: "attacker"|"defender",
-     *      damage: int,
-     *      reflection: float,
-     *      effectSucceeds?: ?string,
-     *      effectFails?: ?string,
-     *      noEffect?: ?string,
-     * } $context
+     * @param DamageReflectionContext $context
      */
     public function __construct(
         private FighterInterface $attacker,
@@ -49,21 +53,21 @@ class DamageReflectionEvent extends AbstractBattleEvent
         $damage = $this->context["damage"] ?? 0;
         $reflection = $this->context['reflection'];
 
-        if ($this->context["victim"] === "attacker") {
+        if ($this->context["target"] === "attacker") {
             // The victim is the attacker. We only calculate reflection on negative damage.
             if ($damage > 0) {
                 $this->reflectedDamage = 0;
-                $this->message = $this->context["effectFailsMessage"] ?? null;
+                $this->message = $this->context["effectFails"] ?? null;
             } elseif ($damage == 0) {
                 $this->reflectedDamage = 0;
-                $this->message = $this->context["noEffectMessage"] ?? null;
+                $this->message = $this->context["noEffect"] ?? null;
             } else {
                 $this->reflectedDamage = (int)round($reflection * $damage * -1, 0);
 
                 if ($this->reflectedDamage === 0) {
-                    $this->message = $this->context["noEffectMessage"] ?? null;
+                    $this->message = $this->context["noEffect"] ?? null;
                 } else {
-                    $this->message = $this->context["effectSucceedsMessage"] ?? null;
+                    $this->message = $this->context["effectSucceeds"] ?? null;
                 }
             }
         } else {
@@ -72,17 +76,17 @@ class DamageReflectionEvent extends AbstractBattleEvent
                 $this->reflectedDamage = (int)round($reflection * $damage, 0);
 
                 if ($this->reflectedDamage === 0) {
-                    $this->message = $this->context["noEffectMessage"] ?? null;
+                    $this->message = $this->context["noEffect"] ?? null;
                 } else {
-                    $this->message = $this->context["effectSucceedsMessage"] ?? null;
+                    $this->message = $this->context["effectSucceeds"] ?? null;
                 }
             } elseif ($damage == 0) {
                 $this->reflectedDamage = 0;
-                $this->message = $this->context["noEffectMessage"] ?? null;;
+                $this->message = $this->context["noEffect"] ?? null;;
             } else {
                 // Damage is < 0, so goodguy takes damage. This buff cannot reflect.
                 $this->reflectedDamage = 0;
-                $this->message = $this->context["effectFailsMessage"] ?? null;;
+                $this->message = $this->context["effectFails"] ?? null;;
             }
         }
 
