@@ -7,6 +7,17 @@ use LotGD2\Entity\Battle\BattleMessage;
 use LotGD2\Entity\Battle\FighterInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
+/**
+ * @phpstan-type LifeTapContext array{
+ *       target: "attacker"|"defender",
+ *       damage: int,
+ *       lifeTap: float,
+ *       effectSucceeds?: ?string,
+ *       effectFails?: ?string,
+ *       noEffect?: ?string,
+ *  }
+ * @extends AbstractBattleEvent<LifeTapContext>
+ */
 class LifeTapEvent extends AbstractBattleEvent
 {
     private ?string $message = null;
@@ -16,14 +27,7 @@ class LifeTapEvent extends AbstractBattleEvent
     /**
      * @param FighterInterface $attacker
      * @param FighterInterface $defender
-     * @param array{
-     *      target: "attacker"|"defender",
-     *      damage: int,
-     *      lifeTap: float,
-     *      effectSucceeds?: ?string,
-     *      effectFails?: ?string,
-     *      noEffect?: ?string,
-     * } $context
+     * @param LifeTapContext $context
      */
     public function __construct(
         private FighterInterface $attacker,
@@ -49,42 +53,41 @@ class LifeTapEvent extends AbstractBattleEvent
         $damage = $this->context["damage"] ?? 0;
         $lifeTap = $this->context['lifeTap'];
 
-        if ($this->context["victim"] === "attacker") {
+        if ($this->context["target"] === "attacker") {
             if ($damage > 0) {
                 // Damage is > 0, badguy takes damage. Goodguy lifetap works only upon damage to the goodguy.
                 $this->healedDamage = 0;
-                $this->message = $this->context["effectFailsMessage"];
+                $this->message = $this->context["effectFails"];
             } elseif ($damage < 0) {
                 // Damage is < 0, goodguy takes damage. We act upon this.
                 $this->healedDamage = (int)round($damage * -$lifeTap, 0);
 
                 if ($this->healedDamage === 0) {
-                    $this->message = $this->context["noEffectMessage"];
+                    $this->message = $this->context["noEffect"];
                 } else {
-                    $this->message = $this->context["effectSucceedsMessage"];
+                    $this->message = $this->context["effectSucceeds"];
                 }
             } else {
                 $this->healedDamage = 0;
-                $this->message = $this->context["noEffectMessage"];
+                $this->message = $this->context["noEffect"];
             }
         } else {
-
             if ($damage > 0) {
                 // Damage is > 0, goodguy takes damage. We act upon this to heal goodguy.
                 $this->healedDamage = (int)round($damage * $lifeTap, 0);
 
                 if ($this->healedDamage === 0) {
-                    $this->message = $this->context["noEffectMessage"];
+                    $this->message = $this->context["noEffect"];
                 } else {
-                    $this->message = $this->context["effectSucceedsMessage"];
+                    $this->message = $this->context["effectSucceeds"];
                 }
             } elseif ($damage < 0) {
                 // Damage is < 0, goodguy takes damage. Badguy lifetap works only upon damage to the goodguy.
                 $this->healedDamage = 0;
-                $this->message = $this->context["effectFailsMessage"];
+                $this->message = $this->context["effectFails"];
             } else {
                 $this->healedDamage = 0;
-                $this->message = $this->context["noEffectMessage"];
+                $this->message = $this->context["noEffect"];
             }
         }
 
@@ -103,6 +106,7 @@ class LifeTapEvent extends AbstractBattleEvent
             $this->message, [
                 "victim" => $this->victim,
                 "heal" => $this->healedDamage,
+                "damage" => $this->healedDamage,
                 "attacker" => $this->attacker,
                 "defender" => $this->defender,
             ]
