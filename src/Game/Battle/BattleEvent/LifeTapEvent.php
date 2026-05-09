@@ -9,7 +9,8 @@ use Symfony\Component\OptionsResolver\OptionsResolver;
 
 /**
  * @phpstan-type LifeTapContext array{
- *       target: "attacker"|"defender",
+ *       damageVictim: "attacker"|"defender",
+ *       healTarget: "defender"|"attacker",
  *       damage: int,
  *       lifeTap: float,
  *       effectSucceeds?: ?string,
@@ -20,9 +21,41 @@ use Symfony\Component\OptionsResolver\OptionsResolver;
  */
 class LifeTapEvent extends AbstractBattleEvent
 {
-    private ?string $message = null;
-    private int $healedDamage = 0;
-    private FighterInterface $victim;
+    private(set) ?string $message = null {
+        get => $this->message;
+        set(null|string $value) {
+            $this->message = $value;
+        }
+    }
+
+    private(set) int $healedDamage = 0 {
+        get => $this->healedDamage;
+        set(int $value) {
+            $this->healedDamage = $value;
+        }
+    }
+
+    /**
+     * Target of the original attack
+     * @var FighterInterface
+     */
+    private(set) FighterInterface $damageVictim {
+        get => $this->damageVictim;
+        set(FighterInterface $value) {
+            $this->damageVictim = $value;
+        }
+    }
+
+    /**
+     * Target to heal based of the damage.
+     * @var FighterInterface
+     */
+    private(set) FighterInterface $healTarget {
+        get => $this->healTarget;
+        set(FighterInterface $value) {
+            $this->healTarget = $value;
+        }
+    }
 
     /**
      * @param FighterInterface $attacker
@@ -35,7 +68,8 @@ class LifeTapEvent extends AbstractBattleEvent
         array $context,
     ) {
         $resolver = new OptionsResolver();
-        $resolver->define("target")->allowedTypes("string")->allowedValues("attacker", "defender");
+        $resolver->define("damageVictim")->allowedTypes("string")->allowedValues("attacker", "defender");
+        $resolver->define("healTarget")->allowedTypes("string")->allowedValues("defender", "attacker");
         $resolver->define("damage")->allowedTypes("int")->required();
         $resolver->define("lifeTap")->allowedTypes("float")->required();
         $resolver->define("effectSucceeds")->allowedTypes("string", "null")->default(null);
@@ -43,7 +77,8 @@ class LifeTapEvent extends AbstractBattleEvent
         $resolver->define("noEffect")->allowedTypes("string", "null")->default(null);
         $this->context = $resolver->resolve($context);
 
-        $this->victim = $this->context["target"] === "attacker" ? $this->attacker : $this->defender;
+        $this->damageVictim = $this->context["damageVictim"] === "attacker" ? $this->attacker : $this->defender;
+        $this->healTarget = $this->context["healTarget"] === "attacker" ? $this->attacker : $this->defender;
     }
 
     public function apply(): void
@@ -53,14 +88,18 @@ class LifeTapEvent extends AbstractBattleEvent
         $damage = $this->context["damage"] ?? 0;
         $lifeTap = $this->context['lifeTap'];
 
-        if ($this->context["target"] === "attacker") {
+        if ($this->context["damageVictim"] === "attacker") {
+            /*
+             * Damage victim is _attacker_, heal receiver is the _defender_.
+             *  - positive damage is damage towards the defender. If the target of the buff is the attacker, the effect will fail.
+             *  - negative damage is a riposte, and thus damage caused to the attacker. We will life tap this.
+             *  - zero damage, zero effect
+             */
             if ($damage > 0) {
-                // Damage is > 0, badguy takes damage. Goodguy lifetap works only upon damage to the goodguy.
                 $this->healedDamage = 0;
                 $this->message = $this->context["effectFails"];
             } elseif ($damage < 0) {
-                // Damage is < 0, goodguy takes damage. We act upon this.
-                $this->healedDamage = (int)round($damage * -$lifeTap, 0);
+                $this->healedDamage = $this->getCappedHealth(-$damage, $lifeTap);
 
                 if ($this->healedDamage === 0) {
                     $this->message = $this->context["noEffect"];
@@ -72,9 +111,14 @@ class LifeTapEvent extends AbstractBattleEvent
                 $this->message = $this->context["noEffect"];
             }
         } else {
+            /*
+             * Damage victim is _defender_, heal receiver is the _attacker_.
+             *  - positive damage is damage towards the defender. We will life tap this.
+             *  - negative damage is a riposte, and thus damage caused to the attacker. The effect will fail.
+             *  - zero damage, zero effect
+             */
             if ($damage > 0) {
-                // Damage is > 0, goodguy takes damage. We act upon this to heal goodguy.
-                $this->healedDamage = (int)round($damage * $lifeTap, 0);
+                $this->healedDamage = $this->getCappedHealth($damage, $lifeTap);
 
                 if ($this->healedDamage === 0) {
                     $this->message = $this->context["noEffect"];
@@ -82,7 +126,6 @@ class LifeTapEvent extends AbstractBattleEvent
                     $this->message = $this->context["effectSucceeds"];
                 }
             } elseif ($damage < 0) {
-                // Damage is < 0, goodguy takes damage. Badguy lifetap works only upon damage to the goodguy.
                 $this->healedDamage = 0;
                 $this->message = $this->context["effectFails"];
             } else {
@@ -91,7 +134,23 @@ class LifeTapEvent extends AbstractBattleEvent
             }
         }
 
-        $this->victim->damage(-$this->healedDamage);
+        $this->healTarget->damage(-$this->healedDamage);
+    }
+
+    private function getCappedHealth(int $damage, float $lifeTap): int
+    {
+        $healedDamage = (int)round($damage * $lifeTap, 0);
+        $healthMissing = $this->healTarget->maxHealth - $this->healTarget->health;
+
+        if ($healthMissing <= 0) {
+            // If there is no health missing, healed damage is 0
+            $healedDamage = 0;
+        } elseif ($healthMissing < $healedDamage) {
+            // If there is less health missing than what is healed, we put a cap on it.
+            $healedDamage = $healthMissing;
+        }
+
+        return $healedDamage;
     }
 
     public function decorate(): ?BattleMessage
@@ -104,9 +163,9 @@ class LifeTapEvent extends AbstractBattleEvent
 
         return new BattleMessage(
             $this->message, [
-                "victim" => $this->victim,
+                "damageVictim" => $this->damageVictim,
+                "healTarget" => $this->healTarget,
                 "heal" => $this->healedDamage,
-                "damage" => $this->healedDamage,
                 "attacker" => $this->attacker,
                 "defender" => $this->defender,
             ]

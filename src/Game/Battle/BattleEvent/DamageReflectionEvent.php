@@ -9,7 +9,8 @@ use Symfony\Component\OptionsResolver\OptionsResolver;
 
 /**
  * @phpstan-type DamageReflectionContext array{
- *       target: "attacker"|"defender",
+ *       damageTarget: "attacker"|"defender",
+ *       reflectionTarget: "attacker"|"defender",
  *       damage: int,
  *       reflection: float,
  *       effectSucceeds?: ?string,
@@ -20,9 +21,21 @@ use Symfony\Component\OptionsResolver\OptionsResolver;
  */
 class DamageReflectionEvent extends AbstractBattleEvent
 {
-    private ?string $message = null;
-    private int $reflectedDamage = 0;
-    private FighterInterface $victim;
+    private(set) ?string $message = null;
+    private(set) int $reflectedDamage = 0;
+    private(set) FighterInterface $damageTarget {
+        get => $this->damageTarget;
+        set(FighterInterface $value) {
+            $this->damageTarget = $value;
+        }
+    }
+
+    private(set) FighterInterface $reflectionTarget {
+        get => $this->reflectionTarget;
+        set(FighterInterface $value) {
+            $this->reflectionTarget = $value;
+        }
+    }
 
     /**
      * @param FighterInterface $attacker
@@ -35,7 +48,8 @@ class DamageReflectionEvent extends AbstractBattleEvent
         array $context,
     ) {
         $resolver = new OptionsResolver();
-        $resolver->define("target")->allowedTypes("string")->allowedValues("attacker", "defender");
+        $resolver->define("damageTarget")->allowedTypes("string")->allowedValues("attacker", "defender");
+        $resolver->define("reflectionTarget")->allowedTypes("string")->allowedValues("attacker", "defender");
         $resolver->define("damage")->allowedTypes("int")->required();
         $resolver->define("reflection")->allowedTypes("float")->required();
         $resolver->define("effectSucceeds")->allowedTypes("string", "null")->default(null);
@@ -43,7 +57,8 @@ class DamageReflectionEvent extends AbstractBattleEvent
         $resolver->define("noEffect")->allowedTypes("string", "null")->default(null);
         $this->context = $resolver->resolve($context);
 
-        $this->victim = $this->context["target"] === "attacker" ? $this->attacker : $this->defender;
+        $this->damageTarget = $this->context["damageTarget"] === "attacker" ? $this->attacker : $this->defender;
+        $this->reflectionTarget = $this->context["reflectionTarget"] === "attacker" ? $this->attacker : $this->defender;
     }
 
     public function apply(): void
@@ -53,7 +68,7 @@ class DamageReflectionEvent extends AbstractBattleEvent
         $damage = $this->context["damage"] ?? 0;
         $reflection = $this->context['reflection'];
 
-        if ($this->context["target"] === "attacker") {
+        if ($this->context["damageTarget"] === "attacker") {
             // The victim is the attacker. We only calculate reflection on negative damage.
             if ($damage > 0) {
                 $this->reflectedDamage = 0;
@@ -90,7 +105,7 @@ class DamageReflectionEvent extends AbstractBattleEvent
             }
         }
 
-        $this->victim->damage($this->reflectedDamage);
+        $this->reflectionTarget->damage($this->reflectedDamage);
     }
 
     public function decorate(): ?BattleMessage
@@ -103,8 +118,9 @@ class DamageReflectionEvent extends AbstractBattleEvent
 
         return new BattleMessage(
             $this->message, [
-                "victim" => $this->victim,
-                "damage" => $this->reflectedDamage,
+                "damageTarget" => $this->damageTarget,
+                "reflectionTarget" => $this->reflectionTarget,
+                "reflectedDamage" => $this->reflectedDamage,
                 "attacker" => $this->attacker,
                 "defender" => $this->defender,
             ]

@@ -152,7 +152,7 @@ class SpecialtyFixtures extends Fixture
                             effectSuccessMessage: "You are healed for {{ heal }} health.",
                             effectFailsMessage: "Your weapon wails as you deal no damage to your opponent.",
                             noEffectMessage: "You feel a tingle as your weapon tries to heal your effectively healthy body.",
-                            goodGuyLifeTap: 1.,
+                            badGuyLifeTap: 1.,
                         ),
                     ),
                     new SpecialtySkill(
@@ -165,7 +165,7 @@ class SpecialtyFixtures extends Fixture
                             rounds: 5,
                             startMessage: "Your skin sparkles as you assume an aura of lightning.",
                             endMessage: "With a fizzle, your skin returns to normal.",
-                            effectSuccessMessage: "{{ badGuy.name }} recoils as lighning arcs out from your skin, hitting for {{ damage }} damage.",
+                            effectSuccessMessage: "{{ badGuy.name }} recoils as lighning arcs out from your skin, hitting for {{ reflectedDamage }} damage.",
                             effectFailsMessage: "{{ badGuy.name }} is slightly singed by your lightning, but otherwise unharmed.",
                             noEffectMessage: "{{ badGuy.name }} is slightly singed by your lightning, but otherwise unharmed.",
                             goodGuyDamageReflection: 2.,

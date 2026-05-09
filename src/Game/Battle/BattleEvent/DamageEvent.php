@@ -71,7 +71,8 @@ class DamageEvent extends AbstractBattleEvent
                 $text = "{{ attacker }} hits {{ defender }} for {{ damage }} points of damage!";
             }
         } else {
-            $this->context["damage"] = abs($this->context["damage"]);
+            $this->context = [... $this->context, "damage" => abs($this->context["damage"])];
+
             if ($this->attacker instanceof CurrentCharacterFighter) {
                 $text = "You try to hit {{ defender }} but are RIPOSTED for {{ damage }} points of damage!";
             } elseif ($this->defender instanceof CurrentCharacterFighter) {

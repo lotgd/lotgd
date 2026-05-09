@@ -14,6 +14,14 @@ use LotGD2\Entity\Battle\FighterInterface;
 interface BattleEventInterface
 {
     /**
+     * @var TContext
+     */
+    protected(set) array $context {
+        get;
+        set;
+    }
+
+    /**
      * @param FighterInterface $attacker
      * @param FighterInterface $defender
      * @param TContext $context

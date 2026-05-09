@@ -24,10 +24,16 @@ class BuffList
      *     8?: Buff[],
      * }
      */
-    protected(set) array $activeBuffs = [];
+    protected(set) array $activeBuffs = [] {
+        get => $this->activeBuffs;
+        set(array $value) => $value;
+    }
 
     /** @var Buff[] */
-    protected(set) array $usedBuffs = [];
+    protected(set) array $usedBuffs = [] {
+        get => $this->usedBuffs;
+        set(array $value) => $value;
+    }
 
 
     public float $badGuyDamageModifier {
@@ -93,7 +99,7 @@ class BuffList
             throw new ValueError("You already have activated the buffs for activation type ($activation).");
         }
 
-        $this->activeBuffs[$activation] = [];
+        $this->activeBuffs = [... $this->activeBuffs, $activation => []];
         $events = [];
 
         foreach ($this->buffs as $buff) {
@@ -112,7 +118,7 @@ class BuffList
 
             if ($this->hasBuffBeenUsed($buff) === false) {
                 $this->logger->debug("BuffList: Mark as used: {$buff->name}");
-                $this->usedBuffs[] = $buff;
+                $this->usedBuffs = [... $this->usedBuffs, $buff];
             }
         }
 
@@ -252,13 +258,14 @@ class BuffList
     ): array {
         $events = [];
 
-        foreach ($this->activeBuffs[$activation] as $buff) {
-            if ($buff->goodGuyDamageReflection !== 0.) {
+        foreach ($this->activeBuffs[$activation] ?? [] as $buff) {
+            if ($buff->goodGuyDamageReflection > 0.) {
                 $events[] = new DamageReflectionEvent(
-                    $goodGuy,
-                    $badGuy,
-                    [
-                        "target" => "defender",
+                    attacker: $goodGuy,
+                    defender: $badGuy,
+                    context: [
+                        "damageTarget" => "attacker",
+                        "reflectionTarget" => "defender",
                         "damage" => $damage,
                         "reflection" => $buff->goodGuyDamageReflection,
                         "effectSucceeds" => $buff->effectSuccessMessage,
@@ -268,12 +275,13 @@ class BuffList
                 );
             }
 
-            if ($buff->badGuyDamageReflection !== 0.) {
+            if ($buff->badGuyDamageReflection > 0.) {
                 $events[] = new DamageReflectionEvent(
-                    $goodGuy,
-                    $badGuy,
-                    [
-                        "target" => "attacker",
+                    attacker: $goodGuy,
+                    defender: $badGuy,
+                    context: [
+                        "damageTarget" => "defender",
+                        "reflectionTarget" => "attacker",
                         "damage" => $damage,
                         "reflection" => $buff->badGuyDamageReflection,
                         "effectSucceeds" => $buff->effectSuccessMessage,
@@ -283,12 +291,13 @@ class BuffList
                 );
             }
 
-            if ($buff->goodGuyLifeTap !== 0.) {
+            if ($buff->goodGuyLifeTap > 0.) {
                 $events[] = new LifeTapEvent(
-                    $goodGuy,
-                    $badGuy,
-                    [
-                        "target" => "defender",
+                    attacker: $goodGuy,
+                    defender: $badGuy,
+                    context: [
+                        "damageVictim" => "attacker",
+                        "healTarget" => "defender",
                         "damage" => $damage,
                         "lifeTap" => $buff->goodGuyLifeTap,
                         "effectSucceeds" => $buff->effectSuccessMessage,
@@ -298,12 +307,13 @@ class BuffList
                 );
             }
 
-            if ($buff->badGuyLifeTap !== 0.) {
+            if ($buff->badGuyLifeTap > 0.) {
                 $events[] = new LifeTapEvent(
-                    $goodGuy,
-                    $badGuy,
-                    [
-                        "target" => "attacker",
+                    attacker: $goodGuy,
+                    defender: $badGuy,
+                    context: [
+                        "damageVictim" => "defender",
+                        "healTarget" => "attacker",
                         "damage" => $damage,
                         "lifeTap" => $buff->badGuyLifeTap,
                         "effectSucceeds" => $buff->effectSuccessMessage,

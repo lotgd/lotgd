@@ -51,40 +51,278 @@ class Buff
      * @param int $roundsUsed How many rounds this buff has already been used
      */
     public function __construct(
-        protected(set) string $id,
-        protected(set) string $name,
-        protected(set) int $activatesAt,
-        protected(set) int $rounds,
-        protected(set) ?string $startMessage = null,
-        protected(set) ?string $roundMessage = null,
-        protected(set) ?string $endMessage = null,
-        protected(set) ?string $effectSuccessMessage = null,
-        protected(set) ?string $effectFailsMessage = null,
-        protected(set) ?string $noEffectMessage = null,
-        protected(set) ?string $newDayMessage = null,
-        protected(set) bool $expiresOnNewDay = true,
-        protected(set) bool $expiresAfterBattle = false,
-        protected(set) int $badGuyRegeneration = 0,
-        protected(set) int $goodGuyRegeneration = 0,
-        protected(set) float $badGuyLifeTap = 0.,
-        protected(set) float $goodGuyLifeTap = 0.,
-        protected(set) float $badGuyDamageReflection = 0.,
-        protected(set) float $goodGuyDamageReflection = 0.,
-        protected(set) float $badGuyDamageModifier = 1.,
-        protected(set) float $goodGuyDamageModifier = 1.,
-        protected(set) float $badGuyAttackModifier = 1.,
-        protected(set) float $goodGuyAttackModifier = 1.,
-        protected(set) float $badGuyDefenseModifier = 1.,
-        protected(set) float $goodGuyDefenseModifier = 1.,
-        protected(set) bool $badGuyInvulnerable = false,
-        protected(set) bool $goodGuyInvulnerable = false,
-        protected(set) int $numberOfMinions = 0,
-        protected(set) int $minionMinBadGuyDamage = 0,
-        protected(set) int $minionMaxBadGuyDamage = 0,
-        protected(set) int $minionMinGoodGuyDamage = 0,
-        protected(set) int $minionMaxGoodGuyDamage = 0,
-        public bool $hasBeenStarted = false,
-        protected(set) int $roundsUsed = 0,
+        protected(set) string $id {
+            get {
+                return $this->id;
+            }
+            set {
+                $this->id = $value;
+            }
+        },
+        protected(set) string $name {
+            get {
+                return $this->name;
+            }
+            set {
+                $this->name = $value;
+            }
+        },
+        protected(set) int $activatesAt {
+            get {
+                return $this->activatesAt;
+            }
+            set {
+                $this->activatesAt = $value;
+            }
+        },
+        protected(set) int $rounds {
+            get {
+                return $this->rounds;
+            }
+            set {
+                $this->rounds = $value;
+            }
+        },
+        protected(set) ?string $startMessage = null {
+            get {
+                return $this->startMessage;
+            }
+            set {
+                $this->startMessage = $value;
+            }
+        },
+        protected(set) ?string $roundMessage = null {
+            get {
+                return $this->roundMessage;
+            }
+            set {
+                $this->roundMessage = $value;
+            }
+        },
+        protected(set) ?string $endMessage = null {
+            get {
+                return $this->endMessage;
+            }
+            set {
+                $this->endMessage = $value;
+            }
+        },
+        protected(set) ?string $effectSuccessMessage = null {
+            get {
+                return $this->effectSuccessMessage;
+            }
+            set {
+                $this->effectSuccessMessage = $value;
+            }
+        },
+        protected(set) ?string $effectFailsMessage = null {
+            get {
+                return $this->effectFailsMessage;
+            }
+            set {
+                $this->effectFailsMessage = $value;
+            }
+        },
+        protected(set) ?string $noEffectMessage = null {
+            get {
+                return $this->noEffectMessage;
+            }
+            set {
+                $this->noEffectMessage = $value;
+            }
+        },
+        protected(set) ?string $newDayMessage = null {
+            get {
+                return $this->newDayMessage;
+            }
+            set {
+                $this->newDayMessage = $value;
+            }
+        },
+        protected(set) bool $expiresOnNewDay = true {
+            get {
+                return $this->expiresOnNewDay;
+            }
+            set {
+                $this->expiresOnNewDay = $value;
+            }
+        },
+        protected(set) bool $expiresAfterBattle = false {
+            get {
+                return $this->expiresAfterBattle;
+            }
+            set {
+                $this->expiresAfterBattle = $value;
+            }
+        },
+        protected(set) int $badGuyRegeneration = 0 {
+            get {
+                return $this->badGuyRegeneration;
+            }
+            set {
+                $this->badGuyRegeneration = $value;
+            }
+        },
+        protected(set) int $goodGuyRegeneration = 0 {
+            get {
+                return $this->goodGuyRegeneration;
+            }
+            set {
+                $this->goodGuyRegeneration = $value;
+            }
+        },
+        protected(set) float $badGuyLifeTap = 0. {
+            get {
+                return $this->badGuyLifeTap;
+            }
+            set {
+                $this->badGuyLifeTap = $value;
+            }
+        },
+        protected(set) float $goodGuyLifeTap = 0. {
+            get {
+                return $this->goodGuyLifeTap;
+            }
+            set {
+                $this->goodGuyLifeTap = $value;
+            }
+        },
+        protected(set) float $badGuyDamageReflection = 0. {
+            get {
+                return $this->badGuyDamageReflection;
+            }
+            set {
+                $this->badGuyDamageReflection = $value;
+            }
+        },
+        protected(set) float $goodGuyDamageReflection = 0. {
+            get {
+                return $this->goodGuyDamageReflection;
+            }
+            set {
+                $this->goodGuyDamageReflection = $value;
+            }
+        },
+        protected(set) float $badGuyDamageModifier = 1. {
+            get {
+                return $this->badGuyDamageModifier;
+            }
+            set {
+                $this->badGuyDamageModifier = $value;
+            }
+        },
+        protected(set) float $goodGuyDamageModifier = 1. {
+            get {
+                return $this->goodGuyDamageModifier;
+            }
+            set {
+                $this->goodGuyDamageModifier = $value;
+            }
+        },
+        protected(set) float $badGuyAttackModifier = 1. {
+            get {
+                return $this->badGuyAttackModifier;
+            }
+            set {
+                $this->badGuyAttackModifier = $value;
+            }
+        },
+        protected(set) float $goodGuyAttackModifier = 1. {
+            get {
+                return $this->goodGuyAttackModifier;
+            }
+            set {
+                $this->goodGuyAttackModifier = $value;
+            }
+        },
+        protected(set) float $badGuyDefenseModifier = 1. {
+            get {
+                return $this->badGuyDefenseModifier;
+            }
+            set {
+                $this->badGuyDefenseModifier = $value;
+            }
+        },
+        protected(set) float $goodGuyDefenseModifier = 1. {
+            get {
+                return $this->goodGuyDefenseModifier;
+            }
+            set {
+                $this->goodGuyDefenseModifier = $value;
+            }
+        },
+        protected(set) bool $badGuyInvulnerable = false {
+            get {
+                return $this->badGuyInvulnerable;
+            }
+            set {
+                $this->badGuyInvulnerable = $value;
+            }
+        },
+        protected(set) bool $goodGuyInvulnerable = false {
+            get {
+                return $this->goodGuyInvulnerable;
+            }
+            set {
+                $this->goodGuyInvulnerable = $value;
+            }
+        },
+        protected(set) int $numberOfMinions = 0 {
+            get {
+                return $this->numberOfMinions;
+            }
+            set {
+                $this->numberOfMinions = $value;
+            }
+        },
+        protected(set) int $minionMinBadGuyDamage = 0 {
+            get {
+                return $this->minionMinBadGuyDamage;
+            }
+            set {
+                $this->minionMinBadGuyDamage = $value;
+            }
+        },
+        protected(set) int $minionMaxBadGuyDamage = 0 {
+            get {
+                return $this->minionMaxBadGuyDamage;
+            }
+            set {
+                $this->minionMaxBadGuyDamage = $value;
+            }
+        },
+        protected(set) int $minionMinGoodGuyDamage = 0 {
+            get {
+                return $this->minionMinGoodGuyDamage;
+            }
+            set {
+                $this->minionMinGoodGuyDamage = $value;
+            }
+        },
+        protected(set) int $minionMaxGoodGuyDamage = 0 {
+            get {
+                return $this->minionMaxGoodGuyDamage;
+            }
+            set {
+                $this->minionMaxGoodGuyDamage = $value;
+            }
+        },
+        public bool $hasBeenStarted = false {
+            get {
+                return $this->hasBeenStarted;
+            }
+            set {
+                $this->hasBeenStarted = $value;
+            }
+        },
+        protected(set) int $roundsUsed = 0 {
+            get {
+                return $this->roundsUsed;
+            }
+            set {
+                $this->roundsUsed = $value;
+            }
+        },
     ) {
 
     }

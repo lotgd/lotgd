@@ -14,7 +14,12 @@ abstract class AbstractBattleEvent implements BattleEventInterface
 {
     private bool $applied = false;
     /** @var TContext */
-    protected array $context = [];
+    protected(set) array $context = [] {
+        get => $this->context;
+        set(array $value) {
+            $this->context = $value;
+        }
+    }
 
     /**
      * @return TContext
