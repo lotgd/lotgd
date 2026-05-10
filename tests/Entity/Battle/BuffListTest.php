@@ -3,9 +3,11 @@ declare(strict_types=1);
 
 namespace LotGD2\Tests\Entity\Battle;
 
+use LotGD2\Entity\Battle\BattleMessage;
 use LotGD2\Entity\Battle\Buff;
 use LotGD2\Entity\Battle\BuffList;
 use LotGD2\Entity\Battle\FighterInterface;
+use LotGD2\Game\Battle\BattleEvent\BuffMessageEvent;
 use LotGD2\Game\Battle\BattleEvent\DamageReflectionEvent;
 use LotGD2\Game\Battle\BattleEvent\LifeTapEvent;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -16,6 +18,8 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(BuffList::class)]
 #[UsesClass(LifeTapEvent::class)]
 #[UsesClass(DamageReflectionEvent::class)]
+#[UsesClass(BattleMessage::class)]
+#[UsesClass(BuffMessageEvent::class)]
 class BuffListTest extends TestCase
 {
     public function testProcessDamageDependentBuffsForBadGuyLifeTap()
@@ -292,5 +296,42 @@ class BuffListTest extends TestCase
         $this->assertSame("Effect succeeded", $event->context["effectSucceeds"]);
         $this->assertSame("Effect failed", $event->context["effectFails"]);
         $this->assertSame("Effect had no effect", $event->context["noEffect"]);
+    }
+
+    public function testIfUsedBuffsAreProperlyExpired()
+    {
+        $buff1 = $this->createMock(Buff::class);
+        $buff1->expects($this->once())->method("consumeRound");
+        $buff1->expects($this->once())->method("isExpired")->willReturn(true);
+        $buff1->expects($this->once())->method(PropertyHook::get("endMessage"))->willReturn("This buff has expired.");
+
+        $buff2 = $this->createMock(Buff::class);
+        $buff2->expects($this->once())->method("consumeRound");
+        $buff2->expects($this->once())->method("isExpired")->willReturn(false);
+
+        $buffList = $this->createPartialMock(BuffList::class, ["remove"]);
+        $buffList
+            ->expects($this->atLeastOnce())
+            ->method(PropertyHook::get("usedBuffs"))
+            ->willReturn([
+                $buff1,
+                $buff2,
+            ]);
+
+        $buffList->expects($this->once())->method("remove")->with($buff1);
+
+        $attacker = $this->createStub(FighterInterface::class);
+        $defender = $this->createStub(FighterInterface::class);
+
+        $eventList = $buffList->expireOneRound($attacker, $defender);
+
+        $this->assertCount(1, $eventList);
+        $this->assertInstanceOf(BuffMessageEvent::class, $eventList[0]);
+
+        $eventList[0]->apply();
+        $message = $eventList[0]->decorate();
+        $this->assertSame("This buff has expired.", $message->message);
+        $this->assertSame($attacker, $message->context["attacker"]);
+        $this->assertSame($defender, $message->context["defender"]);
     }
 }

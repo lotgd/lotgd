@@ -344,6 +344,7 @@ class BuffList
                 $this->remove($buff);
 
                 $endMessage = $buff->endMessage;
+                dump($endMessage);
                 if ($endMessage !== null) {
                     $events[] = new BuffMessageEvent(
                         $attacker,
