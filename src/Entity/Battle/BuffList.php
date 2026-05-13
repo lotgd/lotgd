@@ -125,7 +125,7 @@ class BuffList
         return $events;
     }
 
-    protected function getBuffMessage(Buff $buff): ?string
+    public function getBuffMessage(Buff $buff): ?string
     {
         $return = null;
         $used = $this->hasBuffBeenUsed($buff);
@@ -139,7 +139,7 @@ class BuffList
         return $return;
     }
 
-    protected function hasBuffBeenUsed(Buff $buff): bool
+    public function hasBuffBeenUsed(Buff $buff): bool
     {
         return in_array($buff, $this->usedBuffs, true);
     }
@@ -344,7 +344,7 @@ class BuffList
                 $this->remove($buff);
 
                 $endMessage = $buff->endMessage;
-                dump($endMessage);
+
                 if ($endMessage !== null) {
                     $events[] = new BuffMessageEvent(
                         $attacker,
@@ -358,16 +358,25 @@ class BuffList
         return $events;
     }
 
+    /**
+     * Removes a given buff from its list.
+     *
+     * If the buff is not in the list, remove will silently fail.
+     * @param Buff $buff
+     * @return void
+     */
     public function remove(Buff $buff): void
     {
-        $this->logger->debug("Removing buff: {$buff->name}.");
 
         $buffs = $this->buffs;
         $offset = array_search($buff, $buffs, true);
         if ($offset !== false) {
+            $this->logger->debug("Removing buff: {$buff->name}.");
             array_splice($buffs, $offset, 1);
-        }
 
-        $this->buffs = $buffs;
+            $this->buffs = $buffs;
+        } else {
+            $this->logger->debug("Removing buff: {$buff->name}, but was not contained.");
+        }
     }
 }

@@ -10,10 +10,12 @@ use LotGD2\Entity\Battle\FighterInterface;
 use LotGD2\Game\Battle\BattleEvent\BuffMessageEvent;
 use LotGD2\Game\Battle\BattleEvent\DamageReflectionEvent;
 use LotGD2\Game\Battle\BattleEvent\LifeTapEvent;
+use LotGD2\Game\Random\DiceBag;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\UsesClass;
 use PHPUnit\Framework\MockObject\Runtime\PropertyHook;
 use PHPUnit\Framework\TestCase;
+use Psr\Log\LoggerInterface;
 
 #[CoversClass(BuffList::class)]
 #[UsesClass(LifeTapEvent::class)]
@@ -22,7 +24,7 @@ use PHPUnit\Framework\TestCase;
 #[UsesClass(BuffMessageEvent::class)]
 class BuffListTest extends TestCase
 {
-    public function testProcessDamageDependentBuffsForBadGuyLifeTap()
+    public function testProcessDamageDependentBuffsForBadGuyLifeTap(): void
     {
         $partialMock = $this->createPartialMock(BuffList::class, [
         ]);
@@ -91,7 +93,7 @@ class BuffListTest extends TestCase
         $this->assertSame("Effect had no effect", $event->context["noEffect"]);
     }
 
-    public function testProcessDamageDependentBuffsForGoodGuyLifeTap()
+    public function testProcessDamageDependentBuffsForGoodGuyLifeTap(): void
     {
         $partialMock = $this->createPartialMock(BuffList::class, [
         ]);
@@ -160,7 +162,7 @@ class BuffListTest extends TestCase
         $this->assertSame("Effect had no effect", $event->context["noEffect"]);
     }
 
-    public function testProcessDamageDependentBuffsForBadGuyDamageReflection()
+    public function testProcessDamageDependentBuffsForBadGuyDamageReflection(): void
     {
         $partialMock = $this->createPartialMock(BuffList::class, [
         ]);
@@ -229,7 +231,7 @@ class BuffListTest extends TestCase
         $this->assertSame("Effect had no effect", $event->context["noEffect"]);
     }
 
-    public function testProcessDamageDependentBuffsForGoodGuyDamageReflection()
+    public function testProcessDamageDependentBuffsForGoodGuyDamageReflection(): void
     {
         $partialMock = $this->createPartialMock(BuffList::class, [
         ]);
@@ -298,7 +300,7 @@ class BuffListTest extends TestCase
         $this->assertSame("Effect had no effect", $event->context["noEffect"]);
     }
 
-    public function testIfUsedBuffsAreProperlyExpired()
+    public function testIfUsedBuffsAreProperlyExpired(): void
     {
         $buff1 = $this->createMock(Buff::class);
         $buff1->expects($this->once())->method("consumeRound");
@@ -333,5 +335,81 @@ class BuffListTest extends TestCase
         $this->assertSame("This buff has expired.", $message->message);
         $this->assertSame($attacker, $message->context["attacker"]);
         $this->assertSame($defender, $message->context["defender"]);
+    }
+
+    public function testIfRemoveBuffOnlyRemovesSelectedBuff(): void
+    {
+        $buff1 = $this->createStub(Buff::class);
+        $buff2 = $this->createStub(Buff::class);
+        $logger = $this->createMock(LoggerInterface::class);
+        $logger->expects($this->once())->method("debug");
+        $diceBag = $this->createStub(DiceBag::class);
+
+        $buffList = new BuffList($logger, $diceBag, [$buff1, $buff2]);
+
+        $this->assertCount(2, $buffList->buffs);
+        $buffList->remove($buff1);
+        $this->assertCount(1, $buffList->buffs);
+        $this->assertContains($buff2, $buffList->buffs);
+        $this->assertNotContains($buff1, $buffList->buffs);
+    }
+
+    public function testIfRemoveBuffOnlySilentlyFailsButLogsIfBuffNotWithinList(): void
+    {
+        $buff1 = $this->createStub(Buff::class);
+        $buff2 = $this->createStub(Buff::class);
+        $logger = $this->createMock(LoggerInterface::class);
+        $logger->expects($this->once())->method("debug");
+        $diceBag = $this->createStub(DiceBag::class);
+
+        $buffList = new BuffList($logger, $diceBag, [$buff2]);
+
+        $this->assertCount(1, $buffList->buffs);
+        $buffList->remove($buff1);
+        $this->assertCount(1, $buffList->buffs);
+        $this->assertContains($buff2, $buffList->buffs);
+        $this->assertNotContains($buff1, $buffList->buffs);
+    }
+
+    public function testIfHasBuffBeenUsedReturnsTrueIfBuffIsInUsedList(): void
+    {
+        $logger = $this->createStub(LoggerInterface::class);
+        $diceBag = $this->createStub(DiceBag::class);
+        $buff1 = $this->createStub(Buff::class);
+        $buff2 = $this->createStub(Buff::class);
+
+        $buffList = $this
+            ->getMockBuilder(BuffList::class)
+            ->onlyMethods([])
+            ->setConstructorArgs([$logger, $diceBag, []])
+            ->getMock();
+
+        $buffList->expects($this->exactly(2))->method(PropertyHook::get("usedBuffs"))->willReturn([
+            $buff1,
+            $buff2,
+        ]);
+
+        $this->assertTrue($buffList->hasBuffBeenUsed($buff1));
+        $this->assertTrue($buffList->hasBuffBeenUsed($buff2));
+    }
+
+    public function testIfHasBuffBeenUsedReturnsFalseIfBuffIsNotInUsedList(): void
+    {
+        $logger = $this->createStub(LoggerInterface::class);
+        $diceBag = $this->createStub(DiceBag::class);
+        $buff1 = $this->createStub(Buff::class);
+        $buff2 = $this->createStub(Buff::class);
+
+        $buffList = $this
+            ->getMockBuilder(BuffList::class)
+            ->onlyMethods([])
+            ->setConstructorArgs([$logger, $diceBag, []])
+            ->getMock();
+
+        $buffList->expects($this->exactly(1))->method(PropertyHook::get("usedBuffs"))->willReturn([
+            $buff1,
+        ]);
+
+        $this->assertFalse($buffList->hasBuffBeenUsed($buff2));
     }
 }
