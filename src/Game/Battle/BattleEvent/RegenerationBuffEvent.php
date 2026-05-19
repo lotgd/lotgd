@@ -18,6 +18,11 @@ use Symfony\Component\OptionsResolver\OptionsResolver;
  */
 class RegenerationBuffEvent extends AbstractBattleEvent
 {
+    protected(set) FighterInterface $target {
+        get => $this->target;
+        set(FighterInterface $value) => $value;
+    }
+
     /**
      * @param FighterInterface $attacker
      * @param FighterInterface $defender
@@ -34,6 +39,8 @@ class RegenerationBuffEvent extends AbstractBattleEvent
         $resolver->define("effectFails")->allowedTypes("string", "null")->default(null);
         $resolver->define("target")->allowedTypes("string")->allowedValues("attacker", "defender");
         $this->context = $resolver->resolve($context);
+
+        $this->target  = $context["target"] === "attacker" ? $this->attacker : $this->defender;
     }
 
     public function apply(): void

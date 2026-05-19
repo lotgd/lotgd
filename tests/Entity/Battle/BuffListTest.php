@@ -10,6 +10,8 @@ use LotGD2\Entity\Battle\FighterInterface;
 use LotGD2\Game\Battle\BattleEvent\BuffMessageEvent;
 use LotGD2\Game\Battle\BattleEvent\DamageReflectionEvent;
 use LotGD2\Game\Battle\BattleEvent\LifeTapEvent;
+use LotGD2\Game\Battle\BattleEvent\MinionDamageEvent;
+use LotGD2\Game\Battle\BattleEvent\RegenerationBuffEvent;
 use LotGD2\Game\Random\DiceBag;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\UsesClass;
@@ -22,6 +24,8 @@ use Psr\Log\LoggerInterface;
 #[UsesClass(DamageReflectionEvent::class)]
 #[UsesClass(BattleMessage::class)]
 #[UsesClass(BuffMessageEvent::class)]
+#[UsesClass(RegenerationBuffEvent::class)]
+#[UsesClass(MinionDamageEvent::class)]
 class BuffListTest extends TestCase
 {
     public function testProcessDamageDependentBuffsForBadGuyLifeTap(): void
@@ -411,5 +415,361 @@ class BuffListTest extends TestCase
         ]);
 
         $this->assertFalse($buffList->hasBuffBeenUsed($buff2));
+    }
+
+    public function testIfGoodGuyRegenerationCausesRegenerationBuffToBeAdded()
+    {
+        $logger = $this->createStub(LoggerInterface::class);
+        $diceBag = $this->createStub(DiceBag::class);
+
+        $buff = $this->createMock(Buff::class);
+        $buff->expects($this->atLeastOnce(1))->method(PropertyHook::get("goodGuyRegeneration"))->willReturn(5);
+
+        $offenseFighter = $this->createStub(FighterInterface::class);
+        $defenseFighter = $this->createStub(FighterInterface::class);
+
+        $buffList = $this
+            ->getMockBuilder(BuffList::class)
+            ->onlyMethods([])
+            ->enableOriginalConstructor()
+            ->setConstructorArgs([$logger, $diceBag, []])
+            ->getMock();
+        ;
+
+        $buffList->expects($this->atLeastOnce())->method(PropertyHook::get("activeBuffs"))->willReturn([
+            Buff::ACTIVATES_ON_OFFENSE_TURN => [
+                $buff,
+            ],
+        ]);
+
+        $events = $buffList->processDirectBuffs(Buff::ACTIVATES_ON_OFFENSE_TURN, $offenseFighter, $defenseFighter);
+
+        $this->assertCount(1, $events);
+        $this->assertInstanceOf(RegenerationBuffEvent::class, $events[0]);
+
+        $buffEvent = $events[0];
+
+        $this->assertSame("attacker", $buffEvent->getContext()["target"]);
+        $this->assertSame($offenseFighter, $buffEvent->target);
+    }
+
+    public function testIfBadGuyRegenerationCausesRegenerationBuffToBeAdded()
+    {
+        $logger = $this->createStub(LoggerInterface::class);
+        $diceBag = $this->createStub(DiceBag::class);
+
+        $buff = $this->createMock(Buff::class);
+        $buff->expects($this->atLeastOnce(1))->method(PropertyHook::get("badGuyRegeneration"))->willReturn(5);
+
+        $offenseFighter = $this->createStub(FighterInterface::class);
+        $defenseFighter = $this->createStub(FighterInterface::class);
+
+        $buffList = $this
+            ->getMockBuilder(BuffList::class)
+            ->onlyMethods([])
+            ->enableOriginalConstructor()
+            ->setConstructorArgs([$logger, $diceBag, []])
+            ->getMock();
+        ;
+
+        $buffList->expects($this->atLeastOnce())->method(PropertyHook::get("activeBuffs"))->willReturn([
+            Buff::ACTIVATES_ON_OFFENSE_TURN => [
+                $buff,
+            ],
+        ]);
+
+        $events = $buffList->processDirectBuffs(Buff::ACTIVATES_ON_OFFENSE_TURN, $offenseFighter, $defenseFighter);
+
+        $this->assertCount(1, $events);
+        $this->assertInstanceOf(RegenerationBuffEvent::class, $events[0]);
+
+        $buffEvent = $events[0];
+
+        $this->assertSame("defender", $buffEvent->getContext()["target"]);
+        $this->assertSame($defenseFighter, $buffEvent->target);
+    }
+
+    public function testMinionsWithNoDamageTowardsEitherParty()
+    {
+
+        $logger = $this->createStub(LoggerInterface::class);
+        $diceBag = $this->createStub(DiceBag::class);
+
+        $buff = $this->createMock(Buff::class);
+        $buff->expects($this->atLeastOnce(1))->method(PropertyHook::get("numberOfMinions"))->willReturn(1);
+
+        $offenseFighter = $this->createStub(FighterInterface::class);
+        $defenseFighter = $this->createStub(FighterInterface::class);
+
+        $buffList = $this
+            ->getMockBuilder(BuffList::class)
+            ->onlyMethods([])
+            ->enableOriginalConstructor()
+            ->setConstructorArgs([$logger, $diceBag, []])
+            ->getMock();
+        ;
+
+        $buffList->expects($this->atLeastOnce())->method(PropertyHook::get("activeBuffs"))->willReturn([
+            Buff::ACTIVATES_ON_OFFENSE_TURN => [
+                $buff,
+            ],
+        ]);
+
+        $events = $buffList->processDirectBuffs(Buff::ACTIVATES_ON_OFFENSE_TURN, $offenseFighter, $defenseFighter);
+
+        $this->assertCount(0, $events);
+    }
+
+    public function testMinionsWithBadGuyDamage()
+    {
+
+        $logger = $this->createStub(LoggerInterface::class);
+        $diceBag = $this->createMock(DiceBag::class);
+        $diceBag->expects($this->atLeastOnce())->method("pseudoBell")->willReturnCallback(function ($min, $max) {
+            $this->assertSame(10, $min);
+            $this->assertSame(20, $max);
+            return 15;
+        });
+
+        $buff = $this->createMock(Buff::class);
+        $buff->expects($this->atLeastOnce(1))->method(PropertyHook::get("numberOfMinions"))->willReturn(1);
+        $buff->expects($this->atLeastOnce(1))->method(PropertyHook::get("minionMinBadGuyDamage"))->willReturn(10);
+        $buff->expects($this->atLeastOnce(1))->method(PropertyHook::get("minionMaxBadGuyDamage"))->willReturn(20);
+        $buff->expects($this->atLeastOnce(1))->method(PropertyHook::get("minionMinGoodGuyDamage"))->willReturn(0);
+        $buff->expects($this->atLeastOnce(1))->method(PropertyHook::get("minionMaxGoodGuyDamage"))->willReturn(0);
+
+        $offenseFighter = $this->createStub(FighterInterface::class);
+        $defenseFighter = $this->createStub(FighterInterface::class);
+
+        $buffList = $this
+            ->getMockBuilder(BuffList::class)
+            ->onlyMethods([])
+            ->enableOriginalConstructor()
+            ->setConstructorArgs([$logger, $diceBag, []])
+            ->getMock();
+        ;
+
+        $buffList->expects($this->atLeastOnce())->method(PropertyHook::get("activeBuffs"))->willReturn([
+            Buff::ACTIVATES_ON_OFFENSE_TURN => [
+                $buff,
+            ],
+        ]);
+
+        $events = $buffList->processDirectBuffs(Buff::ACTIVATES_ON_OFFENSE_TURN, $offenseFighter, $defenseFighter);
+
+        $this->assertCount(1, $events);
+        $this->assertInstanceOf(MinionDamageEvent::class, $events[0]);
+
+        $buffEvent = $events[0];
+
+        $this->assertSame("defender", $buffEvent->getContext()["target"]);
+        $this->assertSame($defenseFighter, $buffEvent->target);
+        $this->assertSame(15, $buffEvent->getContext()["damage"]);
+    }
+
+    public function testMinionsWithNegativeBadGuyDamage()
+    {
+
+        $logger = $this->createStub(LoggerInterface::class);
+        $diceBag = $this->createMock(DiceBag::class);
+        $diceBag->expects($this->atLeastOnce())->method("pseudoBell")->willReturnCallback(function ($min, $max) {
+            $this->assertSame(-10, $min);
+            $this->assertSame(-20, $max);
+            return -15;
+        });
+
+        $buff = $this->createMock(Buff::class);
+        $buff->expects($this->atLeastOnce(1))->method(PropertyHook::get("numberOfMinions"))->willReturn(1);
+        $buff->expects($this->atLeastOnce(1))->method(PropertyHook::get("minionMinBadGuyDamage"))->willReturn(-10);
+        $buff->expects($this->atLeastOnce(1))->method(PropertyHook::get("minionMaxBadGuyDamage"))->willReturn(-20);
+        $buff->expects($this->atLeastOnce(1))->method(PropertyHook::get("minionMinGoodGuyDamage"))->willReturn(0);
+        $buff->expects($this->atLeastOnce(1))->method(PropertyHook::get("minionMaxGoodGuyDamage"))->willReturn(0);
+
+        $offenseFighter = $this->createStub(FighterInterface::class);
+        $defenseFighter = $this->createStub(FighterInterface::class);
+
+        $buffList = $this
+            ->getMockBuilder(BuffList::class)
+            ->onlyMethods([])
+            ->enableOriginalConstructor()
+            ->setConstructorArgs([$logger, $diceBag, []])
+            ->getMock();
+        ;
+
+        $buffList->expects($this->atLeastOnce())->method(PropertyHook::get("activeBuffs"))->willReturn([
+            Buff::ACTIVATES_ON_OFFENSE_TURN => [
+                $buff,
+            ],
+        ]);
+
+        $events = $buffList->processDirectBuffs(Buff::ACTIVATES_ON_OFFENSE_TURN, $offenseFighter, $defenseFighter);
+
+        $this->assertCount(1, $events);
+        $this->assertInstanceOf(MinionDamageEvent::class, $events[0]);
+
+        $buffEvent = $events[0];
+
+        $this->assertSame("defender", $buffEvent->getContext()["target"]);
+        $this->assertSame($defenseFighter, $buffEvent->target);
+        $this->assertSame(-15, $buffEvent->getContext()["damage"]);
+    }
+
+    public function testMinionsWithGoodGuyDamage()
+    {
+
+        $logger = $this->createStub(LoggerInterface::class);
+        $diceBag = $this->createMock(DiceBag::class);
+        $diceBag->expects($this->atLeastOnce())->method("pseudoBell")->willReturnCallback(function ($min, $max) {
+            $this->assertSame(10, $min);
+            $this->assertSame(20, $max);
+            return 15;
+        });
+
+        $buff = $this->createMock(Buff::class);
+        $buff->expects($this->atLeastOnce(1))->method(PropertyHook::get("numberOfMinions"))->willReturn(1);
+        $buff->expects($this->atLeastOnce(1))->method(PropertyHook::get("minionMinBadGuyDamage"))->willReturn(0);
+        $buff->expects($this->atLeastOnce(1))->method(PropertyHook::get("minionMaxBadGuyDamage"))->willReturn(0);
+        $buff->expects($this->atLeastOnce(1))->method(PropertyHook::get("minionMinGoodGuyDamage"))->willReturn(10);
+        $buff->expects($this->atLeastOnce(1))->method(PropertyHook::get("minionMaxGoodGuyDamage"))->willReturn(20);
+
+        $offenseFighter = $this->createStub(FighterInterface::class);
+        $defenseFighter = $this->createStub(FighterInterface::class);
+
+        $buffList = $this
+            ->getMockBuilder(BuffList::class)
+            ->onlyMethods([])
+            ->enableOriginalConstructor()
+            ->setConstructorArgs([$logger, $diceBag, []])
+            ->getMock();
+        ;
+
+        $buffList->expects($this->atLeastOnce())->method(PropertyHook::get("activeBuffs"))->willReturn([
+            Buff::ACTIVATES_ON_OFFENSE_TURN => [
+                $buff,
+            ],
+        ]);
+
+        $events = $buffList->processDirectBuffs(Buff::ACTIVATES_ON_OFFENSE_TURN, $offenseFighter, $defenseFighter);
+
+        $this->assertCount(1, $events);
+        $this->assertInstanceOf(MinionDamageEvent::class, $events[0]);
+
+        $buffEvent = $events[0];
+
+        $this->assertSame("attacker", $buffEvent->getContext()["target"]);
+        $this->assertSame($offenseFighter, $buffEvent->target);
+        $this->assertSame(15, $buffEvent->getContext()["damage"]);
+    }
+
+    public function testMinionsWithNegativeGoodGuyDamage()
+    {
+
+        $logger = $this->createStub(LoggerInterface::class);
+        $diceBag = $this->createMock(DiceBag::class);
+        $diceBag->expects($this->atLeastOnce())->method("pseudoBell")->willReturnCallback(function ($min, $max) {
+            $this->assertSame(-10, $min);
+            $this->assertSame(-20, $max);
+            return -15;
+        });
+
+        $buff = $this->createMock(Buff::class);
+        $buff->expects($this->atLeastOnce(1))->method(PropertyHook::get("numberOfMinions"))->willReturn(1);
+        $buff->expects($this->atLeastOnce(1))->method(PropertyHook::get("minionMinBadGuyDamage"))->willReturn(0);
+        $buff->expects($this->atLeastOnce(1))->method(PropertyHook::get("minionMaxBadGuyDamage"))->willReturn(0);
+        $buff->expects($this->atLeastOnce(1))->method(PropertyHook::get("minionMinGoodGuyDamage"))->willReturn(-10);
+        $buff->expects($this->atLeastOnce(1))->method(PropertyHook::get("minionMaxGoodGuyDamage"))->willReturn(-20);
+
+        $offenseFighter = $this->createStub(FighterInterface::class);
+        $defenseFighter = $this->createStub(FighterInterface::class);
+
+        $buffList = $this
+            ->getMockBuilder(BuffList::class)
+            ->onlyMethods([])
+            ->enableOriginalConstructor()
+            ->setConstructorArgs([$logger, $diceBag, []])
+            ->getMock();
+        ;
+
+        $buffList->expects($this->atLeastOnce())->method(PropertyHook::get("activeBuffs"))->willReturn([
+            Buff::ACTIVATES_ON_OFFENSE_TURN => [
+                $buff,
+            ],
+        ]);
+
+        $events = $buffList->processDirectBuffs(Buff::ACTIVATES_ON_OFFENSE_TURN, $offenseFighter, $defenseFighter);
+
+        $this->assertCount(1, $events);
+        $this->assertInstanceOf(MinionDamageEvent::class, $events[0]);
+
+        $buffEvent = $events[0];
+
+        $this->assertSame("attacker", $buffEvent->getContext()["target"]);
+        $this->assertSame($offenseFighter, $buffEvent->target);
+        $this->assertSame(-15, $buffEvent->getContext()["damage"]);
+    }
+
+    public function testMinionsWithBothGoodGuyDamageAndBadguyDamage()
+    {
+
+        $logger = $this->createStub(LoggerInterface::class);
+        $diceBag = $this->createMock(DiceBag::class);
+
+        $calls = 0;
+        $diceBag->expects($this->exactly(2))->method("pseudoBell")->willReturnCallback(function ($min, $max) use (&$calls) {
+            if ($calls === 0) {
+                $calls++;
+
+                $this->assertSame(-10, $min);
+                $this->assertSame(-20, $max);
+                return -15;
+            } else {
+                $this->assertSame(10, $min);
+                $this->assertSame(20, $max);
+                return 15;
+            }
+        });
+        $diceBag->expects($this->exactly(2))->method("chance")->willReturn(true, false);
+
+        $buff = $this->createMock(Buff::class);
+        $buff->expects($this->atLeastOnce(1))->method(PropertyHook::get("numberOfMinions"))->willReturn(2);
+        $buff->expects($this->atLeastOnce(1))->method(PropertyHook::get("minionMinBadGuyDamage"))->willReturn(10);
+        $buff->expects($this->atLeastOnce(1))->method(PropertyHook::get("minionMaxBadGuyDamage"))->willReturn(20);
+        $buff->expects($this->atLeastOnce(1))->method(PropertyHook::get("minionMinGoodGuyDamage"))->willReturn(-10);
+        $buff->expects($this->atLeastOnce(1))->method(PropertyHook::get("minionMaxGoodGuyDamage"))->willReturn(-20);
+
+        $offenseFighter = $this->createStub(FighterInterface::class);
+        $defenseFighter = $this->createStub(FighterInterface::class);
+
+        $buffList = $this
+            ->getMockBuilder(BuffList::class)
+            ->onlyMethods([])
+            ->enableOriginalConstructor()
+            ->setConstructorArgs([$logger, $diceBag, []])
+            ->getMock();
+        ;
+
+        $buffList->expects($this->atLeastOnce())->method(PropertyHook::get("activeBuffs"))->willReturn([
+            Buff::ACTIVATES_ON_OFFENSE_TURN => [
+                $buff,
+            ],
+        ]);
+
+        $events = $buffList->processDirectBuffs(Buff::ACTIVATES_ON_OFFENSE_TURN, $offenseFighter, $defenseFighter);
+
+        $this->assertCount(2, $events);
+        $this->assertInstanceOf(MinionDamageEvent::class, $events[0]);
+        $this->assertInstanceOf(MinionDamageEvent::class, $events[1]);
+
+        $buffEvent = $events[0];
+
+        $this->assertSame("attacker", $buffEvent->getContext()["target"]);
+        $this->assertSame($offenseFighter, $buffEvent->target);
+        $this->assertSame(-15, $buffEvent->getContext()["damage"]);
+
+        $buffEvent = $events[1];
+
+        $this->assertSame("defender", $buffEvent->getContext()["target"]);
+        $this->assertSame($defenseFighter, $buffEvent->target);
+        $this->assertSame(15, $buffEvent->getContext()["damage"]);
     }
 }

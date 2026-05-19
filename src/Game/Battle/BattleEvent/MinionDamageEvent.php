@@ -19,6 +19,8 @@ use Symfony\Component\OptionsResolver\OptionsResolver;
  */
 class MinionDamageEvent extends AbstractBattleEvent
 {
+    protected(set) FighterInterface $target;
+
     /**
      * @param FighterInterface $attacker
      * @param FighterInterface $defender
@@ -36,6 +38,8 @@ class MinionDamageEvent extends AbstractBattleEvent
         $resolver->define("effectFails")->allowedTypes("string", "null")->default(null);
         $resolver->define("noEffect")->allowedTypes("string", "null")->default(null);
         $this->context = $resolver->resolve($context);
+
+        $this->target = $this->context["target"] === "attacker" ? $this->attacker : $this->defender;
     }
 
     public function apply(): void
