@@ -89,18 +89,23 @@ class BuffList
      */
     public function activate(int $activation, FighterInterface $goodGuy, FighterInterface $badGuy): array
     {
-        $this->logger->debug("BuffList: Activate on {$activation} for gg:{$goodGuy->name} and bg:{$badGuy->name}");
-
         if ((($activation & ($activation - 1)) != 0) === true) {
             throw new ValueError("Only one type of buff activation is permitted to activate at a time");
         }
 
-        if (isset($this->activeBuffs[$activation]) && count($this->activeBuffs[$activation]) > 0) {
-            throw new ValueError("You already have activated the buffs for activation type ($activation).");
+        if (!in_array($activation, [Buff::ACTIVATES_ON_ROUNDSTART, Buff::ACTIVATES_ON_ROUNDEND, Buff::ACTIVATES_ON_OFFENSE_TURN, Buff::ACTIVATES_ON_DEFENSE_TURN])) {
+            throw new ValueError("Activation is not on the list of possible activation types ($activation given)");
         }
 
-        $this->activeBuffs = [... $this->activeBuffs, $activation => []];
+        if (isset($this->activeBuffs[$activation]) && count($this->activeBuffs[$activation]) > 0) {
+            throw new ValueError("You already have activated the buffs for activation type ($activation given).");
+        }
+
+        $this->logger->debug("BuffList: Activate on {$activation} for gg:{$goodGuy->name} and bg:{$badGuy->name}");
+
         $events = [];
+
+        $currentlyActivatingBuffs = [];
 
         foreach ($this->buffs as $buff) {
             if ($buff->getsActivatedAt($activation) === false) {
@@ -109,7 +114,7 @@ class BuffList
 
             $this->logger->debug("BuffList: Activate: {$buff->name}");
 
-            $this->activeBuffs[$activation][] = $buff;
+            $currentlyActivatingBuffs[] = $buff;
 
             $buffMessage = $this->getBuffMessage($buff);
             if ($buffMessage !== null) {
@@ -122,17 +127,19 @@ class BuffList
             }
         }
 
+        $this->activeBuffs = [... $this->activeBuffs, $activation => $currentlyActivatingBuffs];
+
         return $events;
     }
 
     public function getBuffMessage(Buff $buff): ?string
     {
-        $return = null;
-        $used = $this->hasBuffBeenUsed($buff);
-        if ($buff->hasBeenStarted === false && $used === false) {
+        if ($this->hasBuffBeenUsed($buff)) {
+            return null;
+        } elseif ($buff->hasBeenStarted === false) {
             $return = $buff->startMessage;
             $buff->hasBeenStarted = true;
-        } elseif ($used === false) {
+        } else {
             $return = $buff->roundMessage;
         }
 

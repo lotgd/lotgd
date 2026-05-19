@@ -14,10 +14,13 @@ use LotGD2\Game\Battle\BattleEvent\MinionDamageEvent;
 use LotGD2\Game\Battle\BattleEvent\RegenerationBuffEvent;
 use LotGD2\Game\Random\DiceBag;
 use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\Attributes\TestWith;
 use PHPUnit\Framework\Attributes\UsesClass;
 use PHPUnit\Framework\MockObject\Runtime\PropertyHook;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
+use ValueError;
 
 #[CoversClass(BuffList::class)]
 #[UsesClass(LifeTapEvent::class)]
@@ -28,6 +31,332 @@ use Psr\Log\LoggerInterface;
 #[UsesClass(MinionDamageEvent::class)]
 class BuffListTest extends TestCase
 {
+    #[TestWith([-1])]
+    #[TestWith([3])]
+    #[TestWith([5])]
+    #[TestWith([6])]
+    #[TestWith([7])]
+    #[TestWith([9])]
+    #[TestWith([10])]
+    #[TestWith([11])]
+    #[TestWith([12])]
+    #[TestWith([13])]
+    #[TestWith([14])]
+    #[TestWith([15])]
+    public function testIfMultipleActivationsIsImpossible(int $activation)
+    {
+        $logger = $this->createMock(LoggerInterface::class);
+        $diceBag = $this->createStub(DiceBag::class);
+
+        $buffList = new BuffList($logger, $diceBag);
+
+        $logger->expects($this->never())->method("debug");
+        $this->expectException(ValueError::class);
+        $this->expectExceptionMessage("Only one type of buff activation is permitted to activate at a time");
+
+        $goodGuy = $this->createStub(FighterInterface::class);
+        $badGuy = $this->createStub(FighterInterface::class);
+
+        $buffList->activate($activation, $goodGuy, $badGuy);
+    }
+
+    #[TestWith([0])]
+    #[TestWith([16])]
+    #[TestWith([32])]
+    public function testIfMultipleActivationsWithUnknownIsImpossible(int $activation)
+    {
+        $logger = $this->createMock(LoggerInterface::class);
+        $diceBag = $this->createStub(DiceBag::class);
+
+        $buffList = new BuffList($logger, $diceBag);
+
+        $logger->expects($this->never())->method("debug");
+        $this->expectException(ValueError::class);
+        $this->expectExceptionMessage("Activation is not on the list of possible activation types ($activation given)");
+
+        $goodGuy = $this->createStub(FighterInterface::class);
+        $badGuy = $this->createStub(FighterInterface::class);
+
+        $buffList->activate($activation, $goodGuy, $badGuy);
+    }
+
+    #[TestWith([Buff::ACTIVATES_ON_ROUNDSTART])]
+    #[TestWith([Buff::ACTIVATES_ON_ROUNDEND])]
+    #[TestWith([Buff::ACTIVATES_ON_OFFENSE_TURN])]
+    #[TestWith([Buff::ACTIVATES_ON_ROUNDEND])]
+    public function testIfActivationFailsIfAlreadyActivated(int $activation)
+    {
+        $logger = $this->createMock(LoggerInterface::class);
+        $diceBag = $this->createStub(DiceBag::class);
+
+        $goodGuy = $this->createStub(FighterInterface::class);
+        $goodGuy->method(PropertyHook::get("name"))->willReturn("GoodGuy");
+
+        $badGuy = $this->createStub(FighterInterface::class);
+        $badGuy->method(PropertyHook::get("name"))->willReturn("BadGuy");
+
+        $logger->expects($this->never())->method("debug");
+
+        $buffList = $this
+            ->getMockBuilder(BuffList::class)
+            ->onlyMethods([])
+            ->setConstructorArgs([$logger, $diceBag])
+            ->getMock();
+
+        $buffList->expects($this->atLeastOnce())->method(PropertyHook::get("activeBuffs"))->willReturn([
+            $activation => [
+                // The list what should not matter here.
+                1
+            ],
+        ]);
+
+        $this->expectException(ValueError::class);
+        $this->expectExceptionMessage("You already have activated the buffs for activation type ($activation given).");
+
+        $buffList->activate($activation, $goodGuy, $badGuy);
+    }
+
+    #[TestWith([Buff::ACTIVATES_ON_ROUNDSTART])]
+    #[TestWith([Buff::ACTIVATES_ON_ROUNDEND])]
+    #[TestWith([Buff::ACTIVATES_ON_OFFENSE_TURN])]
+    #[TestWith([Buff::ACTIVATES_ON_DEFENSE_TURN])]
+    public function testIfActivationWorks(int $activation)
+    {
+        $logger = $this->createMock(LoggerInterface::class);
+        $diceBag = $this->createStub(DiceBag::class);
+
+        $goodGuy = $this->createStub(FighterInterface::class);
+        $goodGuy->method(PropertyHook::get("name"))->willReturn("GoodGuy");
+
+        $badGuy = $this->createStub(FighterInterface::class);
+        $badGuy->method(PropertyHook::get("name"))->willReturn("BadGuy");
+
+        $logger->expects($this->atLeastOnce())->method("debug");
+
+        $buffList = $this
+            ->getMockBuilder(BuffList::class)
+            ->onlyMethods(["getBuffMessage"])
+            ->setConstructorArgs([$logger, $diceBag])
+            ->getMock();
+
+        $buffList->expects($this->once())->method("getBuffMessage")->willReturn(null);
+
+        $buff = $this->createMock(Buff::class);
+        $buff->expects($this->once())->method("getsActivatedAt")->with($activation)->willReturn(true);
+
+        $buffList->expects($this->atLeastOnce())->method(PropertyHook::get("activeBuffs"))->willReturn([
+            // We will make sure that, whatever is already in the list, is kept in the list!
+            0 => [
+                $buff,
+            ],
+        ]);
+
+        $buffList->expects($this->atLeastOnce())->method(PropertyHook::get("buffs"))->willReturn([$buff]);
+
+        $buffList->expects($this->once())->method(PropertyHook::set("activeBuffs"))->with([
+            0 => [
+                $buff,
+            ],
+            $activation => [
+                $buff,
+            ],
+        ]);
+
+        $events = $buffList->activate($activation, $goodGuy, $badGuy);
+
+        $this->assertCount(0, $events);
+    }
+
+    #[TestWith([Buff::ACTIVATES_ON_ROUNDSTART, "Message Round Start"])]
+    #[TestWith([Buff::ACTIVATES_ON_ROUNDEND, "Message Round End"])]
+    #[TestWith([Buff::ACTIVATES_ON_OFFENSE_TURN, "Message Offense Turn"])]
+    #[TestWith([Buff::ACTIVATES_ON_DEFENSE_TURN, "Message Defense Turn"])]
+    public function testIfActivationWorksWithMessage(int $activation, string $buffMessage)
+    {
+        $logger = $this->createMock(LoggerInterface::class);
+        $diceBag = $this->createStub(DiceBag::class);
+
+        $goodGuy = $this->createStub(FighterInterface::class);
+        $goodGuy->method(PropertyHook::get("name"))->willReturn("GoodGuy");
+
+        $badGuy = $this->createStub(FighterInterface::class);
+        $badGuy->method(PropertyHook::get("name"))->willReturn("BadGuy");
+
+        $logger->expects($this->atLeastOnce())->method("debug");
+
+        $buffList = $this
+            ->getMockBuilder(BuffList::class)
+            ->onlyMethods(["getBuffMessage"])
+            ->setConstructorArgs([$logger, $diceBag])
+            ->getMock();
+
+        $buffList->expects($this->once())->method("getBuffMessage")->willReturn($buffMessage);
+
+        $buff = $this->createMock(Buff::class);
+        $buff->expects($this->once())->method("getsActivatedAt")->with($activation)->willReturn(true);
+
+        $buffList->expects($this->atLeastOnce())->method(PropertyHook::get("activeBuffs"))->willReturn([
+            // We will make sure that, whatever is already in the list, is kept in the list!
+            0 => [
+                $buff,
+            ],
+        ]);
+
+        $buffList->expects($this->atLeastOnce())->method(PropertyHook::get("buffs"))->willReturn([$buff]);
+
+        $buffList->expects($this->once())->method(PropertyHook::set("activeBuffs"))->with([
+            0 => [
+                $buff,
+            ],
+            $activation => [
+                $buff,
+            ],
+        ]);
+
+        $events = $buffList->activate($activation, $goodGuy, $badGuy);
+
+        $this->assertCount(1, $events);
+    }
+
+    #[TestWith([Buff::ACTIVATES_ON_ROUNDSTART, "Message Round Start"])]
+    #[TestWith([Buff::ACTIVATES_ON_ROUNDEND, "Message Round End"])]
+    #[TestWith([Buff::ACTIVATES_ON_OFFENSE_TURN, "Message Offense Turn"])]
+    #[TestWith([Buff::ACTIVATES_ON_DEFENSE_TURN, "Message Defense Turn"])]
+    public function testIfActivationDoesNotAddBuffIfBuffGetsNotActivatedInThatTurn(int $activation, string $buffMessage)
+    {
+        $logger = $this->createMock(LoggerInterface::class);
+        $diceBag = $this->createStub(DiceBag::class);
+
+        $goodGuy = $this->createStub(FighterInterface::class);
+        $goodGuy->method(PropertyHook::get("name"))->willReturn("GoodGuy");
+
+        $badGuy = $this->createStub(FighterInterface::class);
+        $badGuy->method(PropertyHook::get("name"))->willReturn("BadGuy");
+
+        $logger->expects($this->atLeastOnce())->method("debug");
+
+        $buffList = $this
+            ->getMockBuilder(BuffList::class)
+            ->onlyMethods(["getBuffMessage"])
+            ->setConstructorArgs([$logger, $diceBag])
+            ->getMock();
+
+        $buffList->expects($this->never())->method("getBuffMessage");
+
+        $buff = $this->createMock(Buff::class);
+        $buff->expects($this->once())->method("getsActivatedAt")->with($activation)->willReturn(false);
+
+        $buffList->expects($this->atLeastOnce())->method(PropertyHook::get("activeBuffs"))->willReturn([
+            // We will make sure that, whatever is already in the list, is kept in the list!
+            0 => [
+                $buff,
+            ],
+        ]);
+
+        $buffList->expects($this->atLeastOnce())->method(PropertyHook::get("buffs"))->willReturn([$buff]);
+
+        $buffList->expects($this->once())->method(PropertyHook::set("activeBuffs"))->with([
+            0 => [
+                $buff,
+            ],
+            $activation => [],
+        ]);
+
+        $events = $buffList->activate($activation, $goodGuy, $badGuy);
+
+        $this->assertCount(0, $events);
+    }
+
+    public function testGetBuffMessageIsStartMessageIfHasNotBeenUsedYetAndBuffWasNotStartedYet()
+    {
+        $logger = $this->createMock(LoggerInterface::class);
+        $diceBag = $this->createStub(DiceBag::class);
+
+        $buffList = $this
+            ->getMockBuilder(BuffList::class)
+            ->onlyMethods(["hasBuffBeenUsed"])
+            ->setConstructorArgs([$logger, $diceBag])
+            ->getMock();
+
+        $buffList->expects($this->once())->method("hasBuffBeenUsed")->wilLReturn(false);
+
+        $buff = $this->createMock(Buff::class);
+        $buff->expects($this->once())->method(PropertyHook::get("hasBeenStarted"))->willReturn(false);
+        $buff->expects($this->once())->method(PropertyHook::get("startMessage"))->willReturn("Start Message");
+
+        $buffMessage = $buffList->getBuffMessage($buff);
+
+        $this->assertNotNull($buffMessage);
+        $this->assertSame("Start Message", $buffMessage);
+    }
+
+    public function testGetBuffMessageIsRoundMessageIfHasNotBeenUsedYetAndBuffWasNotStartedYet()
+    {
+        $logger = $this->createMock(LoggerInterface::class);
+        $diceBag = $this->createStub(DiceBag::class);
+
+        $buffList = $this
+            ->getMockBuilder(BuffList::class)
+            ->onlyMethods(["hasBuffBeenUsed"])
+            ->setConstructorArgs([$logger, $diceBag])
+            ->getMock();
+
+        $buffList->expects($this->once())->method("hasBuffBeenUsed")->wilLReturn(false);
+
+        $buff = $this->createMock(Buff::class);
+        $buff->expects($this->once())->method(PropertyHook::get("hasBeenStarted"))->willReturn(true);
+        $buff->expects($this->once())->method(PropertyHook::get("roundMessage"))->willReturn("Round Message");
+
+        $buffMessage = $buffList->getBuffMessage($buff);
+
+        $this->assertNotNull($buffMessage);
+        $this->assertSame("Round Message", $buffMessage);
+    }
+
+    public function testGetBuffMessageIsNullIfHasBeenUsedYetAndBuffWasNotStartedYet()
+    {
+        $logger = $this->createMock(LoggerInterface::class);
+        $diceBag = $this->createStub(DiceBag::class);
+
+        $buffList = $this
+            ->getMockBuilder(BuffList::class)
+            ->onlyMethods(["hasBuffBeenUsed"])
+            ->setConstructorArgs([$logger, $diceBag])
+            ->getMock();
+
+        $buffList->expects($this->once())->method("hasBuffBeenUsed")->wilLReturn(true);
+
+        $buff = $this->createMock(Buff::class);
+        $buff->expects($this->never())->method(PropertyHook::get("hasBeenStarted"))->willReturn(false);
+        $buff->expects($this->never())->method(PropertyHook::get("startMessage"))->willReturn("Start Message");
+
+        $buffMessage = $buffList->getBuffMessage($buff);
+
+        $this->assertNull($buffMessage);
+    }
+
+    public function testGetBuffMessageIsRoundMessageIfHasBeenUsedYetAndBuffWasNotStartedYet()
+    {
+        $logger = $this->createMock(LoggerInterface::class);
+        $diceBag = $this->createStub(DiceBag::class);
+
+        $buffList = $this
+            ->getMockBuilder(BuffList::class)
+            ->onlyMethods(["hasBuffBeenUsed"])
+            ->setConstructorArgs([$logger, $diceBag])
+            ->getMock();
+
+        $buffList->expects($this->once())->method("hasBuffBeenUsed")->wilLReturn(true);
+
+        $buff = $this->createMock(Buff::class);
+        $buff->expects($this->never())->method(PropertyHook::get("hasBeenStarted"))->willReturn(true);
+        $buff->expects($this->never())->method(PropertyHook::get("roundMessage"))->willReturn("Round Message");
+
+        $buffMessage = $buffList->getBuffMessage($buff);
+
+        $this->assertNull($buffMessage);
+    }
+
     public function testProcessDamageDependentBuffsForBadGuyLifeTap(): void
     {
         $partialMock = $this->createPartialMock(BuffList::class, [
