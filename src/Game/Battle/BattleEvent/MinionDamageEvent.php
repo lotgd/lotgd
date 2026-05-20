@@ -8,6 +8,13 @@ use LotGD2\Entity\Battle\FighterInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
 /**
+ * A battle event that reports on damage from minions.
+ *
+ * If damage is positive, effectSucceeds will be used as the battle message.
+ * If damage is negative, effectFails will be used as the battle message despite the effect technically not failing.
+ *   This behaviour is not considered a bug and is congruent with 0.9.7+jt.
+ * If the damage is exactly 0, noEffect will be used as the battle message.
+ *
  * @phpstan-type MinionDamageContext array{
  *      target: "attacker"|"defender",
  *      damage: int,
@@ -19,7 +26,14 @@ use Symfony\Component\OptionsResolver\OptionsResolver;
  */
 class MinionDamageEvent extends AbstractBattleEvent
 {
-    protected(set) FighterInterface $target;
+    readonly protected(set) FighterInterface $target;
+
+    protected(set) ?string $message = null {
+        get => $this->message;
+        set(null|string $value) => $value;
+    }
+
+    readonly protected(set) int $damage;
 
     /**
      * @param FighterInterface $attacker
@@ -40,6 +54,7 @@ class MinionDamageEvent extends AbstractBattleEvent
         $this->context = $resolver->resolve($context);
 
         $this->target = $this->context["target"] === "attacker" ? $this->attacker : $this->defender;
+        $this->damage = $this->context["damage"];
     }
 
     public function apply(): void
@@ -47,33 +62,34 @@ class MinionDamageEvent extends AbstractBattleEvent
         parent::apply();
 
         // If damage is negative, the victim will be _healed_. This is the same behaviour as seen in 0.9.7+jt ext GER 3.
+        // Can be used to have minions _heal_ the character.
         $victim = $this->context["target"] === "attacker" ? $this->attacker : $this->defender;
-        $victim->damage($this->context["damage"]);
+
+        if ($this->damage < 0) {
+            $this->message = $this->context["effectFails"];
+        } elseif ($this->damage > 0) {
+            $this->message = $this->context["effectSucceeds"];
+        } else {
+            $this->message = $this->context["noEffect"];
+        }
+
+        $victim->damage($this->damage);
     }
 
     public function decorate(): ?BattleMessage
     {
         parent::decorate();
 
-        $damage = $this->context["damage"];
-
-        if ($damage < 0) {
-            $message = $this->context["effectFails"];
-        } elseif ($damage > 0) {
-            $message = $this->context["effectSucceeds"];
-        } else {
-            $message = $this->context["noEffect"];
-        }
-
-        if ($message === null) {
+        if ($this->message === null) {
             return null;
         }
 
-        return new BattleMessage($message, [
+        return new BattleMessage($this->message, [
             "attacker" => $this->attacker,
             "defender" => $this->defender,
-            "damage" => $damage,
+            "damage" => $this->damage,
             "target" => $this->context["target"],
+            "buffTarget" => $this->target,
         ]);
     }
 }
