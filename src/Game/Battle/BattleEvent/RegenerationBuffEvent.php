@@ -59,9 +59,9 @@ class RegenerationBuffEvent extends AbstractBattleEvent
         parent::decorate();
 
         if ($this->context["healAmount"] != 0) {
-            $message = $this->context["effectSucceeds"];
+            $message = $this->context["effectSucceeds"] ?? null;
         } else {
-            $message = $this->context["effectFails"];
+            $message = $this->context["effectFails"] ?? null;
         }
 
         if (!$message) {

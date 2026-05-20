@@ -188,12 +188,12 @@ class SpecialtyHandler implements DiceBagAwareInterface
 
     /**
      * @param Character $character
-     * @return list<CharacterSpecialty>
+     * @return array<int, CharacterSpecialty>
      */
     public function getSpecialties(Character $character): array
     {
         $specialties = $character->getProperty(self::SpecialtyProperty, []);
-        return array_filter_class($specialties, CharacterSpecialty::class);
+        return array_filter_class($specialties, CharacterSpecialty::class, false);
     }
 
     /**
@@ -530,7 +530,7 @@ class SpecialtyHandler implements DiceBagAwareInterface
                     "specialtyName" => $mainSpecialty->name,
                     "specialtyLevel" => $mainSpecialty->level,
                     "hasMoreUses" => $hasMoreUses,
-                    "levelsUntilNext" => 3 - $mainSpecialty%3,
+                    "levelsUntilNext" => 3 - ($mainSpecialty->level%3),
                 ]
             ));
         }

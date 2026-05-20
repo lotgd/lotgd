@@ -117,7 +117,7 @@ class HealerTemplate implements SceneTemplateInterface
         $this->logger->debug("Called HealerTemplate::defaultAction");
 
         $amount = $this->action->getParameter("amount") ?? 0;
-        $price = $this->action->getParameter("price") ?? 0;
+        $price = (int)($this->action->getParameter("price") ?? 0);
 
         if ($price === 0 or $this->gold->getGold(null) >= $price) {
             $this->logger->debug("{$this->character->id}: Healed by $amount for $price gold.");

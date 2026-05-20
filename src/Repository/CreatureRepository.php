@@ -23,7 +23,7 @@ class CreatureRepository extends ServiceEntityRepository
 
     public function getRandomCreature(int $level): ?Creature
     {
-        $creatureRows = $this->createQueryBuilder('c')
+        $creatureRows = (int)$this->createQueryBuilder('c')
             ->select("COUNT(c.id)")
             ->where('c.level = :level')
             ->setParameter('level', $level)

@@ -200,6 +200,6 @@ class StandardRace implements RaceInterface
         // Set loot back
         $lootPosition->loot = $lootConfig;
 
-        $this->logger->debug("Modified experience reward by factor {$raceConfiguration['goldFactor']}.");
+        $this->logger->debug("Modified experience reward by factor {$raceConfiguration['experienceFactor']}.");
     }
 }

@@ -251,7 +251,10 @@ class RaceHandler
 
         try {
             $raceClass = $this->container->get($race->className);
-            $raceClass->onSelect($character, $race);
+
+            if ($raceClass instanceof RaceInterface) {
+                $raceClass->onSelect($character, $race);
+            }
         } catch (Exception $e) {
             // If the class does not exist, we log this as a critical error.
             $this->logger->critical("There was an issue with the race class {$race->className}. {$e->getMessage()}", context: ["exception" => $e]);

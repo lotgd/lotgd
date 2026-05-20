@@ -66,11 +66,11 @@ class MinionDamageEvent extends AbstractBattleEvent
         $victim = $this->context["target"] === "attacker" ? $this->attacker : $this->defender;
 
         if ($this->damage < 0) {
-            $this->message = $this->context["effectFails"];
+            $this->message = $this->context["effectFails"] ?? null;
         } elseif ($this->damage > 0) {
-            $this->message = $this->context["effectSucceeds"];
+            $this->message = $this->context["effectSucceeds"] ?? null;
         } else {
-            $this->message = $this->context["noEffect"];
+            $this->message = $this->context["noEffect"] ?? null;
         }
 
         $victim->damage($this->damage);

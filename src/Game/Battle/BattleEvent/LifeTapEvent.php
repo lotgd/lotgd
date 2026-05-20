@@ -97,18 +97,18 @@ class LifeTapEvent extends AbstractBattleEvent
              */
             if ($damage > 0) {
                 $this->healedDamage = 0;
-                $this->message = $this->context["effectFails"];
+                $this->message = $this->context["effectFails"] ?? null;
             } elseif ($damage < 0) {
                 $this->healedDamage = $this->getCappedHealth(-$damage, $lifeTap);
 
                 if ($this->healedDamage === 0) {
-                    $this->message = $this->context["noEffect"];
+                    $this->message = $this->context["noEffect"] ?? null;
                 } else {
-                    $this->message = $this->context["effectSucceeds"];
+                    $this->message = $this->context["effectSucceeds"] ?? null;
                 }
             } else {
                 $this->healedDamage = 0;
-                $this->message = $this->context["noEffect"];
+                $this->message = $this->context["noEffect"] ?? null;
             }
         } else {
             /*
@@ -121,16 +121,16 @@ class LifeTapEvent extends AbstractBattleEvent
                 $this->healedDamage = $this->getCappedHealth($damage, $lifeTap);
 
                 if ($this->healedDamage === 0) {
-                    $this->message = $this->context["noEffect"];
+                    $this->message = $this->context["noEffect"] ?? null;
                 } else {
-                    $this->message = $this->context["effectSucceeds"];
+                    $this->message = $this->context["effectSucceeds"] ?? null;
                 }
             } elseif ($damage < 0) {
                 $this->healedDamage = 0;
-                $this->message = $this->context["effectFails"];
+                $this->message = $this->context["effectFails"] ?? null;
             } else {
                 $this->healedDamage = 0;
-                $this->message = $this->context["noEffect"];
+                $this->message = $this->context["noEffect"] ?? null;
             }
         }
 

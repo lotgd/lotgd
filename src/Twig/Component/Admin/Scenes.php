@@ -60,11 +60,11 @@ class Scenes
     }
 
     /**
-     * @return iterable<int, Scene>
+     * @return array<int, Scene>
      */
     public function getScenes(): iterable
     {
-        return $this->sceneRepository->findAllWithConnections();
+        return iterator_to_array($this->sceneRepository->findAllWithConnections());
     }
 
     /**
@@ -76,7 +76,7 @@ class Scenes
         $allScenes = $this->getScenes();
 
         // Build tree
-        $treeRoot = array_find($allScenes, fn (Scene $scene) => $scene->defaultScene);
+        $treeRoot = array_find($allScenes, fn (Scene $scene, int $key) => $scene->defaultScene === true);
         $sceneList = [$treeRoot->id => true];
 
         $tree = [
@@ -113,9 +113,9 @@ class Scenes
      * @param int $depth
      * @param array<int, bool> $sceneList
      * @param Scene|null $parent
-     * @return iterable<SceneNode>
+     * @return array<int, SceneNode>
      */
-    private function getLeaves(Scene $scene, int $depth = 0, array &$sceneList = [], ?Scene $parent = null): iterable
+    private function getLeaves(Scene $scene, int $depth = 0, array &$sceneList = [], ?Scene $parent = null): array
     {
         $leave = [];
 
