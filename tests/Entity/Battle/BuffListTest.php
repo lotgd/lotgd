@@ -269,7 +269,7 @@ class BuffListTest extends TestCase
 
     public function testGetBuffMessageIsStartMessageIfHasNotBeenUsedYetAndBuffWasNotStartedYet()
     {
-        $logger = $this->createMock(LoggerInterface::class);
+        $logger = $this->createStub(LoggerInterface::class);
         $diceBag = $this->createStub(DiceBag::class);
 
         $buffList = $this
@@ -292,7 +292,7 @@ class BuffListTest extends TestCase
 
     public function testGetBuffMessageIsRoundMessageIfHasNotBeenUsedYetAndBuffWasNotStartedYet()
     {
-        $logger = $this->createMock(LoggerInterface::class);
+        $logger = $this->createStub(LoggerInterface::class);
         $diceBag = $this->createStub(DiceBag::class);
 
         $buffList = $this
@@ -315,7 +315,7 @@ class BuffListTest extends TestCase
 
     public function testGetBuffMessageIsNullIfHasBeenUsedYetAndBuffWasNotStartedYet()
     {
-        $logger = $this->createMock(LoggerInterface::class);
+        $logger = $this->createStub(LoggerInterface::class);
         $diceBag = $this->createStub(DiceBag::class);
 
         $buffList = $this
@@ -337,7 +337,7 @@ class BuffListTest extends TestCase
 
     public function testGetBuffMessageIsRoundMessageIfHasBeenUsedYetAndBuffWasNotStartedYet()
     {
-        $logger = $this->createMock(LoggerInterface::class);
+        $logger = $this->createStub(LoggerInterface::class);
         $diceBag = $this->createStub(DiceBag::class);
 
         $buffList = $this
