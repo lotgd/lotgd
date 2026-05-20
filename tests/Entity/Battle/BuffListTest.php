@@ -14,7 +14,6 @@ use LotGD2\Game\Battle\BattleEvent\MinionDamageEvent;
 use LotGD2\Game\Battle\BattleEvent\RegenerationBuffEvent;
 use LotGD2\Game\Random\DiceBag;
 use PHPUnit\Framework\Attributes\CoversClass;
-use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\TestWith;
 use PHPUnit\Framework\Attributes\UsesClass;
 use PHPUnit\Framework\MockObject\Runtime\PropertyHook;
@@ -752,7 +751,7 @@ class BuffListTest extends TestCase
         $diceBag = $this->createStub(DiceBag::class);
 
         $buff = $this->createMock(Buff::class);
-        $buff->expects($this->atLeastOnce(1))->method(PropertyHook::get("goodGuyRegeneration"))->willReturn(5);
+        $buff->expects($this->atLeastOnce())->method(PropertyHook::get("goodGuyRegeneration"))->willReturn(5);
 
         $offenseFighter = $this->createStub(FighterInterface::class);
         $defenseFighter = $this->createStub(FighterInterface::class);
@@ -788,7 +787,7 @@ class BuffListTest extends TestCase
         $diceBag = $this->createStub(DiceBag::class);
 
         $buff = $this->createMock(Buff::class);
-        $buff->expects($this->atLeastOnce(1))->method(PropertyHook::get("badGuyRegeneration"))->willReturn(5);
+        $buff->expects($this->atLeastOnce())->method(PropertyHook::get("badGuyRegeneration"))->willReturn(5);
 
         $offenseFighter = $this->createStub(FighterInterface::class);
         $defenseFighter = $this->createStub(FighterInterface::class);
@@ -825,7 +824,7 @@ class BuffListTest extends TestCase
         $diceBag = $this->createStub(DiceBag::class);
 
         $buff = $this->createMock(Buff::class);
-        $buff->expects($this->atLeastOnce(1))->method(PropertyHook::get("numberOfMinions"))->willReturn(1);
+        $buff->expects($this->atLeastOnce())->method(PropertyHook::get("numberOfMinions"))->willReturn(1);
 
         $offenseFighter = $this->createStub(FighterInterface::class);
         $defenseFighter = $this->createStub(FighterInterface::class);
@@ -861,11 +860,11 @@ class BuffListTest extends TestCase
         });
 
         $buff = $this->createMock(Buff::class);
-        $buff->expects($this->atLeastOnce(1))->method(PropertyHook::get("numberOfMinions"))->willReturn(1);
-        $buff->expects($this->atLeastOnce(1))->method(PropertyHook::get("minionMinBadGuyDamage"))->willReturn(10);
-        $buff->expects($this->atLeastOnce(1))->method(PropertyHook::get("minionMaxBadGuyDamage"))->willReturn(20);
-        $buff->expects($this->atLeastOnce(1))->method(PropertyHook::get("minionMinGoodGuyDamage"))->willReturn(0);
-        $buff->expects($this->atLeastOnce(1))->method(PropertyHook::get("minionMaxGoodGuyDamage"))->willReturn(0);
+        $buff->expects($this->atLeastOnce())->method(PropertyHook::get("numberOfMinions"))->willReturn(1);
+        $buff->expects($this->atLeastOnce())->method(PropertyHook::get("minionMinBadGuyDamage"))->willReturn(10);
+        $buff->expects($this->atLeastOnce())->method(PropertyHook::get("minionMaxBadGuyDamage"))->willReturn(20);
+        $buff->expects($this->atLeastOnce())->method(PropertyHook::get("minionMinGoodGuyDamage"))->willReturn(0);
+        $buff->expects($this->atLeastOnce())->method(PropertyHook::get("minionMaxGoodGuyDamage"))->willReturn(0);
 
         $offenseFighter = $this->createStub(FighterInterface::class);
         $defenseFighter = $this->createStub(FighterInterface::class);
@@ -915,11 +914,11 @@ class BuffListTest extends TestCase
         });
 
         $buff = $this->createMock(Buff::class);
-        $buff->expects($this->atLeastOnce(1))->method(PropertyHook::get("numberOfMinions"))->willReturn($amountOfMinions);
-        $buff->expects($this->atLeastOnce(1))->method(PropertyHook::get("minionMinBadGuyDamage"))->willReturn(10);
-        $buff->expects($this->atLeastOnce(1))->method(PropertyHook::get("minionMaxBadGuyDamage"))->willReturn(20);
-        $buff->expects($this->atLeastOnce(1))->method(PropertyHook::get("minionMinGoodGuyDamage"))->willReturn(0);
-        $buff->expects($this->atLeastOnce(1))->method(PropertyHook::get("minionMaxGoodGuyDamage"))->willReturn(0);
+        $buff->expects($this->atLeastOnce())->method(PropertyHook::get("numberOfMinions"))->willReturn($amountOfMinions);
+        $buff->expects($this->atLeastOnce())->method(PropertyHook::get("minionMinBadGuyDamage"))->willReturn(10);
+        $buff->expects($this->atLeastOnce())->method(PropertyHook::get("minionMaxBadGuyDamage"))->willReturn(20);
+        $buff->expects($this->atLeastOnce())->method(PropertyHook::get("minionMinGoodGuyDamage"))->willReturn(0);
+        $buff->expects($this->atLeastOnce())->method(PropertyHook::get("minionMaxGoodGuyDamage"))->willReturn(0);
 
         $offenseFighter = $this->createStub(FighterInterface::class);
         $defenseFighter = $this->createStub(FighterInterface::class);
@@ -956,11 +955,11 @@ class BuffListTest extends TestCase
         });
 
         $buff = $this->createMock(Buff::class);
-        $buff->expects($this->atLeastOnce(1))->method(PropertyHook::get("numberOfMinions"))->willReturn(1);
-        $buff->expects($this->atLeastOnce(1))->method(PropertyHook::get("minionMinBadGuyDamage"))->willReturn(-10);
-        $buff->expects($this->atLeastOnce(1))->method(PropertyHook::get("minionMaxBadGuyDamage"))->willReturn(-20);
-        $buff->expects($this->atLeastOnce(1))->method(PropertyHook::get("minionMinGoodGuyDamage"))->willReturn(0);
-        $buff->expects($this->atLeastOnce(1))->method(PropertyHook::get("minionMaxGoodGuyDamage"))->willReturn(0);
+        $buff->expects($this->atLeastOnce())->method(PropertyHook::get("numberOfMinions"))->willReturn(1);
+        $buff->expects($this->atLeastOnce())->method(PropertyHook::get("minionMinBadGuyDamage"))->willReturn(-10);
+        $buff->expects($this->atLeastOnce())->method(PropertyHook::get("minionMaxBadGuyDamage"))->willReturn(-20);
+        $buff->expects($this->atLeastOnce())->method(PropertyHook::get("minionMinGoodGuyDamage"))->willReturn(0);
+        $buff->expects($this->atLeastOnce())->method(PropertyHook::get("minionMaxGoodGuyDamage"))->willReturn(0);
 
         $offenseFighter = $this->createStub(FighterInterface::class);
         $defenseFighter = $this->createStub(FighterInterface::class);
@@ -1003,11 +1002,11 @@ class BuffListTest extends TestCase
         });
 
         $buff = $this->createMock(Buff::class);
-        $buff->expects($this->atLeastOnce(1))->method(PropertyHook::get("numberOfMinions"))->willReturn(1);
-        $buff->expects($this->atLeastOnce(1))->method(PropertyHook::get("minionMinBadGuyDamage"))->willReturn(0);
-        $buff->expects($this->atLeastOnce(1))->method(PropertyHook::get("minionMaxBadGuyDamage"))->willReturn(0);
-        $buff->expects($this->atLeastOnce(1))->method(PropertyHook::get("minionMinGoodGuyDamage"))->willReturn(10);
-        $buff->expects($this->atLeastOnce(1))->method(PropertyHook::get("minionMaxGoodGuyDamage"))->willReturn(20);
+        $buff->expects($this->atLeastOnce())->method(PropertyHook::get("numberOfMinions"))->willReturn(1);
+        $buff->expects($this->atLeastOnce())->method(PropertyHook::get("minionMinBadGuyDamage"))->willReturn(0);
+        $buff->expects($this->atLeastOnce())->method(PropertyHook::get("minionMaxBadGuyDamage"))->willReturn(0);
+        $buff->expects($this->atLeastOnce())->method(PropertyHook::get("minionMinGoodGuyDamage"))->willReturn(10);
+        $buff->expects($this->atLeastOnce())->method(PropertyHook::get("minionMaxGoodGuyDamage"))->willReturn(20);
 
         $offenseFighter = $this->createStub(FighterInterface::class);
         $defenseFighter = $this->createStub(FighterInterface::class);
@@ -1050,11 +1049,11 @@ class BuffListTest extends TestCase
         });
 
         $buff = $this->createMock(Buff::class);
-        $buff->expects($this->atLeastOnce(1))->method(PropertyHook::get("numberOfMinions"))->willReturn(1);
-        $buff->expects($this->atLeastOnce(1))->method(PropertyHook::get("minionMinBadGuyDamage"))->willReturn(0);
-        $buff->expects($this->atLeastOnce(1))->method(PropertyHook::get("minionMaxBadGuyDamage"))->willReturn(0);
-        $buff->expects($this->atLeastOnce(1))->method(PropertyHook::get("minionMinGoodGuyDamage"))->willReturn(-10);
-        $buff->expects($this->atLeastOnce(1))->method(PropertyHook::get("minionMaxGoodGuyDamage"))->willReturn(-20);
+        $buff->expects($this->atLeastOnce())->method(PropertyHook::get("numberOfMinions"))->willReturn(1);
+        $buff->expects($this->atLeastOnce())->method(PropertyHook::get("minionMinBadGuyDamage"))->willReturn(0);
+        $buff->expects($this->atLeastOnce())->method(PropertyHook::get("minionMaxBadGuyDamage"))->willReturn(0);
+        $buff->expects($this->atLeastOnce())->method(PropertyHook::get("minionMinGoodGuyDamage"))->willReturn(-10);
+        $buff->expects($this->atLeastOnce())->method(PropertyHook::get("minionMaxGoodGuyDamage"))->willReturn(-20);
 
         $offenseFighter = $this->createStub(FighterInterface::class);
         $defenseFighter = $this->createStub(FighterInterface::class);
@@ -1108,11 +1107,11 @@ class BuffListTest extends TestCase
         $diceBag->expects($this->exactly(2))->method("chance")->willReturn(true, false);
 
         $buff = $this->createMock(Buff::class);
-        $buff->expects($this->atLeastOnce(1))->method(PropertyHook::get("numberOfMinions"))->willReturn(2);
-        $buff->expects($this->atLeastOnce(1))->method(PropertyHook::get("minionMinBadGuyDamage"))->willReturn(10);
-        $buff->expects($this->atLeastOnce(1))->method(PropertyHook::get("minionMaxBadGuyDamage"))->willReturn(20);
-        $buff->expects($this->atLeastOnce(1))->method(PropertyHook::get("minionMinGoodGuyDamage"))->willReturn(-10);
-        $buff->expects($this->atLeastOnce(1))->method(PropertyHook::get("minionMaxGoodGuyDamage"))->willReturn(-20);
+        $buff->expects($this->atLeastOnce())->method(PropertyHook::get("numberOfMinions"))->willReturn(2);
+        $buff->expects($this->atLeastOnce())->method(PropertyHook::get("minionMinBadGuyDamage"))->willReturn(10);
+        $buff->expects($this->atLeastOnce())->method(PropertyHook::get("minionMaxBadGuyDamage"))->willReturn(20);
+        $buff->expects($this->atLeastOnce())->method(PropertyHook::get("minionMinGoodGuyDamage"))->willReturn(-10);
+        $buff->expects($this->atLeastOnce())->method(PropertyHook::get("minionMaxGoodGuyDamage"))->willReturn(-20);
 
         $offenseFighter = $this->createStub(FighterInterface::class);
         $defenseFighter = $this->createStub(FighterInterface::class);
