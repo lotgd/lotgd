@@ -111,6 +111,27 @@ class SceneTest extends TestCase
             ): SceneTemplateInterface {
                 return $this;
             }
+
+            protected(set) Stage $stage {
+                get => $this->stage;
+                set => $value;
+            }
+            protected(set) Action $action {
+                get => $this->action;
+                set => $value;
+            }
+            protected(set) Scene $scene {
+                get => $this->scene;
+                set => $value;
+            }
+            protected(set) Scene|null $lastScene {
+                get => $this->lastScene;
+                set => $value;
+            }
+            protected(set) \LotGD2\Entity\Mapped\Character $character {
+                get => $this->character;
+                set => $value;
+            }
         };
 
         $scene = new Scene(
@@ -135,6 +156,27 @@ class SceneTest extends TestCase
                 ?Scene $lastScene = null
             ): SceneTemplateInterface {
                 return $this;
+            }
+
+            protected(set) Stage $stage {
+                get => $this->stage;
+                set => $value;
+            }
+            protected(set) Action $action {
+                get => $this->action;
+                set => $value;
+            }
+            protected(set) Scene $scene {
+                get => $this->scene;
+                set => $value;
+            }
+            protected(set) Scene|null $lastScene {
+                get => $this->lastScene;
+                set => $value;
+            }
+            protected(set) \LotGD2\Entity\Mapped\Character $character {
+                get => $this->character;
+                set => $value;
             }
         };
 
@@ -163,6 +205,27 @@ class SceneTest extends TestCase
                 ?Scene $lastScene = null
             ): SceneTemplateInterface {
                 return $this;
+            }
+
+            protected(set) Stage $stage {
+                get => $this->stage;
+                set => $value;
+            }
+            protected(set) Action $action {
+                get => $this->action;
+                set => $value;
+            }
+            protected(set) Scene $scene {
+                get => $this->scene;
+                set => $value;
+            }
+            protected(set) Scene|null $lastScene {
+                get => $this->lastScene;
+                set => $value;
+            }
+            protected(set) \LotGD2\Entity\Mapped\Character $character {
+                get => $this->character;
+                set => $value;
             }
         };
 

@@ -55,7 +55,7 @@ class DragonTemplate implements SceneTemplateInterface
         readonly private GoldHandler $gold,
         readonly private StatsHandler $stats,
         readonly private DragonCounterHandler $dragonCounter,
-        private readonly ActionService $actionService,
+        readonly private ActionService $actionService,
     ) {
 
     }
@@ -73,11 +73,12 @@ class DragonTemplate implements SceneTemplateInterface
 
     public function defaultAction(): void
     {
+        $dragonName = $this->scene->templateConfig["dragonName"] ?? (new DragonTemplateType()->getDefaultData()["dragonName"]);
         $this->stage->addAction(
             actionGroup: ActionGroup::EMPTY,
             action: new Action(
                 scene: $this->scene,
-                title: "Seek out {$this->scene->templateConfig["dragonName"]}",
+                title: "Seek out {$dragonName}",
                 parameters: [
                     "op" => "start"
                 ],
@@ -89,14 +90,22 @@ class DragonTemplate implements SceneTemplateInterface
     {
         $description = $this->scene->templateConfig["text"]["fightIntro"] ?? null;
 
-        $attachment = $this->attachmentRepository->findOneByAttachmentClass(BattleAttachment::class);
+        $attachment = $this->attachmentRepository->findOneBy(["attachmentClass" => BattleAttachment::class]);
 
         // No attachment - fail early
         if ($attachment === null) {
             $this->logger->critical("Cannot attach attachment " . BattleAttachment::class . ": Not installed.");
-            $description = "The dragon suddenly withdraws into the inner caves, closing its path with a 
-                huge boulder. You don't much of a choice but to leave, and maybe inform the gods of this unnatural
-                behaviour.";
+
+            $this->stage->paragraphs = [
+                new Paragraph(
+                    id: "lotgd2.paragraph.dragonTemplate.startFightFailed",
+                    text: <<<TXT
+                        The dragon suddenly withdraws into the inner caves, closing its path with a 
+                        huge boulder. You don't much of a choice but to leave, and maybe inform the gods of this unnatural
+                        behaviour.
+                        TXT,
+                )
+            ];
 
             return;
         }
@@ -120,15 +129,19 @@ class DragonTemplate implements SceneTemplateInterface
             "battleState" => $battleState,
         ]);
 
-        $this->stage->paragraphs = [
-            new Paragraph(
-                id: "lotgd2.paragraph.dragonTemplate.startFight",
-                text: $description,
-                context: [
-                    "badGuy" => $dragon,
-                ],
-            )
-        ];
+        if ($description !== null) {
+            $this->stage->paragraphs = [
+                new Paragraph(
+                    id: "lotgd2.paragraph.dragonTemplate.startFight",
+                    text: $description,
+                    context: [
+                        "badGuy" => $dragon,
+                    ],
+                )
+            ];
+        } else {
+            $this->stage->paragraphs = [];
+        }
     }
 
     public function onFightWon(SimpleStageParameterEvent $event, BattleState $battleState): void
@@ -166,7 +179,8 @@ class DragonTemplate implements SceneTemplateInterface
     {
         $this->actionService->resetActionGroups($this->stage);
         $this->stage->title = "Victory!";
-        $description = $this->scene->templateConfig["text"]["epilogue"];
+        $description = $this->scene->templateConfig["text"]["epilogue"] ?? null;
+
         $this->stage->addAction(ActionGroup::EMPTY, new Action(
             scene: $this->sceneRepository->getDefaultScene(),
             title: "Continue",
@@ -175,14 +189,17 @@ class DragonTemplate implements SceneTemplateInterface
         $this->dragonCounter->dragonCounter++;
         $this->newDay->resetNewDay($this->character);
 
-
-        $this->stage->paragraphs = [
-            new Paragraph(
-                id: "lotgd2.paragraph.dragonTemplate.epilogue",
-                text: $description,
-                context: [],
-            )
-        ];
+        if ($description !== null) {
+            $this->stage->paragraphs = [
+                new Paragraph(
+                    id: "lotgd2.paragraph.dragonTemplate.epilogue",
+                    text: $description,
+                    context: [],
+                )
+            ];
+        } else {
+            $this->stage->paragraphs = [];
+        }
 
         $this->resetCharacter();
     }

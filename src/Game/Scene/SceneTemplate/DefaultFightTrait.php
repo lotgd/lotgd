@@ -21,7 +21,6 @@ trait DefaultFightTrait
     private readonly GoldHandler $gold;
     private readonly StatsHandler $stats;
     private readonly EventDispatcherInterface $eventDispatcher;
-    private Stage $stage;
 
     const string OnLootBagFill = "lotgd2.event.DefaultFight.lootBagFill";
     const string OnLootBagClaim = "lotgd2.event.DefaultFight.lootBagClaim";

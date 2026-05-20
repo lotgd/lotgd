@@ -14,7 +14,7 @@ use Symfony\UX\LiveComponent\DefaultActionTrait;
     name: 'Attachment::BattleAttachment',
     template: "component/Scene/SceneAttachment/BattleAttachment.html.twig",
 )]
-final class BattleAttachment extends AbstractController implements SceneAttachmentInterface
+class BattleAttachment extends AbstractController implements SceneAttachmentInterface
 {
     use DefaultActionTrait;
     use DefaultAttachmentTrait;
