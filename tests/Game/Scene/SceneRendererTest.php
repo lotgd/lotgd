@@ -164,6 +164,36 @@ class SceneRendererTest extends TestCase
     }
 
     /**
+     * Test if action is not created when ExpressionService says no
+     */
+    public function testIfActionIsNotCreatedAsExpectedIfSceneIsSourceSceneButExpressionServiceSaysNo(): void
+    {
+        $scene = $this->getSceneMock("Test Scene", "A nice scenery");
+        $otherScene = $this->getSceneMock("Other Scene", "A new scenery");
+        $otherScene->method(PropertyHook::get("id"))->willReturn(13);
+        $sceneConnection = $this->createMock(SceneConnection::class);
+        $sceneConnection->sourceScene = $scene;
+        $sceneConnection->targetScene = $otherScene;
+        $sceneConnection->sourceLabel = $otherScene->title;
+        $sceneConnection->targetLabel = $scene->title;
+        $sceneConnection->sourceExpression = null;
+        $sceneConnection->targetExpression = null;
+
+        $sceneRepository = $this->createMock(SceneRepository::class);
+        $diceBag = new DiceBag();
+        $actionService = $this->createStub(ActionService::class);
+
+        $expressionService = $this->createMock(ExpressionService::class);
+        $expressionService->expects($this->once())->method("evaluateBoolean")->willReturn(false);
+
+        $sceneRenderer = new SceneRenderer($sceneRepository, $diceBag, $actionService, $this->logger);
+
+        $action = $sceneRenderer->createActionFromConnection($scene, $sceneConnection, $expressionService);
+
+        $this->assertNull($action);
+    }
+
+    /**
      * Test if actions are expected if the scene is the target of a connection
      */
     public function testIfActionIsCreatedAsExpectedIfSceneIsTargetScene(): void
@@ -190,6 +220,34 @@ class SceneRendererTest extends TestCase
 
         $this->assertSame($otherScene->title, $action->title);
         $this->assertSame(13, $action->sceneId);
+    }
+
+    /**
+     * Test if action is not created when ExpressionService says no
+     */
+    public function testIfActionIsNotCreatedAsExpectedIfSceneIsTargetSceneButExpressionServiceSaysNo(): void
+    {
+        $scene = $this->getSceneMock("Test Scene", "A nice scenery");
+        $otherScene = $this->getSceneMock("Other Scene", "A new scenery");
+        $otherScene->method(PropertyHook::get("id"))->willReturn(13);
+        $sceneConnection = $this->createMock(SceneConnection::class);
+        $sceneConnection->targetScene = $scene;
+        $sceneConnection->sourceScene = $otherScene;
+        $sceneConnection->targetLabel = $otherScene->title;
+        $sceneConnection->sourceLabel = $scene->title;
+
+        $sceneRepository = $this->createMock(SceneRepository::class);
+        $diceBag = new DiceBag();
+        $actionService = $this->createStub(ActionService::class);
+
+        $expressionService = $this->createMock(ExpressionService::class);
+        $expressionService->expects($this->once())->method("evaluateBoolean")->willReturn(false);
+
+        $sceneRenderer = new SceneRenderer($sceneRepository, $diceBag, $actionService, $this->logger);
+
+        $action = $sceneRenderer->createActionFromConnection($scene, $sceneConnection, $expressionService);
+
+        $this->assertNull($action);
     }
 
     /**
