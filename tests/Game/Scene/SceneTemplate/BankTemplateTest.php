@@ -9,7 +9,10 @@ use LotGD2\Entity\Mapped\Character;
 use LotGD2\Entity\Mapped\Scene;
 use LotGD2\Entity\Mapped\Stage;
 use LotGD2\Entity\Paragraph;
+use LotGD2\Event\StageChangeEvent;
+use LotGD2\Form\Scene\SceneTemplate\BankTemplateType;
 use LotGD2\Game\Handler\GoldHandler;
+use LotGD2\Game\Handler\HealthHandler;
 use LotGD2\Game\Random\DiceBag;
 use LotGD2\Game\Random\DiceBagInterface;
 use LotGD2\Game\Scene\SceneAttachment\SimpleFormAttachment;
@@ -19,6 +22,7 @@ use LotGD2\Game\Stage\ActionService;
 use LotGD2\Repository\AttachmentRepository;
 use LotGD2\Repository\SceneRepository;
 use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\TestWith;
 use PHPUnit\Framework\Attributes\UsesClass;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\MockObject\Runtime\PropertyHook;
@@ -31,38 +35,10 @@ use Symfony\Component\Stopwatch\Stopwatch;
 #[UsesClass(Action::class)]
 #[UsesClass(DiceBag::class)]
 #[UsesClass(Paragraph::class)]
+#[UsesClass(BankTemplateType::class)]
+#[UsesClass(HealthHandler::class)]
 class BankTemplateTest extends TestCase
 {
-    private readonly BankTemplate $bankTemplate;
-    private readonly LoggerInterface&MockObject $logger;
-    private readonly Stopwatch&Stub $stopwatch;
-    private readonly AttachmentRepository&MockObject $attachmentRepository;
-    private readonly SceneRepository&Stub $sceneRepository;
-    private readonly DiceBagInterface&Stub $diceBag;
-    private readonly ActionService&MockObject $actionService;
-    private readonly GoldHandler&MockObject $gold;
-
-    protected function setUp(): void
-    {
-        $this->logger = $this->createMock(LoggerInterface::class);
-        $this->stopwatch = $this->createStub(Stopwatch::class);
-        $this->attachmentRepository = $this->createMock(AttachmentRepository::class);
-        $this->sceneRepository = $this->createStub(SceneRepository::class);
-        $this->diceBag = $this->createStub(DiceBagInterface::class);
-        $this->actionService = $this->createMock(ActionService::class);
-        $this->gold = $this->createMock(GoldHandler::class);
-
-        $this->bankTemplate = new BankTemplate(
-            $this->logger,
-            $this->stopwatch,
-            $this->attachmentRepository,
-            $this->sceneRepository,
-            $this->diceBag,
-            $this->actionService,
-            $this->gold,
-        );
-    }
-
     private function getSceneConfig(): array
     {
         return [
@@ -76,6 +52,24 @@ class BankTemplateTest extends TestCase
 
     public function testOnSceneChange(): void
     {
+        $logger = $this->createMock(LoggerInterface::class);
+        $stopwatch = $this->createStub(Stopwatch::class);
+        $attachmentRepository = $this->createStub(AttachmentRepository::class);
+        $sceneRepository = $this->createStub(SceneRepository::class);
+        $diceBag = $this->createStub(DiceBagInterface::class);
+        $actionService = $this->createStub(ActionService::class);
+        $gold = $this->createStub(GoldHandler::class);
+
+        $bankTemplate = new BankTemplate(
+            $logger,
+            $stopwatch,
+            $attachmentRepository,
+            $sceneRepository,
+            $diceBag,
+            $actionService,
+            $gold,
+        );
+
         $stage = $this->createMock(Stage::class);
         $action = $this->createMock(Action::class);
         $scene = $this->createMock(Scene::class);
@@ -83,41 +77,21 @@ class BankTemplateTest extends TestCase
         $paragraph = $this->createMock(Paragraph::class);
         $stage->method(PropertyHook::get("owner"))->willReturn($character);
 
-        $this->logger
-            ->expects($this->atLeast(0))
-            ->method("critical");
-
-        $this->attachmentRepository
-            ->expects($this->once())
-            ->method($this->anything())
-            ->willReturn(null);
-
-        $this->actionService
-            ->expects($this->never())
-            ->method($this->anything());
-
-        $this->gold->expects($this->never())
-            ->method($this->anything());
-
         $sceneConfig = $this->getSceneConfig();
 
         $scene->expects($this->atLeastOnce())->method(PropertyHook::get("templateConfig"))
             ->willReturn($sceneConfig);
-        $this->attachmentRepository
-            ->expects($this->once())
-            ->method($this->anything())
-            ->willReturn(null);
 
         // Assert op is asked for
         $action->expects($this->once())->method("getParameter")->with("op", "")->willReturn("holeduli");
 
         // Assert debug lines are as expected
-        $this->logger
+        $logger
             ->expects($this->atLeastOnce())
             ->method("debug")
             ->willReturnMap([
-                ["Called BankTemplate::onSceneChange, op=holeduli", $this->logger],
-                ["Called BankTemplate::defaultAction", $this->logger],
+                ["Called BankTemplate::onSceneChange, op=holeduli", $logger],
+                ["Called BankTemplate::defaultAction", $logger],
             ]);
 
         // Assert context is added
@@ -136,12 +110,30 @@ class BankTemplateTest extends TestCase
                 ["goldInBank", 0, $paragraph],
             ]);
 
-        $this->bankTemplate->setSceneChangeParameter($stage, $action, $scene);
-        $this->bankTemplate->onSceneChange();
+        $bankTemplate->setSceneChangeParameter($stage, $action, $scene);
+        $bankTemplate->onSceneChange();
     }
 
     public function testOnSceneChangeWhenOpIsDepositOrWithdraw(): void
     {
+        $logger = $this->createMock(LoggerInterface::class);
+        $stopwatch = $this->createStub(Stopwatch::class);
+        $attachmentRepository = $this->createStub(AttachmentRepository::class);
+        $sceneRepository = $this->createStub(SceneRepository::class);
+        $diceBag = $this->createStub(DiceBagInterface::class);
+        $actionService = $this->createStub(ActionService::class);
+        $gold = $this->createStub(GoldHandler::class);
+
+        $bankTemplate = new BankTemplate(
+            $logger,
+            $stopwatch,
+            $attachmentRepository,
+            $sceneRepository,
+            $diceBag,
+            $actionService,
+            $gold,
+        );
+
         $stage = $this->createMock(Stage::class);
         $action = $this->createMock(Action::class);
         $scene = $this->createMock(Scene::class);
@@ -151,26 +143,10 @@ class BankTemplateTest extends TestCase
             ->method(PropertyHook::get("owner"))
             ->willReturn($character);
 
-        $this->logger
-            ->expects($this->atLeast(0))
-            ->method("critical");
-
-        $this->attachmentRepository
-            ->expects($this->never())
-            ->method($this->anything())
-            ->willReturn(null);
-
-        $this->actionService
-            ->expects($this->never())
-            ->method($this->anything());
-
         $sceneConfig = $this->getSceneConfig();
 
         $scene->expects($this->atLeastOnce())->method(PropertyHook::get("templateConfig"))
             ->willReturn($sceneConfig);
-
-        $this->gold->expects($this->atLeastOnce())
-            ->method($this->anything());
 
         // Assert op is asked for
         $action
@@ -180,12 +156,12 @@ class BankTemplateTest extends TestCase
             ->willReturn("depositOrWithdraw");
 
         // Assert debug lines are as expected
-        $this->logger
+        $logger
             ->expects($this->atLeastOnce())
             ->method("debug")
             ->willReturnMap([
-                ["Called BankTemplate::onSceneChange, op=holeduli", $this->logger],
-                ["Called BankTemplate::depositOrWithdrawAction", $this->logger],
+                ["Called BankTemplate::onSceneChange, op=holeduli", $logger],
+                ["Called BankTemplate::depositOrWithdrawAction", $logger],
             ]);
 
         // Assert context is added
@@ -197,12 +173,30 @@ class BankTemplateTest extends TestCase
                 return $paragraphs;
             });
 
-        $this->bankTemplate->setSceneChangeParameter($stage, $action, $scene);
-        $this->bankTemplate->onSceneChange();
+        $bankTemplate->setSceneChangeParameter($stage, $action, $scene);
+        $bankTemplate->onSceneChange();
     }
 
-    public function testdefaultActionWithoutAttachment(): void
+    public function testDefaultActionWithoutAttachment(): void
     {
+        $logger = $this->createMock(LoggerInterface::class);
+        $stopwatch = $this->createStub(Stopwatch::class);
+        $attachmentRepository = $this->createStub(AttachmentRepository::class);
+        $sceneRepository = $this->createStub(SceneRepository::class);
+        $diceBag = $this->createStub(DiceBagInterface::class);
+        $actionService = $this->createStub(ActionService::class);
+        $gold = $this->createStub(GoldHandler::class);
+
+        $bankTemplate = new BankTemplate(
+            $logger,
+            $stopwatch,
+            $attachmentRepository,
+            $sceneRepository,
+            $diceBag,
+            $actionService,
+            $gold,
+        );
+
         $stage = $this->createMock(Stage::class);
         $action = $this->createStub(Action::class);
         $scene = $this->createStub(Scene::class);
@@ -211,31 +205,37 @@ class BankTemplateTest extends TestCase
         $stage->expects($this->atLeastOnce())->method(PropertyHook::get("owner"))->willReturn($character);
         $stage->method(PropertyHook::get("paragraphs"))->willReturn([]);
 
-        $this->attachmentRepository
-            ->expects($this->once())
-            ->method($this->anything())
-            ->willReturn(null);
-
-        $this->actionService
-            ->expects($this->never())
-            ->method($this->anything());
-
-        $this->gold->expects($this->never())
-            ->method($this->anything());
-
         // Assert debug lines are as expected
-        $this->logger
+        $logger
             ->expects($this->atLeastOnce())
             ->method("critical")
             ->with($this->stringStartsWith("Cannot attach attachment"));
 
-        $this->bankTemplate->setSceneChangeParameter($stage, $action, $scene);
-        $this->bankTemplate->onSceneChange();
+        $bankTemplate->setSceneChangeParameter($stage, $action, $scene);
+        $bankTemplate->onSceneChange();
     }
 
 
-    public function testdefaultActionWithAttachmentAvailable(): void
+    public function testDefaultActionWithAttachmentAvailable(): void
     {
+        $logger = $this->createStub(LoggerInterface::class);
+        $stopwatch = $this->createStub(Stopwatch::class);
+        $attachmentRepository = $this->createMock(AttachmentRepository::class);
+        $sceneRepository = $this->createStub(SceneRepository::class);
+        $diceBag = $this->createStub(DiceBagInterface::class);
+        $actionService = $this->createMock(ActionService::class);
+        $gold = $this->createStub(GoldHandler::class);
+
+        $bankTemplate = new BankTemplate(
+            $logger,
+            $stopwatch,
+            $attachmentRepository,
+            $sceneRepository,
+            $diceBag,
+            $actionService,
+            $gold,
+        );
+
         $stage = $this->createMock(Stage::class);
         $action = $this->createStub(Action::class);
         $scene = $this->createStub(Scene::class);
@@ -245,16 +245,12 @@ class BankTemplateTest extends TestCase
         $stage->method(PropertyHook::get("owner"))->willReturn($character);
         $stage->method(PropertyHook::get("paragraphs"))->willReturn([]);
 
-        $this->logger
-            ->expects($this->never())
-            ->method("critical");
-
-        $this->attachmentRepository
+        $attachmentRepository
             ->expects($this->once())
             ->method($this->anything())
             ->willReturn($attachment);
 
-        $this->actionService
+        $actionService
             ->expects($this->once())
             ->method("addHiddenAction")
             ->willReturnCallback(function (Stage $s, Action $a) use ($stage) {
@@ -262,20 +258,35 @@ class BankTemplateTest extends TestCase
                 $this->assertArrayHasKey("op", $a->parameters);
             });
 
-        $this->gold->expects($this->never())
-            ->method($this->anything());
-
         $stage
             ->expects($this->once())
             ->method("addAttachment")
             ->with($attachment);
 
-        $this->bankTemplate->setSceneChangeParameter($stage, $action, $scene);
-        $this->bankTemplate->onSceneChange();
+        $bankTemplate->setSceneChangeParameter($stage, $action, $scene);
+        $bankTemplate->onSceneChange();
     }
 
     public function testDepositOrWithdrawActionWhenWithdrawIsFalse(): void
     {
+        $logger = $this->createMock(LoggerInterface::class);
+        $stopwatch = $this->createStub(Stopwatch::class);
+        $attachmentRepository = $this->createStub(AttachmentRepository::class);
+        $sceneRepository = $this->createStub(SceneRepository::class);
+        $diceBag = $this->createStub(DiceBagInterface::class);
+        $actionService = $this->createStub(ActionService::class);
+        $gold = $this->createMock(GoldHandler::class);
+
+        $bankTemplate = new BankTemplate(
+            $logger,
+            $stopwatch,
+            $attachmentRepository,
+            $sceneRepository,
+            $diceBag,
+            $actionService,
+            $gold,
+        );
+
         $stage = $this->createMock(Stage::class);
         $action = $this->createMock(Action::class);
         $scene = $this->createMock(Scene::class);
@@ -286,20 +297,7 @@ class BankTemplateTest extends TestCase
             ->method(PropertyHook::get("owner"))
             ->willReturn($character);
 
-        $this->logger
-            ->expects($this->atLeast(0))
-            ->method("critical");
-
-        $this->attachmentRepository
-            ->expects($this->never())
-            ->method($this->anything())
-            ->willReturn(null);
-
-        $this->actionService
-            ->expects($this->never())
-            ->method($this->anything());
-
-        $this->gold->expects($this->atLeast(1))
+        $gold->expects($this->atLeast(1))
             ->method("getGold")
             ->willReturn(200, 100)
         ;
@@ -333,19 +331,37 @@ class BankTemplateTest extends TestCase
                 return $paragraphs;
             });
 
-        $this->logger
+        $logger
             ->expects($this->atLeastOnce())
             ->method("debug")
             ->willReturnMap([
                 ["Deposited 100 gold to the bank (bank account name: defaults)"],
             ]);
 
-        $this->bankTemplate->setSceneChangeParameter($stage, $action, $scene);
-        $this->bankTemplate->depositOrWithdrawAction();
+        $bankTemplate->setSceneChangeParameter($stage, $action, $scene);
+        $bankTemplate->depositOrWithdrawAction();
     }
 
     public function testDepositOrWithdrawActionWhenWithdrawIsTrue(): void
     {
+        $logger = $this->createMock(LoggerInterface::class);
+        $stopwatch = $this->createStub(Stopwatch::class);
+        $attachmentRepository = $this->createStub(AttachmentRepository::class);
+        $sceneRepository = $this->createStub(SceneRepository::class);
+        $diceBag = $this->createStub(DiceBagInterface::class);
+        $actionService = $this->createStub(ActionService::class);
+        $gold = $this->createMock(GoldHandler::class);
+
+        $bankTemplate = new BankTemplate(
+            $logger,
+            $stopwatch,
+            $attachmentRepository,
+            $sceneRepository,
+            $diceBag,
+            $actionService,
+            $gold,
+        );
+
         $stage = $this->createMock(Stage::class);
         $action = $this->createMock(Action::class);
         $scene = $this->createMock(Scene::class);
@@ -356,20 +372,7 @@ class BankTemplateTest extends TestCase
             ->method(PropertyHook::get("owner"))
             ->willReturn($character);
 
-        $this->logger
-            ->expects($this->atLeast(0))
-            ->method("critical");
-
-        $this->attachmentRepository
-            ->expects($this->never())
-            ->method($this->anything())
-            ->willReturn(null);
-
-        $this->actionService
-            ->expects($this->never())
-            ->method($this->anything());
-
-        $this->gold->expects($this->atLeast(1))
+        $gold->expects($this->atLeast(1))
             ->method("getGold")
             ->willReturn(200)
         ;
@@ -403,14 +406,453 @@ class BankTemplateTest extends TestCase
                 return $paragraphs;
             });
 
-        $this->logger
+        $logger
             ->expects($this->atLeastOnce())
             ->method("debug")
             ->willReturnMap([
                 ["Deposited 100 gold to the bank (bank account name: defaults)"],
             ]);
 
-        $this->bankTemplate->setSceneChangeParameter($stage, $action, $scene);
-        $this->bankTemplate->depositOrWithdrawAction();
+        $bankTemplate->setSceneChangeParameter($stage, $action, $scene);
+        $bankTemplate->depositOrWithdrawAction();
+    }
+
+    public function testDepositOrWithdrawActionWhenWithdrawIsTrueAndAmountIsZero(): void
+    {
+        $logger = $this->createMock(LoggerInterface::class);
+        $stopwatch = $this->createStub(Stopwatch::class);
+        $attachmentRepository = $this->createStub(AttachmentRepository::class);
+        $sceneRepository = $this->createStub(SceneRepository::class);
+        $diceBag = $this->createStub(DiceBagInterface::class);
+        $actionService = $this->createStub(ActionService::class);
+        $gold = $this->createMock(GoldHandler::class);
+
+        $bankTemplate = new BankTemplate(
+            $logger,
+            $stopwatch,
+            $attachmentRepository,
+            $sceneRepository,
+            $diceBag,
+            $actionService,
+            $gold,
+        );
+
+        $stage = $this->createMock(Stage::class);
+        $action = $this->createMock(Action::class);
+        $scene = $this->createMock(Scene::class);
+        $character = $this->createMock(Character::class);
+        $character->expects($this->atLeastOnce())
+            ->method("getProperty")
+            ->with("bank", [])
+            ->willReturn(["defaults" => 1000]);
+        $character->expects($this->atLeastOnce())
+            ->method("setProperty")
+            ->with("bank", [
+                "defaults" => 0,
+            ]);
+        $attachment = $this->createStub(Attachment::class);
+
+        $stage
+            ->method(PropertyHook::get("owner"))
+            ->willReturn($character);
+
+        $gold->expects($this->atLeast(1))
+            ->method("getGold")
+            ->willReturn(200)
+        ;
+
+        $sceneConfig = $this->getSceneConfig();
+
+        $scene->expects($this->atLeastOnce())->method(PropertyHook::get("templateConfig"))
+            ->willReturn($sceneConfig);
+
+        $action
+            ->expects($this->atLeastOnce())
+            ->method("getParameters")
+            ->willReturn([
+                SimpleFormAttachment::ActionParameterName => [
+                    "withdraw" => true,
+                    "amount" => 0,
+                ],
+            ]);
+
+        $stage->expects($this->once())
+            ->method(PropertyHook::set("paragraphs"))
+            ->willReturnCallback(function (array $paragraphs): array {
+                $this->assertCount(1, $paragraphs);
+                $this->assertInstanceOf(Paragraph::class, $paragraphs[0]);
+
+                $this->assertSame("lotgd2.paragraph.bankTemplate.withdraw", $paragraphs[0]->id);
+                $this->assertSame("Gold is withdrawn", $paragraphs[0]->text);
+                $this->assertSame(1000, $paragraphs[0]->context["amount"]);
+                $this->assertSame(200, $paragraphs[0]->context["goldInHand"]);
+
+                // Our test returns 1000 every call; thus we should expect it to stay at 1000 here, too.
+                // Important is that the amount is added to the context!
+                $this->assertSame(1000, $paragraphs[0]->context["goldInBank"]);
+                return $paragraphs;
+            });
+
+        $logger
+            ->expects($this->atLeastOnce())
+            ->method("debug")
+            ->willReturnMap([
+                ["Deposited 1000 gold to the bank (bank account name: defaults)"],
+            ]);
+
+        $bankTemplate->setSceneChangeParameter($stage, $action, $scene);
+        $bankTemplate->depositOrWithdrawAction();
+    }
+
+    public function testGoldInBankReturnsNullIfPropertyIsSetButBankBranchIsNot()
+    {
+        $character = $this->createMock(Character::class);
+        $character->expects($this->once())->method("getProperty")->with("bank", [])->willReturn([
+            "branch" => 1000,
+        ]);
+
+        $bankTemplate = $this->getStubBuilder(BankTemplate::class)
+            ->onlyMethods([])
+            ->disableOriginalConstructor()
+            ->getStub();
+
+        $gold = $bankTemplate->getGoldInBank($character, []);
+        $this->assertSame(0, $gold);
+    }
+
+    public function testNewDayEventWithoutBankScenes()
+    {
+        $logger = $this->createStub(LoggerInterface::class);
+        $stopwatch = $this->createMock(Stopwatch::class);
+        $attachmentRepository = $this->createStub(AttachmentRepository::class);
+        $sceneRepository = $this->createMock(SceneRepository::class);
+        $diceBag = $this->createStub(DiceBagInterface::class);
+        $actionService = $this->createStub(ActionService::class);
+        $gold = $this->createStub(GoldHandler::class);
+
+        $bankTemplate = $this->getMockBuilder(BankTemplate::class)
+            ->onlyMethods(["addGoldInBank"])
+            ->setConstructorArgs([$logger, $stopwatch, $attachmentRepository, $sceneRepository, $diceBag, $actionService, $gold])
+            ->getMock();
+
+        $bankTemplate->expects($this->never())->method("addGoldInBank");
+
+        $stopwatch->expects($this->once())->method("start");
+        $stopwatch->expects($this->once())->method("stop");
+
+        $sceneRepository->expects($this->once())->method("findBy")->willReturnCallback(
+            function (array $filter, array $orderBy) {
+                $this->assertArrayHasKey("templateClass", $filter);
+                $this->assertSame(BankTemplate::class, $filter["templateClass"]);
+
+                $this->assertArrayHasKey("id", $orderBy);
+                $this->assertSame("ASC", $orderBy["id"]);
+
+                return [];
+            }
+        );
+
+        $stageChangeEvent = $this->createStub(StageChangeEvent::class);
+
+        $bankTemplate->onNewDayEvent($stageChangeEvent);
+    }
+
+    public function testNewDayEventWithMultipleBankScenesWithNoRounds()
+    {
+        $logger = $this->createStub(LoggerInterface::class);
+        $stopwatch = $this->createMock(Stopwatch::class);
+        $attachmentRepository = $this->createStub(AttachmentRepository::class);
+        $sceneRepository = $this->createMock(SceneRepository::class);
+        $diceBag = $this->createStub(DiceBagInterface::class);
+        $actionService = $this->createStub(ActionService::class);
+        $gold = $this->createStub(GoldHandler::class);
+
+        $bankTemplate = $this->getMockBuilder(BankTemplate::class)
+            ->onlyMethods(["addGoldInBank", "getGoldInBank"])
+            ->setConstructorArgs([$logger, $stopwatch, $attachmentRepository, $sceneRepository, $diceBag, $actionService, $gold])
+            ->getMock();
+
+        $stopwatch->expects($this->once())->method("start");
+        $stopwatch->expects($this->once())->method("stop");
+
+        $diceBag->method("pseudoBell")->willReturnCallback(function ($min, $max) {
+            return $min;
+        });
+
+        $scenes = [
+            $this->createMock(Scene::class),
+            $this->createMock(Scene::class),
+            $this->createMock(Scene::class),
+        ];
+
+        $scenes[0]->expects($this->once())->method(PropertyHook::get("templateConfig"))->willReturn([
+            "accountName" => "defaults",
+            "minInterest" => 5,
+            "maxInterest" => 5,
+            "maxGoldInBank" => 10000,
+        ]);
+
+        $scenes[0]->method(PropertyHook::get("title"))->willReturn("Bank One");
+
+        $scenes[1]->expects($this->once())->method(PropertyHook::get("templateConfig"))->willReturn([
+            "accountName" => "Another Bank",
+            "minInterest" => 1,
+            "maxInterest" => 1,
+            "maxGoldInBank" => 10000,
+        ]);
+
+        $scenes[1]->method(PropertyHook::get("title"))->willReturn("Bank Two");
+
+        // Second scene has no accountName set; must return to defaults.
+        $scenes[2]->expects($this->once())->method(PropertyHook::get("templateConfig"))->willReturn([
+        ]);
+
+        $bankTemplate->expects($this->atLeastOnce())->method("getGoldInBank")->willReturnCallback(
+            function (Character $character, array $config) {
+                if (!isset($config["accountName"]) or $config["accountName"] === "defaults") {
+                    return 1000;
+                } else {
+                    return 500;
+                }
+            }
+        );
+
+        $bankTemplate->expects($this->exactly(2))->method("addGoldInBank")->willReturnCallback(
+            function (Character $character, array $config, int $amount) {
+                if ($config["accountName"] === "defaults") {
+                    $this->assertSame(50, $amount);
+                } else {
+                    $this->assertSame(5, $amount);
+                }
+            }
+        );
+
+        $sceneRepository->expects($this->once())->method("findBy")->willReturnCallback(
+            function (array $filter, array $orderBy) use ($scenes) {
+                $this->assertArrayHasKey("templateClass", $filter);
+                $this->assertSame(BankTemplate::class, $filter["templateClass"]);
+
+                $this->assertArrayHasKey("id", $orderBy);
+                $this->assertSame("ASC", $orderBy["id"]);
+
+                return $scenes;
+            }
+        );
+
+        $character = $this->createStub(Character::class);
+        $character->method("getProperty")->willReturnCallback(function (string $property, $default = null) {
+            if ($property === HealthHandler::Turns) {
+                return 0;
+            } else {
+                return $default;
+            }
+        });
+
+        $stage = $this->createMock(Stage::class);
+        $counter = 0;
+        $stage->expects($this->exactly(2))->method("addParagraph")->willReturnCallback(
+            function (Paragraph $paragraph) use ($stage, &$counter) {
+                if ($counter === 0) {
+                    $this->assertSame("Bank One", $paragraph->context["bankName"]);
+                } elseif ($counter === 1) {
+                    $this->assertSame("Bank Two", $paragraph->context["bankName"]);
+                }
+
+                $counter++;
+
+                return $stage;
+            }
+        );
+
+        $stageChangeEvent = $this->createMock(StageChangeEvent::class);
+        $stageChangeEvent->expects($this->atLeastOnce())->method(PropertyHook::get("characterBefore"))->willReturn($character);
+        $stageChangeEvent->expects($this->exactly(2))->method(PropertyHook::get("stage"))->willReturn($stage);
+
+        $bankTemplate->onNewDayEvent($stageChangeEvent);
+    }
+
+    #[TestWith([20, 10, 50])]
+    #[TestWith([20, 40, 0])]
+    #[TestWith([10, 40, 0])]
+    public function testNewDayEventWithOneBankScenesWithTooManyRoundsLeft(int $roundsRequired, int $roundsLeft, int $interest)
+    {
+        $logger = $this->createStub(LoggerInterface::class);
+        $stopwatch = $this->createMock(Stopwatch::class);
+        $attachmentRepository = $this->createStub(AttachmentRepository::class);
+        $sceneRepository = $this->createMock(SceneRepository::class);
+        $diceBag = $this->createStub(DiceBagInterface::class);
+        $actionService = $this->createStub(ActionService::class);
+        $gold = $this->createStub(GoldHandler::class);
+
+        $bankTemplate = $this->getMockBuilder(BankTemplate::class)
+            ->onlyMethods(["addGoldInBank", "getGoldInBank"])
+            ->setConstructorArgs([$logger, $stopwatch, $attachmentRepository, $sceneRepository, $diceBag, $actionService, $gold])
+            ->getMock();
+
+        $stopwatch->expects($this->once())->method("start");
+        $stopwatch->expects($this->once())->method("stop");
+
+        $diceBag->method("pseudoBell")->willReturnCallback(function ($min, $max) {
+            return $min;
+        });
+
+        $scenes = [
+            $this->createMock(Scene::class),
+        ];
+
+        $scenes[0]->expects($this->once())->method(PropertyHook::get("templateConfig"))->willReturn([
+            "accountName" => "defaults",
+            "minInterest" => 5,
+            "maxInterest" => 5,
+            "turnsLeftBeforeInterest" => $roundsRequired,
+            "maxGoldInBank" => 10000,
+        ]);
+
+        $scenes[0]->method(PropertyHook::get("title"))->willReturn("Bank One");
+
+        $bankTemplate->expects($this->atLeastOnce())->method("getGoldInBank")->willReturnCallback(
+            function (Character $character, array $config) {
+                return 1000;
+            }
+        );
+
+        $bankTemplate->expects($this->once())->method("addGoldInBank")->willReturnCallback(
+            function (Character $character, array $config, int $amount) use ($interest) {
+                $this->assertSame($interest, $amount);
+            }
+        );
+
+        $sceneRepository->expects($this->once())->method("findBy")->willReturnCallback(
+            function (array $filter, array $orderBy) use ($scenes) {
+                $this->assertArrayHasKey("templateClass", $filter);
+                $this->assertSame(BankTemplate::class, $filter["templateClass"]);
+
+                $this->assertArrayHasKey("id", $orderBy);
+                $this->assertSame("ASC", $orderBy["id"]);
+
+                return $scenes;
+            }
+        );
+
+        $character = $this->createStub(Character::class);
+        $character->method("getProperty")->willReturnCallback(
+            function (string $property, $default = null) use ($roundsLeft) {
+                if ($property === HealthHandler::Turns) {
+                    return $roundsLeft;
+                } else {
+                    return $default;
+                }
+            }
+        );
+
+        $stage = $this->createMock(Stage::class);
+        $stage->expects($this->once())->method("addParagraph")->willReturnCallback(
+            function (Paragraph $paragraph) use ($stage) {
+                $this->assertSame("Bank One", $paragraph->context["bankName"]);
+                return $stage;
+            }
+        );
+
+        $stageChangeEvent = $this->createMock(StageChangeEvent::class);
+        $stageChangeEvent->expects($this->once())->method(PropertyHook::get("characterBefore"))->willReturn($character);
+        $stageChangeEvent->expects($this->once())->method(PropertyHook::get("stage"))->willReturn($stage);
+
+        $bankTemplate->onNewDayEvent($stageChangeEvent);
+    }
+
+    #[TestWith([10000, 10001, 0])]
+    #[TestWith([10000, 20000, 0])]
+    #[TestWith([10000, 10000, 500])]
+    #[TestWith([10000, 1000, 50])]
+    #[TestWith([10000, -10001, 0])]
+    #[TestWith([10000, -20000, 0])]
+    #[TestWith([10000, -10000, -500])]
+    #[TestWith([10000, -1000, -50])]
+    public function testNewDayEventWithOneBankScenesWithTooMuchMoneyInBank(int $moneyBorder, int $moneyInAccount, int $interest)
+    {
+        $logger = $this->createStub(LoggerInterface::class);
+        $stopwatch = $this->createMock(Stopwatch::class);
+        $attachmentRepository = $this->createStub(AttachmentRepository::class);
+        $sceneRepository = $this->createMock(SceneRepository::class);
+        $diceBag = $this->createStub(DiceBagInterface::class);
+        $actionService = $this->createStub(ActionService::class);
+        $gold = $this->createStub(GoldHandler::class);
+
+        $bankTemplate = $this->getMockBuilder(BankTemplate::class)
+            ->onlyMethods(["addGoldInBank", "getGoldInBank"])
+            ->setConstructorArgs([$logger, $stopwatch, $attachmentRepository, $sceneRepository, $diceBag, $actionService, $gold])
+            ->getMock();
+
+        $stopwatch->expects($this->once())->method("start");
+        $stopwatch->expects($this->once())->method("stop");
+
+        $diceBag->method("pseudoBell")->willReturnCallback(function ($min, $max) {
+            return $min;
+        });
+
+        $scenes = [
+            $this->createMock(Scene::class),
+        ];
+
+        $scenes[0]->expects($this->once())->method(PropertyHook::get("templateConfig"))->willReturn([
+            "accountName" => "defaults",
+            "minInterest" => 5,
+            "maxInterest" => 5,
+            "turnsLeftBeforeInterest" => 10,
+            "maxGoldInBank" => $moneyBorder,
+        ]);
+
+        $scenes[0]->method(PropertyHook::get("title"))->willReturn("Bank One");
+
+        $bankTemplate->expects($this->atLeastOnce())->method("getGoldInBank")->willReturnCallback(
+            function (Character $character, array $config) use ($moneyInAccount) {
+                return $moneyInAccount;
+            }
+        );
+
+        $bankTemplate->expects($this->once())->method("addGoldInBank")->willReturnCallback(
+            function (Character $character, array $config, int $amount) use ($interest) {
+                $this->assertSame($interest, $amount);
+            }
+        );
+
+        $sceneRepository->expects($this->once())->method("findBy")->willReturnCallback(
+            function (array $filter, array $orderBy) use ($scenes) {
+                $this->assertArrayHasKey("templateClass", $filter);
+                $this->assertSame(BankTemplate::class, $filter["templateClass"]);
+
+                $this->assertArrayHasKey("id", $orderBy);
+                $this->assertSame("ASC", $orderBy["id"]);
+
+                return $scenes;
+            }
+        );
+
+        $character = $this->createStub(Character::class);
+        $character->method("getProperty")->willReturnCallback(
+            function (string $property, $default = null) {
+                if ($property === HealthHandler::Turns) {
+                    return 0;
+                } else {
+                    return $default;
+                }
+            }
+        );
+
+        $stage = $this->createMock(Stage::class);
+        $stage->expects($this->once())->method("addParagraph")->willReturnCallback(
+            function (Paragraph $paragraph) use ($stage, $interest) {
+                $this->assertSame("Bank One", $paragraph->context["bankName"]);
+                $this->assertEqualsWithDelta(5, $paragraph->context["bankInterestRate"], 0.001);
+                $this->assertEquals($interest, $paragraph->context["bankInterest"]);
+                return $stage;
+            }
+        );
+
+        $stageChangeEvent = $this->createMock(StageChangeEvent::class);
+        $stageChangeEvent->expects($this->once())->method(PropertyHook::get("characterBefore"))->willReturn($character);
+        $stageChangeEvent->expects($this->once())->method(PropertyHook::get("stage"))->willReturn($stage);
+
+        $bankTemplate->onNewDayEvent($stageChangeEvent);
     }
 }

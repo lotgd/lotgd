@@ -47,6 +47,8 @@ class BankTemplate implements SceneTemplateInterface
 {
     use DefaultSceneTemplate;
 
+    const string DefaultBankAccountName = "defaults";
+
     public function __construct(
         private LoggerInterface $logger,
         private Stopwatch $stopwatch,
@@ -92,7 +94,7 @@ class BankTemplate implements SceneTemplateInterface
             $this->addGoldInBank($character, $this->scene->templateConfig, -$amount);
             $this->gold->addGold(null, $amount);
 
-            $accountName = $this->scene->templateConfig['accountName'] ?? 'defaults';
+            $accountName = $this->scene->templateConfig['accountName'] ?? self::DefaultBankAccountName;
             $this->logger->debug("Withdrew {$amount} gold from the bank (bank account name: {$accountName})");
 
             $paragraph = new Paragraph(
@@ -110,7 +112,7 @@ class BankTemplate implements SceneTemplateInterface
             $this->addGoldInBank($character, $this->scene->templateConfig, $amount);
             $this->gold->addGold(null, -$amount);
 
-            $accountName = $this->scene->templateConfig['accountName'] ?? 'defaults';
+            $accountName = $this->scene->templateConfig['accountName'] ?? self::DefaultBankAccountName;
             $this->logger->debug("Deposited {$amount} gold to the bank (bank account name: {$accountName})");
 
             $paragraph = new Paragraph(
@@ -157,10 +159,10 @@ class BankTemplate implements SceneTemplateInterface
      * @param BankTemplateConfiguration $templateConfig
      * @return int
      */
-    private function getGoldInBank(Character $character, array $templateConfig): int
+    public function getGoldInBank(Character $character, array $templateConfig): int
     {
         $bankProperties = $character->getProperty("bank", []);
-        $accountName = $templateConfig["accountName"] ?? 'defaults';
+        $accountName = $templateConfig["accountName"] ?? self::DefaultBankAccountName;
         if (empty($bankProperties)) {
             return 0;
         } elseif (isset($bankProperties[$accountName])) {
@@ -176,10 +178,10 @@ class BankTemplate implements SceneTemplateInterface
      * @param int $amount
      * @return void
      */
-    private function setGoldInBank(Character $character, array $templateConfig, int $amount): void
+    public function setGoldInBank(Character $character, array $templateConfig, int $amount): void
     {
         $bankProperties = $character->getProperty("bank", []);
-        $bankProperties[$templateConfig["accountName"] ?? "defaults"] = $amount;
+        $bankProperties[$templateConfig["accountName"] ?? self::DefaultBankAccountName] = $amount;
         $character->setProperty("bank", $bankProperties);
     }
 
@@ -189,7 +191,7 @@ class BankTemplate implements SceneTemplateInterface
      * @param int $amount
      * @return void
      */
-    private function addGoldInBank(Character $character, array $templateConfig, int $amount): void
+    public function addGoldInBank(Character $character, array $templateConfig, int $amount): void
     {
         $this->setGoldInBank($character, $templateConfig, $this->getGoldInBank($character, $templateConfig) + $amount);
     }
@@ -204,10 +206,12 @@ class BankTemplate implements SceneTemplateInterface
 
         $scenes = $this->sceneRepository->findBy(["templateClass" => self::class], ["id" => "ASC"]);
         $bankAccounts = [];
+
         foreach ($scenes as $scene) {
             $config = $scene->templateConfig;
 
-            $bankAccount = $config["accountName"] ?? "default";
+            $bankAccount = $config["accountName"] ?? self::DefaultBankAccountName;
+
             if (isset($bankAccounts[$bankAccount])) {
                 continue;
             }
@@ -224,12 +228,6 @@ class BankTemplate implements SceneTemplateInterface
             $interestRate = $this->diceBag->pseudoBell((int)round($minInterest), (int)round($maxInterest)) / 100;
             $goldInBank = $this->getGoldInBank($event->character, $config);
             $interest = (int)round($interestRate * $goldInBank);
-
-            $context = [
-                "bankName" => $scene->title,
-                "bankInterestRate" => $interestRate*100,
-                "bankInterest" => $interest,
-            ];
 
             $text = null;
 
@@ -249,11 +247,18 @@ class BankTemplate implements SceneTemplateInterface
                     $interest = 0;
                     $text = "The bank <.{{ bankName }}.> does not pay out your interest to retain solvency. You have already enough savings.";
                 } elseif ($turnsLeftBeforeInterest >= 0 && $turnsLeftBeforeInterest <= $oldHealth->getTurns()) {
+                    $interest = 0;
                     $text = "The bank <.{{ bankName }}.>'s interest rate today is {{ bankInterestRate }}%, but you will not earn interest. This bank only gives interest to those who work.";
                 } else {
                     $text = "The bank <.{{ bankName }}.>'s interest rate today is {{ bankInterestRate }}%. You earned {{ bankInterest|abs }} gold interest.";
                 }
             }
+
+            $context = [
+                "bankName" => $scene->title,
+                "bankInterestRate" => $interestRate*100,
+                "bankInterest" => $interest,
+            ];
 
             if ($text) {
                 $event->stage->addParagraph(new Paragraph(
