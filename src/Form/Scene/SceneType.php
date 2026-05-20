@@ -5,13 +5,14 @@ namespace LotGD2\Form\Scene;
 
 use LotGD2\Attribute\TemplateType;
 use LotGD2\Entity\Mapped\Scene;
+use LotGD2\Form\TypeProvidesDefaultDataInterface;
 use LotGD2\Game\Scene\SceneTemplate\BankTemplate;
 use LotGD2\Game\Scene\SceneTemplate\DragonTemplate;
 use LotGD2\Game\Scene\SceneTemplate\FightTemplate;
 use LotGD2\Game\Scene\SceneTemplate\HealerTemplate;
 use LotGD2\Game\Scene\SceneTemplate\SimpleShopTemplate;
 use LotGD2\Game\Scene\SceneTemplate\TrainingTemplate;
-use LotGD2\Service\SceneTemplateTypeFinder;
+use LotGD2\Service\TemplateTypeFinder;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\FormBuilderInterface;
@@ -27,7 +28,7 @@ use Symfony\UX\LiveComponent\Form\Type\LiveCollectionType;
 class SceneType extends AbstractType
 {
     public function __construct(
-        private readonly SceneTemplateTypeFinder $templateTypeFinder,
+        private readonly TemplateTypeFinder $templateTypeFinder,
     ) {
     }
 
@@ -102,13 +103,13 @@ class SceneType extends AbstractType
         if (!empty($scene["templateClass"])) {
             $formType = $this->templateTypeFinder->find($scene["templateClass"]);
 
-            if ($formType) {
-                $form->add("templateConfig", $formType);
-            } else {
+            if (is_null($formType)) {
                 return;
+            } else {
+                $form->add("templateConfig", $formType);
             }
 
-            if (empty($scene["templateConfig"])) {
+            if (empty($scene["templateConfig"]) and is_a($formType, TypeProvidesDefaultDataInterface::class, true)) {
                 $scene["templateConfig"] = new $formType()->getDefaultData();
                 $event->setData($scene);
             }
