@@ -30,4 +30,12 @@ class SceneRepositoryTest extends KernelTestCase
         $defaultScene = $instance->getDefaultScene();
         $this->assertNotNull($defaultScene);
     }
+
+    public function testFindAllWithConnections(): void
+    {
+        $instance = $this->entityManager->getRepository(Scene::class);
+
+        $scenes = $instance->findAllWithConnections();
+        $this->assertNotCount(0, $scenes);
+    }
 }
