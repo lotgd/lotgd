@@ -18,6 +18,7 @@ use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 class CreatureRepositoryTest extends KernelTestCase
 {
     private ?EntityManagerInterface $entityManager;
+    private ?DiceBagInterface $diceBag;
 
     protected function setUp(): void
     {
@@ -27,9 +28,8 @@ class CreatureRepositoryTest extends KernelTestCase
             ->get('doctrine')
             ->getManager();
 
-        $diceBag = $this->createMock(DiceBag::class);
-        $diceBag->expects($this->exactly(2))->method("throw")->willReturn(5, 10);
-        $kernel->getContainer()->set(DiceBagInterface::class, $diceBag);
+        $this->diceBag = $this->createMock(DiceBag::class);
+        $kernel->getContainer()->set(DiceBagInterface::class, $this->diceBag);
     }
 
     protected function tearDown(): void
@@ -43,11 +43,23 @@ class CreatureRepositoryTest extends KernelTestCase
 
     public function testGetRandomCreature(): void
     {
+        $this->diceBag->expects($this->exactly(2))->method("throw")->willReturn(5, 10);
+
         $repository = $this->entityManager->getRepository(Creature::class);
         $creature1 = $repository->getRandomCreature(1);
         $creature2 = $repository->getRandomCreature(1);
 
         $this->assertNotNull($creature1);
         $this->assertNotSame($creature1, $creature2);
+    }
+
+    public function testThatGetRandomCreatureReturnsNullIfThereAreNone(): void
+    {
+        $this->diceBag->expects($this->once())->method("throw")->with(0, -1, 1);
+
+        $repository = $this->entityManager->getRepository(Creature::class);
+        $creature1 = $repository->getRandomCreature(500);
+
+        $this->assertNull($creature1);
     }
 }

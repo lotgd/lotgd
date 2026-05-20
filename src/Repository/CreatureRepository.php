@@ -33,7 +33,7 @@ class CreatureRepository extends ServiceEntityRepository
 
         $number = $this->diceBag->throw(0, $creatureRows-1);
 
-        // Return null if no creatures were found or if offset is negative
+        // Return null if no creatures were found or if number is negative
         if ($creatureRows === 0 || $number < 0) {
             return null;
         }
