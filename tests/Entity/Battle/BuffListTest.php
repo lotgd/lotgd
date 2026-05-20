@@ -896,6 +896,54 @@ class BuffListTest extends TestCase
         $this->assertSame(15, $buffEvent->getContext()["damage"]);
     }
 
+    #[TestWith([1])]
+    #[TestWith([2])]
+    #[TestWith([3])]
+    #[TestWith([4])]
+    #[TestWith([5])]
+    #[TestWith([10])]
+    #[TestWith([100])]
+    public function testMultipleMinionsWithBadGuyDamage(int $amountOfMinions)
+    {
+
+        $logger = $this->createStub(LoggerInterface::class);
+        $diceBag = $this->createMock(DiceBag::class);
+        $diceBag->expects($this->atLeastOnce())->method("pseudoBell")->willReturnCallback(function ($min, $max) {
+            $this->assertSame(10, $min);
+            $this->assertSame(20, $max);
+            return 15;
+        });
+
+        $buff = $this->createMock(Buff::class);
+        $buff->expects($this->atLeastOnce(1))->method(PropertyHook::get("numberOfMinions"))->willReturn($amountOfMinions);
+        $buff->expects($this->atLeastOnce(1))->method(PropertyHook::get("minionMinBadGuyDamage"))->willReturn(10);
+        $buff->expects($this->atLeastOnce(1))->method(PropertyHook::get("minionMaxBadGuyDamage"))->willReturn(20);
+        $buff->expects($this->atLeastOnce(1))->method(PropertyHook::get("minionMinGoodGuyDamage"))->willReturn(0);
+        $buff->expects($this->atLeastOnce(1))->method(PropertyHook::get("minionMaxGoodGuyDamage"))->willReturn(0);
+
+        $offenseFighter = $this->createStub(FighterInterface::class);
+        $defenseFighter = $this->createStub(FighterInterface::class);
+
+        $buffList = $this
+            ->getMockBuilder(BuffList::class)
+            ->onlyMethods([])
+            ->enableOriginalConstructor()
+            ->setConstructorArgs([$logger, $diceBag, []])
+            ->getMock();
+        ;
+
+        $buffList->expects($this->atLeastOnce())->method(PropertyHook::get("activeBuffs"))->willReturn([
+            Buff::ACTIVATES_ON_OFFENSE_TURN => [
+                $buff,
+            ],
+        ]);
+
+        $events = $buffList->processDirectBuffs(Buff::ACTIVATES_ON_OFFENSE_TURN, $offenseFighter, $defenseFighter);
+
+        $this->assertCount($amountOfMinions, $events);
+        $this->assertInstanceOf(MinionDamageEvent::class, $events[0]);
+    }
+
     public function testMinionsWithNegativeBadGuyDamage()
     {
 
