@@ -66,6 +66,16 @@ class TrainingTemplate implements SceneTemplateInterface
     ) {
     }
 
+    public function getStage(): Stage
+    {
+        return $this->stage;
+    }
+
+    public function getScene(): Scene
+    {
+        return $this->scene;
+    }
+
     /**
      * @return array<string, mixed>
      */

@@ -32,14 +32,17 @@ trait DefaultFightTrait
      */
     public function onBattleStateDisappeared(): void
     {
-        $this->addDefaultActions($this->stage, $this->scene);
-        $this->stage->paragraphs = [
+        $this->addDefaultActions($this->getStage(), $this->getScene());
+        $this->getStage()->paragraphs = [
             new Paragraph(
                 id: "lotgd2.paragraph.DefaultFightTrait.SuddenFightEnd",
                 text: "The battle suddenly ended.",
             )
         ];
     }
+
+    abstract public function getStage(): Stage;
+    abstract public function getScene(): Scene;
 
     /**
      * Whenever a fight ends (expected or unexpected), the state can be reused to search for the next fight. This
@@ -48,10 +51,7 @@ trait DefaultFightTrait
      * @param Scene $scene
      * @return void
      */
-    public function addDefaultActions(Stage $stage, Scene $scene): void
-    {
-
-    }
+    abstract public function addDefaultActions(Stage $stage, Scene $scene): void;
 
     #[AsEventListener(Battle::OnFightFled, priority: -50)]
     public function onFightFled(SimpleStageParameterEvent $event): void

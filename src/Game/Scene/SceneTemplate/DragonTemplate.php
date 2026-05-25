@@ -8,6 +8,8 @@ use LotGD2\Entity\Action;
 use LotGD2\Entity\ActionGroup;
 use LotGD2\Entity\Battle\BattleState;
 use LotGD2\Entity\Battle\Fighter;
+use LotGD2\Entity\Mapped\Scene;
+use LotGD2\Entity\Mapped\Stage;
 use LotGD2\Entity\Paragraph;
 use LotGD2\Event\CharacterChangeEvent;
 use LotGD2\Event\SimpleStageParameterEvent;
@@ -71,19 +73,35 @@ class DragonTemplate implements SceneTemplateInterface
         };
     }
 
-    public function defaultAction(): void
+    public function getStage(): Stage
     {
-        $dragonName = $this->scene->templateConfig["dragonName"] ?? (new DragonTemplateType()->getDefaultData()["dragonName"]);
-        $this->stage->addAction(
+        return $this->stage;
+    }
+
+    public function getScene(): Scene
+    {
+        return $this->scene;
+    }
+
+    public function addDefaultActions(Stage $stage, Scene $scene): void
+    {
+        $dragonName = $scene->templateConfig["dragonName"] ?? (new DragonTemplateType()->getDefaultData()["dragonName"]);
+
+        $stage->addAction(
             actionGroup: ActionGroup::EMPTY,
             action: new Action(
-                scene: $this->scene,
+                scene: $scene,
                 title: "Seek out {$dragonName}",
                 parameters: [
                     "op" => "start"
                 ],
             )
         );
+    }
+
+    public function defaultAction(): void
+    {
+        $this->addDefaultActions($this->stage, $this->scene);
     }
 
     public function startFight(): void

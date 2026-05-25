@@ -25,6 +25,7 @@ use LotGD2\Game\Handler\StatsHandler;
 use LotGD2\Game\Random\DiceBag;
 use LotGD2\Game\Scene\SceneAttachment\BattleAttachment;
 use LotGD2\Game\Scene\SceneTemplate\DragonTemplate;
+use LotGD2\Game\Scene\SceneTemplate\FightTemplate;
 use LotGD2\Game\Stage\ActionService;
 use LotGD2\Repository\AttachmentRepository;
 use LotGD2\Repository\SceneRepository;
@@ -569,5 +570,37 @@ class DragonTemplateTest extends TestCase
 
         $template->setSceneChangeParameter($stage, $this->createStub(Action::class), $scene);
         $template->resetCharacter();
+    }
+
+    public function testGetStage(): void
+    {
+        $stage = $this->createStub(Stage::class);
+
+        $fightTemplate = $this->getMockBuilder(DragonTemplate::class)
+            ->disableOriginalConstructor()
+            ->onlyMethods([])
+            ->getMock();
+
+        $fightTemplate->expects($this->once())
+            ->method(PropertyHook::get("stage"))
+            ->willReturn($stage);
+
+        $this->assertSame($stage, $fightTemplate->getStage());
+    }
+
+    public function testGetScene(): void
+    {
+        $scene = $this->createStub(Scene::class);
+
+        $fightTemplate = $this->getMockBuilder(DragonTemplate::class)
+            ->disableOriginalConstructor()
+            ->onlyMethods([])
+            ->getMock();
+
+        $fightTemplate->expects($this->once())
+            ->method(PropertyHook::get("scene"))
+            ->willReturn($scene);
+
+        $this->assertSame($scene, $fightTemplate->getScene());
     }
 }

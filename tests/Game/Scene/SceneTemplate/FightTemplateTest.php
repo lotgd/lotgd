@@ -870,4 +870,36 @@ class FightTemplateTest extends TestCase
     {
         $this->assertEquals("lotgd2.actionGroup.fightTemplate.search", FightTemplate::ActionGroupSearch);
     }
+
+    public function testGetStage(): void
+    {
+        $stage = $this->createStub(Stage::class);
+
+        $fightTemplate = $this->getMockBuilder(FightTemplate::class)
+            ->disableOriginalConstructor()
+            ->onlyMethods([])
+            ->getMock();
+
+        $fightTemplate->expects($this->once())
+            ->method(PropertyHook::get("stage"))
+            ->willReturn($stage);
+
+        $this->assertSame($stage, $fightTemplate->getStage());
+    }
+
+    public function testGetScene(): void
+    {
+        $scene = $this->createStub(Scene::class);
+
+        $fightTemplate = $this->getMockBuilder(FightTemplate::class)
+            ->disableOriginalConstructor()
+            ->onlyMethods([])
+            ->getMock();
+
+        $fightTemplate->expects($this->once())
+            ->method(PropertyHook::get("scene"))
+            ->willReturn($scene);
+
+        $this->assertSame($scene, $fightTemplate->getScene());
+    }
 }
