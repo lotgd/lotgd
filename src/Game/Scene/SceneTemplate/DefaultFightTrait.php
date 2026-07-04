@@ -116,8 +116,10 @@ trait DefaultFightTrait
      */
     public function onFightWon(SimpleStageParameterEvent $event, BattleState $battleState): void
     {
-        # Only dispatch event and create loot if the event dispatcher has been set.
-        if (isset($this->eventDispatcher)) {
+        // Only dispatch event and create loot if the event dispatcher has been set.
+        //   phpstan ignore flag is necessary due to phpstan complaining that eventDispatcher cannot be null
+        //   although this is true, it can be unset of the class using the trait does not set it.
+        if (isset($this->eventDispatcher)) { // @phpstan-ignore isset.property
             $lootBagEvent = new LootBagEvent($battleState);
             $lootBagEvent = $this->eventDispatcher->dispatch($lootBagEvent, self::OnLootBagFill);
         } else {
