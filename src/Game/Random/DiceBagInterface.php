@@ -36,4 +36,13 @@ interface DiceBagInterface
         int $length,
         string $alphabet = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
     ): string;
+
+    /**
+     * Returns one or more random array keys from a given input array.
+     * @template T of mixed
+     * @param array<int|string, T> $array
+     * @param int<1, max> $picks
+     * @return list<T>
+     */
+    public function pick(array $array, int $picks = 1): mixed;
 }
