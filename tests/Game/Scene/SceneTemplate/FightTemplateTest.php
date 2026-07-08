@@ -24,10 +24,12 @@ use LotGD2\Game\Scene\SceneAttachment\BattleAttachment;
 use LotGD2\Game\Scene\SceneTemplate\FightTemplate;
 use LotGD2\Repository\AttachmentRepository;
 use LotGD2\Repository\CreatureRepository;
+use LotGD2\Service\SpecialService;
 use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\UsesClass;
 use PHPUnit\Framework\MockObject\Runtime\PropertyHook;
+use PHPUnit\Framework\MockObject\Stub;
 use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\MockObject\MockObject;
 use Psr\Log\LoggerInterface;
@@ -54,7 +56,7 @@ class FightTemplateTest extends TestCase
     private HealthHandler&MockObject $health;
     private GoldHandler&MockObject $gold;
     private EventDispatcherInterface&MockObject $eventDispatcher;
-    private BuffHandler&MockObject $buffs;
+    private SpecialService&Stub $specialService;
 
     protected function setUp(): void
     {
@@ -68,7 +70,7 @@ class FightTemplateTest extends TestCase
         $this->health = $this->createMock(HealthHandler::class);
         $this->gold = $this->createMock(GoldHandler::class);
         $this->eventDispatcher = $this->createMock(EventDispatcherInterface::class);
-        $this->buffs = $this->createMock(BuffHandler::class);
+        $this->specialService = $this->createStub(SpecialService::class);
 
         $this->fightTemplate = new FightTemplate(
             $this->security,
@@ -81,7 +83,7 @@ class FightTemplateTest extends TestCase
             $this->health,
             $this->stats,
             $this->gold,
-            $this->buffs,
+            $this->specialService,
         );
     }
 

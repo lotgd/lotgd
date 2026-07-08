@@ -6,6 +6,7 @@ namespace LotGD2\Entity\Mapped;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Dunglas\DoctrineJsonOdm\Type\JsonDocumentType;
+use LotGD2\Entity\Common\PropertyTrait;
 use LotGD2\Repository\CharacterRepository;
 use Stringable;
 use Symfony\Component\Validator\Constraints as Assert;
@@ -14,6 +15,8 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[ORM\Table(name: '`character`')]
 class Character implements Stringable
 {
+    use PropertyTrait;
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
@@ -80,18 +83,5 @@ class Character implements Stringable
     public function __toString(): string
     {
         return "<Character#{$this->id}, {$this->name}>";
-    }
-
-    public function getProperty(string $name, mixed $default = null): mixed
-    {
-        return $this->properties[$name] ?? $default;
-    }
-
-    public function setProperty(string $name, mixed $value): static
-    {
-        $properties = $this->properties;
-        $properties[$name] = $value;
-        $this->properties = $properties;
-        return $this;
     }
 }

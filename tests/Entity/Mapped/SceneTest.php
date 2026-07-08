@@ -112,7 +112,7 @@ class SceneTest extends TestCase
                 return $this;
             }
 
-            protected(set) Stage $stage {
+            protected(set) ?Stage $stage {
                 get => $this->stage;
                 set => $value;
             }
@@ -158,7 +158,7 @@ class SceneTest extends TestCase
                 return $this;
             }
 
-            protected(set) Stage $stage {
+            protected(set) ?Stage $stage {
                 get => $this->stage;
                 set => $value;
             }
@@ -207,7 +207,7 @@ class SceneTest extends TestCase
                 return $this;
             }
 
-            protected(set) Stage $stage {
+            protected(set) ?Stage $stage {
                 get => $this->stage;
                 set => $value;
             }

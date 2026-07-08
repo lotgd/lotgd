@@ -11,6 +11,7 @@ use LotGD2\Entity\Mapped\Stage;
 use LotGD2\Entity\Paragraph;
 use LotGD2\Form\Scene\SceneTemplate\FightTemplateType;
 use LotGD2\Game\Battle\Battle;
+use LotGD2\Game\Error\SpecialNotFoundError;
 use LotGD2\Game\Handler\BuffHandler;
 use LotGD2\Game\Handler\GoldHandler;
 use LotGD2\Game\Handler\HealthHandler;
@@ -19,6 +20,7 @@ use LotGD2\Game\Random\DiceBagInterface;
 use LotGD2\Game\Scene\SceneAttachment\BattleAttachment;
 use LotGD2\Repository\AttachmentRepository;
 use LotGD2\Repository\CreatureRepository;
+use LotGD2\Service\SpecialService;
 use Psr\Log\LoggerInterface;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\DependencyInjection\Attribute\Autoconfigure;
@@ -52,6 +54,7 @@ class FightTemplate implements SceneTemplateInterface
         private readonly HealthHandler $health,
         private readonly StatsHandler $stats,
         private readonly GoldHandler $gold,
+        private readonly SpecialService $specialService,
     ) {
     }
 
@@ -114,6 +117,22 @@ class FightTemplate implements SceneTemplateInterface
             ];
 
             return;
+        }
+
+        // Handle specials
+        if ($this->diceBag->throw(7) === 1) {
+            $this->logger->debug("FightTemplate::searchAction, special event triggered.");
+            try {
+                $this->specialService->runSpecial($this->stage);
+
+                // Stop execution if exception was not thrown.
+                return;
+            } catch (SpecialNotFoundError $e) {
+                $this->logger->debug("FightTemplate::searchAction, no special found.");
+            }
+
+            // Continue as normal if exception was caught; in this case, there are no specials available and we pretend
+            //  everything is working as expected.
         }
 
         // Adjust level

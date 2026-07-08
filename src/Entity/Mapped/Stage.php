@@ -9,6 +9,7 @@ use Doctrine\ORM\Mapping as ORM;
 use Dunglas\DoctrineJsonOdm\Type\JsonDocumentType;
 use LotGD2\Entity\Action;
 use LotGD2\Entity\ActionGroup;
+use LotGD2\Entity\Common\PropertyTrait;
 use LotGD2\Entity\Paragraph;
 use LotGD2\Repository\StageRepository;
 use TypeError;
@@ -24,6 +25,8 @@ use TypeError;
 #[ORM\HasLifecycleCallbacks]
 class Stage
 {
+    use PropertyTrait;
+
     const string SceneText = "lotgd.stage.sceneText";
 
     #[ORM\Id]
@@ -101,6 +104,12 @@ class Stage
 
                 $this->attachments = $value;
             }
+        },
+
+        #[ORM\Column(type: JsonDocumentType::NAME, nullable: true)]
+        public ?array $properties = [] {
+            get => $this->properties;
+            set => $value;
         },
     ) {
 

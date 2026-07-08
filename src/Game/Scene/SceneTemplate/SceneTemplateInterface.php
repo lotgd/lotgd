@@ -13,7 +13,7 @@ use LotGD2\Entity\Mapped\Stage;
  */
 interface SceneTemplateInterface
 {
-    protected(set) Stage $stage {
+    protected(set) ?Stage $stage {
         get;
         set;
     }

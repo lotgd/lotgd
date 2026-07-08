@@ -10,11 +10,10 @@ use LotGD2\Entity\Mapped\Stage;
 
 trait DefaultSceneTemplate
 {
-
     // Cannot be anything else than private due to conflict with DefaultSceneTemplate
-    protected(set) Stage $stage {
-        get => $this->stage;
-        set(Stage $value) => $value;
+    protected(set) ?Stage $stage {
+        get => $this->stage ?? null;
+        set(?Stage $value) => $value;
     }
 
     protected(set) Action $action {

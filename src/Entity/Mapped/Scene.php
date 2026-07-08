@@ -116,6 +116,12 @@ class Scene
 
         #[ORM\Column(type: 'boolean', nullable: true, options: ["default" => false])]
         public ?bool $defaultScene = false,
+
+        #[ORM\Column(type: Types::JSON, nullable: true)]
+        public ?array $tags = [] {
+            get => $this->tags;
+            set => $value;
+        }
     ) {
         $this->actionGroups = $actionGroups;
         $this->sourcedConnections = $sourcedConnections;

@@ -40,4 +40,20 @@ class SceneRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
     }
+
+    /**
+     * @param string $tag
+     * @return Scene[]
+     */
+    public function findByTag(string $tag): array
+    {
+        return $this->createQueryBuilder("s")
+            ->where("JSON_SEARCH(s.tags, 'one', :tag) IS NOT NULL")
+            ->leftJoin('s.sourcedConnections', 'source')
+            ->leftJoin('s.targetingConnections', 'target')
+            ->addSelect("source", "target")
+            ->setParameter("tag", $tag)
+            ->getQuery()
+            ->getResult();
+    }
 }

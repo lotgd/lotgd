@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace LotGD2\Tests\Repository;
 
 use LotGD2\Entity\Mapped\Scene;
+use LotGD2\Game\Scene\SceneTemplate\SpecialTemplate;
 use LotGD2\Kernel;
 use LotGD2\Repository\SceneRepository;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -36,6 +37,14 @@ class SceneRepositoryTest extends KernelTestCase
         $instance = $this->entityManager->getRepository(Scene::class);
 
         $scenes = $instance->findAllWithConnections();
+        $this->assertNotCount(0, $scenes);
+    }
+
+    public function testFindByTag(): void
+    {
+        $instance = $this->entityManager->getRepository(Scene::class);
+
+        $scenes = $instance->findByTag(SpecialTemplate::SceneTag);
         $this->assertNotCount(0, $scenes);
     }
 }

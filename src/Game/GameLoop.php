@@ -129,12 +129,7 @@ class GameLoop
 
             // Allow the scene template to change the scene
             if ($targetScene->templateClass) {
-                $this->logger->debug("Calling onSceneChange");
-
-                /** @var null|SceneTemplateInterface<array<string, mixed>> $targetSceneTemplate */
-                $targetSceneTemplate = $this->container->get($targetScene->templateClass);
-                $targetSceneTemplate?->setSceneChangeParameter($stage, $selectedAction, $targetScene);
-                $targetSceneTemplate?->onSceneChange();
+                $this->renderer->renderOnSceneChange($character->stage, $targetScene, $selectedAction);
             }
         }
 
