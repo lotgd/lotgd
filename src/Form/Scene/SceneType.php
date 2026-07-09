@@ -11,10 +11,13 @@ use LotGD2\Game\Scene\SceneTemplate\DragonTemplate;
 use LotGD2\Game\Scene\SceneTemplate\FightTemplate;
 use LotGD2\Game\Scene\SceneTemplate\HealerTemplate;
 use LotGD2\Game\Scene\SceneTemplate\SimpleShopTemplate;
+use LotGD2\Game\Scene\SceneTemplate\Special\StumbleSpecialTemplate;
+use LotGD2\Game\Scene\SceneTemplate\SpecialTemplate;
 use LotGD2\Game\Scene\SceneTemplate\TrainingTemplate;
 use LotGD2\Service\TemplateTypeFinder;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
+use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\Form\FormEvent;
 use Symfony\Component\Form\FormEvents;
@@ -51,7 +54,15 @@ class SceneType extends AbstractType
                     "Dragon's Cave" => DragonTemplate::class,
                     "Search for Fights" => FightTemplate::class,
                     "Simple Shop" => SimpleShopTemplate::class,
+                    "Stumble" => StumbleSpecialTemplate::class,
                 ],
+                "group_by" => function ($choice, $key, $value) {
+                    if (is_subclass_of($value, SpecialTemplate::class)) {
+                        return "Specials";
+                    } else {
+                        return null;
+                    }
+                },
                 "required" => false,
             ])
         ;

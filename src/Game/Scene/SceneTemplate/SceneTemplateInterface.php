@@ -9,7 +9,7 @@ use LotGD2\Entity\Mapped\Scene;
 use LotGD2\Entity\Mapped\Stage;
 
 /**
- * @template TemplateConfiguration of array<string, mixed>
+ * @template TemplateConfiguration of array<string, mixed> = array<string, mixed>
  */
 interface SceneTemplateInterface
 {

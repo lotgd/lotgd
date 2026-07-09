@@ -48,11 +48,15 @@ readonly class SceneService
      */
     public function addTags(Scene $scene): void
     {
+        // Add the tags given by the tagged scene interface
         if (is_subclass_of($scene->templateClass, TaggedSceneInterface::class, true)) {
             /** @var SceneTemplateInterface&TaggedSceneInterface $templateClass */
             $templateClass = $this->getTemplate($scene);
 
             $scene->tags = [$templateClass->getTag()];
+        } else {
+            // Remove all tags if no tagged scene interface was given.
+            $scene->tags = [];
         }
     }
 }

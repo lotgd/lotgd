@@ -6,6 +6,7 @@ namespace LotGD2\Twig\Component\Admin;
 use Doctrine\ORM\EntityManagerInterface;
 use LotGD2\Entity\Mapped\Scene;
 use LotGD2\Form\Scene\SceneType;
+use LotGD2\Game\Scene\SceneService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Form\FormInterface;
 use Symfony\UX\LiveComponent\Attribute\AsLiveComponent;
@@ -36,6 +37,12 @@ class SceneForm extends AbstractController
     #[LiveProp]
     public ?bool $saved = null;
 
+    public function __construct(
+        private SceneService $sceneService,
+    ) {
+
+    }
+
     public function __invoke(): void
     {
         $this->saved = false;
@@ -47,14 +54,15 @@ class SceneForm extends AbstractController
     ): void {
         $this->submitForm();
 
+        /** @var Scene $scene */
         $scene = $this->getForm()->getData();
 
         $sceneId = $scene->id;
 
         // If there is a parent scene, we'll persist it.
-        if ($this->parentScene) {
-            $this->parentScene->connectTo($scene);
-        }
+        $this->parentScene?->connectTo($scene);
+
+        $this->sceneService->addTags($scene);
 
         $entityManager->persist($scene);
         $entityManager->flush();
