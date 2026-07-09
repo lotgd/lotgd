@@ -7,13 +7,11 @@ use LotGD2\Entity\Mapped\Scene;
 use LotGD2\Game\Error\SpecialNotFoundError;
 use LotGD2\Game\Random\DiceBag;
 use LotGD2\Game\Scene\SceneRenderer;
-use LotGD2\Kernel;
+use LotGD2\Game\Scene\SpecialService;
 use LotGD2\Repository\SceneRepository;
-use LotGD2\Service\SpecialService;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
-use Symfony\Component\HttpKernel\KernelInterface;
 
 #[CoversClass(SpecialService::class)]
 class SpecialServiceTest extends TestCase

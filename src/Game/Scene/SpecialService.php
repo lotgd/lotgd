@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-namespace LotGD2\Service;
+namespace LotGD2\Game\Scene;
 
 use LotGD2\Entity\Action;
 use LotGD2\Entity\ActionGroup;
@@ -10,7 +10,6 @@ use LotGD2\Entity\Mapped\Stage;
 use LotGD2\Game\Error\GameError;
 use LotGD2\Game\Error\SpecialNotFoundError;
 use LotGD2\Game\Random\DiceBagInterface;
-use LotGD2\Game\Scene\SceneRenderer;
 use LotGD2\Game\Scene\SceneTemplate\SpecialTemplate;
 use LotGD2\Repository\SceneRepository;
 use Psr\Log\LoggerInterface;

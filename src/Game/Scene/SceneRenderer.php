@@ -10,38 +10,29 @@ use LotGD2\Entity\Mapped\Scene;
 use LotGD2\Entity\Mapped\SceneConnection;
 use LotGD2\Entity\Mapped\Stage;
 use LotGD2\Entity\Paragraph;
+use LotGD2\Game\ExpressionService;
 use LotGD2\Game\Handler\EquipmentHandler;
 use LotGD2\Game\Handler\GoldHandler;
 use LotGD2\Game\Handler\HealthHandler;
 use LotGD2\Game\Handler\StatsHandler;
-use LotGD2\Game\ExpressionService;
 use LotGD2\Game\Random\DiceBagInterface;
-use LotGD2\Game\Scene\SceneTemplate\SceneTemplateInterface;
 use LotGD2\Game\Stage\ActionService;
 use LotGD2\Repository\SceneRepository;
 use Psr\Log\LoggerInterface;
-use Symfony\Component\DependencyInjection\Container;
-use Symfony\Component\DependencyInjection\ContainerInterface;
-use Symfony\Component\ExpressionLanguage\ExpressionLanguage;
-use Symfony\Component\ExpressionLanguage\Parser;
-use Symfony\Component\ExpressionLanguage\SyntaxError;
-use Symfony\Component\HttpKernel\KernelInterface;
 
 /**
  * Responsible class to render a scene onto the stage.
  */
 readonly class SceneRenderer
 {
-    private ContainerInterface $container;
 
     public function __construct(
         private SceneRepository $sceneRepository,
         private DiceBagInterface $diceBag,
         private ActionService $actionService,
         private LoggerInterface $logger,
-        KernelInterface $kernel,
+        private SceneService $sceneService,
     ) {
-        $this->container = $kernel->getContainer();
     }
 
     /**
@@ -200,8 +191,7 @@ readonly class SceneRenderer
     {
         $this->logger->debug("Calling onSceneChange");
 
-        /** @var null|SceneTemplateInterface<array<string, mixed>> $targetSceneTemplate */
-        $targetSceneTemplate = $this->container->get($targetScene->templateClass);
+        $targetSceneTemplate = $this->sceneService->getTemplate($targetScene);
         $targetSceneTemplate?->setSceneChangeParameter($stage, $selectedAction, $targetScene);
         $targetSceneTemplate?->onSceneChange();
     }

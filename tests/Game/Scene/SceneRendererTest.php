@@ -12,15 +12,15 @@ use LotGD2\Entity\Mapped\SceneActionGroup;
 use LotGD2\Entity\Mapped\SceneConnection;
 use LotGD2\Entity\Mapped\Stage;
 use LotGD2\Entity\Paragraph;
+use LotGD2\Game\ExpressionService;
 use LotGD2\Game\Handler\EquipmentHandler;
 use LotGD2\Game\Handler\GoldHandler;
 use LotGD2\Game\Handler\HealthHandler;
 use LotGD2\Game\Handler\StatsHandler;
-use LotGD2\Game\ExpressionService;
 use LotGD2\Game\Random\DiceBag;
 use LotGD2\Game\Scene\SceneRenderer;
+use LotGD2\Game\Scene\SceneService;
 use LotGD2\Game\Stage\ActionService;
-use LotGD2\Kernel;
 use LotGD2\Repository\SceneRepository;
 use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -30,7 +30,6 @@ use PHPUnit\Framework\MockObject\Runtime\PropertyHook;
 use PHPUnit\Framework\MockObject\Stub;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
-use Symfony\Component\HttpKernel\KernelInterface;
 
 #[CoversClass(SceneRenderer::class)]
 #[UsesClass(SceneRepository::class)]
@@ -55,7 +54,7 @@ class SceneRendererTest extends TestCase
     private ActionService $actionService;
     private LoggerInterface $logger;
     private DiceBag&MockObject $diceBag;
-    private Kernel&Stub $kernel;
+    private SceneService&Stub $sceneService;
 
     protected function setUp(): void
     {
@@ -63,14 +62,14 @@ class SceneRendererTest extends TestCase
         $this->diceBag = $this->createMock(DiceBag::class);
         $this->actionService = $this->createStub(ActionService::class);
         $this->logger = $this->createStub(LoggerInterface::class);
-        $this->kernel = $this->createStub(Kernel::class);
+        $this->sceneService = $this->createStub(SceneService::class);
 
         $this->renderer = new SceneRenderer(
             $this->sceneRepository,
             $this->diceBag,
             $this->actionService,
             $this->logger,
-            $this->kernel,
+            $this->sceneService,
         );
     }
 
@@ -104,7 +103,7 @@ class SceneRendererTest extends TestCase
         $diceBag = $this->createMock(DiceBag::class);
         $actionService = $this->createStub(ActionService::class);
 
-        $sceneRenderer = new SceneRenderer($sceneRepository, $diceBag, $actionService, $this->logger, $this->kernel);
+        $sceneRenderer = new SceneRenderer($sceneRepository, $diceBag, $actionService, $this->logger, $this->sceneService);
 
         $stage = $sceneRenderer->renderDefault($character);
 
@@ -127,7 +126,7 @@ class SceneRendererTest extends TestCase
             owner: $this->createStub(Character::class),
         );
 
-        $sceneRenderer = new SceneRenderer($sceneRepository, $diceBag, $actionService, $this->logger, $this->kernel);
+        $sceneRenderer = new SceneRenderer($sceneRepository, $diceBag, $actionService, $this->logger, $this->sceneService);
         $stage = $sceneRenderer->render($stage, $scene);
 
         $this->assertNotNull($stage);
@@ -161,7 +160,7 @@ class SceneRendererTest extends TestCase
         $expressionService = $this->createMock(ExpressionService::class);
         $expressionService->expects($this->once())->method("evaluateBoolean")->willReturn(true);
 
-        $sceneRenderer = new SceneRenderer($sceneRepository, $diceBag, $actionService, $this->logger, $this->kernel);
+        $sceneRenderer = new SceneRenderer($sceneRepository, $diceBag, $actionService, $this->logger, $this->sceneService);
 
         $action = $sceneRenderer->createActionFromConnection($scene, $sceneConnection, $expressionService);
 
@@ -192,7 +191,7 @@ class SceneRendererTest extends TestCase
         $expressionService = $this->createMock(ExpressionService::class);
         $expressionService->expects($this->once())->method("evaluateBoolean")->willReturn(false);
 
-        $sceneRenderer = new SceneRenderer($sceneRepository, $diceBag, $actionService, $this->logger, $this->kernel);
+        $sceneRenderer = new SceneRenderer($sceneRepository, $diceBag, $actionService, $this->logger, $this->sceneService);
 
         $action = $sceneRenderer->createActionFromConnection($scene, $sceneConnection, $expressionService);
 
@@ -220,7 +219,7 @@ class SceneRendererTest extends TestCase
         $expressionService = $this->createMock(ExpressionService::class);
         $expressionService->expects($this->once())->method("evaluateBoolean")->willReturn(true);
 
-        $sceneRenderer = new SceneRenderer($sceneRepository, $diceBag, $actionService, $this->logger, $this->kernel);
+        $sceneRenderer = new SceneRenderer($sceneRepository, $diceBag, $actionService, $this->logger, $this->sceneService);
 
         $action = $sceneRenderer->createActionFromConnection($scene, $sceneConnection, $expressionService);
 
@@ -249,7 +248,7 @@ class SceneRendererTest extends TestCase
         $expressionService = $this->createMock(ExpressionService::class);
         $expressionService->expects($this->once())->method("evaluateBoolean")->willReturn(false);
 
-        $sceneRenderer = new SceneRenderer($sceneRepository, $diceBag, $actionService, $this->logger, $this->kernel);
+        $sceneRenderer = new SceneRenderer($sceneRepository, $diceBag, $actionService, $this->logger, $this->sceneService);
 
         $action = $sceneRenderer->createActionFromConnection($scene, $sceneConnection, $expressionService);
 
@@ -278,7 +277,7 @@ class SceneRendererTest extends TestCase
         $expressionService = $this->createMock(ExpressionService::class);
         $expressionService->expects($this->exactly(0))->method("evaluateBoolean")->willReturn(true);
 
-        $sceneRenderer = new SceneRenderer($sceneRepository, $diceBag, $actionService, $this->logger, $this->kernel);
+        $sceneRenderer = new SceneRenderer($sceneRepository, $diceBag, $actionService, $this->logger, $this->sceneService);
 
         $action = $sceneRenderer->createActionFromConnection($scene, $sceneConnection, $expressionService);
 

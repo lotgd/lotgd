@@ -4,7 +4,7 @@ declare(strict_types=1);
 namespace LotGD2\Game\Scene\SceneTemplate\Special;
 
 use LotGD2\Game\Scene\SceneTemplate\SpecialTemplate;
-use LotGD2\Service\SpecialService;
+use LotGD2\Game\Scene\SpecialService;
 use Symfony\Component\DependencyInjection\Attribute\Autoconfigure;
 
 #[Autoconfigure(public: true)]
