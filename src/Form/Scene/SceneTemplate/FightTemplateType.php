@@ -7,10 +7,12 @@ use LotGD2\Form\GroupedFormType;
 use LotGD2\Form\TypeProvidesDefaultDataInterface;
 use LotGD2\Game\Scene\SceneTemplate\FightTemplate;
 use Symfony\Component\Form\AbstractType;
+use Symfony\Component\Form\Extension\Core\Type\NumberType;
 use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
+use Symfony\Component\Validator\Constraints\Range;
 use Symfony\Component\Validator\Constraints\Valid;
 
 /**
@@ -40,6 +42,14 @@ class FightTemplateType extends AbstractType implements TypeProvidesDefaultDataI
                 "label" => "Action Name to search for a difficult fight",
                 "data" => $defaultData["searchThrillseekingAction"],
             ])
+            ->add("specialChance", NumberType::class, options: [
+                "required" => true,
+                "label" => "Probability of something special happening",
+                "data" => $defaultData["specialChance"],
+                "constraints" => [
+                    new Range(min: 0, max: 100),
+                ]
+            ])
         ;
     }
 
@@ -60,6 +70,7 @@ class FightTemplateType extends AbstractType implements TypeProvidesDefaultDataI
             "searchFightAction" => "Search for a fight",
             "searchSlummingAction" => "Go Slumming",
             "searchThrillseekingAction" => "Go Thrillseeking",
+            "specialChance" => 14,
         ];
     }
 }

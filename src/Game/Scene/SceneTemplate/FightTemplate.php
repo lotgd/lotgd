@@ -30,6 +30,7 @@ use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
  *     searchFightAction: string,
  *     searchSlummingAction: string,
  *     searchThrillseekingAction: string,
+ *     specialChance: int,
  * }
  * @implements SceneTemplateInterface<FightTemplateConfiguration>
  */
@@ -118,8 +119,10 @@ class FightTemplate implements SceneTemplateInterface
             return;
         }
 
+        $specialChance = ($this->scene->templateConfig["specialChance"] ?? 14) / 100.0;
+
         // Handle specials
-        if ($this->diceBag->throw(7) === 1) {
+        if ($this->diceBag->chance($specialChance)) {
             $this->logger->debug("FightTemplate::searchAction, special event triggered.");
             try {
                 $this->specialService->runSpecial($this->stage);
