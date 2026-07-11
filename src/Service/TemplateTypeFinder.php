@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace LotGD2\Service;
 
 use LotGD2\Attribute\TemplateType;
+use Psr\Log\LoggerInterface;
 use ReflectionClass;
 use Symfony\Component\Form\AbstractType;
 use ValueError;
@@ -15,6 +16,12 @@ use ValueError;
  */
 readonly class TemplateTypeFinder
 {
+    public function __construct(
+        LoggerInterface $logger,
+    ) {
+
+    }
+
     /**
      * @param class-string $templateClass
      * @return null|class-string<AbstractType<mixed>>
@@ -41,6 +48,7 @@ readonly class TemplateTypeFinder
             /** @var TemplateType $attribute */
             $attribute = $attributes[0]->newInstance();
         } catch (\InvalidArgumentException $e) {
+            $logger->error("TemplateTypeFinder: Error while trying to find template type. ".$e->getMessage());
             return null;
         }
 
