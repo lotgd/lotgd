@@ -57,6 +57,9 @@ class SpecialService
         // Render scene defaults
         $this->renderer->render($stage, $special);
 
+        // Overwrite title
+        $stage->title = "Something happened!";
+
         // Render scene template if one given
         if ($special->templateClass) {
             $this->renderer->renderOnSceneChange($stage, $special, new Action());
