@@ -32,6 +32,7 @@ readonly class SceneRenderer
         private ActionService $actionService,
         private LoggerInterface $logger,
         private SceneService $sceneService,
+        private ExpressionService $expressionService,
     ) {
     }
 
@@ -96,7 +97,7 @@ readonly class SceneRenderer
     public function createActionFromConnection(
         Scene $scene,
         SceneConnection $sceneConnection,
-        ExpressionService $expressionService,
+        Character $character,
     ): ?Action {
         $action = new Action(diceBag: $this->diceBag);
         $add = true;
@@ -105,14 +106,14 @@ readonly class SceneRenderer
             $action->title = $sceneConnection->sourceLabel ?? $sceneConnection->targetScene->title;
             $action->sceneId = $sceneConnection->targetScene;
 
-            if (!$expressionService->evaluateBoolean($sceneConnection->sourceExpression)) {
+            if (!$this->expressionService->evaluateBoolean($character, $sceneConnection->sourceExpression)) {
                 $add = false;
             }
         } elseif ($sceneConnection->targetScene === $scene) {
             $action->title = $sceneConnection->targetLabel ?? $sceneConnection->sourceScene->title;
             $action->sceneId = $sceneConnection->sourceScene;
 
-            if (!$expressionService->evaluateBoolean($sceneConnection->targetExpression)) {
+            if (!$this->expressionService->evaluateBoolean($character, $sceneConnection->targetExpression)) {
                 $add = false;
             }
         } else {
@@ -136,17 +137,6 @@ readonly class SceneRenderer
         Scene $scene,
     ): void {
         $character = $stage->owner;
-        $equipment = new EquipmentHandler($this->logger, $character);
-        $health = new HealthHandler($this->logger, $character);
-
-        $expressionService = new ExpressionService(
-            $this->logger,
-            $character,
-            health: $health,
-            stats: new StatsHandler($this->logger, $equipment, $character),
-            gold: new GoldHandler($this->logger, $character),
-            equipment: $equipment,
-        );
 
         $allKnownConnection = $scene->getConnections();
         $addedConnections = [];
@@ -160,7 +150,7 @@ readonly class SceneRenderer
 
             foreach ($sceneActionGroup->connections as $connection) {
                 if (!isset($addedConnections[$connection->id])) {
-                    $action = $this->createActionFromConnection($scene, $connection, $expressionService);
+                    $action = $this->createActionFromConnection($scene, $connection, $character);
 
                     if ($action !== null) {
                         $actionGroup->addAction($action);
@@ -176,7 +166,7 @@ readonly class SceneRenderer
         // Add all other actions
         foreach ($scene->getConnections(visibleOnly: true) as $connection) {
             if (!isset($addedConnections[$connection->id])) {
-                $action = $this->createActionFromConnection($scene, $connection, $expressionService);
+                $action = $this->createActionFromConnection($scene, $connection, $character);
 
                 if ($action !== null) {
                     $stage->addAction(ActionGroup::EMPTY, $action);

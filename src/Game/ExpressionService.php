@@ -19,43 +19,68 @@ class ExpressionService
 {
     public function __construct(
         private LoggerInterface $logger,
-        private Character $character,
-        private HealthHandler $health,
-        private StatsHandler $stats,
-        private GoldHandler $gold,
-        private EquipmentHandler $equipment,
     ) {
 
     }
 
-    public function evaluate(?string $expression): mixed
+    /**
+     * @return string[],
+     */
+    public function getNames(): array
+    {
+        return [
+            "character" => [
+                "name",
+                "level",
+            ],
+            "health" => [
+                "health",
+                "maxHealth",
+            ],
+            "stats",
+            "gold",
+            "equipment",
+        ];
+    }
+
+    public function getCharacterBasedNames(Character $character): array
+    {
+        $healthHandler = new HealthHandler($this->logger, $character);
+        $equipmentHandler = new EquipmentHandler($this->logger, $character);
+        $statsHandler = new StatsHandler($this->logger, $equipmentHandler, $character);
+        $goldHandler = new GoldHandler($this->logger, $character);
+
+        return [
+            "character" => (object)[
+                "name" => $character->name,
+                "level" => $character->level,
+            ],
+            "health" => (object)[
+                "health" => $healthHandler->getHealth($character),
+                "maxHealth" => $healthHandler->getMaxHealth($character)
+            ],
+            "stats" => (object)[
+                "experience" => $statsHandler->getExperience($character),
+                "required" => $statsHandler->getRequiredExperience($character),
+                "attack" => $statsHandler->getTotalAttack($character),
+                "defense" => $statsHandler->getTotalDefense($character),
+            ],
+            "gold" => $goldHandler->getGold($character),
+            "equipment" => (object)[
+                "weapon" => $equipmentHandler->getName(EquipmentHandler::WeaponSlot, $character),
+                "armor" => $equipmentHandler->getName(EquipmentHandler::ArmorSlot, $character),
+            ]
+        ];
+    }
+
+    public function evaluate(Character $character, ?string $expression): mixed
     {
         if ($expression === null || strlen($expression) === 0) {
             return null;
         }
 
         $expressionLanguage = new ExpressionLanguage();
-        $names = [
-            "character" => (object)[
-                "name" => $this->character->name,
-                "level" => $this->character->level,
-            ],
-            "health" => (object)[
-                "health" => $this->health->getHealth(),
-                "maxHealth" => $this->health->getMaxHealth()
-            ],
-            "stats" => (object)[
-                "experience" => $this->stats->getExperience(),
-                "required" => $this->stats->getRequiredExperience(),
-                "attack" => $this->stats->getTotalAttack(),
-                "defense" => $this->stats->getTotalDefense(),
-            ],
-            "gold" => $this->gold->getGold(null),
-            "equipment" => (object)[
-                "weapon" => $this->equipment->getName(EquipmentHandler::WeaponSlot),
-                "armor" => $this->equipment->getName(EquipmentHandler::ArmorSlot),
-            ]
-        ];
+        $names = $this->getCharacterBasedNames($character);
 
         $flags = Parser::IGNORE_UNKNOWN_VARIABLES;
 
@@ -69,9 +94,9 @@ class ExpressionService
         }
     }
 
-    public function evaluateBoolean(?string $expression, bool $default = true): bool
+    public function evaluateBoolean(Character $character, ?string $expression, bool $default = true): bool
     {
-        $value = $this->evaluate($expression);
+        $value = $this->evaluate($character, $expression);
 
         if ($value === null) {
             return $default;
@@ -80,9 +105,9 @@ class ExpressionService
         }
     }
 
-    public function evaluateInteger(?string $expression, int $default = 0): int
+    public function evaluateInteger(Character $character, ?string $expression, int $default = 0): int
     {
-        $value = $this->evaluate($expression);
+        $value = $this->evaluate($character, $expression);
 
         if ($value === null) {
             return $default;
@@ -91,9 +116,9 @@ class ExpressionService
         }
     }
 
-    public function evaluateFloat(?string $expression, float $default = 1.): float
+    public function evaluateFloat(Character $character, ?string $expression, float $default = 1.): float
     {
-        $value = $this->evaluate($expression);
+        $value = $this->evaluate($character, $expression);
 
         if ($value === null) {
             return $default;

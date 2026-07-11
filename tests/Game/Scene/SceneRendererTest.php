@@ -55,6 +55,7 @@ class SceneRendererTest extends TestCase
     private LoggerInterface $logger;
     private DiceBag&MockObject $diceBag;
     private SceneService&Stub $sceneService;
+    private ExpressionService&Stub $expressionService;
 
     protected function setUp(): void
     {
@@ -63,6 +64,8 @@ class SceneRendererTest extends TestCase
         $this->actionService = $this->createStub(ActionService::class);
         $this->logger = $this->createStub(LoggerInterface::class);
         $this->sceneService = $this->createStub(SceneService::class);
+        $this->expressionService = $this->createStub(ExpressionService::class);
+        $this->expressionService->method("evaluateBoolean")->willReturn(true);
 
         $this->renderer = new SceneRenderer(
             $this->sceneRepository,
@@ -70,6 +73,7 @@ class SceneRendererTest extends TestCase
             $this->actionService,
             $this->logger,
             $this->sceneService,
+            $this->expressionService,
         );
     }
 
@@ -102,8 +106,9 @@ class SceneRendererTest extends TestCase
         $character = $this->createMock(Character::class);
         $diceBag = $this->createMock(DiceBag::class);
         $actionService = $this->createStub(ActionService::class);
+        $expressionService = $this->createStub(ExpressionService::class);
 
-        $sceneRenderer = new SceneRenderer($sceneRepository, $diceBag, $actionService, $this->logger, $this->sceneService);
+        $sceneRenderer = new SceneRenderer($sceneRepository, $diceBag, $actionService, $this->logger, $this->sceneService, $expressionService);
 
         $stage = $sceneRenderer->renderDefault($character);
 
@@ -121,12 +126,13 @@ class SceneRendererTest extends TestCase
         $diceBag = $this->createMock(DiceBag::class);
         $actionService = $this->createMock(ActionService::class);
         $actionService->expects($this->once())->method("resetActionGroups");
+        $expressionService = $this->createStub(ExpressionService::class);
 
         $stage = new Stage(
             owner: $this->createStub(Character::class),
         );
 
-        $sceneRenderer = new SceneRenderer($sceneRepository, $diceBag, $actionService, $this->logger, $this->sceneService);
+        $sceneRenderer = new SceneRenderer($sceneRepository, $diceBag, $actionService, $this->logger, $this->sceneService, $expressionService);
         $stage = $sceneRenderer->render($stage, $scene);
 
         $this->assertNotNull($stage);
@@ -157,12 +163,14 @@ class SceneRendererTest extends TestCase
         $diceBag = new DiceBag();
         $actionService = $this->createStub(ActionService::class);
 
+        $character = $this->createStub(Character::class);
+
         $expressionService = $this->createMock(ExpressionService::class);
         $expressionService->expects($this->once())->method("evaluateBoolean")->willReturn(true);
 
-        $sceneRenderer = new SceneRenderer($sceneRepository, $diceBag, $actionService, $this->logger, $this->sceneService);
+        $sceneRenderer = new SceneRenderer($sceneRepository, $diceBag, $actionService, $this->logger, $this->sceneService, $expressionService);
 
-        $action = $sceneRenderer->createActionFromConnection($scene, $sceneConnection, $expressionService);
+        $action = $sceneRenderer->createActionFromConnection($scene, $sceneConnection, $character);
 
         $this->assertSame($otherScene->title, $action->title);
         $this->assertSame(13, $action->sceneId);
@@ -190,10 +198,11 @@ class SceneRendererTest extends TestCase
 
         $expressionService = $this->createMock(ExpressionService::class);
         $expressionService->expects($this->once())->method("evaluateBoolean")->willReturn(false);
+        $character = $this->createStub(Character::class);
 
-        $sceneRenderer = new SceneRenderer($sceneRepository, $diceBag, $actionService, $this->logger, $this->sceneService);
+        $sceneRenderer = new SceneRenderer($sceneRepository, $diceBag, $actionService, $this->logger, $this->sceneService, $expressionService);
 
-        $action = $sceneRenderer->createActionFromConnection($scene, $sceneConnection, $expressionService);
+        $action = $sceneRenderer->createActionFromConnection($scene, $sceneConnection, $character);
 
         $this->assertNull($action);
     }
@@ -218,10 +227,11 @@ class SceneRendererTest extends TestCase
 
         $expressionService = $this->createMock(ExpressionService::class);
         $expressionService->expects($this->once())->method("evaluateBoolean")->willReturn(true);
+        $character = $this->createStub(Character::class);
 
-        $sceneRenderer = new SceneRenderer($sceneRepository, $diceBag, $actionService, $this->logger, $this->sceneService);
+        $sceneRenderer = new SceneRenderer($sceneRepository, $diceBag, $actionService, $this->logger, $this->sceneService, $expressionService);
 
-        $action = $sceneRenderer->createActionFromConnection($scene, $sceneConnection, $expressionService);
+        $action = $sceneRenderer->createActionFromConnection($scene, $sceneConnection, $character);
 
         $this->assertSame($otherScene->title, $action->title);
         $this->assertSame(13, $action->sceneId);
@@ -247,10 +257,11 @@ class SceneRendererTest extends TestCase
 
         $expressionService = $this->createMock(ExpressionService::class);
         $expressionService->expects($this->once())->method("evaluateBoolean")->willReturn(false);
+        $character = $this->createStub(Character::class);
 
-        $sceneRenderer = new SceneRenderer($sceneRepository, $diceBag, $actionService, $this->logger, $this->sceneService);
+        $sceneRenderer = new SceneRenderer($sceneRepository, $diceBag, $actionService, $this->logger, $this->sceneService, $expressionService);
 
-        $action = $sceneRenderer->createActionFromConnection($scene, $sceneConnection, $expressionService);
+        $action = $sceneRenderer->createActionFromConnection($scene, $sceneConnection, $character);
 
         $this->assertNull($action);
     }
@@ -276,10 +287,11 @@ class SceneRendererTest extends TestCase
         $actionService = $this->createStub(ActionService::class);
         $expressionService = $this->createMock(ExpressionService::class);
         $expressionService->expects($this->exactly(0))->method("evaluateBoolean")->willReturn(true);
+        $character = $this->createStub(Character::class);
 
-        $sceneRenderer = new SceneRenderer($sceneRepository, $diceBag, $actionService, $this->logger, $this->sceneService);
+        $sceneRenderer = new SceneRenderer($sceneRepository, $diceBag, $actionService, $this->logger, $this->sceneService, $expressionService);
 
-        $action = $sceneRenderer->createActionFromConnection($scene, $sceneConnection, $expressionService);
+        $action = $sceneRenderer->createActionFromConnection($scene, $sceneConnection, $character);
 
         $this->assertStringStartsWith("#invalidConnection", $action->title);
         $this->assertNull($action->sceneId);

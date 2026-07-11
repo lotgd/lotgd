@@ -7,6 +7,7 @@ use LotGD2\Entity\Battle\BattleRoundMessage;
 use LotGD2\Entity\Battle\BuffList;
 use LotGD2\Entity\Battle\CurrentCharacterFighter;
 use LotGD2\Entity\Mapped\Character;
+use LotGD2\Game\ExpressionService;
 use LotGD2\Game\Handler\BuffHandler;
 use LotGD2\Game\Handler\HealthHandler;
 use LotGD2\Game\Random\DiceBag;
@@ -25,10 +26,11 @@ use Psr\Log\LoggerInterface;
 #[CoversClass(BattleState::class)]
 #[UsesClass(BattleMessage::class)]
 #[UsesClass(BattleRoundMessage::class)]
-#[UsesClass(HealthHandler::class)]
 #[UsesClass(BuffHandler::class)]
 #[UsesClass(BuffList::class)]
 #[UsesClass(DiceBag::class)]
+#[UsesClass(ExpressionService::class)]
+#[UsesClass(HealthHandler::class)]
 #[AllowMockObjectsWithoutExpectations]
 class BattleStateTest extends TestCase
 {

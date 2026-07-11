@@ -6,6 +6,7 @@ namespace LotGD2\Entity\Battle;
 use Doctrine\Common\Collections\ArrayCollection;
 use LotGD2\Entity\Mapped\Character;
 use LotGD2\Game\Battle\BattleStateStatusEnum;
+use LotGD2\Game\ExpressionService;
 use LotGD2\Game\Handler\BuffHandler;
 use LotGD2\Game\Handler\HealthHandler;
 use Psr\Log\LoggerInterface;
@@ -84,8 +85,10 @@ class BattleState
             $health = new HealthHandler($logger, $this->character);
             $health->setHealth($this->goodGuy->health);
 
+            $expressionService = new ExpressionService($logger);
+
             // Synchronize buff list
-            $buffs = new BuffHandler($logger, null);
+            $buffs = new BuffHandler($logger, null, $expressionService);
             $buffs->setBuffs($this->character, $buffList);
         }
     }
