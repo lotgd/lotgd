@@ -106,6 +106,9 @@ class Stage
             }
         },
 
+        /**
+         * @var array<string, mixed>
+         */
         #[ORM\Column(type: JsonDocumentType::NAME, nullable: true)]
         public ?array $properties = [] {
             get => $this->properties;

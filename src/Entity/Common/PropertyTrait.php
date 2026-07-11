@@ -12,6 +12,7 @@ trait PropertyTrait
 
     public function setProperty(string $name, mixed $value): static
     {
+        dump($name, $value);
         $properties = $this->properties;
         $properties[$name] = $value;
         $this->properties = $properties;

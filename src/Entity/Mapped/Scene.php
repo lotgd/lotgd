@@ -15,6 +15,9 @@ use LotGD2\Repository\SceneRepository;
 use Symfony\Component\Validator\Constraints as Assert;
 use ValueError;
 
+/**
+ * @template TConfig of array<string, mixed> = array<string, mixed>
+ */
 #[ORM\Entity(repositoryClass: SceneRepository::class)]
 class Scene
 {
@@ -101,7 +104,7 @@ class Scene
             }
         },
 
-        /** @var null|array<string, mixed>  */
+        /** @var null|TConfig  */
         #[ORM\Column(type: JsonDocumentType::NAME, nullable: true)]
         public ?array $templateConfig = [] {
             get => $this->templateConfig;
@@ -117,6 +120,9 @@ class Scene
         #[ORM\Column(type: 'boolean', nullable: true, options: ["default" => false])]
         public ?bool $defaultScene = false,
 
+        /**
+         * @var list<string>
+         */
         #[ORM\Column(type: Types::JSON, nullable: true)]
         public ?array $tags = [] {
             get => $this->tags;

@@ -35,6 +35,12 @@ trait DefaultSceneTemplate
         set(Character $value) => $value;
     }
 
+    /**
+     * @param Stage $stage
+     * @param Action $action
+     * @param Scene $currentScene
+     * @param Scene|null $lastScene
+     */
     public function setSceneChangeParameter(Stage $stage, Action $action, Scene $currentScene, ?Scene $lastScene=null): self
     {
         $this->stage = $stage;

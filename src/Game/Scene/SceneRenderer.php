@@ -90,7 +90,7 @@ readonly class SceneRenderer
      *
      * @param Scene $scene
      * @param SceneConnection $sceneConnection
-     * @param ExpressionService $expressionService
+     * @param Character $character
      * @return ?Action
      * @internal
      */

@@ -9,7 +9,7 @@ use LotGD2\Entity\Mapped\Scene;
 use LotGD2\Entity\Mapped\Stage;
 
 /**
- * @template TemplateConfiguration of array<string, mixed> = array<string, mixed>
+ * @template TConfig of array<string, mixed> = array<string, mixed>
  */
 interface SceneTemplateInterface
 {
@@ -23,6 +23,7 @@ interface SceneTemplateInterface
         set;
     }
 
+    /** @var Scene<TConfig> */
     protected(set) Scene $scene {
         get;
         set;
@@ -43,7 +44,7 @@ interface SceneTemplateInterface
     public function onSceneChange(): void;
 
     /**
-     * @return self<TemplateConfiguration>
+     * @return self<TConfig>
      */
     public function setSceneChangeParameter(Stage $stage, Action $action, Scene $currentScene, ?Scene $lastScene=null): self;
 }

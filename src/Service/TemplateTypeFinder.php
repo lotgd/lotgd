@@ -17,7 +17,7 @@ use ValueError;
 readonly class TemplateTypeFinder
 {
     public function __construct(
-        LoggerInterface $logger,
+        private LoggerInterface $logger,
     ) {
 
     }
@@ -48,7 +48,7 @@ readonly class TemplateTypeFinder
             /** @var TemplateType $attribute */
             $attribute = $attributes[0]->newInstance();
         } catch (\InvalidArgumentException $e) {
-            $logger->error("TemplateTypeFinder: Error while trying to find template type. ".$e->getMessage());
+            $this->logger->error("TemplateTypeFinder: Error while trying to find template type. ".$e->getMessage());
             return null;
         }
 

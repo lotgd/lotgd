@@ -24,25 +24,23 @@ class ExpressionService
     }
 
     /**
-     * @return string[],
+     * @return string[]
      */
     public function getNames(): array
     {
         return [
-            "character" => [
-                "name",
-                "level",
-            ],
-            "health" => [
-                "health",
-                "maxHealth",
-            ],
+            "character",
+            "health",
             "stats",
             "gold",
             "equipment",
         ];
     }
 
+    /**
+     * @param Character $character
+     * @return array<string, object|scalar>
+     */
     public function getCharacterBasedNames(Character $character): array
     {
         $healthHandler = new HealthHandler($this->logger, $character);

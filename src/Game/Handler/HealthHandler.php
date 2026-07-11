@@ -60,10 +60,11 @@ readonly class HealthHandler
         }
 
         $this->logger?->debug("{$character->id}: healed by {$health}.");
+
         $character->setProperty(
             static::HealthPropertyName,
             min(
-                $character->getProperty(static::MaxHealthPropertyName),
+                $this->getMaxHealth($character),
                 max(
                     $this->getHealth($character) + $health,
                     0
