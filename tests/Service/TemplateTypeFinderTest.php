@@ -12,6 +12,7 @@ use LotGD2\Tests\Fixtures\TestType;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\UsesClass;
 use PHPUnit\Framework\TestCase;
+use Psr\Log\LoggerInterface;
 use ValueError;
 
 #[CoversClass(TemplateTypeFinder::class)]
@@ -20,7 +21,9 @@ class TemplateTypeFinderTest extends TestCase
 {
     public function testFindWithEmptyString()
     {
-        $finder = new TemplateTypeFinder();
+        $finder = new TemplateTypeFinder(
+            $this->createStub(LoggerInterface::class),
+        );
 
         $result = $finder->find("");
         $this->assertNull($result);
@@ -28,7 +31,9 @@ class TemplateTypeFinderTest extends TestCase
 
     public function testFindWithNonExistingClassString()
     {
-        $finder = new TemplateTypeFinder();
+        $finder = new TemplateTypeFinder(
+            $this->createStub(LoggerInterface::class),
+        );
 
         $this->expectException(ValueError::class);
         $this->expectExceptionMessage("Template class 'AClassThatDoesNotExist' does not exist");
@@ -38,7 +43,9 @@ class TemplateTypeFinderTest extends TestCase
 
     public function testIfFindReturnsNullIfAttributeWasNotAdded()
     {
-        $finder = new TemplateTypeFinder();
+        $finder = new TemplateTypeFinder(
+            $this->createStub(LoggerInterface::class),
+        );
 
         $result = $finder->find(EmptyTestClass::class);
         $this->assertNull($result);
@@ -46,7 +53,9 @@ class TemplateTypeFinderTest extends TestCase
 
     public function testIfFindReturnsNullIfAttributeWasAddedButIsNotAbstractType()
     {
-        $finder = new TemplateTypeFinder();
+        $finder = new TemplateTypeFinder(
+            $this->createStub(LoggerInterface::class),
+        );
 
         $result = $finder->find(TemplateTypeTestClassInvalid::class);
         $this->assertNull($result);
@@ -54,7 +63,9 @@ class TemplateTypeFinderTest extends TestCase
 
     public function testIfFindReturnsNullIfAttributeWasAdded()
     {
-        $finder = new TemplateTypeFinder();
+        $finder = new TemplateTypeFinder(
+            $this->createStub(LoggerInterface::class),
+        );
 
         $result = $finder->find(TemplateTypeTestClassValid::class);
 

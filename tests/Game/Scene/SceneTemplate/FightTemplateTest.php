@@ -187,9 +187,9 @@ class FightTemplateTest extends TestCase
             ->method('getLevel')
             ->willReturn(5);
 
-        $this->diceBag->expects($this->exactly(3))
+        $this->diceBag->expects($this->exactly(4))
             ->method('chance')
-            ->willReturnOnConsecutiveCalls(false, false, false); // No random level change, no surprise attack
+            ->willReturnOnConsecutiveCalls(false, false, false, false); // No special, No random level change, no surprise attack
 
         $this->creatureRepository->expects($this->once())
             ->method('getRandomCreature')
@@ -282,9 +282,9 @@ class FightTemplateTest extends TestCase
             ->method('getLevel')
             ->willReturn(5);
 
-        $this->diceBag->expects($this->exactly(3))
+        $this->diceBag->expects($this->exactly(4))
             ->method('chance')
-            ->willReturnOnConsecutiveCalls(false, false, true); // No random level change, no surprise attack
+            ->willReturnOnConsecutiveCalls(false, false, false, true); // No special, No random level change, no surprise attack
 
         $this->creatureRepository->expects($this->once())
             ->method('getRandomCreature')
@@ -551,7 +551,7 @@ class FightTemplateTest extends TestCase
             ->method('getLevel')
             ->willReturn(5);
 
-        $this->diceBag->expects($this->exactly(2))
+        $this->diceBag->expects($this->exactly(3))
             ->method('chance')
             ->willReturn(false);
 
@@ -625,7 +625,7 @@ class FightTemplateTest extends TestCase
             ->method('getLevel')
             ->willReturn(5);
 
-        $this->diceBag->expects($this->exactly(2))
+        $this->diceBag->expects($this->exactly(3))
             ->method('chance')
             ->willReturn(false);
 
