@@ -7,9 +7,12 @@ use Doctrine\DBAL\Schema\PrimaryKeyConstraint;
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\Migrations\AbstractMigration;
+use LotGD2\Doctrine\MySQLDependentTransactionalTrait;
 
 final class Version20260428143409 extends AbstractMigration
 {
+    use MySQLDependentTransactionalTrait;
+
     public function getDescription(): string
     {
         return 'Adds a table for specialties';

@@ -6,9 +6,12 @@ namespace DoctrineMigrations\Dev;
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\Migrations\AbstractMigration;
+use LotGD2\Doctrine\MySQLDependentTransactionalTrait;
 
 final class Version20260705100220 extends AbstractMigration
 {
+    use MySQLDependentTransactionalTrait;
+
     public function getDescription(): string
     {
         return 'Adds a tag column to scenes.';
