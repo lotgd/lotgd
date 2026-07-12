@@ -15,7 +15,7 @@ class SpecialSceneFixtures extends Fixture
     {
         $scenes = [
             "stumbleBearTrap" => new Scene(
-                title: "You stumbled!",
+                title: "You stumbled! - Bear Trap",
                 description: <<< TXT
                     You are striving through the forest, only a tiny bit less careful than usually. And - of course! - 
                     you step in a bear trap. You can free yourself, but the wound is deep.
@@ -32,9 +32,9 @@ class SpecialSceneFixtures extends Fixture
                 tags: [SpecialTemplate::SceneTag]
             ),
             "stumbleFall" => new Scene(
-                title: "You stumbled!",
+                title: "You stumbled! - Manure",
                 description: <<< TXT
-                    What bad luck! You slip on something and hurt yourself as you fall.
+                    What a bad luck! You slip on something and hurt yourself as you fall.
                     You notice a smell like manure. Horse manure!
                     
                     You lose {{ damage }} health points!
@@ -49,7 +49,7 @@ class SpecialSceneFixtures extends Fixture
                 tags: [SpecialTemplate::SceneTag],
             ),
             "stumbleOldMan" => new Scene(
-                title: "You stumbled!",
+                title: "You stumbled! - Old Man",
                 description: <<< TXT
                     {% if somethingHappened %}
                         An old man hits you violently with a cane, giggles, and runs away.
