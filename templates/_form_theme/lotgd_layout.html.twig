@@ -13,3 +13,11 @@
     </div>
 </div>
 {% endblock %}
+
+{% block chance_widget %}
+    <div class="input-group mb-3">
+        {{ form_widget(form.numerator) }}
+        <span class="input-group-text">in</span>
+        {{ form_widget(form.denominator) }}
+    </div>
+{% endblock %}

@@ -62,5 +62,7 @@ class ChanceType extends AbstractType
     public function configureOptions(OptionsResolver $resolver)
     {
         $resolver->setDefault("data_class", Chance::class);
+        $resolver->setDefault("help", "Chance of something happening. Chance is given as x in y,
+        for which x is the nominator and y the denominator. A chance of 1 in 5 is equal to a chance of 20%, for example.");
     }
 }
