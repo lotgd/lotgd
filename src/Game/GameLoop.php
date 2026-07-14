@@ -48,7 +48,7 @@ class GameLoop
         $this->container = $this->kernel->getContainer();
     }
 
-    public function getCharacter(): Character
+    public function getCharacter(): ?Character
     {
         return $this->character;
     }

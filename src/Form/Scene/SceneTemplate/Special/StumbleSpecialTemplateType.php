@@ -3,6 +3,8 @@ declare(strict_types=1);
 
 namespace LotGD2\Form\Scene\SceneTemplate\Special;
 
+use LotGD2\Entity\Chance;
+use LotGD2\Form\ChanceType;
 use LotGD2\Form\CharacterExpressionType;
 use LotGD2\Form\GroupedFormType;
 use LotGD2\Form\TypeProvidesDefaultDataInterface;
@@ -15,6 +17,7 @@ use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Validator\Constraints\NotBlank;
 use Symfony\Component\Validator\Constraints\Range;
+use Symfony\Component\Validator\Constraints\Valid;
 
 /**
  * @phpstan-import-type StumbleSpecialConfiguration from StumbleSpecialTemplate
@@ -37,15 +40,14 @@ class StumbleSpecialTemplateType extends AbstractType implements TypeProvidesDef
         $defaultData = $this->getDefaultData();
 
         $builder
-            ->add("damageChance", NumberType::class, [
+            ->add("damageChance", ChanceType::class, [
                 "help" => "Probability that the player takes damage from the event. Context will have the value 
                     tookDamage available to adjust the text accordingly. Its 0 when no damage occured, and equals
                     to the amount of damage the character took.
                     ",
                 "required" => false,
                 "constraints" => [
-                    new NotBlank(),
-                    new Range(min: 0, max: 100),
+                    new Valid(),
                 ],
                 "data" => $defaultData["damageChance"],
             ])
@@ -70,7 +72,7 @@ class StumbleSpecialTemplateType extends AbstractType implements TypeProvidesDef
     public function getDefaultData(): array
     {
         return [
-            "damageChance" => 100,
+            "damageChance" => new Chance(100, 100),
             "minDamage" => "character.level",
             "maxDamage" => "character.level*3",
             "playerCanDie" => true,

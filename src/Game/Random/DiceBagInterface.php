@@ -3,6 +3,8 @@ declare(strict_types=1);
 
 namespace LotGD2\Game\Random;
 
+use LotGD2\Entity\Chance;
+
 interface DiceBagInterface
 {
     /**
@@ -16,11 +18,11 @@ interface DiceBagInterface
 
     /**
      * Returns true if
-     * @param int|float $winChance Win chance as a float between 0 and 1, or an integer between 0 and 100.
+     * @param Chance|int|float $winChance Win chance as a float between 0 and 1, or an integer between 0 and 100.
      * @param int $precision For small chances, the precision should be tunes up. For example, 0.005 would always lead to a loss unless $precision is set to 1.
      * @return bool True if won.
      */
-    public function chance(int|float $winChance, int $precision = 0): bool;
+    public function chance(Chance|int|float $winChance, int $precision = 0): bool;
 
     /**
      * Returns a evenly distributed number where the maximum and minum values are only half as probable.

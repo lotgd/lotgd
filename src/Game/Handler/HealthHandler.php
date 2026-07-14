@@ -26,7 +26,7 @@ readonly class HealthHandler
     public function __construct(
         private ?LoggerInterface $logger,
         #[Autowire(expression: "service('lotgd2.game_loop').getCharacter()")]
-        private Character $character,
+        private ?Character $character,
     ) {
     }
 

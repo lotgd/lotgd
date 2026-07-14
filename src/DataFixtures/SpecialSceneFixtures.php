@@ -5,6 +5,7 @@ namespace LotGD2\DataFixtures;
 
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Persistence\ObjectManager;
+use LotGD2\Entity\Chance;
 use LotGD2\Entity\Mapped\Scene;
 use LotGD2\Game\Scene\SceneTemplate\Special\StumbleSpecialTemplate;
 use LotGD2\Game\Scene\SceneTemplate\SpecialTemplate;
@@ -24,7 +25,7 @@ class SpecialSceneFixtures extends Fixture
                     TXT,
                 templateClass: StumbleSpecialTemplate::class,
                 templateConfig: [
-                    "chance" => 100,
+                    "damageChance" => new Chance(100, 100),
                     "minDamage" => "character.level*2",
                     "maxDamage" => "character.level*5",
                     "playerCanDie" => true,
@@ -41,7 +42,7 @@ class SpecialSceneFixtures extends Fixture
                     TXT,
                 templateClass: StumbleSpecialTemplate::class,
                 templateConfig: [
-                    "chance" => 100,
+                    "damageChance" => new Chance(100, 100),
                     "minDamage" => "character.level*1",
                     "maxDamage" => "character.level*2",
                     "playerCanDie" => false,
@@ -62,7 +63,7 @@ class SpecialSceneFixtures extends Fixture
                     TXT,
                 templateClass: StumbleSpecialTemplate::class,
                 templateConfig: [
-                    "chance" => 50,
+                    "damageChance" => new Chance(50, 100),
                     "minDamage" => "character.level",
                     "maxDamage" => "character.level*3",
                     "playerCanDie" => true,

@@ -6,6 +6,7 @@ namespace LotGD2\Game\Scene\SceneTemplate;
 use LotGD2\Attribute\TemplateType;
 use LotGD2\Entity\Action;
 use LotGD2\Entity\ActionGroup;
+use LotGD2\Entity\Chance;
 use LotGD2\Entity\Mapped\Scene;
 use LotGD2\Entity\Mapped\Stage;
 use LotGD2\Entity\Paragraph;
@@ -30,7 +31,7 @@ use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
  *     searchFightAction: string,
  *     searchSlummingAction: string,
  *     searchThrillseekingAction: string,
- *     specialChance: int,
+ *     specialChance: Chance,
  * }
  * @implements SceneTemplateInterface<FightTemplateConfiguration>
  */
@@ -119,7 +120,7 @@ class FightTemplate implements SceneTemplateInterface
             return;
         }
 
-        $specialChance = ($this->scene->templateConfig["specialChance"] ?? 14) / 100.0;
+        $specialChance = $this->scene->templateConfig["specialChance"];
 
         // Handle specials
         if ($this->diceBag->chance($specialChance)) {

@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace LotGD2\Game\Scene\SceneTemplate\Special;
 
 use LotGD2\Attribute\TemplateType;
+use LotGD2\Entity\Chance;
 use LotGD2\Entity\Mapped\Stage;
 use LotGD2\Entity\Paragraph;
 use LotGD2\Form\Scene\SceneTemplate\Special\StumbleSpecialTemplateType;
@@ -16,7 +17,7 @@ use Symfony\Component\DependencyInjection\Attribute\Autoconfigure;
 
 /**
  * @phpstan-type StumbleSpecialConfiguration array{
- *     damageChance: float,
+ *     damageChance: Chance,
  *     minDamage: string,
  *     maxDamage: string,
  *     playerCanDie: bool,
@@ -40,7 +41,7 @@ class StumbleSpecialTemplate extends SpecialTemplate
         $playerCanDie = $this->scene->templateConfig["playerCanDie"] ?? true;
         $minDamage = $this->scene->templateConfig["minDamage"] ?? "character.level";
         $maxDamage = $this->scene->templateConfig["maxDamage"] ?? "character.level*3";
-        $damageChance = ($this->scene->templateConfig["damageChance"] ?? 100) / 100.;
+        $damageChance = $this->scene->templateConfig["damageChance"];
 
         if ($this->diceBag->chance($damageChance)) {
             $this->stage->paragraphs[Stage::SceneText]?->addContext("somethingHappened", true);

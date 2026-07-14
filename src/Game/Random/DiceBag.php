@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace LotGD2\Game\Random;
 
+use LotGD2\Entity\Chance;
 use Random\Engine;
 use Random\Engine\Mt19937;
 use Random\Randomizer;
@@ -102,8 +103,12 @@ readonly class DiceBag implements DiceBagInterface
      * @param $precision
      * @return bool
      */
-    public function chance(int|float $winChance, $precision = 0): bool
+    public function chance(Chance|int|float $winChance, $precision = 0): bool
     {
+        if ($winChance instanceof Chance) {
+            return $this->chance($winChance->chance(), $winChance->precision());
+        }
+
         if ($precision < 0) {
             throw new ValueError('The argument $precision must be at least 0.');
         }

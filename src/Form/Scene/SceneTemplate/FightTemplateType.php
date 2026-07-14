@@ -3,6 +3,8 @@ declare(strict_types=1);
 
 namespace LotGD2\Form\Scene\SceneTemplate;
 
+use LotGD2\Entity\Chance;
+use LotGD2\Form\ChanceType;
 use LotGD2\Form\GroupedFormType;
 use LotGD2\Form\TypeProvidesDefaultDataInterface;
 use LotGD2\Game\Scene\SceneTemplate\FightTemplate;
@@ -42,12 +44,12 @@ class FightTemplateType extends AbstractType implements TypeProvidesDefaultDataI
                 "label" => "Action Name to search for a difficult fight",
                 "data" => $defaultData["searchThrillseekingAction"],
             ])
-            ->add("specialChance", NumberType::class, options: [
+            ->add("specialChance", ChanceType::class, options: [
                 "required" => true,
                 "label" => "Probability of something special happening",
                 "data" => $defaultData["specialChance"],
                 "constraints" => [
-                    new Range(min: 0, max: 100),
+                    new Valid(),
                 ]
             ])
         ;
@@ -70,7 +72,7 @@ class FightTemplateType extends AbstractType implements TypeProvidesDefaultDataI
             "searchFightAction" => "Search for a fight",
             "searchSlummingAction" => "Go Slumming",
             "searchThrillseekingAction" => "Go Thrillseeking",
-            "specialChance" => 14,
+            "specialChance" => new Chance(14, 100),
         ];
     }
 }
