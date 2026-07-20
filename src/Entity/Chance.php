@@ -9,13 +9,13 @@ class Chance
 {
     public function __construct(
         #[Range(min: 0)]
-        public int $numerator {
+        public null|int $numerator {
             get => $this->numerator;
             set => $value;
         },
 
         #[Range(min: 1)]
-        public int $denominator = 100 {
+        public null|int $denominator = 100 {
             get => $this->denominator;
             set => $value;
         },
@@ -25,11 +25,11 @@ class Chance
 
     public function chance(): float
     {
-        return $this->numerator / $this->denominator;
+        return ($this->numerator ?? 0) / ($this->denominator ?? 1);
     }
 
     public function precision(): int
     {
-        return (int)ceil(log10($this->denominator));
+        return (int)ceil(log10($this->denominator ?? 1));
     }
 }

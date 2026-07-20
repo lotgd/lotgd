@@ -21,3 +21,17 @@
         {{ form_widget(form.denominator) }}
     </div>
 {% endblock %}
+
+{% block character_expression_widget %}
+    <div {{ stimulus_controller('form/CharacterExpressionType', {
+        validVariables: objectNamespace,
+    }) }}>
+        <div
+                class="d-none"
+                {{ stimulus_target('form/CharacterExpressionType', 'widget') }}>{{ form_widget(form) }}</div>
+        <div
+                data-live-ignore
+                {{ stimulus_target('form/CharacterExpressionType', 'editor') }}
+        ></div>
+    </div>
+{% endblock %}

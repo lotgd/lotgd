@@ -26,15 +26,46 @@ class ExpressionService
     /**
      * @return string[]
      */
-    public function getNames(): array
+    public function getNames(bool $deep = false): array
     {
-        return [
-            "character",
-            "health",
-            "stats",
-            "gold",
-            "equipment",
+        $namespace = [
+            "character" => [
+                "name",
+                "level",
+            ],
+            "health" => [
+                "health",
+                "maxHealth",
+            ],
+            "stats" => [
+                "experience",
+                "required",
+                "attack",
+                "defense",
+            ],
+            "gold" => [],
+            "equipment" => [
+                "weapon",
+                "armor",
+            ],
         ];
+
+        if (!$deep) {
+            return array_keys($namespace);
+        }
+
+        $objectNamespace = [];
+        foreach ($namespace as $object => $properties) {
+            if (count($properties) > 1) {
+                foreach ($properties as $property) {
+                    $objectNamespace[] = "$object.$property";
+                }
+            } else {
+                $objectNamespace[] = $object;
+            }
+        }
+
+        return $objectNamespace;
     }
 
     /**

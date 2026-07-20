@@ -87,3 +87,54 @@ body {
 .preserve {
     white-space-collapse: preserve;
 }
+
+.cm-editor {
+    border: var(--bs-border-width) solid var(--bs-border-color);
+    border-radius: var(--bs-border-radius);
+    font-family: var(--bs-font-monospace) monospace;
+
+    :focus {
+    }
+
+    .cm-gutters {
+        border-top-left-radius: var(--bs-border-radius);
+        border-bottom-left-radius: var(--bs-border-radius);
+        background-color: var(--bs-tertiary-bg);
+        color: var(--bs-primary);
+    }
+
+    .cm-content {
+        border-top-right-radius: var(--bs-border-radius);
+        border-bottom-right-radius: var(--bs-border-radius);
+        padding: 0.375rem 0.75rem;
+        color: var(--bs-body-color);
+        background-color: var(--bs-body-bg);
+    }
+
+    &.cm-focused {
+        border-color: #80a880;
+        outline: 0;
+        box-shadow: 0 0 0 0.25rem rgba(0, 80, 0, 0.25);
+
+        transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+    }
+
+    .cm-line {
+        .tok-variableName {
+            color: var(--bs-primary);
+        }
+
+        .tok-invalid {
+            color: var(--bs-danger);
+        }
+
+        .tok-number {
+            font-weight: bold;
+            color: var(--bs-info);
+        }
+
+        .tok-operator {
+            color: var(--bs-warning);
+        }
+    }
+}
