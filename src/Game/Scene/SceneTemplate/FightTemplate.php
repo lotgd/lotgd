@@ -120,7 +120,7 @@ class FightTemplate implements SceneTemplateInterface
             return;
         }
 
-        $specialChance = $this->scene->templateConfig["specialChance"];
+        $specialChance = $this->scene->templateConfig["specialChance"] ?? 0.14;
 
         // Handle specials
         if ($this->diceBag->chance($specialChance)) {
