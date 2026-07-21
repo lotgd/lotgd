@@ -15,6 +15,17 @@ use Symfony\Component\ExpressionLanguage\Parser;
 use Symfony\Component\ExpressionLanguage\SyntaxError;
 
 
+/**
+ * @phpstan-type StringExpressionLimit array{
+ *     type: "string",
+ * }
+ * @phpstan-type IntExpressionLimit array{
+ *     type: "int",
+ *     min?: int,
+ *     max?: int,
+ * }
+ * @phpstan-type ExpressionLimit StringExpressionLimit|IntExpressionLimit
+ */
 class ExpressionService
 {
     public function __construct(
@@ -24,31 +35,77 @@ class ExpressionService
     }
 
     /**
+     * @return array<string, ExpressionLimit|array<string, ExpressionLimit>>
+     */
+    public function getNamespace(): array
+    {
+        return [
+            "character" => [
+                "name" => [
+                    "type" => "string",
+                ],
+                "level" => [
+                    "type" => "int",
+                    "min" => 1,
+                    "max" => 15,
+                ],
+            ],
+            "health" => [
+                "health" => [
+                    "type" => "int",
+                    "min" => 0,
+                    "max" => 150,
+                ],
+                "maxHealth" => [
+                    "type" => "int",
+                    "min" => 10,
+                    "max" => 150,
+                ]
+            ],
+            "stats" => [
+                "experience" => [
+                    "type" => "int",
+                    "min" => 0,
+                    "max" => 50000,
+                ],
+                "required" => [
+                    "type" => "int",
+                    "min" => 100,
+                    "max" => 50000,
+                ],
+                "attack" => [
+                    "type" => "int",
+                    "min" => 1,
+                    "max" => 30,
+                ],
+                "defense" => [
+                    "type" => "int",
+                    "min" => 1,
+                    "max" => 30,
+                ],
+            ],
+            "gold" => [
+                "type" => "int",
+                "min" => 0,
+                "max" => 100000,
+            ],
+            "equipment" => [
+                "weapon"  => [
+                    "type" => "string",
+                ],
+                "armor"  => [
+                    "type" => "string",
+                ],
+            ],
+        ];
+    }
+
+    /**
      * @return string[]
      */
     public function getNames(bool $deep = false): array
     {
-        $namespace = [
-            "character" => [
-                "name",
-                "level",
-            ],
-            "health" => [
-                "health",
-                "maxHealth",
-            ],
-            "stats" => [
-                "experience",
-                "required",
-                "attack",
-                "defense",
-            ],
-            "gold" => [],
-            "equipment" => [
-                "weapon",
-                "armor",
-            ],
-        ];
+        $namespace = $this->getNamespace();
 
         if (!$deep) {
             return array_keys($namespace);
@@ -56,8 +113,8 @@ class ExpressionService
 
         $objectNamespace = [];
         foreach ($namespace as $object => $properties) {
-            if (count($properties) > 1) {
-                foreach ($properties as $property) {
+            if (is_array($properties) && count($properties) > 1 && !isset($properties["type"])) {
+                foreach ($properties as $property => $propertyLimits) {
                     $objectNamespace[] = "$object.$property";
                 }
             } else {
@@ -66,6 +123,76 @@ class ExpressionService
         }
 
         return $objectNamespace;
+    }
+
+    /**
+     * @param string|null $expression
+     * @return array{min: int|float, max: int|float}
+     */
+    public function evaluateMinMax(?string $expression): array
+    {
+        return [
+            "min" => $this->evaluateMin($expression),
+            "max" => $this->evaluateMax($expression),
+        ];
+    }
+
+    public function evaluateMax(?string $expression): int|float|null
+    {
+        if ($expression === null || strlen($expression) === 0) {
+            return null;
+        }
+
+        $namespace = $this->getNamespace();
+        $names = [];
+
+        foreach ($namespace as $object => $properties) {
+            if (is_array($properties) && count($properties) > 1 && !isset($properties["type"])) {
+                $names[$object] = [];
+                foreach ($properties as $property => $propertyLimits) {
+                    if (isset($propertyLimits["max"])) {
+                        $names[$object][$property] = $propertyLimits["max"];
+                    }
+                }
+                
+                $names[$object] = (object)$names[$object];
+            } else {
+                if (isset($properties["max"])) {
+                    $names[$object] = $properties["max"];
+                }
+            }
+        }
+
+        return $this->_evaluate($expression, $names);
+    }
+
+    public function evaluateMin(?string $expression): int|float|null
+    {
+        if ($expression === null || strlen($expression) === 0) {
+            return null;
+        }
+
+        $namespace = $this->getNamespace();
+        $names = [];
+
+        foreach ($namespace as $object => $properties) {
+            if (is_array($properties) && count($properties) > 1 && !isset($properties["type"])) {
+                $names[$object] = [];
+                foreach ($properties as $property => $propertyLimits) {
+                    if (isset($propertyLimits["min"])) {
+                        $names[$object][$property] = $propertyLimits["min"];
+                    }
+                }
+
+                $names[$object] = (object)$names[$object];
+            } else {
+                if (isset($properties["min"])) {
+                    $names[$object] = $properties["min"];
+                }
+            }
+        }
+
+        return $this->_evaluate($expression, $names);
     }
 
     /**
@@ -108,10 +235,15 @@ class ExpressionService
             return null;
         }
 
-        $expressionLanguage = new ExpressionLanguage();
-        $names = $this->getCharacterBasedNames($character);
+        return $this->_evaluate($expression, $this->getCharacterBasedNames($character));
+    }
 
+    private function _evaluate(?string $expression, array $names)
+    {
+        $expressionLanguage = new ExpressionLanguage();
         $flags = Parser::IGNORE_UNKNOWN_VARIABLES;
+
+        dump($names);
 
         try {
             $expressionLanguage->lint($expression, $names, $flags);

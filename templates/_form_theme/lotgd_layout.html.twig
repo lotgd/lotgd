@@ -23,6 +23,7 @@
 {% endblock %}
 
 {% block character_expression_widget %}
+    <div class="small">Probable lower extreme: <strong>{{ minimumValue }}</strong>, upper extreme: <strong>{{ maximumValue }}</strong></div>
     <div {{ stimulus_controller('form/CharacterExpressionType', {
         validVariables: objectNamespace,
     }) }}>
