@@ -26,6 +26,7 @@
     <div class="small">Probable lower extreme: <strong>{{ minimumValue }}</strong>, upper extreme: <strong>{{ maximumValue }}</strong></div>
     <div {{ stimulus_controller('form/CharacterExpressionType', {
         validVariables: objectNamespace,
+        variableNamespace: namespace,
     }) }}>
         <div
                 class="d-none"
@@ -34,5 +35,12 @@
                 data-live-ignore
                 {{ stimulus_target('form/CharacterExpressionType', 'editor') }}
         ></div>
+        <div class="input-group">
+            <div class="input-group-text">
+                Variables
+            </div>
+            <select data-live-ignore class="form-control" {{ stimulus_target('form/CharacterExpressionType', 'variableSelection') }}></select>
+            <button class="form-control" {{ stimulus_action('form/CharacterExpressionType', 'insertVariable') }} type="button">Insert</button>
+        </div>
     </div>
 {% endblock %}

@@ -5,15 +5,32 @@ import { linter, lintGutter } from '@codemirror/lint';
 import { syntaxHighlighting, StreamLanguage } from '@codemirror/language';
 import { classHighlighter } from '@lezer/highlight';
 
+/**
+ * @typedef {{type: "string"}} StringExpressionLimit
+ * @typedef {{type: "int", min?: int, max?: int}} IntExpressionLimit
+ * @typedef {StringExpressionLimit|IntExpressionLimit} ExpressionLimit
+ */
+
+
 export default class extends Controller {
-    static targets = ['widget', 'editor'];
+    static targets = [
+        "widget",
+        "editor",
+        "variableSelection"
+    ];
 
     static values = {
         validVariables: { type: Array, default: [] },
+        variableNamespace: { type: Object, default: {} }
     };
 
+    /** @type {{string: ExpressionLimit|{string: ExpressionLimit}}} */
+    variableNamespaceValue;
+    /** @type {HTMLSelectElement} */
+    variableSelectionTarget;
+
     connect() {
-        // Reuse existing CodeMirror instance if it survived a Stimulus reconnect
+        // Reuse existing CodeMirror instance if it survived a Stimulus reconnection
         if (this.editorTarget.__codemirror) {
             this._syncFromFormElement();
             return;
@@ -21,6 +38,7 @@ export default class extends Controller {
 
         this._buildEditor();
         this._observeFormElement();
+        this._addVariableSelection();
     }
 
     disconnect() {
@@ -42,7 +60,7 @@ export default class extends Controller {
             token(stream) {
                 if (stream.eatSpace()) return null;
                 if (stream.match(/^\d+(\.\d+)?/)) return 'number';
-                if (stream.match(/^[+\-*/%^()]/)) return 'operator';
+                if (stream.match(/^[+\-*/%()]/)) return 'operator';
                 if (stream.match(/^[a-zA-Z_][a-zA-Z0-9_.]*/)) {
                     return self.validVariablesValue.includes(stream.current())
                         ? 'variableName'
@@ -71,7 +89,7 @@ export default class extends Controller {
             return diagnostics;
         });
 
-        const editorView = new EditorView({
+        this.editorView = new EditorView({
             state: EditorState.create({
                 doc: initialValue,
                 extensions: [
@@ -91,7 +109,7 @@ export default class extends Controller {
         });
 
         // Store on the DOM element so it survives Stimulus reconnects
-        this.editorTarget.__codemirror = editorView;
+        this.editorTarget.__codemirror = this.editorView;
     }
 
     _syncFromFormElement() {
@@ -126,5 +144,85 @@ export default class extends Controller {
             attributes: true,
             attributeFilter: ['value'],
         });
+    }
+
+    /**
+     * Adds options to the variableSelectionTarget, assuming its a select element
+     * @private
+     */
+    _addVariableSelection() {
+        // Do nothing if selection was not set
+        if (!this.hasVariableSelectionTarget) {
+            return;
+        }
+
+        // Report error if target is not <select>
+        if (this.variableSelectionTarget.tagName !== "select") {
+            console.error("variableSelection target must <select>.");
+        }
+
+        // Reset content
+        let option = null;
+        const options = this.variableSelectionTarget;
+        options.innerHTML = "";
+
+        for (const [key, value] of Object.entries(this.variableNamespaceValue)) {
+            if (!(value instanceof Object)) {
+                continue;
+            }
+
+            if ("type" in value) {
+                option = this._addVariableSelectionOption(key, value);
+                options.appendChild(option);
+            } else {
+                let optGroup = document.createElement("optgroup");
+                optGroup.label = key;
+
+                for (const [subKey, subValue] of Object.entries(value)) {
+                    if ("type" in subValue) {
+                        option = this._addVariableSelectionOption(`${key}.${subKey}`, subValue);
+                        optGroup.append(option)
+                    }
+                }
+
+                options.appendChild(optGroup);
+            }
+        }
+    }
+
+    /**
+     * Convert a namespace element with an ExpressionLimit array shape
+     * @param {string} name
+     * @param {ExpressionLimit} config
+     * @returns {HTMLOptionElement}
+     * @private
+     */
+    _addVariableSelectionOption(name, config) {
+        const option = document.createElement("option");
+        option.value = name;
+
+        switch (config["type"]) {
+            case "int":
+                option.innerText = `${name} (${config["type"]}, min: ${config["min"]}, max: ${config["max"]})`;
+                break;
+            default:
+                option.innerText = `${name} (${config["type"]})`;
+        }
+
+        return option;
+    }
+
+    /**
+     * Inserts the selected variable (from variableSelectionTarget) at the current cursor position
+     */
+    insertVariable() {
+        if (!this.hasVariableSelectionTarget) {
+            return;
+        }
+
+        const options = this.variableSelectionTarget;
+        const editorView = this.editorTarget.__codemirror;
+
+        editorView.dispatch(editorView.state.replaceSelection(options.value));
     }
 }

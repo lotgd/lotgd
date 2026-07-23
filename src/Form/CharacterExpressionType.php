@@ -25,7 +25,7 @@ class CharacterExpressionType extends AbstractType
     public function buildView(FormView $view, FormInterface $form, array $options): void
     {
         $view->vars["objectNamespace"] = $options['objectNamespace'];
-        dump($form->getData());
+        $view->vars["namespace"] = $options['namespace'];
         $extremeValues = $this->expressionService->evaluateMinMax($form->getData());
         $view->vars["minimumValue"] = $extremeValues["min"];
         $view->vars["maximumValue"] = $extremeValues["max"];
@@ -50,5 +50,6 @@ class CharacterExpressionType extends AbstractType
         ]);
 
         $resolver->define("objectNamespace")->allowedTypes("array")->default($this->expressionService->getNames(true));
+        $resolver->define("namespace")->allowedTypes("array")->default($this->expressionService->getNamespace());
     }
 }

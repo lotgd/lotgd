@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace LotGD2\Game;
 
+use ErrorException;
 use LotGD2\Entity\Mapped\Character;
 use LotGD2\Game\Handler\EquipmentHandler;
 use LotGD2\Game\Handler\GoldHandler;
@@ -154,7 +155,7 @@ class ExpressionService
                         $names[$object][$property] = $propertyLimits["max"];
                     }
                 }
-                
+
                 $names[$object] = (object)$names[$object];
             } else {
                 if (isset($properties["max"])) {
@@ -163,7 +164,8 @@ class ExpressionService
             }
         }
 
-        return $this->_evaluate($expression, $names);
+        $result = $this->_evaluate($expression, $names);
+        return is_numeric($result) ? $result : null;
     }
 
     public function evaluateMin(?string $expression): int|float|null
@@ -192,7 +194,8 @@ class ExpressionService
             }
         }
 
-        return $this->_evaluate($expression, $names);
+        $result = $this->_evaluate($expression, $names);
+        return is_numeric($result) ? $result : null;
     }
 
     /**
@@ -243,12 +246,10 @@ class ExpressionService
         $expressionLanguage = new ExpressionLanguage();
         $flags = Parser::IGNORE_UNKNOWN_VARIABLES;
 
-        dump($names);
-
         try {
             $expressionLanguage->lint($expression, $names, $flags);
             return $expressionLanguage->evaluate($expression, $names);
-        } catch (SyntaxError $e) {
+        } catch (SyntaxError|ErrorException $e) {
             // Allow connection to be made if expression contains an error
             $this->logger->warning("Expression was faulty: {$expression}. {$e->getMessage()}");
             return null;
