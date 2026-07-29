@@ -7,6 +7,7 @@ use LotGD2\Entity\Character\LootPosition;
 use LotGD2\Entity\Mapped\Character;
 use LotGD2\Entity\Paragraph;
 use LotGD2\Event\LootBagEvent;
+use LotGD2\Game\GameStateService;
 use LotGD2\Game\Scene\SceneTemplate\FightTemplate;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
@@ -17,8 +18,10 @@ readonly class GoldHandler
     const string PropertyName = 'gold';
     const string GoldLoot = "lotgd2.loot.Gold";
     const string GoldLootClaimParagraph = "lotgd2.paragraph.Gold.LootBagClaim";
+    const string DefaultGoldGameSetting = "lotgd2.gameSetting.defaultGold";
 
     public function __construct(
+        private GameStateService $gameStateService,
         private ?LoggerInterface $logger,
         #[Autowire(expression: "service('lotgd2.game_loop').getCharacter()")]
         private Character $character,
@@ -28,7 +31,7 @@ readonly class GoldHandler
     public function getGold(?Character $character = null): int
     {
         $character = $character ?? $this->character;
-        return $character->getProperty(self::PropertyName, 0);
+        return $character->getProperty(self::PropertyName, null) ?? $this->gameStateService->getSetting(self::DefaultGoldGameSetting, 0) ?? 0;
     }
 
     public function setGold(?Character $character, int $gold): static

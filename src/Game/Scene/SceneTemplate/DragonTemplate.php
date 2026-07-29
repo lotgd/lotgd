@@ -15,6 +15,7 @@ use LotGD2\Event\CharacterChangeEvent;
 use LotGD2\Event\SimpleStageParameterEvent;
 use LotGD2\Form\Scene\SceneTemplate\DragonTemplateType;
 use LotGD2\Game\Battle\Battle;
+use LotGD2\Game\GameStateService;
 use LotGD2\Game\Handler\DragonCounterHandler;
 use LotGD2\Game\Handler\GoldHandler;
 use LotGD2\Game\Handler\StatsHandler;
@@ -58,6 +59,7 @@ class DragonTemplate implements SceneTemplateInterface
         readonly private StatsHandler $stats,
         readonly private DragonCounterHandler $dragonCounter,
         readonly private ActionService $actionService,
+        readonly private GameStateService $gameStateService,
     ) {
 
     }
@@ -139,7 +141,7 @@ class DragonTemplate implements SceneTemplateInterface
             defense: 15, #25,
         );
 
-        $battleState = $this->battle->start($dragon, allowFlee: false);
+        $battleState = $this->battle->start($dragon, $this->gameStateService, allowFlee: false);
         $params = ["op" => "fight"];
         $this->battle->addFightActions($this->stage, $this->scene, $battleState, $params);
 

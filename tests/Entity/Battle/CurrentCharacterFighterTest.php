@@ -5,6 +5,7 @@ namespace LotGD2\Tests\Entity\Battle;
 
 use LotGD2\Entity\Battle\CurrentCharacterFighter;
 use LotGD2\Entity\Mapped\Character;
+use LotGD2\Game\GameStateService;
 use LotGD2\Game\Handler\EquipmentHandler;
 use LotGD2\Game\Handler\HealthHandler;
 use LotGD2\Game\Handler\StatsHandler;
@@ -33,7 +34,10 @@ class CurrentCharacterFighterTest extends TestCase
             [HealthHandler::MaxHealthPropertyName, 10, 10],
         ]);
 
-        $fighter = CurrentCharacterFighter::fromCharacter($character);
+
+        $gameStateService = $this->createStub(GameStateService::class);
+
+        $fighter = CurrentCharacterFighter::fromCharacter($gameStateService, $character);
 
         $this->assertSame("Character", $fighter->name);
         $this->assertSame(10, $fighter->health);

@@ -14,6 +14,7 @@ use LotGD2\Entity\Mapped\Scene;
 use LotGD2\Entity\Mapped\Stage;
 use LotGD2\Entity\Paragraph;
 use LotGD2\Game\Battle\Battle;
+use LotGD2\Game\GameStateService;
 use LotGD2\Game\Handler\GoldHandler;
 use LotGD2\Game\Handler\HealthHandler;
 use LotGD2\Game\Handler\StatsHandler;
@@ -83,6 +84,7 @@ class FightTemplateTest extends TestCase
             $this->stats,
             $this->gold,
             $this->specialService,
+            $this->createStub(GameStateService::class),
         );
     }
 

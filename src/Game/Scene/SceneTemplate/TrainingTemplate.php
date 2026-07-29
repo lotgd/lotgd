@@ -15,6 +15,7 @@ use LotGD2\Event\CharacterChangeEvent;
 use LotGD2\Event\SimpleStageParameterEvent;
 use LotGD2\Form\Scene\SceneTemplate\TrainingTemplateType;
 use LotGD2\Game\Battle\Battle;
+use LotGD2\Game\GameStateService;
 use LotGD2\Game\Handler\EquipmentHandler;
 use LotGD2\Game\Handler\GoldHandler;
 use LotGD2\Game\Handler\HealthHandler;
@@ -68,6 +69,7 @@ class TrainingTemplate implements SceneTemplateInterface
         private readonly StatsHandler $stats,
         private readonly HealthHandler $health,
         private readonly GoldHandler $gold, // @phpstan-ignore property.onlyWritten
+        private readonly GameStateService $gameStateService,
     ) {
     }
 
@@ -207,7 +209,7 @@ class TrainingTemplate implements SceneTemplateInterface
             $attachment = $this->attachmentRepository->findOneBy(["attachmentClass" => BattleAttachment::class]);
 
             if ($attachment) {
-                $battleState = $this->battle->start($master, allowFlee: false);
+                $battleState = $this->battle->start($master, $this->gameStateService, allowFlee: false);
                 $params = ["op" => "fight"];
 
                 $healed = false;

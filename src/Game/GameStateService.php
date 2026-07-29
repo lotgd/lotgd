@@ -22,11 +22,11 @@ class GameStateService
     {
         $gameState = $this->gameStateRepository->getByName($name);
 
-        if ($gameState->type !== GameStateType::Setting) {
+        if ($gameState and $gameState->type !== GameStateType::Setting) {
             throw new GameError("{$name} is a state, not a setting.");
         }
 
-        return $gameState?->state ?? $default;
+        return $gameState->state ?? $default;
     }
 
     public function setSetting(string $name, mixed $value): self
@@ -58,7 +58,7 @@ class GameStateService
             throw new GameError("{$name} is a setting, not a state.");
         }
 
-        return $gameState?->state ?? $default;
+        return $gameState->state ?? $default;
     }
 
     public function setState(string $name, mixed $value): self

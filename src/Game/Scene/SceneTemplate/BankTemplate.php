@@ -6,11 +6,13 @@ namespace LotGD2\Game\Scene\SceneTemplate;
 use LotGD2\Attribute\TemplateType;
 use LotGD2\Entity\Action;
 use LotGD2\Entity\Mapped\Character;
+use LotGD2\Entity\Mapped\GameState;
 use LotGD2\Entity\Mapped\Scene;
 use LotGD2\Entity\Mapped\Stage;
 use LotGD2\Entity\Paragraph;
 use LotGD2\Event\StageChangeEvent;
 use LotGD2\Form\Scene\SceneTemplate\BankTemplateType;
+use LotGD2\Game\GameStateService;
 use LotGD2\Game\Handler\GoldHandler;
 use LotGD2\Game\Handler\HealthHandler;
 use LotGD2\Game\GameTime\NewDay;
@@ -57,6 +59,7 @@ class BankTemplate implements SceneTemplateInterface
         private DiceBagInterface $diceBag,
         private ActionService $actionService,
         private GoldHandler $gold,
+        private GameStateService $gameStateService,
     ) {
     }
 
@@ -202,7 +205,7 @@ class BankTemplate implements SceneTemplateInterface
         $this->stopwatch->start("lotgd2.BankTemplate.onNewDayEvent");
         $defaultConfig = new BankTemplateType()->getDefaultData();
 
-        $oldHealth = new HealthHandler(null, $event->characterBefore);
+        $oldHealth = new HealthHandler($this->gameStateService, null, $event->characterBefore);
 
         $scenes = $this->sceneRepository->findBy(["templateClass" => self::class], ["id" => "ASC"]);
         $bankAccounts = [];

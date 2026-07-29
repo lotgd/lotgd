@@ -31,6 +31,7 @@ class ExpressionService
 {
     public function __construct(
         private LoggerInterface $logger,
+        private GameStateService $gameStateService,
     ) {
 
     }
@@ -204,10 +205,10 @@ class ExpressionService
      */
     public function getCharacterBasedNames(Character $character): array
     {
-        $healthHandler = new HealthHandler($this->logger, $character);
+        $healthHandler = new HealthHandler($this->gameStateService, $this->logger, $character);
         $equipmentHandler = new EquipmentHandler($this->logger, $character);
         $statsHandler = new StatsHandler($this->logger, $equipmentHandler, $character);
-        $goldHandler = new GoldHandler($this->logger, $character);
+        $goldHandler = new GoldHandler($this->gameStateService, $this->logger, $character);
 
         return [
             "character" => (object)[

@@ -5,6 +5,7 @@ namespace LotGD2\Twig\Component\Live;
 
 use LotGD2\Entity\Mapped\Character;
 use LotGD2\Entity\Mapped\Stage;
+use LotGD2\Game\GameStateService;
 use LotGD2\Game\Handler\EquipmentHandler;
 use LotGD2\Game\Handler\GoldHandler;
 use LotGD2\Game\Handler\HealthHandler;
@@ -32,6 +33,7 @@ class Game extends AbstractController
     public function __construct(
         private readonly GameLoop $game,
         private readonly RaceRepository $raceRepository,
+        private readonly GameStateService $gameStateService,
     ) {
     }
 
@@ -47,10 +49,10 @@ class Game extends AbstractController
     #[ExposeInTemplate]
     public function getCharStats(): array
     {
-        $health = new HealthHandler(null, $this->character);
+        $health = new HealthHandler($this->gameStateService, null, $this->character);
         $equipment = new EquipmentHandler(null, $this->character);
         $stats = new StatsHandler(null, $equipment, $this->character);
-        $gold = new GoldHandler(null, $this->character);
+        $gold = new GoldHandler($this->gameStateService, null, $this->character);
         $race = new RaceHandler(null, null, null, $this->raceRepository);
 
         return [

@@ -8,6 +8,7 @@ use LotGD2\Entity\Battle\BuffList;
 use LotGD2\Entity\Battle\CurrentCharacterFighter;
 use LotGD2\Entity\Mapped\Character;
 use LotGD2\Game\ExpressionService;
+use LotGD2\Game\GameStateService;
 use LotGD2\Game\Handler\BuffHandler;
 use LotGD2\Game\Handler\HealthHandler;
 use LotGD2\Game\Random\DiceBag;
@@ -107,12 +108,13 @@ class BattleStateTest extends TestCase
         $this->expectException(\LogicException::class);
         $this->expectExceptionMessage("You must set the character first before synchronizing");
 
+        $gameStateService = $this->createStub(GameStateService::class);
         $logger = $this->createStub(LoggerInterface::class);
 
         $buffList = $this->createStub(BuffList::class);
         $buffList->method(PropertyHook::get("buffs"))->willReturn([]);
 
-        $this->battleState->synchronizeToCharacter($logger, $buffList);
+        $this->battleState->synchronizeToCharacter($gameStateService, $logger, $buffList);
     }
 
     public function testSynchronizeToCharacterWithoutCharacterSynchronizes(): void
@@ -142,6 +144,7 @@ class BattleStateTest extends TestCase
         $goodGuy = $this->createMock(CurrentCharacterFighter::class);
         $goodGuy->expects($this->once())->method(PropertyHook::get("health"))->willReturn(10);
 
+        $gameStateService = $this->createStub(GameStateService::class);
         $logger = $this->createStub(LoggerInterface::class);
 
         $battleState = new BattleState(
@@ -151,7 +154,7 @@ class BattleStateTest extends TestCase
 
         $battleState->setCharacter($character);
 
-        $battleState->synchronizeToCharacter($logger, $buffList);
+        $battleState->synchronizeToCharacter($gameStateService, $logger, $buffList);
     }
 
     public function testIncrementRound(): void

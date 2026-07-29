@@ -16,6 +16,7 @@ use LotGD2\Entity\Paragraph;
 use LotGD2\Event\CharacterChangeEvent;
 use LotGD2\Event\SimpleStageParameterEvent;
 use LotGD2\Game\Battle\Battle;
+use LotGD2\Game\GameStateService;
 use LotGD2\Game\Handler\EquipmentHandler;
 use LotGD2\Game\Handler\GoldHandler;
 use LotGD2\Game\Handler\HealthHandler;
@@ -70,6 +71,7 @@ class TrainingTemplateTest extends TestCase
                 $statsHandler,
                 $this->createStub(HealthHandler::class),
                 $this->createStub(GoldHandler::class),
+                $this->createStub(GameStateService::class),
             ])
             ->onlyMethods([])
             ->getStub();
@@ -106,6 +108,7 @@ class TrainingTemplateTest extends TestCase
                 $this->createStub(StatsHandler::class),
                 $this->createStub(HealthHandler::class),
                 $this->createStub(GoldHandler::class),
+                $this->createStub(GameStateService::class),
             ])
             ->onlyMethods(["defaultAction", "askAction", "challengeAction", "handleCheats"])
             ->getMock();
@@ -141,6 +144,7 @@ class TrainingTemplateTest extends TestCase
                 $this->createStub(StatsHandler::class),
                 $this->createStub(HealthHandler::class),
                 $this->createStub(GoldHandler::class),
+                $this->createStub(GameStateService::class),
             ])
             ->onlyMethods(["defaultAction", "askAction", "challengeAction", "handleCheats"])
             ->getMock();
@@ -185,6 +189,7 @@ class TrainingTemplateTest extends TestCase
             $this->createStub(StatsHandler::class),
             $healthHandler,
             $this->createStub(GoldHandler::class),
+            $this->createStub(GameStateService::class),
         );
 
         $character = $this->createStub(Character::class);
@@ -230,6 +235,7 @@ class TrainingTemplateTest extends TestCase
                 $this->createStub(StatsHandler::class),
                 $healthHandler,
                 $this->createStub(GoldHandler::class),
+                $this->createStub(GameStateService::class),
             ])
             ->getMock();
 
@@ -296,6 +302,7 @@ class TrainingTemplateTest extends TestCase
                 $this->createStub(StatsHandler::class),
                 $healthHandler,
                 $this->createStub(GoldHandler::class),
+                $this->createStub(GameStateService::class),
             ])
             ->getMock();
 
@@ -371,6 +378,7 @@ class TrainingTemplateTest extends TestCase
                 $this->createStub(StatsHandler::class),
                 $this->createStub(HealthHandler::class),
                 $this->createStub(GoldHandler::class),
+                $this->createStub(GameStateService::class),
             ])
             ->getMock();
 
@@ -1504,6 +1512,7 @@ class TrainingTemplateTest extends TestCase
                     $stats ?? $this->createStub(StatsHandler::class),
                     $health ?? $this->createStub(HealthHandler::class),
                     $gold ?? $this->createStub(GoldHandler::class),
+                    $this->createStub(GameStateService::class),
                 ])
                 ->getMock();
         } else {
@@ -1520,6 +1529,7 @@ class TrainingTemplateTest extends TestCase
                     $stats ?? $this->createStub(StatsHandler::class),
                     $health ?? $this->createStub(HealthHandler::class),
                     $gold ?? $this->createStub(GoldHandler::class),
+                    $this->createStub(GameStateService::class),
                 ])
                 ->getStub();
         }

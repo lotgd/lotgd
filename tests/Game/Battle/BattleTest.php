@@ -22,6 +22,7 @@ use LotGD2\Game\Battle\BattleEvent\CriticalHitEvent;
 use LotGD2\Game\Battle\BattleEvent\DamageEvent;
 use LotGD2\Game\Battle\BattleEvent\DeathEvent;
 use LotGD2\Game\Battle\BattleTurn;
+use LotGD2\Game\GameStateService;
 use LotGD2\Game\Handler\BuffHandler;
 use LotGD2\Game\Handler\EquipmentHandler;
 use LotGD2\Game\Handler\HealthHandler;
@@ -109,6 +110,7 @@ class BattleTest extends KernelTestCase
             diceBag: $this->diceBag,
             buffHandler: $this->buffHandler,
             character: $this->character,
+            gameStateService: $this->createStub(GameStateService::class)
         );
     }
 
@@ -116,7 +118,7 @@ class BattleTest extends KernelTestCase
     {
         $badGuy = new Fighter(name: null, level: null, weapon: null, health: null, attack: null, defense: null, kwargs: []);
 
-        $battleState = $this->battle->start($badGuy);
+        $battleState = $this->battle->start($badGuy, gameStateService: $this->createStub(GameStateService::class));
 
         $this->assertInstanceOf(CurrentCharacterFighter::class, $battleState->goodGuy);
         $this->assertInstanceOf(Fighter::class, $battleState->badGuy);

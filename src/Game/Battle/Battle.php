@@ -23,6 +23,7 @@ use LotGD2\Game\Battle\BattleEvent\BattleEventInterface;
 use LotGD2\Game\Battle\BattleEvent\DamageEvent;
 use LotGD2\Game\Battle\BattleEvent\DeathEvent;
 use LotGD2\Game\GameLoop;
+use LotGD2\Game\GameStateService;
 use LotGD2\Game\Handler\BuffHandler;
 use LotGD2\Game\Random\DiceBagInterface;
 use LotGD2\Game\Scene\SceneAttachment\BattleAttachment;
@@ -79,11 +80,13 @@ class Battle
         private readonly BuffHandler $buffHandler,
         #[Autowire(expression: "service('lotgd2.game_loop').getCharacter()")]
         private Character $character,
+        private readonly GameStateService $gameStateService,
     ) {
     }
 
     public function start(
         BasicFighterInterface $badGuy,
+        GameStateService $gameStateService,
         bool $isLevelAdjustmentEnabled = true,
         bool $isCriticalHitEnabled = true,
         bool $isRiposteEnabled = true,
@@ -94,7 +97,7 @@ class Battle
         $badGuy = new Fighter(... $this->normalizer->normalize($badGuy, context: ["groups" => ["fighter"]]));
 
         $battleState = new BattleState(
-            CurrentCharacterFighter::fromCharacter($this->character),
+            CurrentCharacterFighter::fromCharacter($gameStateService, $this->character),
             $badGuy,
             $isLevelAdjustmentEnabled,
             $isCriticalHitEnabled,
@@ -229,7 +232,7 @@ class Battle
         // Post round clean-up
         $battleState->incrementRound();
         $battleState->addMessages($eventsToAdd->map(fn (BattleEventInterface $event) => $event->decorate()));
-        $battleState->synchronizeToCharacter($this->logger, $goodGuyBuffs);
+        $battleState->synchronizeToCharacter($this->gameStateService, $this->logger, $goodGuyBuffs);
 
         $this->stopWatch?->stop("lotgd2.Battle.fightOneRound");
     }

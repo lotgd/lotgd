@@ -13,6 +13,7 @@ use LotGD2\Entity\Paragraph;
 use LotGD2\Form\Scene\SceneTemplate\FightTemplateType;
 use LotGD2\Game\Battle\Battle;
 use LotGD2\Game\Error\SpecialNotFoundError;
+use LotGD2\Game\GameStateService;
 use LotGD2\Game\Handler\GoldHandler;
 use LotGD2\Game\Handler\HealthHandler;
 use LotGD2\Game\Handler\StatsHandler;
@@ -56,6 +57,7 @@ class FightTemplate implements SceneTemplateInterface
         private readonly StatsHandler $stats,
         private readonly GoldHandler $gold,
         private readonly SpecialService $specialService,
+        private readonly GameStateService $gameStateService,
     ) {
     }
 
@@ -167,7 +169,7 @@ class FightTemplate implements SceneTemplateInterface
 
         if ($attachment) {
             $this->health->decrementTurns();
-            $battleState = $this->battle->start($creature);
+            $battleState = $this->battle->start($creature, $this->gameStateService);
 
             $this->stage->addAttachment($attachment, data: [
                 "battleState" => $battleState,

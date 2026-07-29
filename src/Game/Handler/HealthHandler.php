@@ -7,6 +7,7 @@ use LotGD2\Entity\Mapped\Character;
 use LotGD2\Entity\Paragraph;
 use LotGD2\Event\CharacterChangeEvent;
 use LotGD2\Event\StageChangeEvent;
+use LotGD2\Game\GameStateService;
 use LotGD2\Game\GameTime\NewDay;
 use LotGD2\Game\Scene\SceneTemplate\DragonTemplate;
 use LotGD2\Game\Scene\SceneTemplate\TrainingTemplate;
@@ -23,7 +24,10 @@ readonly class HealthHandler
     const string Turns = "turns";
     const string MaxTurns = "maxTurns";
 
+    const string DefaultTurnsGameSetting = "lotgd2.gameSetting.defaultTurns";
+
     public function __construct(
+        private GameStateService $gameStateService,
         private ?LoggerInterface $logger,
         #[Autowire(expression: "service('lotgd2.game_loop').getCharacter()")]
         private ?Character $character,
@@ -134,7 +138,9 @@ readonly class HealthHandler
     public function getTurns(?Character $character = null): int
     {
         $character = $character ?? $this->character;
-        return $character->getProperty(static::Turns, 30);
+        return $character->getProperty(static::Turns)
+            ?? $this->gameStateService->getSetting(self::DefaultTurnsGameSetting)
+            ?? 30;
     }
 
     public function setTurns(?int $turns = null, ?Character $character = null): self
@@ -165,7 +171,10 @@ readonly class HealthHandler
     public function getMaxTurns(?Character $character = null): int
     {
         $character = $character ?? $this->character;
-        return $character->getProperty(static::MaxTurns, 30);
+
+        return $character->getProperty(static::MaxTurns, null)
+            ?? $this->gameStateService->getSetting(self::DefaultTurnsGameSetting)
+            ?? 30;
     }
 
     public function setMaxTurns(?int $turns, ?Character $character = null): self

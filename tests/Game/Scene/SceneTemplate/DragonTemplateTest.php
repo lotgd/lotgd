@@ -18,6 +18,7 @@ use LotGD2\Event\CharacterChangeEvent;
 use LotGD2\Event\SimpleStageParameterEvent;
 use LotGD2\Form\Scene\SceneTemplate\DragonTemplateType;
 use LotGD2\Game\Battle\Battle;
+use LotGD2\Game\GameStateService;
 use LotGD2\Game\GameTime\NewDay;
 use LotGD2\Game\Handler\DragonCounterHandler;
 use LotGD2\Game\Handler\GoldHandler;
@@ -67,6 +68,7 @@ class DragonTemplateTest extends TestCase
                 $this->createStub(StatsHandler::class),
                 $this->createStub(DragonCounterHandler::class),
                 $this->createStub(ActionService::class),
+                $this->createStub(GameStateService::class),
             ])
             ->getMock();
 
@@ -97,6 +99,7 @@ class DragonTemplateTest extends TestCase
                 $this->createStub(StatsHandler::class),
                 $this->createStub(DragonCounterHandler::class),
                 $this->createStub(ActionService::class),
+                $this->createStub(GameStateService::class),
             ])
             ->getStub();
 
@@ -145,6 +148,7 @@ class DragonTemplateTest extends TestCase
                 $this->createStub(StatsHandler::class),
                 $this->createStub(DragonCounterHandler::class),
                 $this->createStub(ActionService::class),
+                $this->createStub(GameStateService::class),
             ])
             ->getStub();
 
@@ -173,17 +177,18 @@ class DragonTemplateTest extends TestCase
 
         $battle = $this->createMock(Battle::class);
 
-        $template = new DragonTemplate(
-                $this->createStub(LoggerInterface::class),
-                $this->createStub(EventDispatcherInterface::class),
-                $attachmentRepository,
-                $this->createStub(SceneRepository::class),
-                $battle,
-                $this->createStub(NewDay::class),
-                $this->createStub(GoldHandler::class),
-                $this->createStub(StatsHandler::class),
-                $this->createStub(DragonCounterHandler::class),
-                $this->createStub(ActionService::class),
+    $template = new DragonTemplate(
+            $this->createStub(LoggerInterface::class),
+            $this->createStub(EventDispatcherInterface::class),
+            $attachmentRepository,
+            $this->createStub(SceneRepository::class),
+            $battle,
+            $this->createStub(NewDay::class),
+            $this->createStub(GoldHandler::class),
+            $this->createStub(StatsHandler::class),
+            $this->createStub(DragonCounterHandler::class),
+            $this->createStub(ActionService::class),
+            $this->createStub(GameStateService::class),
         );
 
         $stage = $this->createMock(Stage::class);
@@ -229,7 +234,7 @@ class DragonTemplateTest extends TestCase
             ->method("start")
             ->willReturnCallback(
                 function (BasicFighterInterface $d, ... $kwargs) use ($battleState) {
-                    $this->assertFalse($kwargs[3]);
+                    $this->assertFalse($kwargs[4]);
                     return $battleState;
                 }
             );
@@ -265,6 +270,7 @@ class DragonTemplateTest extends TestCase
                 $this->createStub(StatsHandler::class),
                 $this->createStub(DragonCounterHandler::class),
                 $this->createStub(ActionService::class),
+                $this->createStub(GameStateService::class),
             ])
             ->getStub();
 
@@ -297,7 +303,7 @@ class DragonTemplateTest extends TestCase
             ->expects($this->once())
             ->method("start")
             ->willReturnCallback(
-                function (BasicFighterInterface $d, bool ... $kwargs) use (&$dragon, $battleState) {
+                function (BasicFighterInterface $d, GameStateService $gameStateService, bool ... $kwargs) use (&$dragon, $battleState) {
                     $this->assertFalse($kwargs[3]);
                     $dragon = $d;
                     return $battleState;
@@ -354,6 +360,7 @@ class DragonTemplateTest extends TestCase
                 $this->createStub(StatsHandler::class),
                 $this->createStub(DragonCounterHandler::class),
                 $actionService,
+                $this->createStub(GameStateService::class),
             ])
             ->getStub();
 
@@ -427,6 +434,7 @@ class DragonTemplateTest extends TestCase
             $this->createStub(StatsHandler::class),
             $this->createStub(DragonCounterHandler::class),
             $actionService,
+            $this->createStub(GameStateService::class),
         );
 
         $defaultScene = $this->createStub(Scene::class);
@@ -481,6 +489,7 @@ class DragonTemplateTest extends TestCase
             $this->createStub(StatsHandler::class),
             $this->createStub(DragonCounterHandler::class),
             $actionService,
+            $this->createStub(GameStateService::class),
         );
 
         $defaultScene = $this->createStub(Scene::class);
@@ -542,6 +551,7 @@ class DragonTemplateTest extends TestCase
             $this->createStub(StatsHandler::class),
             $this->createStub(DragonCounterHandler::class),
             $this->createStub(ActionService::class),
+            $this->createStub(GameStateService::class),
         );
 
         $stage = $this->createStub(Stage::class);
