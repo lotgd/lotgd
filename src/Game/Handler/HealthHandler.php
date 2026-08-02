@@ -22,7 +22,6 @@ readonly class HealthHandler
     const string Resurrections = "resurrections";
     const string Age = "age";
     const string Turns = "turns";
-    const string MaxTurns = "maxTurns";
 
     const string DefaultTurnsGameSetting = "lotgd2.gameSetting.defaultTurns";
 
@@ -172,19 +171,8 @@ readonly class HealthHandler
     {
         $character = $character ?? $this->character;
 
-        return $character->getProperty(static::MaxTurns, null)
-            ?? $this->gameStateService->getSetting(self::DefaultTurnsGameSetting)
+        return $this->gameStateService->getSetting(self::DefaultTurnsGameSetting)
             ?? 30;
-    }
-
-    public function setMaxTurns(?int $turns, ?Character $character = null): self
-    {
-        $character = $character ?? $this->character;
-
-        $this->logger?->debug("{$character->id}: maxTurns set to {$turns} (was {$this->getMaxTurns($character)}) before).");
-
-        $character->setProperty(static::MaxTurns, $turns);
-        return $this;
     }
 
     #[AsEventListener(event: NewDay::OnNewDayAfter)]
