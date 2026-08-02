@@ -20,7 +20,7 @@ class GameStateService
 
     public function getSetting(string $name, mixed $default = null): mixed
     {
-        $gameState = $this->gameStateRepository->getByName($name);
+        $gameState = $this->gameStateRepository->getSettingByName($name);
 
         if ($gameState and $gameState->type !== GameStateType::Setting) {
             throw new GameError("{$name} is a state, not a setting.");
@@ -31,7 +31,7 @@ class GameStateService
 
     public function setSetting(string $name, mixed $value): self
     {
-        $gameState = $this->gameStateRepository->getByName($name);
+        $gameState = $this->gameStateRepository->getSettingByName($name);
 
         if ($gameState === null) {
             $gameState = new GameState(
@@ -43,6 +43,8 @@ class GameStateService
             if ($gameState->type !== GameStateType::Setting) {
                 throw new GameError("{$name} is a state, not a setting.");
             }
+
+            $gameState->state = $value;
         }
 
         $this->entityManager->persist($gameState);
@@ -52,7 +54,7 @@ class GameStateService
 
     public function getState(string $name, mixed $default = null): mixed
     {
-        $gameState = $this->gameStateRepository->getByName($name);
+        $gameState = $this->gameStateRepository->getSettingByName($name);
 
         if ($gameState->type !== GameStateType::State) {
             throw new GameError("{$name} is a setting, not a state.");
@@ -63,7 +65,7 @@ class GameStateService
 
     public function setState(string $name, mixed $value): self
     {
-        $gameState = $this->gameStateRepository->getByName($name);
+        $gameState = $this->gameStateRepository->getSettingByName($name);
 
         if ($gameState === null) {
             $gameState = new GameState(

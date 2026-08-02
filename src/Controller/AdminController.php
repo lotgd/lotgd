@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace LotGD2\Controller;
 
 use LotGD2\Repository\CharacterRepository;
+use LotGD2\Twig\Component\Admin\GameSettings;
 use LotGD2\Twig\Component\Admin\Scenes;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Bundle\SecurityBundle\Security;
@@ -13,11 +14,18 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 class AdminController extends AbstractController
 {
+    #[Route("/admin/settings", "lotgd_admin_settings")]
+    #[IsGranted("ROLE_ADMIN")]
+    public function gameSettingsEditor(
+    ): Response {
+        return $this->render("ucp/ucp.html.twig", [
+            "component" => GameSettings::class,
+        ]);
+    }
+
     #[Route("/admin/scene", "lotgd_admin_scene")]
     #[IsGranted("ROLE_SCENE_EDITOR")]
     public function sceneEditor(
-        Security $security,
-        CharacterRepository $characterRepository,
     ): Response {
         return $this->render("ucp/ucp.html.twig", [
             "component" => Scenes::class,

@@ -6,12 +6,17 @@ namespace LotGD2\Game\Handler;
 use LotGD2\Entity\Character\LootPosition;
 use LotGD2\Entity\Mapped\Character;
 use LotGD2\Entity\Paragraph;
+use LotGD2\Event\FormExtensionEvent;
 use LotGD2\Event\LootBagEvent;
 use LotGD2\Game\GameStateService;
 use LotGD2\Game\Scene\SceneTemplate\FightTemplate;
+use LotGD2\Twig\Component\Admin\GameSettings;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\EventDispatcher\Attribute\AsEventListener;
+use Symfony\Component\Form\Extension\Core\Type\NumberType;
+use Symfony\Component\Validator\Constraints\NotBlank;
+use Symfony\Component\Validator\Constraints\Range;
 
 readonly class GoldHandler
 {
@@ -24,14 +29,14 @@ readonly class GoldHandler
         private GameStateService $gameStateService,
         private ?LoggerInterface $logger,
         #[Autowire(expression: "service('lotgd2.game_loop').getCharacter()")]
-        private Character $character,
+        private ?Character $character = null,
     ) {
     }
 
     public function getGold(?Character $character = null): int
     {
         $character = $character ?? $this->character;
-        return $character->getProperty(self::PropertyName, null) ?? $this->gameStateService->getSetting(self::DefaultGoldGameSetting, 0) ?? 0;
+        return $character->getProperty(self::PropertyName, null) ?? (int)$this->gameStateService->getSetting(self::DefaultGoldGameSetting, 0) ?? 100;
     }
 
     public function setGold(?Character $character, int $gold): static
@@ -93,5 +98,23 @@ readonly class GoldHandler
                 "gold" => $goldReward,
             ]
         ));
+    }
+
+    #[AsEventListener(event: GameSettings::FormExtensionEventName)]
+    public function onGameSettingsFormExtension(FormExtensionEvent $event): void
+    {
+        $event->add(
+            self::DefaultGoldGameSetting, NumberType::class, [
+                "label" => "Default Gold a new character should own",
+                "help" => "Whenever a character's gold value is not set, this value is used instead. "
+                    ."As long as gold is only added with addGold, the default value will be respected. "
+                    ."If setGold is used instead, this value will be ignored.",
+                "constraints" => [
+                    new Range(min: 0),
+                    new NotBlank(),
+                ],
+                "data" => 100,
+            ]
+        );
     }
 }

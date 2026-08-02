@@ -2,16 +2,25 @@
 
 {% block body %}
     <div class="row">
-        <div class="col-4 col-xl-3 col-xxl-2 bg-primary-subtle">
-            <nav class="nav">
+        <aside class="col-4 col-xl-3 col-xxl-2 bg-primary-subtle">
+            <nav class="nav flex-column">
                 <div class="nav-item nav-link">Characters</div>
-                <div class="nav-item nav-link">
-                    <a href="{{ path("lotgd_admin_scene") }}">Scenes</a>
-                </div>
+
+                {% if is_granted("ROLE_ADMIN") %}
+                    <div class="nav-item nav-link">
+                        <a href="{{ path("lotgd_admin_settings") }}">Game Settings</a>
+                    </div>
+                {% endif %}
+
+                {% if is_granted("ROLE_SCENE_EDITOR") %}
+                    <div class="nav-item nav-link">
+                        <a href="{{ path("lotgd_admin_scene") }}">Scenes</a>
+                    </div>
+                {% endif %}
             </nav>
-        </div>
-        <div class="col-8 col-xl-9 col-xxl-10 p-3">
+        </aside>
+        <main class="col-8 col-xl-9 col-xxl-10 p-3">
             {{ component(component, props ?? {}) }}
-        </div>
+        </main>
     </div>
 {% endblock %}

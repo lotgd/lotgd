@@ -6,14 +6,21 @@ namespace LotGD2\Game\Handler;
 use LotGD2\Entity\Mapped\Character;
 use LotGD2\Entity\Paragraph;
 use LotGD2\Event\CharacterChangeEvent;
+use LotGD2\Event\FormExtensionEvent;
 use LotGD2\Event\StageChangeEvent;
+use LotGD2\Form\GameSettingsType;
 use LotGD2\Game\GameStateService;
 use LotGD2\Game\GameTime\NewDay;
 use LotGD2\Game\Scene\SceneTemplate\DragonTemplate;
 use LotGD2\Game\Scene\SceneTemplate\TrainingTemplate;
+use LotGD2\Twig\Component\Admin\GameSettings;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\EventDispatcher\Attribute\AsEventListener;
+use Symfony\Component\Form\Extension\Core\Type\NumberType;
+use Symfony\Component\Form\FormBuilderInterface;
+use Symfony\Component\Validator\Constraints\NotBlank;
+use Symfony\Component\Validator\Constraints\Range;
 
 readonly class HealthHandler
 {
@@ -171,7 +178,7 @@ readonly class HealthHandler
     {
         $character = $character ?? $this->character;
 
-        return $this->gameStateService->getSetting(self::DefaultTurnsGameSetting)
+        return (int)$this->gameStateService->getSetting(self::DefaultTurnsGameSetting)
             ?? 30;
     }
 
@@ -238,5 +245,22 @@ readonly class HealthHandler
             $this->addMaxHealth(-$deltaHealth, $event->character);
             $this->heal(-$deltaHealth, $event->character);
         }
+    }
+
+    #[AsEventListener(event: GameSettings::FormExtensionEventName)]
+    public function onGameSettingsFormExtension(FormExtensionEvent $event): void
+    {
+        $event->add(
+            self::DefaultTurnsGameSetting, NumberType::class, [
+                "label" => "Default Number of Turns",
+                "help" => "Number of turns a normal character should have per game day."
+                    . " On top of that, extra points can get added depending on modules and other settings.",
+                "constraints" => [
+                    new Range(min: 1),
+                    new NotBlank(),
+                ],
+                "data" => 30,
+            ]
+        );
     }
 }

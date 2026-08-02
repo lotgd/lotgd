@@ -19,12 +19,7 @@ class GameStateRepository extends ServiceEntityRepository
     private ?array $settingsCache {
         get {
             if (!isset($this->settingsCache)) {
-                $this->settingsCache =
-                    $this->createQueryBuilder("gs", indexBy: "gs.name")
-                        ->andWhere("gs.type = :type")
-                        ->setParameter("type", GameStateType::Setting)
-                        ->getQuery()
-                        ->getResult();
+                $this->settingsCache = $this->getAllSettings();
             }
 
             return $this->settingsCache;
@@ -37,7 +32,20 @@ class GameStateRepository extends ServiceEntityRepository
         parent::__construct($registry, GameState::class);
     }
 
-    public function getByName(string $name): ?GameState
+    /**
+     * @return array<string, GameState>
+     */
+    public function getAllSettings(): array
+    {
+        return
+            $this->createQueryBuilder("gs", indexBy: "gs.name")
+                ->andWhere("gs.type = :type")
+                ->setParameter("type", GameStateType::Setting)
+                ->getQuery()
+                ->getResult();
+    }
+
+    public function getSettingByName(string $name): ?GameState
     {
         return $this->settingsCache[$name] ?? null;
     }

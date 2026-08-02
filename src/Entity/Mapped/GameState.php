@@ -29,9 +29,26 @@ class GameState
          * @var array<string, mixed>
          */
         #[ORM\Column(type: JsonDocumentType::NAME, nullable: true)]
-        public ?array $state = [] {
-            get => $this->state;
-            set => $value;
+        public mixed $state = [] {
+            get {
+                if (is_null($this->state)) {
+                    return null;
+                } elseif (array_key_exists("__", $this->state)) {
+                    return $this->state["__"];
+                } else {
+                    return $this->state;
+                }
+            }
+
+            set(mixed $value) {
+                if (is_array($value)) {
+                    $this->state = $value;
+                } else {
+                    $this->state = [
+                        "__" => $value,
+                    ];
+                }
+            }
         },
 
         #[ORM\Column(type: Types::STRING, nullable: false, enumType: GameStateType::class)]
