@@ -145,7 +145,7 @@ readonly class HealthHandler
     {
         $character = $character ?? $this->character;
         return $character->getProperty(static::Turns)
-            ?? $this->gameStateService->getSetting(self::DefaultTurnsGameSetting)
+            ?? (int)$this->gameStateService->getSetting(self::DefaultTurnsGameSetting)
             ?? 30;
     }
 
