@@ -22,7 +22,7 @@ class CharacterService
     public function getAllCharacters(
 
     ): array {
-
+        return $this->characterRepository->findAll();
     }
 
     public function getTotalSlots(): int

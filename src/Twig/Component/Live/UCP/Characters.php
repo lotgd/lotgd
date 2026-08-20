@@ -46,7 +46,7 @@ class Characters
     #[ExposeInTemplate]
     public function getCharacters(): array
     {
-        return $this->characterRepository->findAll();
+        return $this->characterService->getAllCharacters();
     }
 
     #[LiveAction]
