@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace LotGD2\Game\Handler;
 
+use JetBrains\PhpStorm\Deprecated;
 use LotGD2\Entity\Action;
 use LotGD2\Entity\ActionGroup;
 use LotGD2\Entity\Mapped\Character;
@@ -32,12 +33,31 @@ class DragonCounterHandler
         readonly private ?DiceBagInterface $diceBag,
         readonly private ?Stopwatch $stopWatch,
         #[Autowire(expression: "service('lotgd2.game_loop').getCharacter()")]
-        readonly private Character $character,
+        readonly private ?Character $character,
         readonly private HealthHandler $health,
-        readonly private StatsHandler $stats, private readonly ActionService $actionService,
+        readonly private StatsHandler $stats,
+        private readonly ActionService $actionService,
     ) {
     }
 
+    public function getDragonCounter(Character $character): int
+    {
+        return $character->getProperty(self::CounterPropertyName, 0) ?? 0;
+    }
+
+    public function setDragonCounter(Character $character, int $value): void
+    {
+        $this->logger->debug("{$character->id}: Set dragon counter value to {$value}.");
+        $character->setProperty(self::CounterPropertyName, $value);
+    }
+
+    public function incrementDragonCounter(Character $character): void
+    {
+        $this->logger->debug("{$character->id}: Increment dragon counter by 1.");
+        $character->setProperty(self::CounterPropertyName, $this->getDragonCounter($character) + 1);
+    }
+
+    #[Deprecated]
     public int $dragonCounter {
         get {
             return $this->character->getProperty(self::CounterPropertyName, 0) ?? 0;
@@ -51,6 +71,7 @@ class DragonCounterHandler
     /**
      * @var array<int, DragonPointChoice>
      */
+    #[Deprecated]
     public array $choices {
         get {
             return $this->character->getProperty(self::ChoicePropertyName, []) ?? [];

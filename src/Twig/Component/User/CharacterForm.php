@@ -8,6 +8,7 @@ use LotGD2\Entity\Mapped\Character;
 use LotGD2\Entity\Mapped\Scene;
 use LotGD2\Form\CharacterType;
 use LotGD2\Form\Scene\SceneType;
+use LotGD2\Game\Character\CharacterTitleService;
 use LotGD2\Twig\Component\ComponentWithSaveStatusTrait;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Form\FormInterface;
@@ -39,11 +40,13 @@ class CharacterForm extends AbstractController
     #[LiveAction]
     public function save(
         EntityManagerInterface $entityManager,
+        CharacterTitleService $titleService,
     ): void {
         $this->submitForm();
 
         /** @var Character $character */
         $character = $this->getForm()->getData();
+        $titleService->setNextTitle($character);
 
         $characterId = $character->id;
 

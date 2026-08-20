@@ -28,7 +28,7 @@ readonly class StatsHandler
         private ?LoggerInterface $logger,
         private EquipmentHandler $equipment,
         #[Autowire(expression: "service('lotgd2.game_loop').getCharacter()")]
-        private Character $character,
+        private ?Character $character,
     ) {
     }
 

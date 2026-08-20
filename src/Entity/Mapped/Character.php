@@ -6,6 +6,7 @@ namespace LotGD2\Entity\Mapped;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Dunglas\DoctrineJsonOdm\Type\JsonDocumentType;
+use LotGD2\Entity\Common\AutoincrementIdTrait;
 use LotGD2\Entity\Common\PropertyTrait;
 use LotGD2\Repository\CharacterRepository;
 use Stringable;
@@ -16,13 +17,7 @@ use Symfony\Component\Validator\Constraints as Assert;
 class Character implements Stringable
 {
     use PropertyTrait;
-
-    #[ORM\Id]
-    #[ORM\GeneratedValue]
-    #[ORM\Column]
-    public ?int $id = null {
-        get => $this->id;
-    }
+    use AutoincrementIdTrait;
 
     /**
      * @param null|array<string, mixed> $properties
