@@ -1,15 +1,22 @@
 <div {{ attributes.defaults(stimulus_controller('modal', {
 
 })) }}>
+    {% set totalAvailableSlots = characterService.totalSlots %}
+    {% set leftAvailableSlots = characterService.availableSlots %}
+    {% set canAdd = leftAvailableSlots > 0 %}
+
     <div class="bg-body-tertiary rounded mb-3 p-2 d-flex justify-content-between">
-        <button class="btn btn-primary" {{ stimulus_action('modal', 'onNewClick') }}>Create new character</button>
+        <button
+                class="btn btn-primary {{ canAdd ?: "disabled" }}"
+                {{ stimulus_action('modal', 'onNewClick') }}
+        >Create new character</button>
 
         <div class="text-muted px-3">
             <small>Available Slots</small>
             <twig:Bootstrap:Progress
                     label="Character slots available"
-                    min="0" max="{{ characterSlots }}"
-                    current="{{ availableSlots }}"
+                    min="0" max="{{ totalAvailableSlots }}"
+                    current="{{ leftAvailableSlots }}"
                     displayMax="true"
                     displayCurrent="true"
             />
