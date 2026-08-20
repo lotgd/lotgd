@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace LotGD2\Form;
 
 use LotGD2\Entity\Mapped\Character;
+use LotGD2\Game\Handler\GenderHandler;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\Extension\Core\Type\FormType;
@@ -23,8 +24,8 @@ class CharacterType extends AbstractType
                 "help" => "The name of your character. Cannot be changed after creation.",
             ])
             ->add(
-                $builder->create('gender', FormType::class, [
-                    'property_path' => 'properties[gender]',
+                $builder->create(GenderHandler::GenderProperty, FormType::class, [
+                    'property_path' => 'properties['. GenderHandler::GenderProperty .']',
                     "by_reference" => false,
                     "label" => "Gender settings",
                     "help" => <<<TXT
@@ -32,7 +33,7 @@ class CharacterType extends AbstractType
                         to your character.
                         TXT,
                 ])
-                ->add("lotgd2_character_pronouns", ChoiceType::class, [
+                ->add(GenderHandler::PronounsGenderProperty, ChoiceType::class, [
                     "choices" => [
                         "Male (he/him)" => "male",
                         "Female (she/her)" => "female",
@@ -40,7 +41,7 @@ class CharacterType extends AbstractType
                     ],
                     "help" => "This setting is used to refer to your character in third person. Can be changed afterwards.",
                 ])
-                ->add("lotgd2_character_partnerPreference", ChoiceType::class, [
+                ->add(GenderHandler::PartnerGenderProperty, ChoiceType::class, [
                     "choices" => [
                         "Male" => "male",
                         "Female" => "female",
