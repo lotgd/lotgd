@@ -16,4 +16,12 @@ class CharacterRepository extends ServiceEntityRepository
     {
         parent::__construct($registry, Character::class);
     }
+
+    public function countOwnedCharacters(): int
+    {
+        return $this->createQueryBuilder("c")
+            ->select("COUNT(c)")
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
 }

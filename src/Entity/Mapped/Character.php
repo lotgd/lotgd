@@ -73,15 +73,22 @@ class Character implements Stringable
         },
 
         #[ORM\Column(type: JsonDocumentType::NAME, nullable: true)]
-        public ?array $properties = [] {
-            get => $this->properties;
-            set => $value;
-        },
+        public ?array $properties = [],
     ) {
     }
 
     public function __toString(): string
     {
         return "<Character#{$this->id}, {$this->name}>";
+    }
+
+    public function getProperties(): array
+    {
+        return $this->properties;
+    }
+
+    public function setProperties(array $properties): void
+    {
+        $this->properties = array_merge_recursive($this->properties, $properties);
     }
 }

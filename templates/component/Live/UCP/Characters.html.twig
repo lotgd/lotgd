@@ -1,6 +1,23 @@
-<div {{ attributes }}>
+<div {{ attributes.defaults(stimulus_controller('modal', {
+
+})) }}>
+    <div class="bg-body-tertiary rounded mb-3 p-2 d-flex justify-content-between">
+        <button class="btn btn-primary" {{ stimulus_action('modal', 'onNewClick') }}>Create new character</button>
+
+        <div class="text-muted px-3">
+            <small>Available Slots</small>
+            <twig:Bootstrap:Progress
+                    label="Character slots available"
+                    min="0" max="{{ characterSlots }}"
+                    current="{{ availableSlots }}"
+                    displayMax="true"
+                    displayCurrent="true"
+            />
+        </div>
+    </div>
+
     <div class="row row-cols-1 row-cols-xl-2">
-        {% for character in computed.characters %}
+        {% for character in characters %}
             <div class="col mb-3" id="lotgd-entity-character-{{ character.id }}">
                 <div class="card">
                     <div class="card-header d-flex justify-content-between align-items-start">
@@ -16,5 +33,17 @@
                 </div>
             </div>
         {% endfor %}
+    </div>
+
+    <div {{ stimulus_target("modal", "modal") }} class="modal" tabindex="-1">
+        <div class="modal-dialog modal-lg small">
+            <div class="modal-content">
+                {% if character %}
+                    <twig:User:CharacterForm :key="character.id" :entity="character" />
+                {% else %}
+                    <twig:User:CharacterForm key="new" :entity="character" />
+                {% endif %}
+            </div>
+        </div>
     </div>
 </div>
