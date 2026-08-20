@@ -49,7 +49,7 @@ class Character implements Stringable
         },
 
         #[ORM\Column(type: Types::SMALLINT, options: ["default" => 0])]
-        public ?int $level = null {
+        public ?int $level = 1 {
             get => $this->level;
             set => $value;
         },

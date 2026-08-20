@@ -44,7 +44,6 @@ class CharacterForm extends AbstractController
 
         /** @var Character $character */
         $character = $this->getForm()->getData();
-        $character->level = 1;
 
         $characterId = $character->id;
 
