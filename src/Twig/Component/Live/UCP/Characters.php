@@ -22,7 +22,6 @@ class Characters
 {
     use DefaultActionTrait;
 
-
     #[LiveProp]
     public ?Character $character = null;
 

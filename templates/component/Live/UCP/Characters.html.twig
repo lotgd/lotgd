@@ -46,9 +46,9 @@
         <div class="modal-dialog modal-lg small">
             <div class="modal-content">
                 {% if character %}
-                    <twig:User:CharacterForm :key="character.id" :entity="character" />
+                    <twig:User:CharacterForm :key="character.id" :entity="character" new="0" />
                 {% else %}
-                    <twig:User:CharacterForm key="new" :entity="character" />
+                    <twig:User:CharacterForm key="new" :entity="character" new="1" />
                 {% endif %}
             </div>
         </div>

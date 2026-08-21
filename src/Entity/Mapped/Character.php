@@ -76,14 +76,4 @@ class Character implements Stringable
     {
         return "<Character#{$this->id}, {$this->name}>";
     }
-
-    public function getProperties(): array
-    {
-        return $this->properties;
-    }
-
-    public function setProperties(array $properties): void
-    {
-        $this->properties = array_merge_recursive($this->properties, $properties);
-    }
 }

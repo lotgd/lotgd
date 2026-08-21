@@ -14,7 +14,6 @@ use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
  * @extends AbstractType<array<string, mixed>>
  */
 class GameSettingsType extends AbstractType {
-
     public function __construct(
         private readonly EventDispatcherInterface $eventDispatcher,
     ) {

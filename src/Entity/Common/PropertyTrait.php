@@ -17,4 +17,14 @@ trait PropertyTrait
         $this->properties = $properties;
         return $this;
     }
+
+    public function getProperties(): array
+    {
+        return $this->properties;
+    }
+
+    public function setProperties(array $properties): void
+    {
+        $this->properties = array_replace_recursive($this->properties, $properties);
+    }
 }
