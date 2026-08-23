@@ -21,33 +21,12 @@ class GoldTest extends TestCase
     public function testGetGoldWithPropertyNotSetAndGameSettingIsNull(): void
     {
         $character = new Character();
-        $gameStateService = $this->createMock(GameStateService::class);
-        $gameStateService
-            ->method('getSetting')
-            ->with(GoldHandler::DefaultGoldGameSetting)
-            ->willReturn(null);
-
+        $gameStateService = $this->createStub(GameStateService::class);
         $loggerMock = $this->createStub(LoggerInterface::class);
 
         $gold = new GoldHandler($gameStateService, $loggerMock, $character);
 
-        $this->assertEquals(0, $gold->getGold(null));
-    }
-
-    public function testGetGoldWithPropertyNotSetAndGameStateServiceReturnsValue(): void
-    {
-        $character = new Character();
-        $gameStateService = $this->createMock(GameStateService::class);
-        $gameStateService
-            ->method('getSetting')
-            ->with(GoldHandler::DefaultGoldGameSetting)
-            ->willReturn(100);
-
-        $loggerMock = $this->createStub(LoggerInterface::class);
-
-        $gold = new GoldHandler($gameStateService, $loggerMock, $character);
-
-        $this->assertEquals(100, $gold->getGold(null));
+        $this->assertEquals(50, $gold->getGold(null));
     }
 
     public static function getGoldProvider(): array

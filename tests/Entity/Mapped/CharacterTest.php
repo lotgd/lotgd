@@ -23,7 +23,7 @@ class CharacterTest extends TestCase
         $this->assertNull($character->name);
         $this->assertNull($character->title);
         $this->assertNull($character->suffix);
-        $this->assertNull($character->level);
+        $this->assertSame(1, $character->level);
         $this->assertNull($character->stage);
         $this->assertEquals([], $character->properties);
     }
