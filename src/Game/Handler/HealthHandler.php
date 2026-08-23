@@ -16,6 +16,7 @@ use LotGD2\Twig\Component\Admin\GameSettings;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\EventDispatcher\Attribute\AsEventListener;
+use Symfony\Component\Form\Extension\Core\Type\IntegerType;
 use Symfony\Component\Form\Extension\Core\Type\NumberType;
 use Symfony\Component\Validator\Constraints\NotBlank;
 use Symfony\Component\Validator\Constraints\Range;
@@ -258,7 +259,7 @@ readonly class HealthHandler
     public function onGameSettingsFormExtension(FormExtensionEvent $event): void
     {
         $event->add(
-            self::DefaultTurnsGameSetting, NumberType::class, [
+            self::DefaultTurnsGameSetting, IntegerType::class, [
                 "label" => "Default Number of Turns",
                 "help" => "Number of turns a normal character should have per game day."
                     . " On top of that, extra points can get added depending on modules and other settings.",
