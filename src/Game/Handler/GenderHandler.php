@@ -12,7 +12,7 @@ use Symfony\Component\Form\Extension\Core\Type\FormType;
 
 class GenderHandler
 {
-    const string GenderProperty = "lotgd2_gender";
+    const string GenderProperty = "gender";
     const string PronounsGenderProperty = "pronouns";
     const string PartnerGenderProperty = "partner";
 
