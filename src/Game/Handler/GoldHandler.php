@@ -3,17 +3,24 @@ declare(strict_types=1);
 
 namespace LotGD2\Game\Handler;
 
+use JetBrains\PhpStorm\Deprecated;
 use LotGD2\Entity\Character\LootPosition;
 use LotGD2\Entity\Mapped\Character;
 use LotGD2\Entity\Paragraph;
+use LotGD2\Event\CharacterChangeEvent;
 use LotGD2\Event\FormExtensionEvent;
 use LotGD2\Event\LootBagEvent;
+use LotGD2\Event\NewEntityEvent;
+use LotGD2\Game\Character\CharacterService;
 use LotGD2\Game\GameStateService;
+use LotGD2\Game\Scene\SceneTemplate\DragonTemplate;
 use LotGD2\Game\Scene\SceneTemplate\FightTemplate;
 use LotGD2\Twig\Component\Admin\GameSettings;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\EventDispatcher\Attribute\AsEventListener;
+use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
+use Symfony\Component\Form\Extension\Core\Type\IntegerType;
 use Symfony\Component\Form\Extension\Core\Type\NumberType;
 use Symfony\Component\Validator\Constraints\NotBlank;
 use Symfony\Component\Validator\Constraints\Range;
@@ -24,6 +31,8 @@ readonly class GoldHandler
     const string GoldLoot = "lotgd2.loot.Gold";
     const string GoldLootClaimParagraph = "lotgd2.paragraph.Gold.LootBagClaim";
     const string DefaultGoldGameSetting = "lotgd2.gameSetting.defaultGold";
+    const string MaxStartGoldGameSetting = "lotgd2.gameSetting.maxGold";
+    const string StartGoldScalesWithDragonKillGameSetting = "lotgd2.gameSetting.defaultGoldDkScaling";
 
     public function __construct(
         private GameStateService $gameStateService,
@@ -36,7 +45,7 @@ readonly class GoldHandler
     public function getGold(?Character $character = null): int
     {
         $character = $character ?? $this->character;
-        return $character->getProperty(self::PropertyName, null) ?? (int)$this->gameStateService->getSetting(self::DefaultGoldGameSetting, 0) ?? 100;
+        return $character->getProperty(self::PropertyName, null) ?? 50;
     }
 
     public function setGold(?Character $character, int $gold): static
@@ -104,17 +113,77 @@ readonly class GoldHandler
     public function onGameSettingsFormExtension(FormExtensionEvent $event): void
     {
         $event->add(
-            self::DefaultGoldGameSetting, NumberType::class, [
+            self::DefaultGoldGameSetting, IntegerType::class, [
                 "label" => "Default Gold a new character should own",
-                "help" => "Whenever a character's gold value is not set, this value is used instead. "
-                    ."As long as gold is only added with addGold, the default value will be respected. "
-                    ."If setGold is used instead, this value will be ignored.",
+                "help" => <<<TXT
+                    Whenever a character is created or reset after a dragon kill, this amount of gold
+                    is given to him.
+                    TXT,
                 "constraints" => [
                     new Range(min: 0),
                     new NotBlank(),
                 ],
-                "data" => 100,
+                "data" => 50,
             ]
         );
+
+        $event->add(
+            self::StartGoldScalesWithDragonKillGameSetting, CheckboxType::class, [
+                "required" => false,
+                "label" => "Default Gold scales with the number of dragons killed",
+                "help" => <<<TXT
+                    Turn this on to scale the start gold of a character after he kills a dragon (dk*startGold)
+                    TXT,
+                "data" => true,
+            ]
+        );
+
+        $event->add(
+            self::MaxStartGoldGameSetting, IntegerType::class, [
+                "label" => "Maximum gold a character receives after a dragon kill",
+                "help" => <<<TXT
+                    Whenever a character kills a dragon, the amount the character carries gets reset and the
+                    character receives dk*startGold (if activated above). With this setting, you can add a 
+                    limit on it.
+                    TXT,
+                "constraints" => [
+                    new Range(min: -1),
+                    new NotBlank(),
+                ],
+                "data" => 300,
+            ]
+        );
+    }
+
+    #[AsEventListener(DragonTemplate::OnCharacterReset)]
+    public function onCharacterReset(CharacterChangeEvent $event): void
+    {
+        $startGoldScales = (bool)($this->gameStateService->getSetting(self::StartGoldScalesWithDragonKillGameSetting) ?? true);
+        $startGold = (int)($this->gameStateService->getSetting(self::DefaultGoldGameSetting) ?? 50);
+        $maxStartGold = (int)($this->gameStateService->getSetting(self::MaxStartGoldGameSetting) ?? 300);
+        $dragonKill = (int)($event->parameters[DragonTemplate::OnCharacterResetDragonCounterParameter] ?? 0);
+
+        if ($startGoldScales) {
+            $gold = min($maxStartGold, $dragonKill * $startGold);
+        } else {
+            $gold = $startGold;
+        }
+
+        $this->logger->debug("Set default gold after character reset.");
+        $this->setGold($event->character, $gold);
+    }
+
+    #[AsEventListener(CharacterService::NewCharacterEventName)]
+    public function onCharacterCreation(NewEntityEvent $event): void
+    {
+        $character = $event->entity;
+        if (!($character instanceof Character)) {
+            return;
+        }
+
+        $startGold = (int)($this->gameStateService->getSetting(self::DefaultGoldGameSetting) ?? 50);
+
+        $this->logger->debug("Set default gold after character was created.");
+        $this->setGold($character, $startGold);
     }
 }
