@@ -51,9 +51,7 @@ class GameSettingsForm extends AbstractController
         $data = $this->getForm()->getData();
 
         foreach ($data as $key => $value) {
-            $settingsKey = str_replace("_", ".", $key);
-
-            $this->gameStateService->setSetting($settingsKey, $value);
+            $this->gameStateService->setSetting($key, $value);
         }
 
         $this->gameSettings = $data;

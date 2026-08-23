@@ -30,17 +30,7 @@ class FormExtensionEvent extends Event
      */
     public function add(string $propertyName, string $type, array $options = []): self
     {
-        $this->builder->add($this->propertyToFormName($propertyName), $type, $options);
+        $this->builder->add($propertyName, $type, $options);
         return $this;
-    }
-
-    public function propertyToFormName(string $property): string
-    {
-        return str_replace(".", "_", $property);
-    }
-
-    public function formNameToProperty(string $name): string
-    {
-        return str_replace("_", ".", $name);
     }
 }
