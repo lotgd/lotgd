@@ -9,6 +9,7 @@ use LotGD2\Form\CharacterType;
 use LotGD2\Game\Character\CharacterService;
 use LotGD2\Game\Character\CharacterTitleService;
 use LotGD2\Twig\Component\ComponentWithSaveStatusTrait;
+use LotGD2\Twig\Component\ModalFormInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Form\FormInterface;
 use Symfony\UX\LiveComponent\Attribute\AsLiveComponent;
@@ -20,7 +21,7 @@ use Symfony\UX\LiveComponent\DefaultActionTrait;
 use Symfony\UX\LiveComponent\LiveCollectionTrait;
 
 #[AsLiveComponent(template: "component/Form/ModalForm.html.twig")]
-class CharacterForm extends AbstractController
+class CharacterForm extends AbstractController implements ModalFormInterface
 {
     use DefaultActionTrait;
     use ComponentWithFormTrait;
@@ -38,6 +39,10 @@ class CharacterForm extends AbstractController
 
     #[LiveProp]
     public bool $new = true;
+
+    public string $entityName {
+        get => "character";
+    }
 
     #[LiveAction]
     public function save(
