@@ -13,6 +13,7 @@ use LotGD2\Event\LootBagEvent;
 use LotGD2\Event\NewEntityEvent;
 use LotGD2\Form\GroupedFormType;
 use LotGD2\Game\Character\CharacterService;
+use LotGD2\Game\Error\GameError;
 use LotGD2\Game\GameStateService;
 use LotGD2\Game\Scene\SceneTemplate\DragonTemplate;
 use LotGD2\Game\Scene\SceneTemplate\FightTemplate;
@@ -199,6 +200,7 @@ readonly class GoldHandler
     /**
      * @param NewEntityEvent<Character> $event
      * @return void
+     * @throws GameError
      */
     #[AsEventListener(CharacterService::NewCharacterEventName)]
     public function onCharacterCreation(NewEntityEvent $event): void
