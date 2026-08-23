@@ -13,6 +13,9 @@ use Symfony\UX\LiveComponent\Attribute\LiveProp;
 use Symfony\UX\LiveComponent\ComponentWithFormTrait;
 use Symfony\UX\LiveComponent\DefaultActionTrait;
 
+/**
+ * @phpstan-type GameSettingsDataType array<string, mixed>
+ */
 #[AsLiveComponent]
 #[IsGranted("ROLE_ADMIN")]
 class GameSettings extends AbstractController
@@ -27,6 +30,9 @@ class GameSettings extends AbstractController
 
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function getGameSettings(): array
     {
         $settings = $this->gameStateRepository->getAllSettings();

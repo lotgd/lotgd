@@ -26,7 +26,7 @@ class GameState
         },
 
         /**
-         * @var array<string, mixed>
+         * @var array<string, mixed>|null
          */
         #[ORM\Column(type: JsonDocumentType::NAME, nullable: true)]
         public mixed $state = [] {

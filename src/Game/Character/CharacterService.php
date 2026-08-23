@@ -17,6 +17,7 @@ class CharacterService
     const string NewCharacterEventName = "lotgd2_character_new";
 
     public function __construct(
+        /** @phpstan-ignore property.onlyWritten */
         private readonly Security $security,
         private readonly EventDispatcherInterface $eventDispatcher,
         private readonly CharacterRepository $characterRepository,
@@ -26,6 +27,9 @@ class CharacterService
 
     }
 
+    /**
+     * @return Character[]
+     */
     public function getAllCharacters(
 
     ): array {

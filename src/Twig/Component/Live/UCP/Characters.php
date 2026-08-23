@@ -26,8 +26,6 @@ class Characters
     public ?Character $character = null;
 
     public function __construct(
-        private readonly CharacterRepository $characterRepository,
-        private readonly GameStateService $gameState,
         private readonly CharacterService $characterService,
     ) {
 

@@ -25,6 +25,9 @@ use Symfony\Component\Form\Extension\Core\Type\NumberType;
 use Symfony\Component\Validator\Constraints\NotBlank;
 use Symfony\Component\Validator\Constraints\Range;
 
+/**
+ * @phpstan-import-type GameSettingsDataType from GameSettings
+ */
 readonly class GoldHandler
 {
     const string PropertyName = 'gold';
@@ -109,6 +112,10 @@ readonly class GoldHandler
         ));
     }
 
+    /**
+     * @param FormExtensionEvent<GameSettingsDataType> $event
+     * @return void
+     */
     #[AsEventListener(event: GameSettings::FormExtensionEventName)]
     public function onGameSettingsFormExtension(FormExtensionEvent $event): void
     {
@@ -173,6 +180,10 @@ readonly class GoldHandler
         $this->setGold($event->character, $gold);
     }
 
+    /**
+     * @param NewEntityEvent<Character> $event
+     * @return void
+     */
     #[AsEventListener(CharacterService::NewCharacterEventName)]
     public function onCharacterCreation(NewEntityEvent $event): void
     {

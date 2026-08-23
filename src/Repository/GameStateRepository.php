@@ -14,9 +14,9 @@ use LotGD2\Game\Enum\GameStateType;
 class GameStateRepository extends ServiceEntityRepository
 {
     /**
-     * @var array<string, GameState>|null
+     * @var array<string, GameState>
      */
-    private ?array $settingsCache {
+    private array $settingsCache {
         get {
             if (!isset($this->settingsCache)) {
                 $this->settingsCache = $this->getAllSettings();

@@ -18,13 +18,21 @@ trait PropertyTrait
         return $this;
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function getProperties(): array
     {
         return $this->properties;
     }
 
-    public function setProperties(array $properties): void
+    /**
+     * @param array<string, mixed> $properties
+     * @return self
+     */
+    public function setProperties(array $properties): self
     {
         $this->properties = array_replace_recursive($this->properties, $properties);
+        return $this;
     }
 }

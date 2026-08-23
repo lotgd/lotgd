@@ -8,7 +8,6 @@ use LotGD2\Entity\Paragraph;
 use LotGD2\Event\CharacterChangeEvent;
 use LotGD2\Event\FormExtensionEvent;
 use LotGD2\Event\StageChangeEvent;
-use LotGD2\Form\GameSettingsType;
 use LotGD2\Game\GameStateService;
 use LotGD2\Game\GameTime\NewDay;
 use LotGD2\Game\Scene\SceneTemplate\DragonTemplate;
@@ -18,10 +17,12 @@ use Psr\Log\LoggerInterface;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\EventDispatcher\Attribute\AsEventListener;
 use Symfony\Component\Form\Extension\Core\Type\NumberType;
-use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\Validator\Constraints\NotBlank;
 use Symfony\Component\Validator\Constraints\Range;
 
+/**
+ * @phpstan-import-type GameSettingsDataType from GameSettings
+ */
 readonly class HealthHandler
 {
     const string HealthPropertyName = 'health';
@@ -144,9 +145,11 @@ readonly class HealthHandler
     public function getTurns(?Character $character = null): int
     {
         $character = $character ?? $this->character;
-        return $character->getProperty(static::Turns)
-            ?? (int)$this->gameStateService->getSetting(self::DefaultTurnsGameSetting)
-            ?? 30;
+        return (int)(
+                $character->getProperty(static::Turns)
+                ?? $this->gameStateService->getSetting(self::DefaultTurnsGameSetting)
+                ?? 30
+        );
     }
 
     public function setTurns(?int $turns = null, ?Character $character = null): self
@@ -178,8 +181,8 @@ readonly class HealthHandler
     {
         $character = $character ?? $this->character;
 
-        return (int)$this->gameStateService->getSetting(self::DefaultTurnsGameSetting)
-            ?? 30;
+        return (int)($this->gameStateService->getSetting(self::DefaultTurnsGameSetting)
+            ?? 30);
     }
 
     #[AsEventListener(event: NewDay::OnNewDayAfter)]
@@ -247,6 +250,10 @@ readonly class HealthHandler
         }
     }
 
+    /**
+     * @param FormExtensionEvent<GameSettingsDataType> $event
+     * @return void
+     */
     #[AsEventListener(event: GameSettings::FormExtensionEventName)]
     public function onGameSettingsFormExtension(FormExtensionEvent $event): void
     {

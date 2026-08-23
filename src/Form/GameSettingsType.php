@@ -11,7 +11,8 @@ use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
 
 /**
- * @extends AbstractType<array<string, mixed>>
+ * @phpstan-import-type GameSettingsDataType from GameSettings
+ * @extends AbstractType<GameSettingsDataType>
  */
 class GameSettingsType extends AbstractType {
     public function __construct(

@@ -22,6 +22,9 @@ class GameSettingsForm extends AbstractController
     use DefaultActionTrait;
     use ComponentWithFormTrait;
 
+    /**
+     * @var array<string, mixed>
+     */
     #[LiveProp]
     public array $gameSettings = [];
 
@@ -29,7 +32,6 @@ class GameSettingsForm extends AbstractController
     public ?bool $saved = null;
 
     public function __construct(
-        private readonly GameStateRepository $gameStateRepository,
         private readonly EntityManagerInterface $entityManager,
         private readonly GameStateService $gameStateService,
     ) {
@@ -41,7 +43,7 @@ class GameSettingsForm extends AbstractController
     }
 
     #[LiveAction]
-    public function save()
+    public function save(): void
     {
         $this->submitForm();
 
@@ -60,6 +62,9 @@ class GameSettingsForm extends AbstractController
         $this->saved = true;
     }
 
+    /**
+     * @return FormInterface<array<string, mixed>>
+     */
     protected function instantiateForm(): FormInterface
     {
         return $this->createForm(GameSettingsType::class, $this->gameSettings);

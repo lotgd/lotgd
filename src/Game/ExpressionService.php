@@ -242,7 +242,12 @@ class ExpressionService
         return $this->_evaluate($expression, $this->getCharacterBasedNames($character));
     }
 
-    private function _evaluate(?string $expression, array $names)
+    /**
+     * @param string|null $expression
+     * @param array<string, mixed> $names
+     * @return mixed
+     */
+    private function _evaluate(?string $expression, array $names): mixed
     {
         $expressionLanguage = new ExpressionLanguage();
         $flags = Parser::IGNORE_UNKNOWN_VARIABLES;

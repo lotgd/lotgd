@@ -6,6 +6,7 @@ namespace LotGD2\Game\Handler;
 use LotGD2\Entity\Mapped\Character;
 use LotGD2\Event\FormExtensionEvent;
 use LotGD2\Game\Character\CharacterService;
+use LotGD2\Twig\Component\Admin\GameSettings;
 use Symfony\Component\EventDispatcher\Attribute\AsEventListener;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\Extension\Core\Type\FormType;
@@ -31,6 +32,10 @@ class GenderHandler
         return "other";
     }
 
+    /**
+     * @param FormExtensionEvent<Character> $event
+     * @return void
+     */
     #[AsEventListener(event: CharacterService::CharacterFormExtensionEventName)]
     public function onCharacterEdit(FormExtensionEvent $event): void
     {
