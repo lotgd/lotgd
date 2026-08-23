@@ -17,7 +17,6 @@ use Psr\Log\LoggerInterface;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\EventDispatcher\Attribute\AsEventListener;
 use Symfony\Component\Form\Extension\Core\Type\IntegerType;
-use Symfony\Component\Form\Extension\Core\Type\NumberType;
 use Symfony\Component\Validator\Constraints\NotBlank;
 use Symfony\Component\Validator\Constraints\Range;
 
@@ -32,7 +31,7 @@ readonly class HealthHandler
     const string Age = "age";
     const string Turns = "turns";
 
-    const string DefaultTurnsGameSetting = "lotgd2.gameSetting.defaultTurns";
+    const string DefaultTurnsGameSetting = "lotgd2_gameSetting_defaultTurns";
 
     public function __construct(
         private GameStateService $gameStateService,
