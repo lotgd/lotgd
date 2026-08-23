@@ -47,6 +47,7 @@ class DragonTemplate implements SceneTemplateInterface
     use DefaultFightTrait;
 
     const string OnCharacterReset = 'lotgd2.event.DragonTemplate.characterReset';
+    const string OnCharacterResetDragonCounterParameter = 'lotgd2.event.DragonTemplate.characterReset.dk';
 
     public function __construct(
         readonly private LoggerInterface $logger,
@@ -206,7 +207,7 @@ class DragonTemplate implements SceneTemplateInterface
             title: "Continue",
         ));
 
-        $this->dragonCounter->dragonCounter++;
+        $this->dragonCounter->incrementDragonCounter($this->character);
         $this->newDay->resetNewDay($this->character);
 
         if ($description !== null) {
@@ -231,7 +232,14 @@ class DragonTemplate implements SceneTemplateInterface
         $this->character->level = 1;
 
         $this->eventDispatcher->dispatch(
-            event: new CharacterChangeEvent($this->character, $characterBefore),
+            event: new CharacterChangeEvent(
+                $this->character,
+                $characterBefore,
+                $this->stage,
+                parameters: [
+                    self::OnCharacterResetDragonCounterParameter => $this->dragonCounter->getDragonCounter($this->character)
+                ]
+            ),
             eventName: self::OnCharacterReset
         );
     }
