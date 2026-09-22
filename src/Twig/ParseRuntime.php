@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace LotGD2\Twig;
 
 use Exception;
+use LotGD2\Game\Stage\ContextManager;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\ExpressionLanguage\ExpressionLanguage;
 use Symfony\Component\ExpressionLanguage\Parser;
@@ -22,6 +23,7 @@ class ParseRuntime implements RuntimeExtensionInterface
 
     public function __construct(
         private LoggerInterface $logger,
+        private readonly ContextManager $contextManager,
     ) {
         $this->twig = new Environment(new ArrayLoader([]), ['cache' => false]);
         $this->twig->addExtension(new SandboxExtension(new SecurityPolicy(
@@ -46,6 +48,7 @@ class ParseRuntime implements RuntimeExtensionInterface
         bool $useParagraphs = true,
     ): string {
         $text = $this->normalizeLineBreaks($text);
+        $context = [... $this->contextManager->getDefaultContext(), ... $context];
 
         $textParts = explode("\n", $text);
         $parsedText = "";

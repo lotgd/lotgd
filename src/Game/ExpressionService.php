@@ -92,13 +92,19 @@ class ExpressionService
                 "max" => 100000,
             ],
             "equipment" => [
-                "weapon"  => [
+                "weapon" => [
                     "type" => "string",
                 ],
-                "armor"  => [
+                "armor" => [
                     "type" => "string",
                 ],
             ],
+            "gender" => [
+                "pronouns" => [
+                    "type" => "string",
+                ],
+                ""
+            ]
         ];
     }
 
