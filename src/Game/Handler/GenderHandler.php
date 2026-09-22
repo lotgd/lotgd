@@ -18,18 +18,42 @@ class GenderHandler
     const string PartnerGenderProperty = "partner";
 
     const array PronounValues = ["male", "female", "other"];
+    const array PartnerValues = ["male", "female"];
 
     public function getPreferredPronouns(Character $character): string
     {
-        $pronouns = $character->getProperty(self::GenderProperty) ?? [];
-        if (isset($pronouns[self::PronounsGenderProperty])) {
-            $value = $pronouns[self::PronounsGenderProperty];
+        $gender = $character->getProperty(self::GenderProperty) ?? [];
+        if (isset($gender[self::PronounsGenderProperty])) {
+            $value = $gender[self::PronounsGenderProperty];
             if (in_array($value, self::PronounValues)) {
                 return $value;
             }
         }
 
         return "other";
+    }
+
+    public function getPreferredPartner(Character $character): string
+    {
+        $gender = $character->getProperty(self::GenderProperty) ?? [];
+        if (isset($gender[self::PartnerGenderProperty])) {
+            $value = $gender[self::PartnerGenderProperty];
+            if (in_array($value, self::PartnerValues)) {
+                return $value;
+            }
+        }
+
+        return "male";
+    }
+
+    public function prefersMale(Character $character): bool
+    {
+        return $this->getPreferredPartner($character) === "male";
+    }
+
+    public function prefersFemale(Character $character): bool
+    {
+        return $this->getPreferredPartner($character) === "female";
     }
 
     /**

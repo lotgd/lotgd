@@ -79,4 +79,38 @@ class GenderHandlerTest extends TestCase
 
         $genderHandler->onCharacterEdit($event);
     }
+
+    public function testIfPreferredPartnerIsMaleIfPropertyIsNotSet(): void
+    {
+        $genderHandler = new GenderHandler();
+        $character = $this->createMock(Character::class);
+        $character->expects($this->once())
+            ->method("getProperty")
+            ->with(GenderHandler::GenderProperty)
+            ->willReturn(null);
+
+        $this->assertSame("male", $genderHandler->getPreferredPartner($character));
+    }
+
+    #[TestWith(["male", "male"])]
+    #[TestWith(["female", "female"])]
+    #[TestWith(["other", "male"])]
+    #[TestWith(["hybrid", "male"])]
+    #[TestWith(["Male", "male"])]
+    #[TestWith([null, "male"])]
+    public function testIfPreferredPartnerIsExpectedValueIfPropertyIsSetAndPartnerFieldIsSet(
+        mixed $set,
+        string $expected,
+    ): void {
+        $genderHandler = new GenderHandler();
+        $character = $this->createMock(Character::class);
+        $character->expects($this->once())
+            ->method("getProperty")
+            ->with(GenderHandler::GenderProperty)
+            ->willReturn([
+                GenderHandler::PartnerGenderProperty => $set,
+            ]);
+
+        $this->assertSame($expected, $genderHandler->getPreferredPartner($character));
+    }
 }
