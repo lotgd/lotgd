@@ -18,9 +18,16 @@
                     <dt>context</dt>
                     <dd class="font-monospace preserve-breaks">{% if paragraph.context|length == 0 %}{}{% else %}{
                             {% for param, value in paragraph.context -%}
-                                &nbsp;- {{ param }}: {{ value|stringify }},
+                                {% if value is iterable -%}
+                                    - {{ param }}:
+                                    {% for p, v in value %}
+                                        -- {{ p }}: {{ v|stringify }},
+                                    {% endfor %}
+                                {% else -%}
+                                    - {{ param }}: {{ value|stringify }},
+                                {% endif -%}
                             {% endfor -%}
-                            }{% endif %}</dd>
+                            %}{% endif %}</dd>
                     <dt>kwargs</dt>
                     <dd class="font-monospace preserve-breaks">{% if paragraph.kwargs|length == 0 %}{}{% else %}{
                             {% for param, value in paragraph.kwargs -%}
