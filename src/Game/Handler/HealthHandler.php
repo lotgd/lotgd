@@ -157,6 +157,9 @@ readonly class HealthHandler
         $character = $character ?? $this->character;
         $turns = $turns ?? $this->getMaxTurns($character);
 
+        // Prevent turns from getting less than 0
+        $turns = max(0, $turns);
+
         $this->logger?->debug("{$character->id}: turns set to {$turns} (was {$this->getTurns($character)}) before).");
 
         $character->setProperty(static::Turns, $turns);
