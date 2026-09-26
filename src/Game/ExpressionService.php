@@ -5,6 +5,7 @@ namespace LotGD2\Game;
 
 use ErrorException;
 use LotGD2\Entity\Mapped\Character;
+use LotGD2\Game\Handler\CharmHandler;
 use LotGD2\Game\Handler\EquipmentHandler;
 use LotGD2\Game\Handler\GenderHandler;
 use LotGD2\Game\Handler\GoldHandler;
@@ -219,6 +220,7 @@ class ExpressionService
         $statsHandler = new StatsHandler($this->logger, $equipmentHandler, $character);
         $goldHandler = new GoldHandler($this->gameStateService, $this->logger, $character);
         $genderHandler = new GenderHandler();
+        $charmHandler = new CharmHandler($this->logger);
 
         return [
             "character" => (object)[
@@ -240,10 +242,11 @@ class ExpressionService
                 "weapon" => $equipmentHandler->getName(EquipmentHandler::WeaponSlot, $character),
                 "armor" => $equipmentHandler->getName(EquipmentHandler::ArmorSlot, $character),
             ],
-            "gender" => [
+            "gender" => (object)[
                 "pronouns" => $genderHandler->getPreferredPronouns($character),
                 "partner" => $genderHandler->getPreferredPartner($character),
             ],
+            "charm" => $charmHandler->getCharm($character),
         ];
     }
 
