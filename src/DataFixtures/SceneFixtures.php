@@ -11,11 +11,13 @@ use LotGD2\Form\Scene\SceneTemplate\BankTemplateType;
 use LotGD2\Form\Scene\SceneTemplate\DragonTemplateType;
 use LotGD2\Form\Scene\SceneTemplate\FightTemplateType;
 use LotGD2\Form\Scene\SceneTemplate\HealerTemplateType;
+use LotGD2\Form\Scene\SceneTemplate\InnTemplateType;
 use LotGD2\Form\Scene\SceneTemplate\TrainingTemplateType;
 use LotGD2\Game\Scene\SceneTemplate\BankTemplate;
 use LotGD2\Game\Scene\SceneTemplate\DragonTemplate;
 use LotGD2\Game\Scene\SceneTemplate\FightTemplate;
 use LotGD2\Game\Scene\SceneTemplate\HealerTemplate;
+use LotGD2\Game\Scene\SceneTemplate\InnTemplate;
 use LotGD2\Game\Scene\SceneTemplate\SimpleShopTemplate;
 use LotGD2\Game\Scene\SceneTemplate\TrainingTemplate;
 
@@ -288,6 +290,22 @@ class SceneFixtures extends Fixture
                 TXT,
                 templateClass: DragonTemplate::class,
                 templateConfig: new DragonTemplateType()->getDefaultData(),
+            ),
+            "inn" => new Scene(
+                title: 'The Boar\'s Head Inn',
+                description: <<<TXT
+                    You duck into a dim tavern that you know well. The pungent aroma of pipe tobacco fills the air.
+                    
+                    {% if gender.partner == 'male' %}
+                        You wave to several patrons that you know, and wink at {{ patron.male }}, {{ patronBanter.male }}.
+                    {% else %}
+                        You wave to several patrons that you know, and wink at {{ patron.female }}, {{ patronBanter.female }}.
+                    {% endif %}
+                    {{ innKeeper }} the innkeeper stands behind his counter, chatting with someone. You can't quite make out what he is
+                    saying, but it's something about {{ innKeeperBanter }}.
+                TXT,
+                templateClass: InnTemplate::class,
+                templateConfig: new InnTemplateType()->getDefaultData(),
             )
         ];
 
@@ -302,6 +320,9 @@ class SceneFixtures extends Fixture
 
         $villageToArmorsConnection = $scenes["village"]->connectTo($scenes["bank"], sourceLabel: "Ye Olde Bank", targetLabel: "Back to the village");
         $scenes["village"]->actionGroups->get(2)->addConnection($villageToArmorsConnection);
+
+        $villageToInnConnection = $scenes["village"]->connectTo($scenes["inn"], sourceLabel: "The Boar's Head", targetLabel: "Back to the village");
+        $scenes["village"]->actionGroups->get(3)->addConnection($villageToInnConnection);
 
         $forestToHealerConnection = $scenes["forest"]->connectTo($scenes["healer"], sourceLabel: "Healer's Hut", targetLabel: "Back to the forest");
         $scenes["forest"]->actionGroups->get(0)->addConnection($forestToHealerConnection);

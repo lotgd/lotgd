@@ -10,6 +10,7 @@ use LotGD2\Game\Scene\SceneTemplate\BankTemplate;
 use LotGD2\Game\Scene\SceneTemplate\DragonTemplate;
 use LotGD2\Game\Scene\SceneTemplate\FightTemplate;
 use LotGD2\Game\Scene\SceneTemplate\HealerTemplate;
+use LotGD2\Game\Scene\SceneTemplate\InnTemplate;
 use LotGD2\Game\Scene\SceneTemplate\SimpleShopTemplate;
 use LotGD2\Game\Scene\SceneTemplate\Special\StumbleSpecialTemplate;
 use LotGD2\Game\Scene\SceneTemplate\SpecialTemplate;
@@ -49,6 +50,7 @@ class SceneType extends AbstractType
             ->add("templateClass", ChoiceType::class, [
                 "choices" => [
                     "Bank" => BankTemplate::class,
+                    "Inn" => InnTemplate::class,
                     "Training Camp" => TrainingTemplate::class,
                     "Healer's Hut" => HealerTemplate::class,
                     "Dragon's Cave" => DragonTemplate::class,
