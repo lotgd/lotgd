@@ -6,8 +6,6 @@ namespace LotGD2\Form\DataObject;
 use LotGD2\Entity\DataObject\OptionalIntegerType;
 use LotGD2\Entity\DataObject\ValueRange;
 use Symfony\Component\Form\AbstractType;
-use Symfony\Component\Form\CallbackTransformer;
-use Symfony\Component\Form\Extension\Core\Type\IntegerType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 

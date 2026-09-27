@@ -4,6 +4,8 @@ declare(strict_types=1);
 namespace LotGD2\Tests\Repository;
 
 use LotGD2\Entity\DataObject\Chance;
+use LotGD2\Entity\DataObject\InnFlirtOption;
+use LotGD2\Entity\DataObject\ValueRange;
 use LotGD2\Entity\Mapped\Scene;
 use LotGD2\Game\Scene\SceneTemplate\SpecialTemplate;
 use LotGD2\Kernel;
@@ -14,7 +16,10 @@ use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 
 #[CoversClass(SceneRepository::class)]
 #[UsesClass(Kernel::class)]
+// These are required by the deserializer
 #[UsesClass(Chance::class)]
+#[UsesClass(InnFlirtOption::class)]
+#[UsesClass(ValueRange::class)]
 class SceneRepositoryTest extends KernelTestCase
 {
     use EntityManagerSetupTrait;
