@@ -5,7 +5,7 @@ namespace LotGD2\DataFixtures;
 
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Persistence\ObjectManager;
-use LotGD2\Entity\Chance;
+use LotGD2\Entity\DataObject\Chance;
 use LotGD2\Entity\Mapped\Scene;
 use LotGD2\Game\Scene\SceneTemplate\Special\StumbleSpecialTemplate;
 use LotGD2\Game\Scene\SceneTemplate\SpecialTemplate;

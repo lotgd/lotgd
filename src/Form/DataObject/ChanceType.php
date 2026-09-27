@@ -1,9 +1,9 @@
 <?php
 declare(strict_types=1);
 
-namespace LotGD2\Form;
+namespace LotGD2\Form\DataObject;
 
-use LotGD2\Entity\Chance;
+use LotGD2\Entity\DataObject\Chance;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\CallbackTransformer;
 use Symfony\Component\Form\Extension\Core\Type\NumberType;
@@ -62,7 +62,7 @@ class ChanceType extends AbstractType
         return "chance";
     }
 
-    public function configureOptions(OptionsResolver $resolver)
+    public function configureOptions(OptionsResolver $resolver): void
     {
         $resolver->setDefault("data_class", Chance::class);
         $resolver->setDefault("help", "Chance of something happening. Chance is given as x in y,

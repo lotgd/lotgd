@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace LotGD2\Tests\Repository;
 
+use LotGD2\Entity\DataObject\Chance;
 use LotGD2\Entity\Mapped\Scene;
 use LotGD2\Game\Scene\SceneTemplate\SpecialTemplate;
 use LotGD2\Kernel;
@@ -13,6 +14,7 @@ use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 
 #[CoversClass(SceneRepository::class)]
 #[UsesClass(Kernel::class)]
+#[UsesClass(Chance::class)]
 class SceneRepositoryTest extends KernelTestCase
 {
     use EntityManagerSetupTrait;

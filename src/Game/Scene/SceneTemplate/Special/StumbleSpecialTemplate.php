@@ -4,7 +4,7 @@ declare(strict_types=1);
 namespace LotGD2\Game\Scene\SceneTemplate\Special;
 
 use LotGD2\Attribute\TemplateType;
-use LotGD2\Entity\Chance;
+use LotGD2\Entity\DataObject\Chance;
 use LotGD2\Entity\Mapped\Stage;
 use LotGD2\Entity\Paragraph;
 use LotGD2\Form\Scene\SceneTemplate\Special\StumbleSpecialTemplateType;

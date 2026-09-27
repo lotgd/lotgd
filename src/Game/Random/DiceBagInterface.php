@@ -3,7 +3,7 @@ declare(strict_types=1);
 
 namespace LotGD2\Game\Random;
 
-use LotGD2\Entity\Chance;
+use LotGD2\Entity\DataObject\Chance;
 
 interface DiceBagInterface
 {

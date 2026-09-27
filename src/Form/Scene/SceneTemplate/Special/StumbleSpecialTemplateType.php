@@ -3,20 +3,16 @@ declare(strict_types=1);
 
 namespace LotGD2\Form\Scene\SceneTemplate\Special;
 
-use LotGD2\Entity\Chance;
-use LotGD2\Form\ChanceType;
+use LotGD2\Entity\DataObject\Chance;
 use LotGD2\Form\CharacterExpressionType;
+use LotGD2\Form\DataObject\ChanceType;
 use LotGD2\Form\GroupedFormType;
 use LotGD2\Form\TypeProvidesDefaultDataInterface;
 use LotGD2\Game\Scene\SceneTemplate\Special\StumbleSpecialTemplate;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
-use Symfony\Component\Form\Extension\Core\Type\NumberType;
-use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
-use Symfony\Component\Validator\Constraints\NotBlank;
-use Symfony\Component\Validator\Constraints\Range;
 use Symfony\Component\Validator\Constraints\Valid;
 
 /**

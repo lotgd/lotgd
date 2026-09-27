@@ -6,7 +6,7 @@ namespace LotGD2\Game\Scene\SceneTemplate;
 use LotGD2\Attribute\TemplateType;
 use LotGD2\Entity\Action;
 use LotGD2\Entity\ActionGroup;
-use LotGD2\Entity\Chance;
+use LotGD2\Entity\DataObject\Chance;
 use LotGD2\Entity\Mapped\Scene;
 use LotGD2\Entity\Mapped\Stage;
 use LotGD2\Entity\Paragraph;

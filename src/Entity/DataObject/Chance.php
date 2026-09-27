@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-namespace LotGD2\Entity;
+namespace LotGD2\Entity\DataObject;
 
 use Symfony\Component\Validator\Constraints\Range;
 

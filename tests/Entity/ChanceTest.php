@@ -3,7 +3,7 @@ declare(strict_types=1);
 
 namespace LotGD2\Tests\Entity;
 
-use LotGD2\Entity\Chance;
+use LotGD2\Entity\DataObject\Chance;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\TestWith;
 use PHPUnit\Framework\TestCase;
