@@ -24,12 +24,19 @@
         </div>
         <div class="col-9">
             {% for key, child in form.children %}
-                {{ form_errors(child) }}
-                <div class="input-group mb-3">
-                    <span class="input-group-text">{{ form_label(child) }}</span>
-                    {{ form_widget(child) }}
-                </div>
-                {{ form_help(child) }}
+                {# <div class="mb-3">
+                    {{ form_errors(child) }}
+                    <div class="input-group mb-1">
+                        {% if "checkbox" in child.vars.block_prefixes %}
+                            {{ form_widget(child) }}
+                        {% else %}
+                            <span class="input-group-text">{{ form_label(child) }}</span>
+                            {{ form_widget(child) }}
+                        {% endif %}
+                    </div>
+                    {{ form_help(child) }}
+                </div> #}
+                {{ form_row(child) }}
             {% endfor %}
         </div>
     </div>
