@@ -13,9 +13,11 @@ use LotGD2\Entity\Mapped\Stage;
 use LotGD2\Entity\Paragraph;
 use LotGD2\Event\CharacterChangeEvent;
 use LotGD2\Event\SimpleStageParameterEvent;
+use LotGD2\Event\StageChangeEvent;
 use LotGD2\Form\Scene\SceneTemplate\TrainingTemplateType;
 use LotGD2\Game\Battle\Battle;
 use LotGD2\Game\GameStateService;
+use LotGD2\Game\GameTime\NewDay;
 use LotGD2\Game\Handler\EquipmentHandler;
 use LotGD2\Game\Handler\GoldHandler;
 use LotGD2\Game\Handler\HealthHandler;
@@ -27,6 +29,7 @@ use LotGD2\Repository\MasterRepository;
 use Psr\Log\LoggerInterface;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\DependencyInjection\Attribute\Autoconfigure;
+use Symfony\Component\EventDispatcher\Attribute\AsEventListener;
 use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
 
 /**
@@ -438,5 +441,11 @@ class TrainingTemplate implements SceneTemplateInterface
 
         $event = new CharacterChangeEvent($character, $oldCharacter, $stage);
         $this->eventDispatcher->dispatch($event, self::OnCharacterLevelUp);
+    }
+
+    #[AsEventListener(event: NewDay::OnNewDayAfter)]
+    public function onNewDayEvent(StageChangeEvent $event): void
+    {
+        $this->setSeenMaster($event->character, false);
     }
 }
