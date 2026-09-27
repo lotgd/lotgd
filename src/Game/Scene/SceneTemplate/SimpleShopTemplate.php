@@ -41,6 +41,11 @@ class SimpleShopTemplate implements SceneTemplateInterface
     use DefaultSceneTemplate;
 
     const string ActionGroupShop = "lotgd.actionGroup.shop";
+    const array Paragraph = [
+        "peruse" => "lotgd2_paragraph_simpleShop_peruse",
+        "buy" => "lotgd2_paragraph_simpleShop_buy",
+        "boughtItemNotFound" => "lotgd2_paragraph_simpleShop_boughtItemNotFound",
+    ];
 
     public function __construct(
         private readonly AttachmentRepository $attachmentRepository,
@@ -74,9 +79,29 @@ class SimpleShopTemplate implements SceneTemplateInterface
     {
         $this->logger->debug("Called SimpleShopTemplate::peruseAction");
 
-        $slot = $this->scene->templateConfig["type"] === "armor" ? EquipmentHandler::ArmorSlot : EquipmentHandler::WeaponSlot;
+        $slot = ($this->scene->templateConfig["type"]??null) === "armor" ? EquipmentHandler::ArmorSlot : EquipmentHandler::WeaponSlot;
 
         $attachment = $this->attachmentRepository->findOneByAttachmentClass(SimpleShopAttachment::class);
+
+        if (is_null($attachment)) {
+            $this->logger->critical("SimpleShopAttachment disappeared (scene: {$this->scene->id})", context: [
+                "scene" => $this->scene,
+                "class" => SimpleShopAttachment::class,
+            ]);
+
+            $this->stage->paragraphs = [
+                new Paragraph(
+                    id: self::Paragraph["peruse"],
+                    text: <<<Twig
+                        You are shown the wares, but the shelves are all empty. Actually, the shelves are not really empty,
+                        its that the shelves themselves are ... not there. Its empty space. That is weird, you think. 
+                        Maybe you should ask the gods whats wrong?
+                        Twig,
+                )
+            ];
+            return;
+        }
+
         $this->logger->debug("Add SimpleShopAttachment (id={$attachment->id})");
 
         $buyAction = new Action($this->scene, parameters: ["op" => "buy"]);
@@ -86,8 +111,8 @@ class SimpleShopTemplate implements SceneTemplateInterface
 
         $this->stage->paragraphs = [
             new Paragraph(
-                id: "lotgd2.paragraph.dragonTemplate.epilogue",
-                text: $this->scene->templateConfig["text"]["peruse"],
+                id: self::Paragraph["peruse"],
+                text: $this->scene->templateConfig["text"]["peruse"] ?? "",
                 context: [
                     "amount" => $this->getTradeInValue($oldItem?->getValue() ?? 0),
                     "item" => $oldItem?->getName() ?? "Fists",
@@ -108,7 +133,7 @@ class SimpleShopTemplate implements SceneTemplateInterface
         $this->logger->debug("Called SimpleShopTemplate::buyAction");
 
         $itemId = $this->action->getParameters()[SimpleShopAttachment::ActionParameterName] ?? -1;
-        $inventory = $this->scene->templateConfig["items"];
+        $inventory = $this->scene->templateConfig["items"]??[];
         $item = $inventory[$itemId] ?? null;
 
         if (!isset($inventory[$itemId])) {
@@ -116,7 +141,7 @@ class SimpleShopTemplate implements SceneTemplateInterface
 
             $paragraph = new Paragraph(
                 id: "lotgd2.paragraph.shopTemplate.boughtItemNotFound",
-                text: $this->scene->templateConfig["text"]["itemNotFound"],
+                text: $this->scene->templateConfig["text"]["itemNotFound"] ?? "",
             );
         } else {
             $this->logger->debug("Buying item with number {$itemId}.");
@@ -135,7 +160,7 @@ class SimpleShopTemplate implements SceneTemplateInterface
                 $this->gold->addGold(null, -($equipmentItem->getValue() - $this->getTradeInValue($oldItem?->getValue() ?? 0)));
 
                 $paragraph = new Paragraph(
-                    id: "lotgd2.paragraph.shopTemplate.buy",
+                    id: self::Paragraph["buy"],
                     text: $this->scene->templateConfig["text"]["buy"],
                 );
             } else {
@@ -150,8 +175,8 @@ class SimpleShopTemplate implements SceneTemplateInterface
         $this->stage->paragraphs = [
             $paragraph,
             new Paragraph(
-                id: "lotgd2.paragraph.dragonTemplate.epilogue",
-                text: $this->scene->templateConfig["text"]["peruse"],
+                id: self::Paragraph["peruse"],
+                text: $this->scene->templateConfig["text"]["peruse"] ?? "",
                 context: [
                     "amount" => $this->getTradeInValue($oldItem?->getValue() ?? 0),
                     "item" => $oldItem?->getName() ?? "Fists",
