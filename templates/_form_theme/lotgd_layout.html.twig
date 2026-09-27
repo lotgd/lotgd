@@ -29,6 +29,14 @@
     </div>
 {% endblock %}
 
+{% block valueRange_widget %}
+    <div class="input-group mb-3">
+        {{ form_widget(form.minimum) }}
+        <span class="input-group-text">–</span>
+        {{ form_widget(form.maximum) }}
+    </div>
+{% endblock %}
+
 {% block character_expression_widget %}
     <div class="small">Probable lower extreme: <strong>{{ minimumValue }}</strong>, upper extreme: <strong>{{ maximumValue }}</strong></div>
     <div {{ stimulus_controller('form/CharacterExpressionType', {

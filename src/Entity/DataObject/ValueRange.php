@@ -10,13 +10,21 @@ class ValueRange
         public ?int $maximum,
     ) {
         // Switch values if maximum is smaller than minimum
-        if ($this->maximum < $this->minimum) {
+        if ($this->maximum !== null and $this->minimum !== null and $this->maximum < $this->minimum) {
             [$this->minimum, $this->maximum] = [$this->maximum, $this->minimum];
         }
     }
 
     public function isWithin(int $value): bool
     {
-        return $value >= $this->minimum and $value <= $this->maximum;
+        if ($this->minimum === null and $this->maximum === null) {
+            return true;
+        } elseif ($this->minimum === null) {
+            return $value <= $this->maximum;
+        } elseif ($this->maximum === null) {
+            return $value >= $this->minimum;
+        } else {
+            return $value >= $this->minimum and $value <= $this->maximum;
+        }
     }
 }
