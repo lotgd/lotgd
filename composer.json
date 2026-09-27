@@ -13,7 +13,6 @@
         "ext-xml": "*",
         "ext-dom": "*",
         "ext-simplexml": "*",
-        "ext-mysql": "*",
         "ext-pdo": "*",
         "ext-pdo_mysql": "*",
         "doctrine/doctrine-bundle": "^2.10",
