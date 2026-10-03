@@ -12,536 +12,556 @@ use LotGD2\Event\StageChangeEvent;
 use LotGD2\Game\Handler\DragonCounterHandler;
 use LotGD2\Game\Handler\HealthHandler;
 use LotGD2\Game\Handler\StatsHandler;
+use LotGD2\Game\Random\DiceBag;
 use LotGD2\Game\Random\DiceBagInterface;
 use LotGD2\Game\Stage\ActionService;
-use PhpParser\Builder\Property;
-use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\TestWith;
 use PHPUnit\Framework\Attributes\UsesClass;
 use PHPUnit\Framework\MockObject\Runtime\PropertyHook;
 use PHPUnit\Framework\TestCase;
-use PHPUnit\Framework\MockObject\MockObject;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Stopwatch\Stopwatch;
-use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
 
 #[CoversClass(DragonCounterHandler::class)]
 #[UsesClass(Action::class)]
+#[UsesClass(ActionGroup::class)]
+#[UsesClass(Character::class)]
+#[UsesClass(DiceBag::class)]
 #[UsesClass(Paragraph::class)]
-#[AllowMockObjectsWithoutExpectations]
+#[UsesClass(Stage::class)]
+#[UsesClass(StageChangeEvent::class)]
 class DragonCounterTest extends TestCase
 {
-    private DragonCounterHandler $dragonCounter;
-    private LoggerInterface&MockObject $logger;
-    private DiceBagInterface&MockObject $diceBag;
-    private Stopwatch&MockObject $stopwatch;
-    private Character&MockObject $character;
-    private StatsHandler&MockObject $stats;
-    private HealthHandler&MockObject $health;
-    private ActionService&MockObject $actionService;
+    /**
+     * @param array<int, array<string, mixed>>|null $choices
+     */
+    private function createCharacter(
+        ?string $name = "Hero",
+        ?int $id = 123,
+        ?int $dragonCounter = null,
+        ?array $choices = null,
+    ): Character {
+        $character = new Character(name: $name);
+        if ($id !== null) {
+            $reflection = new \ReflectionProperty(Character::class, "id");
+            $reflection->setValue($character, $id);
+        }
+        if ($dragonCounter !== null) {
+            $character->setProperty(DragonCounterHandler::CounterPropertyName, $dragonCounter);
+        }
+        if ($choices !== null) {
+            $character->setProperty(DragonCounterHandler::ChoicePropertyName, $choices);
+        }
 
-    protected function setUp(): void
-    {
-        $this->logger = $this->createMock(LoggerInterface::class);
-        $this->diceBag = $this->createMock(DiceBagInterface::class);
-        $this->stopwatch = $this->createMock(Stopwatch::class);
-        $this->character = $this->createMock(Character::class);
-        $this->health = $this->createMock(HealthHandler::class);
-        $this->stats = $this->createMock(StatsHandler::class);
-        $this->actionService = $this->createMock(ActionService::class);
+        return $character;
+    }
 
-        $this->dragonCounter = new DragonCounterHandler(
-            $this->logger,
-            $this->diceBag,
-            $this->stopwatch,
-            $this->character,
-            $this->health,
-            $this->stats,
-            $this->actionService,
+    private function createDragonCounterHandler(
+        ?LoggerInterface $logger = null,
+        ?DiceBagInterface $diceBag = null,
+        ?Stopwatch $stopwatch = null,
+        ?Character $character = null,
+        ?HealthHandler $health = null,
+        ?StatsHandler $stats = null,
+        ?ActionService $actionService = null,
+    ): DragonCounterHandler {
+        return new DragonCounterHandler(
+            $logger ?? $this->createStub(LoggerInterface::class),
+            $diceBag ?? $this->createStub(DiceBagInterface::class),
+            $stopwatch ?? $this->createStub(Stopwatch::class),
+            $character ?? $this->createCharacter(),
+            $health ?? $this->createStub(HealthHandler::class),
+            $stats ?? $this->createStub(StatsHandler::class),
+            $actionService ?? $this->createStub(ActionService::class),
         );
-    }
-
-    public function testDragonCounterGetterReturnsCorrectValue(): void
-    {
-        $this->character->expects($this->once())
-            ->method('getProperty')
-            ->with(DragonCounterHandler::CounterPropertyName, 0)
-            ->willReturn(5);
-
-        $this->assertEquals(5, $this->dragonCounter->dragonCounter);
-    }
-
-    public function testDragonCounterGetterReturnsDefaultValue(): void
-    {
-        $this->character->expects($this->once())
-            ->method('getProperty')
-            ->with(DragonCounterHandler::CounterPropertyName, 0)
-            ->willReturn(0);
-
-        $this->assertEquals(0, $this->dragonCounter->dragonCounter);
-    }
-
-    public function testDragonCounterSetterStoresValue(): void
-    {
-        $this->character->expects($this->atLeastOnce())
-            ->method(PropertyHook::get("id"))
-            ->willReturn(123);
-
-        $this->logger->expects($this->once())
-            ->method('debug')
-            ->with('123: Set dragon counter value to 7.');
-
-        $this->character->expects($this->once())
-            ->method('setProperty')
-            ->with(DragonCounterHandler::CounterPropertyName, 7);
-
-        $this->dragonCounter->dragonCounter = 7;
-    }
-
-    public function testChoicesGetterReturnsCorrectValue(): void
-    {
-        $expectedChoices = [
-            ['choice' => 'health', 'age' => 1],
-            ['choice' => 'strength', 'age' => 2]
-        ];
-
-        $this->character->expects($this->once())
-            ->method('getProperty')
-            ->with(DragonCounterHandler::ChoicePropertyName, [])
-            ->willReturn($expectedChoices);
-
-        $this->assertEquals($expectedChoices, $this->dragonCounter->choices);
-    }
-
-    public function testChoicesGetterReturnsDefaultEmptyArray(): void
-    {
-        $this->character->expects($this->once())
-            ->method('getProperty')
-            ->with(DragonCounterHandler::ChoicePropertyName, [])
-            ->willReturn([]);
-
-        $this->assertEquals([], $this->dragonCounter->choices);
-    }
-
-    public function testChoicesSetterStoresValue(): void
-    {
-        $choices = [['choice' => 'defense']];
-
-        $this->character->expects($this->once())
-            ->method('setProperty')
-            ->with(DragonCounterHandler::ChoicePropertyName, $choices);
-
-        $this->dragonCounter->choices = $choices;
-    }
-
-    public function testAddChoiceWithoutKwargs(): void
-    {
-        $existingChoices = [['choice' => 'health']];
-        $expectedChoices = [
-            ['choice' => 'health'],
-            ['choice' => 'strength']
-        ];
-
-        $this->character->expects($this->atLeastOnce())
-            ->method(PropertyHook::get("id"))
-            ->willReturn(456);
-
-        $this->character->expects($this->once())
-            ->method('getProperty')
-            ->with(DragonCounterHandler::ChoicePropertyName, [])
-            ->willReturn($existingChoices);
-
-        $this->logger->expects($this->once())
-            ->method('debug')
-            ->with('456: Add DragonCounter choice strength.', []);
-
-        $this->character->expects($this->once())
-            ->method('setProperty')
-            ->with(DragonCounterHandler::ChoicePropertyName, $expectedChoices);
-
-        $result = $this->dragonCounter->addChoice('strength');
-
-        $this->assertSame($this->dragonCounter, $result);
-    }
-
-    public function testAddChoiceWithKwargs(): void
-    {
-        $existingChoices = [];
-        $kwargs = ['age' => 5, 'bonus' => 'extra'];
-        $expectedChoices = [
-            ['choice' => 'defense', 'age' => 5, 'bonus' => 'extra']
-        ];
-
-        $this->character->expects($this->any())
-            ->method(PropertyHook::get("id"))
-            ->willReturn(789);
-
-        $this->character->expects($this->once())
-            ->method('getProperty')
-            ->with(DragonCounterHandler::ChoicePropertyName, [])
-            ->willReturn($existingChoices);
-
-        $this->logger->expects($this->once())
-            ->method('debug')
-            ->with('789: Add DragonCounter choice defense.', $kwargs);
-
-        $this->character->expects($this->once())
-            ->method('setProperty')
-            ->with(DragonCounterHandler::ChoicePropertyName, $expectedChoices);
-
-        $result = $this->dragonCounter->addChoice('defense', $kwargs);
-
-        $this->assertSame($this->dragonCounter, $result);
-    }
-
-    public function testOnNewDayEventWithHealthChoice(): void
-    {
-        $event = $this->createMock(StageChangeEvent::class);
-        $stage = $this->createMock(Stage::class);
-        $action = $this->createMock(Action::class);
-        $character = $this->character;
-
-        $action->parameters = ['dk' => 'health'];
-
-        $event->expects($this->atLeastOnce())
-            ->method(PropertyHook::get("character"))
-            ->willReturn($character);
-
-        $event->expects($this->atLeastOnce())
-            ->method(PropertyHook::get("action"))
-            ->willReturn($action);
-
-        $this->stopwatch->expects($this->exactly(1))
-            ->method('start')
-            ->with('lotgd2.DragonCounter.onNewDay');
-
-        $this->stopwatch->expects($this->exactly(1))
-            ->method('stop')
-            ->with('lotgd2.DragonCounter.onNewDay');
-
-        $this->health->expects($this->once())
-            ->method("addMaxHealth")
-            ->with(5);
-
-        $this->stats->expects($this->never())
-            ->method("setAttack");
-
-        $this->stats->expects($this->never())
-            ->method("setDefense");
-
-        // Expected to have property set
-        $character->expects($this->once())
-            ->method('setProperty')
-            ->with(DragonCounterHandler::ChoicePropertyName, [['choice' => 'health']]);
-
-        // Mock character properties for the DragonCounter instance
-        // Length of ChoiceProperty shoud match CounterProperty to have 0 points left.
-        $character->expects($this->atLeastOnce())
-            ->method('getProperty')
-            ->willReturnMap([
-                [DragonCounterHandler::CounterPropertyName, 0, 0]
-            ]);
-
-        // Mock for adding health
-        $character->expects($this->atLeastOnce())
-            ->method(PropertyHook::get("id"))
-            ->willReturn(999);
-
-        $this->dragonCounter->onNewDayEvent($event);
-    }
-
-    public function testOnNewDayEventWithStrengthChoice(): void
-    {
-        $event = $this->createMock(StageChangeEvent::class);
-        $stage = $this->createMock(Stage::class);
-        $action = $this->createMock(Action::class);
-        $character = $this->character;
-
-        $action->parameters = ['dk' => 'strength'];
-
-        $event->expects($this->atLeastOnce())
-            ->method(PropertyHook::get("character"))
-            ->willReturn($character);
-
-        $event->expects($this->atLeastOnce())
-            ->method(PropertyHook::get("action"))
-            ->willReturn($action);
-
-        $this->stopwatch->expects($this->exactly(1))
-            ->method('start')
-            ->with('lotgd2.DragonCounter.onNewDay');
-
-        $this->stopwatch->expects($this->exactly(1))
-            ->method('stop')
-            ->with('lotgd2.DragonCounter.onNewDay');
-
-        // Mock character properties
-        $character->expects($this->once())
-            ->method('setProperty')
-            ->willReturnMap([
-                [DragonCounterHandler::ChoicePropertyName, [['choice' => 'strength']], $character],
-            ]);
-
-        $this->stats->expects($this->exactly(1))
-            ->method("getAttack")
-            ->willReturn(10);
-
-        $this->stats->expects($this->exactly(1))
-            ->method("setAttack")
-            ->with(11);
-
-        $this->stats->expects($this->never())
-            ->method("setDefense");
-
-        $this->health->expects($this->never())
-            ->method("addMaxHealth");
-
-        // Mock for stats modification
-        $character->expects($this->atLeastOnce())
-            ->method(PropertyHook::get("id"))
-            ->willReturn(999);
-
-        $this->dragonCounter->onNewDayEvent($event);
-    }
-
-    public function testOnNewDayEventWithDefenseChoice(): void
-    {
-        $event = $this->createMock(StageChangeEvent::class);
-        $stage = $this->createMock(Stage::class);
-        $action = $this->createMock(Action::class);
-        $character = $this->character;
-
-        $action->parameters = ['dk' => 'defense'];
-
-        $event->expects($this->atLeastOnce())
-            ->method(PropertyHook::get("character"))
-            ->willReturn($character);
-
-        $event->expects($this->atLeastOnce())
-            ->method(PropertyHook::get("action"))
-            ->willReturn($action);
-
-        $this->stopwatch->expects($this->exactly(1))
-            ->method('start')
-            ->with('lotgd2.DragonCounter.onNewDay');
-
-        $this->stopwatch->expects($this->exactly(1))
-            ->method('stop')
-            ->with('lotgd2.DragonCounter.onNewDay');
-
-        // Mock character properties
-        $character->expects($this->once())
-            ->method('setProperty')
-            ->with(DragonCounterHandler::ChoicePropertyName, [['choice' => 'defense']]);
-
-        // Mock for stats modification
-        $this->stats->expects($this->exactly(1))
-            ->method("getDefense")
-            ->willReturn(10);
-
-        $this->stats->expects($this->exactly(1))
-            ->method("setDefense")
-            ->with(11);
-
-        $this->stats->expects($this->never())
-            ->method("setAttack");
-
-        $this->health->expects($this->never())
-            ->method("addMaxHealth");
-
-        $character->expects($this->atLeastOnce())
-            ->method(PropertyHook::get("id"))
-            ->willReturn(999);
-
-        $this->dragonCounter->onNewDayEvent($event);
-    }
-
-    public function testOnNewDayEventWithInvalidChoice(): void
-    {
-        $event = $this->createMock(StageChangeEvent::class);
-        $stage = $this->createMock(Stage::class);
-        $action = $this->createMock(Action::class);
-        $character = $this->character;
-
-        $action->parameters = ['dk' => 'invalid'];
-
-        $event->expects($this->atLeastOnce())
-            ->method(PropertyHook::get("character"))
-            ->willReturn($character);
-
-        $event->expects($this->atLeastOnce())
-            ->method(PropertyHook::get("action"))
-            ->willReturn($action);
-
-        $event->expects($this->atLeastOnce())
-            ->method(PropertyHook::get("stage"))
-            ->willReturn($stage);
-
-        $this->stopwatch->expects($this->exactly(1))
-            ->method('start')
-            ->with('lotgd2.DragonCounter.onNewDay');
-
-        $this->stopwatch->expects($this->exactly(1))
-            ->method('stop')
-            ->with('lotgd2.DragonCounter.onNewDay');
-
-        // Mock character properties
-        $character->expects($this->exactly(2))
-            ->method('getProperty')
-            ->willReturnMap([
-                [DragonCounterHandler::ChoicePropertyName, [], []],
-                [DragonCounterHandler::CounterPropertyName, 0, 1]
-            ]);
-
-        // Should NOT set property for invalid choice
-        $character->expects($this->never())
-            ->method('setProperty');
-
-        // Mock stage interactions - should still show dragon points screen
-        $stage->expects($this->once())
-            ->method(PropertyHook::set("title"))
-            ->with('Dragon points');
-
-        $stage->expects($this->once())
-            ->method(PropertyHook::set("paragraphs"))
-            ->willReturnCallback(function (array $paragraphs) {
-                $this->assertCount(1, $paragraphs);
-
-                /** @var Paragraph $paragraph */
-                $paragraph = $paragraphs[0];
-
-                $this->assertStringContainsString('You earn one dragon point each time you slay the dragon', $paragraph->text);
-                $this->assertArrayHasKey("dragonPointsLeft", $paragraph->context);
-                // No choice was made, so full dragon point remains
-                $this->assertSame(1, $paragraph->context["dragonPointsLeft"]);
-
-                return $paragraphs;
-            });
-
-        $event->expects($this->exactly(3))
-            ->method('addAction')
-            ->with(ActionGroup::EMPTY, $this->isInstanceOf(Action::class));
-
-        $event->expects($this->once())
-            ->method('setStopRender');
-
-        $this->dragonCounter->onNewDayEvent($event);
-    }
-
-    public function testOnNewDayEventWithoutDragonPointParameter(): void
-    {
-        $event = $this->createMock(StageChangeEvent::class);
-        $stage = $this->createMock(Stage::class);
-        $action = $this->createMock(Action::class);
-        $character = $this->character;
-
-        $action->parameters = []; // No 'dk' parameter
-
-        $event->expects($this->atLeastOnce())
-            ->method(PropertyHook::get("character"))
-            ->willReturn($character);
-
-        $event->expects($this->atLeastOnce())
-            ->method(PropertyHook::get("action"))
-            ->willReturn($action);
-
-        $event->expects($this->atLeastOnce())
-            ->method(PropertyHook::get("stage"))
-            ->willReturn($stage);
-
-        $this->stopwatch->expects($this->exactly(1))
-            ->method('start')
-            ->with('lotgd2.DragonCounter.onNewDay');
-
-        $this->stopwatch->expects($this->exactly(1))
-            ->method('stop')
-            ->with('lotgd2.DragonCounter.onNewDay');
-
-        // Mock character properties
-        $character->expects($this->exactly(2))
-            ->method('getProperty')
-            ->willReturnMap([
-                [DragonCounterHandler::ChoicePropertyName, [], []],
-                [DragonCounterHandler::CounterPropertyName, 0, 1]
-            ]);
-
-        // Should NOT set any properties since no choice was made
-        $character->expects($this->never())
-            ->method('setProperty');
-
-        // Mock stage interactions
-        $stage->expects($this->once())
-            ->method(PropertyHook::set("title"))
-            ->with('Dragon points');
-
-        $stage->expects($this->once())
-            ->method(PropertyHook::set("paragraphs"))
-            ->willReturnCallback(function (array $paragraphs) {
-                $this->assertCount(1, $paragraphs);
-
-                /** @var Paragraph $paragraph */
-                $paragraph = $paragraphs[0];
-
-                $this->assertArrayHasKey("dragonPointsLeft", $paragraph->context);
-                $this->assertSame(1, $paragraph->context["dragonPointsLeft"]);
-
-                return $paragraphs;
-            });
-
-        $event->expects($this->exactly(3))
-            ->method('addAction');
-
-        $event->expects($this->once())
-            ->method('setStopRender');
-
-        $this->dragonCounter->onNewDayEvent($event);
-    }
-
-    public function testOnNewDayEventWithNoDragonPointsLeft(): void
-    {
-        $event = $this->createMock(StageChangeEvent::class);
-        $action = $this->createMock(Action::class);
-        $character = $this->character;
-
-        $action->parameters = [];
-
-        $event->expects($this->atLeastOnce())
-            ->method(PropertyHook::get("character"))
-            ->willReturn($character);
-
-        $event->expects($this->atLeastOnce())
-            ->method(PropertyHook::get("action"))
-            ->willReturn($action);
-
-        $this->stopwatch->expects($this->exactly(1))
-            ->method('start')
-            ->with('lotgd2.DragonCounter.onNewDay');
-
-        $this->stopwatch->expects($this->exactly(1))
-            ->method('stop')
-            ->with('lotgd2.DragonCounter.onNewDay');
-
-        // Mock character properties - dragon counter matches choices count
-        $character->expects($this->exactly(2))
-            ->method('getProperty')
-            ->willReturnMap([
-                [DragonCounterHandler::ChoicePropertyName, [], [['choice' => 'health']]],
-                [DragonCounterHandler::CounterPropertyName, 0, 1]
-            ]);
-
-        // Should NOT interact with stage since dragon points left < 0
-        $event->expects($this->never())
-            ->method('addAction');
-
-        $event->expects($this->never())
-            ->method('setStopRender');
-
-        $this->dragonCounter->onNewDayEvent($event);
     }
 
     public function testConstants(): void
     {
-        $this->assertEquals("dragonCounter", DragonCounterHandler::CounterPropertyName);
-        $this->assertEquals("dragonCounterChoice", DragonCounterHandler::ChoicePropertyName);
+        $this->assertSame("dragonCounter", DragonCounterHandler::CounterPropertyName);
+        $this->assertSame("dragonCounterChoice", DragonCounterHandler::ChoicePropertyName);
+    }
+
+    public function testGetDragonCounterReturnsZeroByDefault(): void
+    {
+        $character = $this->createCharacter();
+        $handler = $this->createDragonCounterHandler();
+
+        $this->assertSame(0, $handler->getDragonCounter($character));
+    }
+
+    public function testGetDragonCounterReturnsZeroWhenPropertyIsNull(): void
+    {
+        $character = $this->createCharacter();
+        $character->setProperty(DragonCounterHandler::CounterPropertyName, null);
+        $handler = $this->createDragonCounterHandler();
+
+        $this->assertSame(0, $handler->getDragonCounter($character));
+    }
+
+    #[TestWith([0])]
+    #[TestWith([1])]
+    #[TestWith([5])]
+    #[TestWith([10])]
+    public function testGetDragonCounterReturnsStoredValue(int $counterValue): void
+    {
+        $character = $this->createCharacter(dragonCounter: $counterValue);
+        $handler = $this->createDragonCounterHandler();
+
+        $this->assertSame($counterValue, $handler->getDragonCounter($character));
+    }
+
+    public function testSetDragonCounterLogsAndSetsProperty(): void
+    {
+        $character = $this->createCharacter(id: 42);
+
+        $logger = $this->createMock(LoggerInterface::class);
+        $logger->expects($this->once())
+            ->method("debug")
+            ->with("42: Set dragon counter value to 7.");
+
+        $handler = $this->createDragonCounterHandler(logger: $logger);
+        $handler->setDragonCounter($character, 7);
+
+        $this->assertSame(7, $character->getProperty(DragonCounterHandler::CounterPropertyName));
+        $this->assertSame(7, $handler->getDragonCounter($character));
+    }
+
+    #[TestWith([null, 1])]
+    #[TestWith([0, 1])]
+    #[TestWith([3, 4])]
+    #[TestWith([10, 11])]
+    public function testIncrementDragonCounterLogsAndIncrementsValue(?int $initialCounter, int $expectedCounter): void
+    {
+        $character = $this->createCharacter(id: 99, dragonCounter: $initialCounter);
+
+        $logger = $this->createMock(LoggerInterface::class);
+        $logger->expects($this->once())
+            ->method("debug")
+            ->with("99: Increment dragon counter by 1.");
+
+        $handler = $this->createDragonCounterHandler(logger: $logger);
+        $handler->incrementDragonCounter($character);
+
+        $this->assertSame($expectedCounter, $character->getProperty(DragonCounterHandler::CounterPropertyName));
+        $this->assertSame($expectedCounter, $handler->getDragonCounter($character));
+    }
+
+    public function testDragonCounterPropertyGetterReturnsStoredValue(): void
+    {
+        $character = $this->createCharacter(dragonCounter: 5);
+        $handler = $this->createDragonCounterHandler(character: $character);
+
+        $this->assertSame(5, $handler->dragonCounter);
+    }
+
+    public function testDragonCounterPropertyGetterReturnsZeroByDefault(): void
+    {
+        $character = $this->createCharacter();
+        $handler = $this->createDragonCounterHandler(character: $character);
+
+        $this->assertSame(0, $handler->dragonCounter);
+    }
+
+    public function testDragonCounterPropertyGetterReturnsZeroWhenNull(): void
+    {
+        $character = $this->createCharacter();
+        $character->setProperty(DragonCounterHandler::CounterPropertyName, null);
+        $handler = $this->createDragonCounterHandler(character: $character);
+
+        $this->assertSame(0, $handler->dragonCounter);
+    }
+
+    public function testDragonCounterPropertySetterStoresValueAndLogs(): void
+    {
+        $character = $this->createCharacter(id: 123);
+
+        $logger = $this->createMock(LoggerInterface::class);
+        $logger->expects($this->once())
+            ->method("debug")
+            ->with("123: Set dragon counter value to 7.");
+
+        $handler = $this->createDragonCounterHandler(logger: $logger, character: $character);
+        $handler->dragonCounter = 7;
+
+        $this->assertSame(7, $character->getProperty(DragonCounterHandler::CounterPropertyName));
+        $this->assertSame(7, $handler->dragonCounter);
+    }
+
+    public function testChoicesGetterReturnsStoredChoices(): void
+    {
+        $choices = [
+            ["choice" => "health", "age" => 1],
+            ["choice" => "strength", "age" => 2],
+        ];
+        $character = $this->createCharacter(choices: $choices);
+        $handler = $this->createDragonCounterHandler(character: $character);
+
+        $this->assertSame($choices, $handler->choices);
+    }
+
+    public function testChoicesGetterReturnsEmptyArrayByDefault(): void
+    {
+        $character = $this->createCharacter();
+        $handler = $this->createDragonCounterHandler(character: $character);
+
+        $this->assertSame([], $handler->choices);
+    }
+
+    public function testChoicesGetterReturnsEmptyArrayWhenNull(): void
+    {
+        $character = $this->createCharacter();
+        $character->setProperty(DragonCounterHandler::ChoicePropertyName, null);
+        $handler = $this->createDragonCounterHandler(character: $character);
+
+        $this->assertSame([], $handler->choices);
+    }
+
+    public function testChoicesSetterStoresValue(): void
+    {
+        $choices = [["choice" => "defense"]];
+        $character = $this->createCharacter();
+        $handler = $this->createDragonCounterHandler(character: $character);
+
+        $handler->choices = $choices;
+
+        $this->assertSame($choices, $character->getProperty(DragonCounterHandler::ChoicePropertyName));
+        $this->assertSame($choices, $handler->choices);
+    }
+
+    public function testAddChoiceWithoutKwargs(): void
+    {
+        $character = $this->createCharacter(id: 456, choices: [["choice" => "health"]]);
+
+        $logger = $this->createMock(LoggerInterface::class);
+        $logger->expects($this->once())
+            ->method("debug")
+            ->with("456: Add DragonCounter choice strength.", []);
+
+        $handler = $this->createDragonCounterHandler(logger: $logger, character: $character);
+        $result = $handler->addChoice("strength");
+
+        $this->assertSame($handler, $result);
+        $this->assertSame([
+            ["choice" => "health"],
+            ["choice" => "strength"],
+        ], $character->getProperty(DragonCounterHandler::ChoicePropertyName));
+    }
+
+    public function testAddChoiceWithKwargs(): void
+    {
+        $character = $this->createCharacter(id: 789);
+        $kwargs = ["age" => 5, "bonus" => "extra"];
+
+        $logger = $this->createMock(LoggerInterface::class);
+        $logger->expects($this->once())
+            ->method("debug")
+            ->with("789: Add DragonCounter choice defense.", $kwargs);
+
+        $handler = $this->createDragonCounterHandler(logger: $logger, character: $character);
+        $result = $handler->addChoice("defense", $kwargs);
+
+        $this->assertSame($handler, $result);
+        $this->assertSame([
+            ["choice" => "defense", "age" => 5, "bonus" => "extra"],
+        ], $character->getProperty(DragonCounterHandler::ChoicePropertyName));
+    }
+
+    public function testOnNewDayEventWithHealthChoiceAndRemainingPoints(): void
+    {
+        $character = $this->createCharacter(id: 999, dragonCounter: 2);
+        $stage = new Stage(owner: $character);
+        $action = new Action(parameters: ["dk" => "health"]);
+
+        $event = $this->createMock(StageChangeEvent::class);
+        $event->method(PropertyHook::get("character"))->willReturn($character);
+        $event->method(PropertyHook::get("action"))->willReturn($action);
+        $event->method(PropertyHook::get("stage"))->willReturn($stage);
+
+        $stopwatch = $this->createMock(Stopwatch::class);
+        $stopwatch->expects($this->once())->method("start")->with("lotgd2.DragonCounter.onNewDay");
+        $stopwatch->expects($this->once())->method("stop")->with("lotgd2.DragonCounter.onNewDay");
+
+        $health = $this->createMock(HealthHandler::class);
+        $health->expects($this->once())->method("addMaxHealth")->with(5, $character);
+
+        $stats = $this->createMock(StatsHandler::class);
+        $stats->expects($this->never())->method("setAttack");
+        $stats->expects($this->never())->method("setDefense");
+
+        $diceBag = $this->createStub(DiceBagInterface::class);
+
+        $actionService = $this->createMock(ActionService::class);
+        $actionService->expects($this->once())->method("resetActionGroups")->with($stage);
+
+        $event->expects($this->exactly(3))
+            ->method("addAction")
+            ->with(ActionGroup::EMPTY, $this->isInstanceOf(Action::class))
+            ->willReturnSelf();
+
+        $event->expects($this->once())->method("setStopRender");
+
+        $handler = $this->createDragonCounterHandler(
+            diceBag: $diceBag,
+            stopwatch: $stopwatch,
+            character: $character,
+            health: $health,
+            stats: $stats,
+            actionService: $actionService,
+        );
+
+        $handler->onNewDayEvent($event);
+
+        $this->assertSame([["choice" => "health"]], $character->getProperty(DragonCounterHandler::ChoicePropertyName));
+        $this->assertSame("Dragon points", $stage->title);
+        $this->assertArrayHasKey("lotgd.paragraph.DragonCounter.dragonPointsLeft", $stage->paragraphs);
+
+        $paragraph = $stage->paragraphs["lotgd.paragraph.DragonCounter.dragonPointsLeft"];
+        $this->assertInstanceOf(Paragraph::class, $paragraph);
+        $this->assertSame("lotgd.paragraph.DragonCounter.dragonPointsLeft", $paragraph->id);
+        $this->assertSame(1, $paragraph->context["dragonPointsLeft"]);
+        $this->assertStringContainsString("You earn one dragon point each time you slay the dragon", $paragraph->text);
+    }
+
+    public function testOnNewDayEventWithStrengthChoiceAndNoRemainingPoints(): void
+    {
+        $character = $this->createCharacter(id: 999, dragonCounter: 1);
+        $stage = new Stage(owner: $character);
+        $action = new Action(parameters: ["dk" => "strength"]);
+
+        $event = $this->createMock(StageChangeEvent::class);
+        $event->method(PropertyHook::get("character"))->willReturn($character);
+        $event->method(PropertyHook::get("action"))->willReturn($action);
+
+        $stopwatch = $this->createMock(Stopwatch::class);
+        $stopwatch->expects($this->once())->method("start")->with("lotgd2.DragonCounter.onNewDay");
+        $stopwatch->expects($this->once())->method("stop")->with("lotgd2.DragonCounter.onNewDay");
+
+        $health = $this->createMock(HealthHandler::class);
+        $health->expects($this->never())->method("addMaxHealth");
+
+        $stats = $this->createMock(StatsHandler::class);
+        $stats->expects($this->once())->method("getAttack")->willReturn(10);
+        $stats->expects($this->once())->method("setAttack")->with(11, $character);
+        $stats->expects($this->never())->method("setDefense");
+
+        $actionService = $this->createMock(ActionService::class);
+        $actionService->expects($this->never())->method("resetActionGroups");
+
+        $event->expects($this->never())->method("addAction");
+        $event->expects($this->never())->method("setStopRender");
+
+        $handler = $this->createDragonCounterHandler(
+            stopwatch: $stopwatch,
+            character: $character,
+            health: $health,
+            stats: $stats,
+            actionService: $actionService,
+        );
+
+        $handler->onNewDayEvent($event);
+
+        $this->assertSame([["choice" => "strength"]], $character->getProperty(DragonCounterHandler::ChoicePropertyName));
+    }
+
+    public function testOnNewDayEventWithDefenseChoiceAndNoRemainingPoints(): void
+    {
+        $character = $this->createCharacter(id: 999, dragonCounter: 1);
+        $stage = new Stage(owner: $character);
+        $action = new Action(parameters: ["dk" => "defense"]);
+
+        $event = $this->createMock(StageChangeEvent::class);
+        $event->method(PropertyHook::get("character"))->willReturn($character);
+        $event->method(PropertyHook::get("action"))->willReturn($action);
+
+        $stopwatch = $this->createMock(Stopwatch::class);
+        $stopwatch->expects($this->once())->method("start")->with("lotgd2.DragonCounter.onNewDay");
+        $stopwatch->expects($this->once())->method("stop")->with("lotgd2.DragonCounter.onNewDay");
+
+        $health = $this->createMock(HealthHandler::class);
+        $health->expects($this->never())->method("addMaxHealth");
+
+        $stats = $this->createMock(StatsHandler::class);
+        $stats->expects($this->once())->method("getDefense")->willReturn(10);
+        $stats->expects($this->once())->method("setDefense")->with(11, $character);
+        $stats->expects($this->never())->method("setAttack");
+
+        $actionService = $this->createMock(ActionService::class);
+        $actionService->expects($this->never())->method("resetActionGroups");
+
+        $event->expects($this->never())->method("addAction");
+        $event->expects($this->never())->method("setStopRender");
+
+        $handler = $this->createDragonCounterHandler(
+            stopwatch: $stopwatch,
+            character: $character,
+            health: $health,
+            stats: $stats,
+            actionService: $actionService,
+        );
+
+        $handler->onNewDayEvent($event);
+
+        $this->assertSame([["choice" => "defense"]], $character->getProperty(DragonCounterHandler::ChoicePropertyName));
+    }
+
+    public function testOnNewDayEventWithInvalidChoiceShowsScreenWhenPointsRemaining(): void
+    {
+        $character = $this->createCharacter(id: 999, dragonCounter: 1);
+        $stage = new Stage(owner: $character);
+        $action = new Action(parameters: ["dk" => "invalid_option"]);
+
+        $event = $this->createMock(StageChangeEvent::class);
+        $event->method(PropertyHook::get("character"))->willReturn($character);
+        $event->method(PropertyHook::get("action"))->willReturn($action);
+        $event->method(PropertyHook::get("stage"))->willReturn($stage);
+
+        $stopwatch = $this->createMock(Stopwatch::class);
+        $stopwatch->expects($this->once())->method("start")->with("lotgd2.DragonCounter.onNewDay");
+        $stopwatch->expects($this->once())->method("stop")->with("lotgd2.DragonCounter.onNewDay");
+
+        $health = $this->createMock(HealthHandler::class);
+        $health->expects($this->never())->method("addMaxHealth");
+
+        $stats = $this->createMock(StatsHandler::class);
+        $stats->expects($this->never())->method("setAttack");
+        $stats->expects($this->never())->method("setDefense");
+
+        $diceBag = $this->createStub(DiceBagInterface::class);
+
+        $actionService = $this->createMock(ActionService::class);
+        $actionService->expects($this->once())->method("resetActionGroups")->with($stage);
+
+        $addedActions = [];
+        $event->expects($this->exactly(3))
+            ->method("addAction")
+            ->willReturnCallback(function (string $group, Action $action) use (&$addedActions, $event) {
+                $this->assertSame(ActionGroup::EMPTY, $group);
+                $addedActions[] = $action;
+                return $event;
+            });
+
+        $event->expects($this->once())->method("setStopRender");
+
+        $handler = $this->createDragonCounterHandler(
+            diceBag: $diceBag,
+            stopwatch: $stopwatch,
+            character: $character,
+            health: $health,
+            stats: $stats,
+            actionService: $actionService,
+        );
+
+        $handler->onNewDayEvent($event);
+
+        $this->assertSame([], $character->getProperty(DragonCounterHandler::ChoicePropertyName, []));
+        $this->assertSame("Dragon points", $stage->title);
+        $this->assertArrayHasKey("lotgd.paragraph.DragonCounter.dragonPointsLeft", $stage->paragraphs);
+
+        $paragraph = $stage->paragraphs["lotgd.paragraph.DragonCounter.dragonPointsLeft"];
+        $this->assertInstanceOf(Paragraph::class, $paragraph);
+        $this->assertSame(1, $paragraph->context["dragonPointsLeft"]);
+
+        $this->assertCount(3, $addedActions);
+        $this->assertSame("+5 Health", $addedActions[0]->title);
+        $this->assertSame(["dk" => "health"], $addedActions[0]->parameters);
+        $this->assertSame("lotgd2.action.DragonCounter.health", $addedActions[0]->reference);
+
+        $this->assertSame("+1 Strength", $addedActions[1]->title);
+        $this->assertSame(["dk" => "strength"], $addedActions[1]->parameters);
+        $this->assertSame("lotgd2.action.DragonCounter.strength", $addedActions[1]->reference);
+
+        $this->assertSame("+1 Defense", $addedActions[2]->title);
+        $this->assertSame(["dk" => "defense"], $addedActions[2]->parameters);
+        $this->assertSame("lotgd2.action.DragonCounter.defense", $addedActions[2]->reference);
+    }
+
+    public function testOnNewDayEventWithoutDkParameterShowsScreenWhenPointsRemaining(): void
+    {
+        $character = $this->createCharacter(id: 999, dragonCounter: 2, choices: [["choice" => "health"]]);
+        $stage = new Stage(owner: $character);
+        $action = new Action(parameters: []);
+
+        $event = $this->createMock(StageChangeEvent::class);
+        $event->method(PropertyHook::get("character"))->willReturn($character);
+        $event->method(PropertyHook::get("action"))->willReturn($action);
+        $event->method(PropertyHook::get("stage"))->willReturn($stage);
+
+        $stopwatch = $this->createMock(Stopwatch::class);
+        $stopwatch->expects($this->once())->method("start")->with("lotgd2.DragonCounter.onNewDay");
+        $stopwatch->expects($this->once())->method("stop")->with("lotgd2.DragonCounter.onNewDay");
+
+        $health = $this->createMock(HealthHandler::class);
+        $health->expects($this->never())->method("addMaxHealth");
+
+        $stats = $this->createMock(StatsHandler::class);
+        $stats->expects($this->never())->method("setAttack");
+        $stats->expects($this->never())->method("setDefense");
+
+        $diceBag = $this->createStub(DiceBagInterface::class);
+
+        $actionService = $this->createMock(ActionService::class);
+        $actionService->expects($this->once())->method("resetActionGroups")->with($stage);
+
+        $event->expects($this->exactly(3))
+            ->method("addAction")
+            ->with(ActionGroup::EMPTY, $this->isInstanceOf(Action::class))
+            ->willReturnSelf();
+
+        $event->expects($this->once())->method("setStopRender");
+
+        $handler = $this->createDragonCounterHandler(
+            diceBag: $diceBag,
+            stopwatch: $stopwatch,
+            character: $character,
+            health: $health,
+            stats: $stats,
+            actionService: $actionService,
+        );
+
+        $handler->onNewDayEvent($event);
+
+        $this->assertSame("Dragon points", $stage->title);
+        $this->assertArrayHasKey("lotgd.paragraph.DragonCounter.dragonPointsLeft", $stage->paragraphs);
+        $paragraph = $stage->paragraphs["lotgd.paragraph.DragonCounter.dragonPointsLeft"];
+        $this->assertSame(1, $paragraph->context["dragonPointsLeft"]);
+    }
+
+    public function testOnNewDayEventWithNoPointsLeftDoesNotModifyStageOrAddActions(): void
+    {
+        $character = $this->createCharacter(id: 999, dragonCounter: 1, choices: [["choice" => "health"]]);
+        $action = new Action(parameters: []);
+
+        $event = $this->createMock(StageChangeEvent::class);
+        $event->method(PropertyHook::get("character"))->willReturn($character);
+        $event->method(PropertyHook::get("action"))->willReturn($action);
+
+        $stopwatch = $this->createMock(Stopwatch::class);
+        $stopwatch->expects($this->once())->method("start")->with("lotgd2.DragonCounter.onNewDay");
+        $stopwatch->expects($this->once())->method("stop")->with("lotgd2.DragonCounter.onNewDay");
+
+        $health = $this->createMock(HealthHandler::class);
+        $health->expects($this->never())->method("addMaxHealth");
+
+        $stats = $this->createMock(StatsHandler::class);
+        $stats->expects($this->never())->method("setAttack");
+        $stats->expects($this->never())->method("setDefense");
+
+        $actionService = $this->createMock(ActionService::class);
+        $actionService->expects($this->never())->method("resetActionGroups");
+
+        $event->expects($this->never())->method("addAction");
+        $event->expects($this->never())->method("setStopRender");
+
+        $handler = $this->createDragonCounterHandler(
+            stopwatch: $stopwatch,
+            character: $character,
+            health: $health,
+            stats: $stats,
+            actionService: $actionService,
+        );
+
+        $handler->onNewDayEvent($event);
     }
 }
