@@ -6,26 +6,48 @@ namespace LotGD2\Game\Scene\SceneTemplate;
 use LotGD2\Attribute\TemplateType;
 use LotGD2\Entity\Action;
 use LotGD2\Entity\ActionGroup;
+use LotGD2\Entity\Battle\Buff;
 use LotGD2\Entity\DataObject\InnFlirtOption;
 use LotGD2\Entity\Mapped\Character;
 use LotGD2\Entity\Mapped\Stage;
 use LotGD2\Entity\Paragraph;
+use LotGD2\Event\FormExtensionEvent;
 use LotGD2\Event\StageChangeEvent;
+use LotGD2\Form\GroupedFormType;
 use LotGD2\Form\Scene\SceneTemplate\InnTemplateType;
+use LotGD2\Game\ExpressionService;
+use LotGD2\Game\GameStateService;
 use LotGD2\Game\GameTime\NewDay;
+use LotGD2\Game\Handler\BuffHandler;
 use LotGD2\Game\Handler\CharmHandler;
 use LotGD2\Game\Handler\GenderHandler;
+use LotGD2\Game\Handler\GoldHandler;
 use LotGD2\Game\Handler\HealthHandler;
 use LotGD2\Game\Random\DiceBagInterface;
+use LotGD2\Twig\Component\Admin\GameSettings;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\DependencyInjection\Attribute\Autoconfigure;
 use Symfony\Component\EventDispatcher\Attribute\AsEventListener;
+use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
+use Symfony\Component\Form\Extension\Core\Type\IntegerType;
+use Symfony\Component\Validator\Constraints\NotBlank;
+use Symfony\Component\Validator\Constraints\Range;
 
 /**
  * @phpstan-type InnTemplateConfiguration array{
  *      innName: string,
- *      innKeeper: string,
- *      innKeeperBanter: string,
+ *      innKeeper: array{
+ *          name: string,
+ *          banter: string,
+ *          offerAlcohol: bool,
+ *          alcoholPrice: string,
+ *          drunkennessAmount: int,
+ *          drunkennessLimit: int,
+ *          texts: array{
+ *             intro: string,
+ *             buyAlcohol: string,
+ *          },
+ *      },
  *      minCharmPoints: int,
  *      maxCharmPoints: int,
  *      malePatron: array{
@@ -69,6 +91,11 @@ use Symfony\Component\EventDispatcher\Attribute\AsEventListener;
  *      innKeeperBanter: string,
  *  }
  * @implements SceneTemplateInterface<InnTemplateConfiguration>
+ * @phpstan-import-type GameSettingsDataType from GameSettings
+ * @phpstan-type DrunkennessGameSetting array{
+ *     hangOverLimit: int,
+ *     allowAlcohol: bool,
+ * }
  */
 #[Autoconfigure(public: true)]
 #[TemplateType(InnTemplateType::class)]
@@ -80,6 +107,7 @@ class InnTemplate implements SceneTemplateInterface
         "chat" => "lotgd2_actionGroup_innTemplate_chat",
         "femalePatron" => "lotgd2_actionGroup_innTemplate_femalePatron",
         "malePatron" => "lotgd2_actionGroup_innTemplate_malePatron",
+        "innKeeper" => "lotgd2_actionGroup_innTemplate_innKeeper",
     ];
 
     const array Action = [
@@ -99,19 +127,34 @@ class InnTemplate implements SceneTemplateInterface
         "otherBanter" =>"lotgd2_paragraph_inn_banter_others",
         "femaleBanter" =>"lotgd2_paragraph_inn_female_banter",
         "maleBanter" =>"lotgd2_paragraph_inn_male_banter",
+        "innKeeper" => "lotgd2_paragraph_inn_newday_innKeeper",
+        "drunkAlcohol" => "lotgd2_paragraph_inn_newday_drunkAlcohol",
         "exhausted" => "lotgd2_paragraph_inn_exhausted",
+        "hangover" => "lotgd2_paragraph_inn_newday_hangover",
     ];
 
     const string SeenLoverProperty = "lotgd2_property_innTemplate_seenMaster";
+    const string DrunkenessProperty = "lotgd2_property_innTemplate_drunkeness";
+    const string GameSettingProperty = "lotgd2_innTemplate";
+    const string DrunkennessBuffId = "lotgd2_buff_innTemplate_drunkenness";
+
+    /**
+     * @var DrunkennessGameSetting
+     */
+    private array $drunkennessGameSetting;
 
     public function __construct(
         private readonly LoggerInterface $logger,
         private readonly DiceBagInterface $diceBag,
+        private readonly ExpressionService $expressionService,
+        private readonly GameStateService $gameStateService,
         private readonly GenderHandler $genderHandler,
         private readonly CharmHandler $charmHandler,
         private readonly HealthHandler $healthHandler,
+        private readonly GoldHandler $goldHandler,
+        private readonly BuffHandler $buffHandler,
     ) {
-
+        $this->drunkennessGameSetting = $this->gameStateService->getSetting(self::GameSettingProperty, []);
     }
 
     public function onSceneChange(): void
@@ -124,6 +167,7 @@ class InnTemplate implements SceneTemplateInterface
             "otherPatrons" => $this->otherPatronsAction(),
             "femalePatron" => $this->femalePatronAction(),
             "malePatron" => $this->malePatronAction(),
+            "innKeeper" => $this->innKeeperAction(),
         };
     }
 
@@ -149,6 +193,114 @@ class InnTemplate implements SceneTemplateInterface
         ];
 
         $this->addDefaultActions();
+    }
+
+    public function innKeeperAction(): void
+    {
+        /** @var InnTemplateConfiguration $config */
+        $config = $this->scene->templateConfig;
+        $canOfferAlcohol = ($this->drunkennessGameSetting["allowAlcohol"]??true) && ($config["innKeeper"]["offerAlcohol"]??true);
+        $alcoholPrice = $this->expressionService->evaluateInteger($this->character, $config["innKeeper"]["alcoholPrice"]??"character.level*10");
+        $act = $this->action->getParameter("act");
+
+        switch ($act) {
+            case "buyAlcohol":
+                $alcoholPrice = $this->action->getParameter("price") ?? $alcoholPrice;
+                $drunkenness = $this->getDrunkenness($this->character);
+                $maxDrunkenness = $config["innKeeper"]["drunkennessLimit"];
+                $drunkennessIncrease = $config["innKeeper"]["drunkennessAmount"] ?? 33;
+
+                $this->stage->paragraphs = [
+                    new Paragraph(
+                        id: self::Paragraphs["innKeeper"],
+                        text: $config["innKeeper"]["texts"]["buyAlcohol"] ?? "innKeeper.texts.buyAlcohol",
+                        context: [
+                            ... $this->getDefaultContext(),
+                            "drunkenness" => $drunkenness,
+                            "maxDrunkenness" => $maxDrunkenness,
+                            "price" => $alcoholPrice,
+                        ],
+                    )
+                ];
+
+                if ($drunkenness <= $maxDrunkenness) {
+                    // Only do something when drunkenness is below or equal to limit
+                    // The configured text should do something about when above the drunkenness level.
+
+                    if ($this->goldHandler->getGold($this->character) >= $alcoholPrice) {
+                        // And only do something when the character has enough gold
+                        $this->goldHandler->removeGold($this->character, $alcoholPrice);
+                        $this->addDrunkenness($this->character, $drunkennessIncrease);
+
+                        //
+                        if ($this->diceBag->chance(75)) {
+                            $this->logger->debug("{$this->character} drunk alcohol and feels healthy");
+                            $this->stage->addParagraph(new Paragraph(
+                                id: self::Paragraphs["drunkAlcohol"],
+                                text: "You feel healthy!"
+                            ));
+
+                            $this->healthHandler->heal(
+                                (int)round($this->healthHandler->getMaxHealth($this->character)*0.1, 0),
+                                $this->character
+                            );
+                        } else {
+                            $this->logger->debug("{$this->character} drunk alcohol and feels vigorous");
+                            $this->stage->addParagraph(new Paragraph(
+                                id: self::Paragraphs["drunkAlcohol"],
+                               text:  "You feel vigorous!"
+                            ));
+
+                            $this->healthHandler->addTurns(1, $this->character);
+                        }
+
+                        // Buff
+                        $this->buffHandler->addBuff($this->character, new Buff(
+                            id: self::DrunkennessBuffId,
+                            name: "Buzz",
+                            activatesAt: Buff::ACTIVATES_ON_OFFENSE_TURN,
+                            rounds: 10,
+                            roundMessage: "You've got a nice buzz going.",
+                            endMessage: "Your buzz fades.",
+                            expiresOnNewDay: true,
+                            goodGuyAttackModifier: 1.25,
+                        ));
+                    }
+                }
+                break;
+
+            default:
+                $this->stage->paragraphs = [
+                    new Paragraph(
+                        id: self::Paragraphs["innKeeper"],
+                        text: $config["innKeeper"]["texts"]["intro"] ?? "innKeeper.texts.intro",
+                        context: $this->getDefaultContext(),
+                    )
+                ];
+
+                $actionGroup = new ActionGroup(
+                    id: self::ActionGroup["innKeeper"],
+                    title: $config["innKeeper"]["name"] ?? "Cedrik",
+                    weight: 10,
+                );
+
+                $this->stage->addActionGroup($actionGroup);
+
+                if ($canOfferAlcohol) {
+                    $actionGroup->addAction(new Action(
+                        scene: $this->scene,
+                        title: "Ale (" . $alcoholPrice . " gold)",
+                        parameters: [
+                            "op" => "innKeeper",
+                            "act" => "buyAlcohol",
+                            "price" => $alcoholPrice,
+                        ]
+                    ));
+                }
+
+                $this->addDefaultActions();
+                break;
+        }
     }
 
     public function femalePatronAction(): void
@@ -208,6 +360,7 @@ class InnTemplate implements SceneTemplateInterface
                         $actionGroup = new ActionGroup(
                             id: self::ActionGroup["femalePatron"],
                             title: "Flirt with " . ($config["femalePatron"]["name"] ?? "Violet"),
+                            weight: 10,
                         );
 
                         $actions = [];
@@ -239,6 +392,7 @@ class InnTemplate implements SceneTemplateInterface
                     $actionGroup = new ActionGroup(
                         id: self::ActionGroup["femalePatron"],
                         title: "Chat with " . ($config["femalePatron"]["name"] ?? "Violet" ),
+                        weight: 10,
                         actions: [
                             new Action(
                                 scene: $this->scene,
@@ -320,6 +474,7 @@ class InnTemplate implements SceneTemplateInterface
                         $actionGroup = new ActionGroup(
                             id: self::ActionGroup["malePatron"],
                             title: "Flirt with " . ($config["malePatron"]["name"] ?? "Seth"),
+                            weight: 10,
                         );
 
                         $actions = [];
@@ -352,6 +507,7 @@ class InnTemplate implements SceneTemplateInterface
                     $actionGroup = new ActionGroup(
                         id: self::ActionGroup["malePatron"],
                         title: "Chat with " . ($config["malePatron"]["name"] ?? "Seth" ),
+                        weight: 10,
                         actions: [
                             new Action(
                                 scene: $this->scene,
@@ -497,7 +653,7 @@ class InnTemplate implements SceneTemplateInterface
                 "male" => $config["malePatron"]["comment"] ?? "",
                 "female" => $config["femalePatron"]["comment"] ?? "",
             ],
-            "innKeeper" => $config["innKeeper"] ?? "Cedrik",
+            "innKeeper" => $config["innKeeper"]["name"] ?? "Cedrik",
             "innKeeperBanter" => $banter,
         ];
     }
@@ -510,7 +666,7 @@ class InnTemplate implements SceneTemplateInterface
     {
         /** @var InnTemplateConfiguration $config */
         $config = $this->scene->templateConfig;
-        $innKeeper = $config['innKeeper']??'Cedrik';
+        $innKeeper = $config['innKeeper']["name"]??'Cedrik';
         $malePatron = $config['malePatron']["name"] ?? "Seth";
         $femalePatron = $config['femalePatron']["name"] ?? "Violet";
 
@@ -592,9 +748,74 @@ class InnTemplate implements SceneTemplateInterface
         $character->setProperty(self::SeenLoverProperty, $seen);
     }
 
-    #[AsEventListener(event: NewDay::OnNewDayAfter)]
+    /**
+     * @param Character $character
+     * @return int<0, max> Drunkenness level of the character
+     */
+    public function getDrunkenness(Character $character): int
+    {
+        return (int)($character->getProperty(self::DrunkenessProperty, 0) ?? 0);
+    }
+
+    /**
+     * @param Character $character
+     * @param int<0, max> $drunkenness Drunkenness level of the character
+     * @return void
+     */
+    public function setDrunkenness(Character $character, int $drunkenness): void
+    {
+        $this->logger->debug("{$character}: Drunkenness set to {$drunkenness}.");
+        $character->setProperty(self::DrunkenessProperty, $drunkenness);
+    }
+
+    public function addDrunkenness(Character $character, int $drunkenness): void
+    {
+        $this->setDrunkenness($character, $this->getDrunkenness($character) + $drunkenness);
+    }
+
+    #[AsEventListener(event: NewDay::OnNewDayAfter, priority: -10)]
     public function onNewDayEvent(StageChangeEvent $event): void
     {
+        if ($this->getDrunkenness($event->character) > 66) {
+            $this->healthHandler->addTurns(-1, $event->character);
+            $event->stage->addParagraph(new Paragraph(
+                id: self::Paragraphs["hangover"],
+                text: "You wake up with a hangover.",
+            ));
+        }
+
         $this->setSeenLover($event->character, false);
+        $this->setDrunkenness($event->character, 0);
+    }
+
+
+
+    /**
+     * @param FormExtensionEvent<GameSettingsDataType> $event
+     * @return void
+     */
+    #[AsEventListener(event: GameSettings::FormExtensionEventName)]
+    public function onGameSettingsFormExtension(FormExtensionEvent $event): void
+    {
+        $event->builder->add($event->builder
+            ->create(self::GameSettingProperty, GroupedFormType::class, [
+                "label" => "Alcohol",
+            ])
+            ->add("allowAlcohol", CheckboxType::class, [
+                "label" => "Allow Alcohol",
+                "help" => "Whether alcohol can be consumed (at all).",
+                "data" => true,
+                "required" => false,
+            ])
+            ->add("hangOverLimit", IntegerType::class, [
+                "label" => "Hangover Limit",
+                "help" => "The maximum drunkenness level before a hangover message is shown",
+                "constraints" => [
+                    new Range(min: 0),
+                    new NotBlank(),
+                ],
+                "data" => 67,
+            ])
+        );
     }
 }

@@ -73,6 +73,11 @@ readonly class GoldHandler
         return $this;
     }
 
+    public function removeGold(?Character $character, int $gold): static
+    {
+        return $this->addGold($character, -$gold);
+    }
+
     #[AsEventListener(FightTemplate::OnLootBagFill)]
     public function onLootBagFill(LootBagEvent $event): void
     {

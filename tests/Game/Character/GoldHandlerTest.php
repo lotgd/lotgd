@@ -131,6 +131,23 @@ class GoldHandlerTest extends TestCase
         $this->assertEquals($finalGoldAmount, $gold->getGold(null));
     }
 
+    public function testRemoveGoldDeductsGoldFromCharacter(): void
+    {
+        $character = new Character();
+        $character->properties = [
+            GoldHandler::PropertyName => 100,
+        ];
+
+        $gameStateService = $this->createStub(GameStateService::class);
+        $loggerMock = $this->createMock(LoggerInterface::class);
+        $loggerMock->expects($this->once())->method("debug");
+
+        $gold = new GoldHandler($gameStateService, $loggerMock, $character);
+
+        $gold->removeGold(null, 40);
+        $this->assertEquals(60, $gold->getGold(null));
+    }
+
     #[TestWith([100, 100])]
     #[TestWith([1000, 1000])]
     #[TestWith([null, 1])]

@@ -231,7 +231,7 @@ class SceneFixtures extends Fixture
             ),
             "bank" => new Scene(
                 title: "Ye Olde Bank",
-                description: <<<TXT
+                description: /* @lang Twig */ <<<Twig
                     As you approach the pair of impressive carved rock crystal doors, they part to 
                     to allow you entrance into the bank. You find yourself standing in a room of exquisitely vaulted
                     ceilings of carved stone. Light filters through tall windows in shafts of soft radiance. About you,
@@ -255,22 +255,22 @@ class SceneFixtures extends Fixture
                     {% else %}
                         <<No, I'm afraid you currently do not own an account with our bank. Do you want to open one?>>
                     {% endif %}
-                    TXT,
+                    Twig,
                 templateClass: BankTemplate::class,
                 templateConfig: new BankTemplateType()->getDefaultData(),
             ),
             "training" => new Scene(
                 title: "Bluspring's Warrior Training",
-                description: <<<TXT
+                description: /* @lang Twig */ <<<Twig
                     The sound of conflict surrounds you. The clang of weapons in grisly battle inspires your warrior heart.
                     {{ master.name }} stands ready to evaluate you.
-                    TXT,
+                    Twig,
                 templateClass: TrainingTemplate::class,
                 templateConfig: new TrainingTemplateType()->getDefaultData(),
             ),
             "dragon" => new Scene(
                 title: "Seek out the Green Dragon",
-                description: <<<TXT
+                description: /* @lang Twig */ <<<Twig
                     You approach the blackened entrance of a cave deep in the forest, though the trees are scorched to 
                     stumps for a hundred yards all around. A thin tendril of smoke escapes the roof of the cave's 
                     entrance, and is whisked away by a suddenly cold and brisk wind. The mouth of the cave lies up a 
@@ -287,13 +287,13 @@ class SceneFixtures extends Fixture
                     
                     Every instinct in your body wants to run, and run quickly, back to the warm inn.
                     What do you do?
-                TXT,
+                    Twig,
                 templateClass: DragonTemplate::class,
                 templateConfig: new DragonTemplateType()->getDefaultData(),
             ),
             "inn" => new Scene(
                 title: 'The Boar\'s Head Inn',
-                description: <<<TXT
+                description: /* @lang Twig */ <<<Twig
                     You duck into a dim tavern that you know well. The pungent aroma of pipe tobacco fills the air.
                     
                     {% if gender.partner == 'male' %}
@@ -303,7 +303,7 @@ class SceneFixtures extends Fixture
                     {% endif %}
                     {{ innKeeper }} the innkeeper stands behind his counter, chatting with someone. You can't quite make out what he is
                     saying, but it's something about {{ innKeeperBanter }}.
-                TXT,
+                    Twig,
                 templateClass: InnTemplate::class,
                 templateConfig: new InnTemplateType()->getDefaultData(),
             )

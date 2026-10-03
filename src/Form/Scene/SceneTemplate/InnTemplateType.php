@@ -5,15 +5,22 @@ namespace LotGD2\Form\Scene\SceneTemplate;
 
 use LotGD2\Entity\DataObject\InnFlirtOption;
 use LotGD2\Entity\DataObject\ValueRange;
+use LotGD2\Form\CharacterExpressionType;
 use LotGD2\Form\DataObject\InnFlirtOptionType;
 use LotGD2\Form\GroupedFormType;
 use LotGD2\Form\TypeProvidesDefaultDataInterface;
+use LotGD2\Game\ExpressionService;
 use LotGD2\Game\Scene\SceneTemplate\InnTemplate;
 use Symfony\Component\Form\AbstractType;
+use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
+use Symfony\Component\Form\Extension\Core\Type\IntegerType;
 use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
+use Symfony\Component\Validator\Constraints\ExpressionSyntax;
+use Symfony\Component\Validator\Constraints\NotBlank;
+use Symfony\Component\Validator\Constraints\Positive;
 use Symfony\UX\LiveComponent\Form\Type\LiveCollectionType;
 
 /**
@@ -48,24 +55,100 @@ class InnTemplateType extends AbstractType implements TypeProvidesDefaultDataInt
                         TXT,
                     "data" => $defaultData["innName"],
                 ])
-                ->add("innKeeper", TextType::class, [
+            )
+
+            ->add($builder
+                ->create("innKeeper", GroupedFormType::class, [
+                ])
+                ->add("name", TextType::class, [
                     "required" => true,
                     "label" => "Name of the innkeeper",
                     "help" => <<<TXT
                         The name of the innkeeper. Can be used in texts to refer to the innkeeper's name with `innKeeper`, 
                         but it will not change any actions.
                         TXT,
-                    "data" => $defaultData["innKeeper"],
+                    "data" => $defaultData["innKeeper"]["name"],
                 ])
-                ->add("innKeeperBanter", TextType::class, [
+                ->add("banter", TextType::class, [
                     "required" => true,
                     "label" => "Innkeeper banter",
                     "help" => <<<TXT
                         The innkeeper banter is the text that the innkeeper says to other patrons when the player enters 
                         the inn. This is a comma-separated list and the banter will be chosen at random.
                         TXT,
-                    "data" => $defaultData["innKeeperBanter"],
+                    "data" => $defaultData["innKeeper"]["banter"],
+                    "constraints" => [
+                        new NotBlank(),
+                    ]
                 ])
+                ->add("offerAlcohol", CheckboxType::class, [
+                    "required" => false,
+                    "label" => "Offer alcohol",
+                    "help" => <<<TXT
+                        Whether the innkeeper offers alcohol to the player.
+                        TXT,
+                    "data" => $defaultData["innKeeper"]["offerAlcohol"],
+                ])
+                ->add("alcoholPrice", CharacterExpressionType::class, [
+                    "required" => true,
+                    "label" => "Offer alcohol",
+                    "help" => <<<TXT
+                        Whether the innkeeper offers alcohol to the player.
+                        TXT,
+                    "data" => $defaultData["innKeeper"]["alcoholPrice"],
+                    "constraints" => [
+                        new NotBlank(),
+                    ]
+                ])
+                ->add("drunkennessAmount", IntegerType::class, [
+                    "required" => true,
+                    "label" => "Alcohol amount",
+                    "help" => <<<TXT
+                        The amount of drunkenness increase the alcohol causes.
+                        TXT,
+                    "data" => $defaultData["innKeeper"]["drunkennessAmount"],
+                    "constraints" => [
+                        new NotBlank(),
+                        new Positive(),
+                    ]
+                ])
+                ->add("drunkennessLimit", IntegerType::class, [
+                    "label" => "Drunkenness limit",
+                    "help" => <<<TXT
+                        The maximum amount of drunkenness player can have before the inn keeper refuses to serve alcohol.
+                        TXT,
+                    "data" => $defaultData["innKeeper"]["drunkennessLimit"],
+                    "required" => true,
+                    "constraints" => [
+                        new NotBlank(),
+                        new Positive(),
+                    ]
+                ])
+                ->add($builder
+                    ->create("texts", GroupedFormType::class, [
+
+                    ])
+                    ->add("intro", TextareaType::class, [
+                        "required" => true,
+                        "label" => "Intro text",
+                        "help" => <<<TXT
+                            The intro text is the text that the innkeeper says to the player when the player approaches
+                            the barkeeper.
+                            TXT,
+                        "data" => $defaultData["innKeeper"]["texts"]["intro"],
+                    ])
+                    ->add("buyAlcohol", TextareaType::class, [
+                        "required" => true,
+                        "label" => "Buy alcohol text",
+                        "help" => <<<TXT
+                            Text that is displayed to the player when they buy alcohol. Additional context available herein
+                            is price (the price of the alcohol), drunkenness (the character's drunkenness level) and 
+                            maxDrunkenness (the maximum drunkenness level as configured in the scene's settings). Make 
+                            sure to include messages about the drunkenness level (drunkenness > maxDrunkenness) and if
+                            the player can actually afford the alcohol (gold >= price).
+                            TXT,
+                    ])
+                )
             )
 
             ->add($builder
@@ -249,10 +332,44 @@ class InnTemplateType extends AbstractType implements TypeProvidesDefaultDataInt
     {
         return [
             "innName" => "Boar's Head Inn",
-            "innKeeper" => "Cedrik",
-            "innKeeperBanter" => "dragons,Seth,Violet,MightyE,fine ales,Pegasus,craft ales",
             "minCharmPoints" => 0,
             "maxCharmPoints" => 25,
+            "innKeeper" => [
+                "name" => "Cedrik",
+                "banter" => "dragons,Seth,Violet,MightyE,fine ales,Pegasus,craft ales",
+                "offerAlcohol" => true,
+                "alcoholPrice" => "character.level*10",
+                "drunkennessAmount" => 33,
+                "drunkennessLimit" => 66,
+                "texts" => [
+                    "intro" => /* @lang Twig */ <<<Twig
+                        {{ innKeeper }} looks at you sort-of sideways like. He never was the sort who would trust a 
+                        man any farther than he could throw them, which gave dwarves a decided advantage, except in 
+                        provinces where dwarf tossing was made illegal. Cedrik polishes a glass, holds it up to the light 
+                        of the door as another patron opens it to stagger out in to the street. He then makes a face, 
+                        spits on the glass and goes back to polishing it. <<What d'ya want?>>, he asks gruffly.
+                        Twig,
+                    "buyAlcohol" => /* @lang Twig */ <<<Twig
+                        {% if drunkenness > maxDrunkenness %}
+                            Pounding your fist on the bar, you demand an ale but {{ innKeeper }} continues to clean 
+                            the glass he was working on. <<You've had enough 
+                            {{ gender.pronouns == "male" ? "lad" : (gender.pronouns == "female" ? "lass" : "kid") }}>>,
+                            he declares.
+                        {% elseif gold >= price%}
+                            Pounding your fist on the bar, you demand an ale. {{ innKeeper }} pulls out a glass, 
+                            and pours a foamy ale from a tapped barrel behind him. He slides it down the bar, and you 
+                            catch it with your warrior-like reflexes.
+                            
+                            Turning around, you take a big chug of the hearty draught, and give
+                            {{ gender.partner == "male" ? patron.male : patron.female }} an ale-foam mustache smile.
+                        {% else %}
+                            Pounding your fist on the bar, you demand an ale and put {{ gold }} gold on the table.
+                            {{ innKeeper }} looks at you and shares his head. <<That's not nearly enough,
+                            {{ gender.pronouns == "male" ? "lad" : (gender.pronouns == "female" ? "lass" : "kid") }}>>.
+                        {% endif %}
+                        Twig,
+                ],
+            ],
             "malePatron" => [
                 "name" => "Seth",
                 "comment" => "who is tuning his harp by the fire",

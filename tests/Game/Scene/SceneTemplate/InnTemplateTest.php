@@ -5,19 +5,28 @@ namespace LotGD2\Tests\Game\Scene\SceneTemplate;
 
 use LotGD2\Entity\Action;
 use LotGD2\Entity\ActionGroup;
+use LotGD2\Entity\Battle\Buff;
 use LotGD2\Entity\DataObject\InnFlirtOption;
 use LotGD2\Entity\DataObject\ValueRange;
 use LotGD2\Entity\Mapped\Character;
 use LotGD2\Entity\Mapped\Scene;
 use LotGD2\Entity\Mapped\Stage;
 use LotGD2\Entity\Paragraph;
+use LotGD2\Event\FormExtensionEvent;
+use LotGD2\Event\StageChangeEvent;
+use LotGD2\Form\GroupedFormType;
 use LotGD2\Form\Scene\SceneTemplate\InnTemplateType;
+use LotGD2\Game\ExpressionService;
+use LotGD2\Game\GameStateService;
+use LotGD2\Game\Handler\BuffHandler;
 use LotGD2\Game\Handler\CharmHandler;
 use LotGD2\Game\Handler\GenderHandler;
+use LotGD2\Game\Handler\GoldHandler;
 use LotGD2\Game\Handler\HealthHandler;
 use LotGD2\Game\Random\DiceBag;
 use LotGD2\Game\Random\DiceBagInterface;
 use LotGD2\Game\Scene\SceneTemplate\InnTemplate;
+use LotGD2\Twig\Component\Admin\GameSettings;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\TestWith;
 use PHPUnit\Framework\Attributes\UsesClass;
@@ -27,15 +36,26 @@ use PHPUnit\Framework\MockObject\Runtime\PropertyHook;
 use PHPUnit\Framework\MockObject\Stub;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
+use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
+use Symfony\Component\Form\Extension\Core\Type\IntegerType;
+use Symfony\Component\Form\FormBuilderInterface;
+use Symfony\Component\Validator\Constraints\NotBlank;
+use Symfony\Component\Validator\Constraints\Range;
 
+/**
+ * @phpstan-import-type GameSettingsDataType from GameSettings
+ */
 #[CoversClass(InnTemplate::class)]
 #[UsesClass(Action::class)]
 #[UsesClass(ActionGroup::class)]
+#[UsesClass(Buff::class)]
 #[UsesClass(DiceBag::class)]
+#[UsesClass(FormExtensionEvent::class)]
 #[UsesClass(InnFlirtOption::class)]
 #[UsesClass(InnTemplateType::class)]
 #[UsesClass(Paragraph::class)]
 #[UsesClass(Stage::class)]
+#[UsesClass(StageChangeEvent::class)]
 #[UsesClass(ValueRange::class)]
 class InnTemplateTest extends TestCase
 {
@@ -45,6 +65,7 @@ class InnTemplateTest extends TestCase
             "chat" => "lotgd2_actionGroup_innTemplate_chat",
             "femalePatron" => "lotgd2_actionGroup_innTemplate_femalePatron",
             "malePatron" => "lotgd2_actionGroup_innTemplate_malePatron",
+            "innKeeper" => "lotgd2_actionGroup_innTemplate_innKeeper",
         ], InnTemplate::ActionGroup);
 
         $this->assertSame([
@@ -64,23 +85,31 @@ class InnTemplateTest extends TestCase
             "otherBanter" => "lotgd2_paragraph_inn_banter_others",
             "femaleBanter" => "lotgd2_paragraph_inn_female_banter",
             "maleBanter" => "lotgd2_paragraph_inn_male_banter",
+            "innKeeper" => "lotgd2_paragraph_inn_newday_innKeeper",
+            "drunkAlcohol" => "lotgd2_paragraph_inn_newday_drunkAlcohol",
             "exhausted" => "lotgd2_paragraph_inn_exhausted",
+            "hangover" => "lotgd2_paragraph_inn_newday_hangover",
         ], InnTemplate::Paragraphs);
 
         $this->assertSame("lotgd2_property_innTemplate_seenMaster", InnTemplate::SeenLoverProperty);
+        $this->assertSame("lotgd2_property_innTemplate_drunkeness", InnTemplate::DrunkenessProperty);
+        $this->assertSame("lotgd2_innTemplate", InnTemplate::GameSettingProperty);
+        $this->assertSame("lotgd2_buff_innTemplate_drunkenness", InnTemplate::DrunkennessBuffId);
     }
 
-    #[TestWith([null, 1, 0, 0, 0])]
-    #[TestWith(["otherPatrons", 0, 1, 0, 0])]
-    #[TestWith(["femalePatron", 0, 0, 1, 0])]
-    #[TestWith(["malePatron", 0, 0, 0, 1])]
-    #[TestWith(["unknown", 1, 0, 0, 0])]
+    #[TestWith([null, 1, 0, 0, 0, 0])]
+    #[TestWith(["otherPatrons", 0, 1, 0, 0, 0])]
+    #[TestWith(["femalePatron", 0, 0, 1, 0, 0])]
+    #[TestWith(["malePatron", 0, 0, 0, 1, 0])]
+    #[TestWith(["innKeeper", 0, 0, 0, 0, 1])]
+    #[TestWith(["unknown", 1, 0, 0, 0, 0])]
     public function testOnSceneChangeCallsExpectedSubMethod(
         ?string $op,
         int $defaultActionCalls,
         int $otherPatronsActionCalls,
         int $femalePatronActionCalls,
         int $malePatronActionCalls,
+        int $innKeeperActionCalls,
     ): void {
         $action = $this->createMock(Action::class);
         $action->expects($this->once())->method("getParameter")->with("op")->willReturn($op);
@@ -90,7 +119,7 @@ class InnTemplateTest extends TestCase
 
         /** @var InnTemplate&MockObject $innTemplate */
         $innTemplate = $this->getPartiallyMockedInnTemplate(
-            mockedMethods: ["defaultAction", "otherPatronsAction", "femalePatronAction", "malePatronAction"],
+            mockedMethods: ["defaultAction", "otherPatronsAction", "femalePatronAction", "malePatronAction", "innKeeperAction"],
             logger: $logger,
             action: $action,
         );
@@ -99,6 +128,7 @@ class InnTemplateTest extends TestCase
         $innTemplate->expects($this->exactly($otherPatronsActionCalls))->method("otherPatronsAction");
         $innTemplate->expects($this->exactly($femalePatronActionCalls))->method("femalePatronAction");
         $innTemplate->expects($this->exactly($malePatronActionCalls))->method("malePatronAction");
+        $innTemplate->expects($this->exactly($innKeeperActionCalls))->method("innKeeperAction");
 
         $innTemplate->onSceneChange();
     }
@@ -106,7 +136,9 @@ class InnTemplateTest extends TestCase
     public function testGetDefaultContextReturnsConfiguredValuesAndPicksRandomBanter(): void
     {
         $config = [
-            "innKeeper" => "Mira",
+            "innKeeper" => [
+                "name" => "Mira",
+            ],
             "innKeeperBanter" => "war,trade",
             "malePatron" => [
                 "name" => "Eldric",
@@ -148,7 +180,7 @@ class InnTemplateTest extends TestCase
         $stage = new Stage(owner: $character);
         $scene = $this->createStub(Scene::class);
         $scene->method(PropertyHook::get("templateConfig"))->willReturn([
-            "innKeeper" => "Mira",
+            "innKeeper" => ["name" => "Mira"],
             "malePatron" => ["name" => "Seth"],
             "femalePatron" => ["name" => "Violet"],
         ]);
@@ -1280,7 +1312,19 @@ class InnTemplateTest extends TestCase
     private function getBaseTemplateConfig(): array
     {
         return [
-            "innKeeper" => "Mira",
+            "innName" => "The Dragon's Rest",
+            "innKeeper" => [
+                "name" => "Cedrik",
+                "banter" => "war,trade",
+                "offerAlcohol" => true,
+                "alcoholPrice" => "character.level*10",
+                "drunkennessAmount" => 33,
+                "drunkennessLimit" => 66,
+                "texts" => [
+                    "intro" => "Welcome to the Inn!",
+                    "buyAlcohol" => "Here's a cold ale.",
+                ],
+            ],
             "innKeeperBanter" => "war,trade",
             "minCharmPoints" => 0,
             "maxCharmPoints" => 25,
@@ -1353,13 +1397,610 @@ class InnTemplateTest extends TestCase
         ];
     }
 
+    public function testInnKeeperActionDefaultShowsIntroAndAleActionWhenOffered(): void
+    {
+        $character = $this->createStub(Character::class);
+        $stage = new Stage(owner: $character);
+        $action = $this->createMock(Action::class);
+        $action->expects($this->once())->method("getParameter")->with("act")->willReturn(null);
+
+        $scene = $this->createStub(Scene::class);
+        $scene->method(PropertyHook::get("templateConfig"))->willReturn($this->getBaseTemplateConfig());
+
+        $diceBag = $this->createMock(DiceBagInterface::class);
+        $diceBag->expects($this->once())->method("pick")->with(["war", "trade"])->willReturn(["war"]);
+
+        $expressionService = $this->createMock(ExpressionService::class);
+        $expressionService->expects($this->once())
+            ->method("evaluateInteger")
+            ->with($character, "character.level*10")
+            ->willReturn(30);
+
+        $genderHandler = $this->createMock(GenderHandler::class);
+        $genderHandler->expects($this->once())->method("prefersFemale")->with($character)->willReturn(false);
+
+        $innTemplate = $this->getPartiallyMockedInnTemplate(
+            diceBag: $diceBag,
+            expressionService: $expressionService,
+            genderHandler: $genderHandler,
+            action: $action,
+            scene: $scene,
+            character: $character,
+            stage: $stage,
+        );
+
+        $innTemplate->innKeeperAction();
+
+        $this->assertArrayHasKey(InnTemplate::Paragraphs["innKeeper"], $stage->paragraphs);
+        $this->assertSame("Welcome to the Inn!", $stage->paragraphs[InnTemplate::Paragraphs["innKeeper"]]->text);
+        $this->assertSame("Cedrik", $stage->paragraphs[InnTemplate::Paragraphs["innKeeper"]]->context["innKeeper"]);
+
+        $this->assertArrayHasKey(InnTemplate::ActionGroup["innKeeper"], $stage->actionGroups);
+        $innKeeperGroup = $stage->actionGroups[InnTemplate::ActionGroup["innKeeper"]];
+        $this->assertSame("Cedrik", $innKeeperGroup->getTitle());
+        $this->assertSame(10, $innKeeperGroup->getWeight());
+        $this->assertCount(1, $innKeeperGroup->getActions());
+
+        $aleAction = array_values($innKeeperGroup->getActions())[0] ?? null;
+        $this->assertInstanceOf(Action::class, $aleAction);
+        $this->assertSame("Ale (30 gold)", $aleAction->title);
+        $this->assertSame([
+            "op" => "innKeeper",
+            "act" => "buyAlcohol",
+            "price" => 30,
+        ], $aleAction->parameters);
+
+        $this->assertArrayHasKey(InnTemplate::ActionGroup["chat"], $stage->actionGroups);
+    }
+
+    #[TestWith([false, true])]
+    #[TestWith([true, false])]
+    public function testInnKeeperActionDefaultDoesNotOfferAlcoholWhenDisabled(
+        bool $gameSettingAllowAlcohol,
+        bool $configOfferAlcohol,
+    ): void {
+        $character = $this->createStub(Character::class);
+        $stage = new Stage(owner: $character);
+        $action = $this->createMock(Action::class);
+        $action->expects($this->once())->method("getParameter")->with("act")->willReturn(null);
+
+        $config = $this->getBaseTemplateConfig();
+        $config["innKeeper"]["offerAlcohol"] = $configOfferAlcohol;
+
+        $scene = $this->createStub(Scene::class);
+        $scene->method(PropertyHook::get("templateConfig"))->willReturn($config);
+
+        $diceBag = $this->createMock(DiceBagInterface::class);
+        $diceBag->expects($this->once())->method("pick")->with(["war", "trade"])->willReturn(["war"]);
+
+        $expressionService = $this->createMock(ExpressionService::class);
+        $expressionService->expects($this->once())
+            ->method("evaluateInteger")
+            ->with($character, "character.level*10")
+            ->willReturn(30);
+
+        $gameStateService = $this->createMock(GameStateService::class);
+        $gameStateService->expects($this->once())
+            ->method("getSetting")
+            ->with(InnTemplate::GameSettingProperty, [])
+            ->willReturn(["allowAlcohol" => $gameSettingAllowAlcohol]);
+
+        $genderHandler = $this->createMock(GenderHandler::class);
+        $genderHandler->expects($this->once())->method("prefersFemale")->with($character)->willReturn(false);
+
+        $innTemplate = $this->getPartiallyMockedInnTemplate(
+            diceBag: $diceBag,
+            expressionService: $expressionService,
+            gameStateService: $gameStateService,
+            genderHandler: $genderHandler,
+            action: $action,
+            scene: $scene,
+            character: $character,
+            stage: $stage,
+        );
+
+        $innTemplate->innKeeperAction();
+
+        $innKeeperGroup = $stage->actionGroups[InnTemplate::ActionGroup["innKeeper"]];
+        $this->assertCount(0, $innKeeperGroup->getActions());
+    }
+
+    public function testInnKeeperActionBuyAlcoholWhenAboveDrunkennessLimitDoesNothing(): void
+    {
+        $character = $this->createMock(Character::class);
+        $character->expects($this->once())
+            ->method("getProperty")
+            ->with(InnTemplate::DrunkenessProperty, 0)
+            ->willReturn(70);
+
+        $stage = new Stage(owner: $character);
+        $action = $this->createMock(Action::class);
+        $action->expects($this->exactly(2))
+            ->method("getParameter")
+            ->willReturnMap([
+                ["act", "buyAlcohol"],
+                ["price", 40],
+            ]);
+
+        $config = $this->getBaseTemplateConfig();
+        $config["innKeeper"]["drunkennessLimit"] = 66;
+
+        $scene = $this->createStub(Scene::class);
+        $scene->method(PropertyHook::get("templateConfig"))->willReturn($config);
+
+        $diceBag = $this->createMock(DiceBagInterface::class);
+        $diceBag->expects($this->once())->method("pick")->with(["war", "trade"])->willReturn(["war"]);
+
+        $expressionService = $this->createMock(ExpressionService::class);
+        $expressionService->expects($this->once())
+            ->method("evaluateInteger")
+            ->with($character, "character.level*10")
+            ->willReturn(40);
+
+        $goldHandler = $this->createMock(GoldHandler::class);
+        $goldHandler->expects($this->never())->method("getGold");
+        $goldHandler->expects($this->never())->method("removeGold");
+
+        $innTemplate = $this->getPartiallyMockedInnTemplate(
+            diceBag: $diceBag,
+            expressionService: $expressionService,
+            goldHandler: $goldHandler,
+            action: $action,
+            scene: $scene,
+            character: $character,
+            stage: $stage,
+        );
+
+        $innTemplate->innKeeperAction();
+
+        $this->assertArrayHasKey(InnTemplate::Paragraphs["innKeeper"], $stage->paragraphs);
+        $this->assertSame("Here's a cold ale.", $stage->paragraphs[InnTemplate::Paragraphs["innKeeper"]]->text);
+        $this->assertSame(70, $stage->paragraphs[InnTemplate::Paragraphs["innKeeper"]]->context["drunkenness"]);
+        $this->assertSame(66, $stage->paragraphs[InnTemplate::Paragraphs["innKeeper"]]->context["maxDrunkenness"]);
+        $this->assertSame(40, $stage->paragraphs[InnTemplate::Paragraphs["innKeeper"]]->context["price"]);
+        $this->assertArrayNotHasKey(InnTemplate::Paragraphs["drunkAlcohol"], $stage->paragraphs);
+    }
+
+    public function testInnKeeperActionBuyAlcoholWhenCannotAffordDoesNothing(): void
+    {
+        $character = $this->createMock(Character::class);
+        $character->expects($this->once())
+            ->method("getProperty")
+            ->with(InnTemplate::DrunkenessProperty, 0)
+            ->willReturn(20);
+
+        $stage = new Stage(owner: $character);
+        $action = $this->createMock(Action::class);
+        $action->expects($this->exactly(2))
+            ->method("getParameter")
+            ->willReturnMap([
+                ["act", "buyAlcohol"],
+                ["price", 50],
+            ]);
+
+        $config = $this->getBaseTemplateConfig();
+        $config["innKeeper"]["drunkennessLimit"] = 66;
+
+        $scene = $this->createStub(Scene::class);
+        $scene->method(PropertyHook::get("templateConfig"))->willReturn($config);
+
+        $diceBag = $this->createMock(DiceBagInterface::class);
+        $diceBag->expects($this->once())->method("pick")->with(["war", "trade"])->willReturn(["war"]);
+
+        $expressionService = $this->createMock(ExpressionService::class);
+        $expressionService->expects($this->once())
+            ->method("evaluateInteger")
+            ->with($character, "character.level*10")
+            ->willReturn(50);
+
+        $goldHandler = $this->createMock(GoldHandler::class);
+        $goldHandler->expects($this->once())
+            ->method("getGold")
+            ->with($character)
+            ->willReturn(30);
+        $goldHandler->expects($this->never())->method("removeGold");
+
+        $innTemplate = $this->getPartiallyMockedInnTemplate(
+            diceBag: $diceBag,
+            expressionService: $expressionService,
+            goldHandler: $goldHandler,
+            action: $action,
+            scene: $scene,
+            character: $character,
+            stage: $stage,
+        );
+
+        $innTemplate->innKeeperAction();
+
+        $this->assertArrayHasKey(InnTemplate::Paragraphs["innKeeper"], $stage->paragraphs);
+        $this->assertArrayNotHasKey(InnTemplate::Paragraphs["drunkAlcohol"], $stage->paragraphs);
+    }
+
+    public function testInnKeeperActionBuyAlcoholSuccessFeelsHealthy(): void
+    {
+        $character = $this->createMock(Character::class);
+        $character->expects($this->exactly(2))
+            ->method("getProperty")
+            ->with(InnTemplate::DrunkenessProperty, 0)
+            ->willReturn(10);
+        $character->expects($this->once())
+            ->method("setProperty")
+            ->with(InnTemplate::DrunkenessProperty, 43);
+
+        $stage = new Stage(owner: $character);
+        $action = $this->createMock(Action::class);
+        $action->expects($this->exactly(2))
+            ->method("getParameter")
+            ->willReturnMap([
+                ["act", "buyAlcohol"],
+                ["price", null],
+            ]);
+
+        $config = $this->getBaseTemplateConfig();
+        $config["innKeeper"]["drunkennessLimit"] = 66;
+        $config["innKeeper"]["drunkennessAmount"] = 33;
+
+        $scene = $this->createStub(Scene::class);
+        $scene->method(PropertyHook::get("templateConfig"))->willReturn($config);
+
+        $diceBag = $this->createMock(DiceBagInterface::class);
+        $diceBag->expects($this->once())->method("pick")->with(["war", "trade"])->willReturn(["war"]);
+        $diceBag->expects($this->once())->method("chance")->with(75)->willReturn(true);
+
+        $expressionService = $this->createMock(ExpressionService::class);
+        $expressionService->expects($this->once())
+            ->method("evaluateInteger")
+            ->with($character, "character.level*10")
+            ->willReturn(25);
+
+        $goldHandler = $this->createMock(GoldHandler::class);
+        $goldHandler->expects($this->once())->method("getGold")->with($character)->willReturn(100);
+        $goldHandler->expects($this->once())->method("removeGold")->with($character, 25);
+
+        $healthHandler = $this->createMock(HealthHandler::class);
+        $healthHandler->expects($this->once())->method("getMaxHealth")->with($character)->willReturn(80);
+        $healthHandler->expects($this->once())->method("heal")->with(8, $character);
+
+        $logger = $this->createMock(LoggerInterface::class);
+        $logger->expects($this->exactly(2))
+            ->method("debug");
+
+        $buffHandler = $this->createMock(BuffHandler::class);
+        $buffHandler->expects($this->once())
+            ->method("addBuff")
+            ->with(
+                $character,
+                $this->callback(function (Buff $buff) {
+                    $this->assertSame(InnTemplate::DrunkennessBuffId, $buff->id);
+                    $this->assertSame("Buzz", $buff->name);
+                    $this->assertSame(Buff::ACTIVATES_ON_OFFENSE_TURN, $buff->activatesAt);
+                    $this->assertSame(10, $buff->rounds);
+                    $this->assertSame("You've got a nice buzz going.", $buff->roundMessage);
+                    $this->assertSame("Your buzz fades.", $buff->endMessage);
+                    $this->assertTrue($buff->expiresOnNewDay);
+                    $this->assertSame(1.25, $buff->goodGuyAttackModifier);
+                    return true;
+                })
+            );
+
+        $innTemplate = $this->getPartiallyMockedInnTemplate(
+            logger: $logger,
+            diceBag: $diceBag,
+            expressionService: $expressionService,
+            healthHandler: $healthHandler,
+            goldHandler: $goldHandler,
+            buffHandler: $buffHandler,
+            action: $action,
+            scene: $scene,
+            character: $character,
+            stage: $stage,
+        );
+
+        $innTemplate->innKeeperAction();
+
+        $this->assertArrayHasKey(InnTemplate::Paragraphs["drunkAlcohol"], $stage->paragraphs);
+        $this->assertSame("You feel healthy!", $stage->paragraphs[InnTemplate::Paragraphs["drunkAlcohol"]]->text);
+    }
+
+    public function testInnKeeperActionBuyAlcoholSuccessFeelsVigorous(): void
+    {
+        $character = $this->createMock(Character::class);
+        $character->expects($this->exactly(2))
+            ->method("getProperty")
+            ->with(InnTemplate::DrunkenessProperty, 0)
+            ->willReturn(0);
+        $character->expects($this->once())
+            ->method("setProperty")
+            ->with(InnTemplate::DrunkenessProperty, 33);
+
+        $stage = new Stage(owner: $character);
+        $action = $this->createMock(Action::class);
+        $action->expects($this->exactly(2))
+            ->method("getParameter")
+            ->willReturnMap([
+                ["act", "buyAlcohol"],
+                ["price", 30],
+            ]);
+
+        $config = $this->getBaseTemplateConfig();
+        unset($config["innKeeper"]["drunkennessAmount"]);
+        $config["innKeeper"]["drunkennessLimit"] = 66;
+
+        $scene = $this->createStub(Scene::class);
+        $scene->method(PropertyHook::get("templateConfig"))->willReturn($config);
+
+        $diceBag = $this->createMock(DiceBagInterface::class);
+        $diceBag->expects($this->once())->method("pick")->with(["war", "trade"])->willReturn(["war"]);
+        $diceBag->expects($this->once())->method("chance")->with(75)->willReturn(false);
+
+        $expressionService = $this->createMock(ExpressionService::class);
+        $expressionService->expects($this->once())
+            ->method("evaluateInteger")
+            ->with($character, "character.level*10")
+            ->willReturn(30);
+
+        $goldHandler = $this->createMock(GoldHandler::class);
+        $goldHandler->expects($this->once())->method("getGold")->with($character)->willReturn(50);
+        $goldHandler->expects($this->once())->method("removeGold")->with($character, 30);
+
+        $healthHandler = $this->createMock(HealthHandler::class);
+        $healthHandler->expects($this->once())->method("addTurns")->with(1, $character);
+
+        $logger = $this->createMock(LoggerInterface::class);
+        $logger->expects($this->exactly(2))
+            ->method("debug");
+
+        $buffHandler = $this->createMock(BuffHandler::class);
+        $buffHandler->expects($this->once())
+            ->method("addBuff")
+            ->with($character, $this->isInstanceOf(Buff::class));
+
+        $innTemplate = $this->getPartiallyMockedInnTemplate(
+            logger: $logger,
+            diceBag: $diceBag,
+            expressionService: $expressionService,
+            healthHandler: $healthHandler,
+            goldHandler: $goldHandler,
+            buffHandler: $buffHandler,
+            action: $action,
+            scene: $scene,
+            character: $character,
+            stage: $stage,
+        );
+
+        $innTemplate->innKeeperAction();
+
+        $this->assertArrayHasKey(InnTemplate::Paragraphs["drunkAlcohol"], $stage->paragraphs);
+        $this->assertSame("You feel vigorous!", $stage->paragraphs[InnTemplate::Paragraphs["drunkAlcohol"]]->text);
+    }
+
+    #[TestWith([null, 0])]
+    #[TestWith([0, 0])]
+    #[TestWith([50, 50])]
+    public function testGetDrunkenness(?int $propertyValue, int $expected): void
+    {
+        $character = $this->createMock(Character::class);
+        $character->expects($this->once())
+            ->method("getProperty")
+            ->with(InnTemplate::DrunkenessProperty, 0)
+            ->willReturn($propertyValue);
+
+        $innTemplate = $this->getPartiallyMockedInnTemplate();
+        $this->assertSame($expected, $innTemplate->getDrunkenness($character));
+    }
+
+    public function testSetDrunkennessLogsAndSetsProperty(): void
+    {
+        $character = $this->createMock(Character::class);
+        $character->expects($this->once())
+            ->method("setProperty")
+            ->with(InnTemplate::DrunkenessProperty, 45);
+
+        $logger = $this->createMock(LoggerInterface::class);
+        $logger->expects($this->once())
+            ->method("debug")
+            ->with("{$character}: Drunkenness set to 45.");
+
+        $innTemplate = $this->getPartiallyMockedInnTemplate(logger: $logger);
+        $innTemplate->setDrunkenness($character, 45);
+    }
+
+    public function testAddDrunkennessIncrementsExistingValue(): void
+    {
+        $character = $this->createMock(Character::class);
+        $character->expects($this->once())
+            ->method("getProperty")
+            ->with(InnTemplate::DrunkenessProperty, 0)
+            ->willReturn(25);
+        $character->expects($this->once())
+            ->method("setProperty")
+            ->with(InnTemplate::DrunkenessProperty, 55);
+
+        $logger = $this->createMock(LoggerInterface::class);
+        $logger->expects($this->once())
+            ->method("debug")
+            ->with("{$character}: Drunkenness set to 55.");
+
+        $innTemplate = $this->getPartiallyMockedInnTemplate(logger: $logger);
+        $innTemplate->addDrunkenness($character, 30);
+    }
+
+    public function testOnNewDayEventWithHangoverDeductsTurnAndResetsProperties(): void
+    {
+        $character = $this->createMock(Character::class);
+        $character->expects($this->once())
+            ->method("getProperty")
+            ->with(InnTemplate::DrunkenessProperty, 0)
+            ->willReturn(67);
+        $character->expects($this->exactly(2))
+            ->method("setProperty")
+            ->willReturnCallback(function (string $name, mixed $value) use ($character) {
+                if ($name === InnTemplate::SeenLoverProperty) {
+                    $this->assertFalse($value);
+                } elseif ($name === InnTemplate::DrunkenessProperty) {
+                    $this->assertSame(0, $value);
+                }
+                return $character;
+            });
+
+        $stage = new Stage(owner: $character);
+        $event = new StageChangeEvent(
+            stage: $stage,
+            action: $this->createStub(Action::class),
+            scene: $this->createStub(Scene::class),
+        );
+
+        $healthHandler = $this->createMock(HealthHandler::class);
+        $healthHandler->expects($this->once())
+            ->method("addTurns")
+            ->with(-1, $character);
+
+        $innTemplate = $this->getPartiallyMockedInnTemplate(healthHandler: $healthHandler);
+        $innTemplate->onNewDayEvent($event);
+
+        $this->assertArrayHasKey(InnTemplate::Paragraphs["hangover"], $stage->paragraphs);
+        $this->assertSame("You wake up with a hangover.", $stage->paragraphs[InnTemplate::Paragraphs["hangover"]]->text);
+    }
+
+    #[TestWith([0])]
+    #[TestWith([66])]
+    public function testOnNewDayEventWithoutHangoverResetsPropertiesWithoutTurnDeduction(int $drunkenness): void
+    {
+        $character = $this->createMock(Character::class);
+        $character->expects($this->once())
+            ->method("getProperty")
+            ->with(InnTemplate::DrunkenessProperty, 0)
+            ->willReturn($drunkenness);
+        $character->expects($this->exactly(2))
+            ->method("setProperty")
+            ->willReturnCallback(function (string $name, mixed $value) use ($character) {
+                if ($name === InnTemplate::SeenLoverProperty) {
+                    $this->assertFalse($value);
+                } elseif ($name === InnTemplate::DrunkenessProperty) {
+                    $this->assertSame(0, $value);
+                }
+                return $character;
+            });
+
+        $stage = new Stage(owner: $character);
+        $event = new StageChangeEvent(
+            stage: $stage,
+            action: $this->createStub(Action::class),
+            scene: $this->createStub(Scene::class),
+        );
+
+        $healthHandler = $this->createMock(HealthHandler::class);
+        $healthHandler->expects($this->never())->method("addTurns");
+
+        $innTemplate = $this->getPartiallyMockedInnTemplate(healthHandler: $healthHandler);
+        $innTemplate->onNewDayEvent($event);
+
+        $this->assertArrayNotHasKey(InnTemplate::Paragraphs["hangover"], $stage->paragraphs);
+    }
+
+    public function testOnGameSettingsFormExtensionAddsSettingsFields(): void
+    {
+        $innTemplate = $this->getPartiallyMockedInnTemplate();
+
+        $builder = $this->createMock(FormBuilderInterface::class);
+        $innerBuilder = $this->createMock(FormBuilderInterface::class);
+
+        $builder->expects($this->once())
+            ->method("create")
+            ->with(
+                InnTemplate::GameSettingProperty,
+                GroupedFormType::class,
+                ["label" => "Alcohol"]
+            )
+            ->willReturn($innerBuilder);
+
+        $innerBuilder->expects($this->exactly(2))
+            ->method("add")
+            ->willReturnCallback(function (string $name, string $type, array $options) use ($innerBuilder) {
+                if ($name === "allowAlcohol") {
+                    $this->assertSame(CheckboxType::class, $type);
+                    $this->assertSame("Allow Alcohol", $options["label"]);
+                    $this->assertSame("Whether alcohol can be consumed (at all).", $options["help"]);
+                    $this->assertTrue($options["data"]);
+                    $this->assertFalse($options["required"]);
+                } elseif ($name === "hangOverLimit") {
+                    $this->assertSame(IntegerType::class, $type);
+                    $this->assertSame("Hangover Limit", $options["label"]);
+                    $this->assertSame("The maximum drunkenness level before a hangover message is shown", $options["help"]);
+                    $this->assertSame(67, $options["data"]);
+                    $this->assertCount(2, $options["constraints"]);
+                    $this->assertInstanceOf(Range::class, $options["constraints"][0]);
+                    $this->assertSame(0, $options["constraints"][0]->min);
+                    $this->assertInstanceOf(NotBlank::class, $options["constraints"][1]);
+                } else {
+                    $this->fail("Unexpected field name: {$name}");
+                }
+                return $innerBuilder;
+            });
+
+        $builder->expects($this->once())
+            ->method("add")
+            ->with($innerBuilder)
+            ->willReturn($builder);
+
+        /** @var FormExtensionEvent<GameSettingsDataType>&Stub $event */
+        $event = $this->getStubBuilder(FormExtensionEvent::class)
+            ->setConstructorArgs([$builder, []])
+            ->getStub();
+
+        $innTemplate->onGameSettingsFormExtension($event);
+    }
+
+    public function testInnKeeperActionWithEmptyConfigurationDefault(): void
+    {
+        $character = $this->createStub(Character::class);
+        $stage = new Stage(owner: $character);
+        $action = $this->createMock(Action::class);
+        $action->expects($this->once())->method("getParameter")->with("act")->willReturn(null);
+
+        $scene = $this->createStub(Scene::class);
+        $scene->method(PropertyHook::get("templateConfig"))->willReturn([]);
+
+        $diceBag = $this->createMock(DiceBagInterface::class);
+        $diceBag->expects($this->once())->method("pick")->with(["dragons"])->willReturn([]);
+
+        $expressionService = $this->createMock(ExpressionService::class);
+        $expressionService->expects($this->once())
+            ->method("evaluateInteger")
+            ->with($character, "character.level*10")
+            ->willReturn(10);
+
+        $genderHandler = $this->createMock(GenderHandler::class);
+        $genderHandler->expects($this->once())->method("prefersFemale")->with($character)->willReturn(false);
+
+        $innTemplate = $this->getPartiallyMockedInnTemplate(
+            diceBag: $diceBag,
+            expressionService: $expressionService,
+            genderHandler: $genderHandler,
+            action: $action,
+            scene: $scene,
+            character: $character,
+            stage: $stage,
+        );
+
+        $innTemplate->innKeeperAction();
+
+        $this->assertArrayHasKey(InnTemplate::Paragraphs["innKeeper"], $stage->paragraphs);
+        $this->assertSame("innKeeper.texts.intro", $stage->paragraphs[InnTemplate::Paragraphs["innKeeper"]]->text);
+        $this->assertArrayHasKey(InnTemplate::ActionGroup["innKeeper"], $stage->actionGroups);
+    }
+
     /**
      * @param array<string> $mockedMethods
      * @param LoggerInterface|null $logger
      * @param DiceBagInterface|null $diceBag
+     * @param ExpressionService|null $expressionService
+     * @param GameStateService|null $gameStateService
      * @param GenderHandler|null $genderHandler
      * @param CharmHandler|null $charmHandler
      * @param HealthHandler|null $healthHandler
+     * @param GoldHandler|null $goldHandler
+     * @param BuffHandler|null $buffHandler
      * @param Action|null $action
      * @param Scene|null $scene
      * @param Character|null $character
@@ -1371,35 +2012,44 @@ class InnTemplateTest extends TestCase
         array $mockedMethods = [],
         ?LoggerInterface $logger = null,
         ?DiceBagInterface $diceBag = null,
+        ?ExpressionService $expressionService = null,
+        ?GameStateService $gameStateService = null,
         ?GenderHandler $genderHandler = null,
         ?CharmHandler $charmHandler = null,
         ?HealthHandler $healthHandler = null,
+        ?GoldHandler $goldHandler = null,
+        ?BuffHandler $buffHandler = null,
         ?Action $action = null,
         ?Scene $scene = null,
         ?Character $character = null,
         ?Stage $stage = null,
     ): InnTemplate {
+        if ($gameStateService === null) {
+            $gameStateService = $this->createStub(GameStateService::class);
+            $gameStateService->method("getSetting")->willReturn([]);
+        }
+
+        $constructorArgs = [
+            $logger ?? $this->createStub(LoggerInterface::class),
+            $diceBag ?? $this->createStub(DiceBagInterface::class),
+            $expressionService ?? $this->createStub(ExpressionService::class),
+            $gameStateService,
+            $genderHandler ?? $this->createStub(GenderHandler::class),
+            $charmHandler ?? $this->createStub(CharmHandler::class),
+            $healthHandler ?? $this->createStub(HealthHandler::class),
+            $goldHandler ?? $this->createStub(GoldHandler::class),
+            $buffHandler ?? $this->createStub(BuffHandler::class),
+        ];
+
         if (count($mockedMethods) > 0) {
             $innTemplate = $this->getMockBuilder(InnTemplate::class)
                 ->onlyMethods($mockedMethods)
-                ->setConstructorArgs([
-                    $logger ?? $this->createStub(LoggerInterface::class),
-                    $diceBag ?? $this->createStub(DiceBagInterface::class),
-                    $genderHandler ?? $this->createStub(GenderHandler::class),
-                    $charmHandler ?? $this->createStub(CharmHandler::class),
-                    $healthHandler ?? $this->createStub(HealthHandler::class),
-                ])
+                ->setConstructorArgs($constructorArgs)
                 ->getMock();
         } else {
             $innTemplate = $this->getStubBuilder(InnTemplate::class)
                 ->onlyMethods($mockedMethods)
-                ->setConstructorArgs([
-                    $logger ?? $this->createStub(LoggerInterface::class),
-                    $diceBag ?? $this->createStub(DiceBagInterface::class),
-                    $genderHandler ?? $this->createStub(GenderHandler::class),
-                    $charmHandler ?? $this->createStub(CharmHandler::class),
-                    $healthHandler ?? $this->createStub(HealthHandler::class),
-                ])
+                ->setConstructorArgs($constructorArgs)
                 ->getStub();
         }
 

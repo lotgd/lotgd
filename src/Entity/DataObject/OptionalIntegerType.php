@@ -23,11 +23,9 @@ class OptionalIntegerType extends AbstractType
         $builder->addModelTransformer(
             new CallbackTransformer(
                 function ($value) {
-                    dump("transform", $value);
                     return $value === null ? null : (int) $value;
                 },
                 function ($value) {
-                    dump("reverseTransform", $value);
                     return $value === null ? null : (int) $value;
                 }
             )
