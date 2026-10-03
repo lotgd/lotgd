@@ -24,11 +24,6 @@ export default class extends Controller {
         variableNamespace: { type: Object, default: {} }
     };
 
-    /** @type {{string: ExpressionLimit|{string: ExpressionLimit}}} */
-    variableNamespaceValue;
-    /** @type {HTMLSelectElement} */
-    variableSelectionTarget;
-
     connect() {
         // Reuse existing CodeMirror instance if it survived a Stimulus reconnection
         if (this.editorTarget.__codemirror) {
@@ -155,6 +150,8 @@ export default class extends Controller {
         if (!this.hasVariableSelectionTarget) {
             return;
         }
+
+        console.log(this, this.hasVariableSelectionTarget, this.variableSelectionTarget);
 
         // Report error if target is not <select>
         if (this.variableSelectionTarget.tagName !== "select") {
