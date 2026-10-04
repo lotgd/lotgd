@@ -396,7 +396,6 @@ class ParamTest extends TestCase
     {
         $reflection = new \ReflectionClass($param);
         $property = $reflection->getProperty('paramType');
-        $property->setAccessible(true);
         
         return $property->getValue($param);
     }
