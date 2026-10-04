@@ -12,6 +12,7 @@ use LotGD2\Entity\ActionGroup;
 use LotGD2\Game\Enum\SceneConnectionType;
 use LotGD2\Game\Scene\SceneTemplate\SceneTemplateInterface;
 use LotGD2\Repository\SceneRepository;
+use SortDirection;
 use Symfony\Component\Validator\Constraints as Assert;
 use ValueError;
 
@@ -32,7 +33,7 @@ class Scene
 
     /** @var Collection<int, SceneActionGroup>  */
     #[ORM\OneToMany(targetEntity: SceneActionGroup::class, mappedBy: 'scene', cascade: ["persist", "remove"], orphanRemoval: true)]
-    #[ORM\OrderBy(["sorting" => "ASC"])]
+    #[ORM\OrderBy(["sorting" => SortDirection::Ascending])]
     public Collection $actionGroups {
         get {
             return $this->actionGroups;
