@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace LotGD2\Form\Scene\SceneTemplate;
 
 use LotGD2\Form\GroupedFormType;
+use LotGD2\Form\TabbedType;
 use LotGD2\Form\TypeProvidesDefaultDataInterface;
 use LotGD2\Game\Scene\SceneTemplate\SimpleShopTemplate;
 use Symfony\Component\Form\AbstractType;
@@ -33,18 +34,23 @@ class SimpleShopTemplateType extends AbstractType implements TypeProvidesDefault
         $defaultData = $this->getDefaultData();
 
         $builder
-            ->add("type", ChoiceType::class, [
-                "choices" => [
-                    "Weapons" => "weapon",
-                    "Armors" => "armor",
-                ],
-                "constraints" => [
-                    new NotBlank(),
-                ]
-            ])
-            ->add("items", LiveCollectionType::class, [
-                "entry_type" => SimpleShopItemType::class,
-            ])
+            ->add($builder
+                ->create("general", GroupedFormType::class, [
+                    "inherit_data" => true,
+                ])
+                ->add("type", ChoiceType::class, [
+                    "choices" => [
+                        "Weapons" => "weapon",
+                        "Armors" => "armor",
+                    ],
+                    "constraints" => [
+                        new NotBlank(),
+                    ]
+                ])
+                ->add("items", LiveCollectionType::class, [
+                    "entry_type" => SimpleShopItemType::class,
+                ])
+            )
             ->add($builder
                 ->create("text", GroupedFormType::class, [
                     "required" => false,
@@ -77,7 +83,7 @@ class SimpleShopTemplateType extends AbstractType implements TypeProvidesDefault
 
     public function getParent(): string
     {
-        return GroupedFormType::class;
+        return TabbedType::class;
     }
 
     public function getDefaultData(): array

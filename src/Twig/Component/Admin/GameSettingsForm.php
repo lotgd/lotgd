@@ -10,6 +10,7 @@ use LotGD2\Game\GameStateService;
 use LotGD2\Repository\GameStateRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Form\FormInterface;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Symfony\UX\LiveComponent\Attribute\AsLiveComponent;
 use Symfony\UX\LiveComponent\Attribute\LiveAction;
 use Symfony\UX\LiveComponent\Attribute\LiveProp;
@@ -17,6 +18,7 @@ use Symfony\UX\LiveComponent\ComponentWithFormTrait;
 use Symfony\UX\LiveComponent\DefaultActionTrait;
 
 #[AsLiveComponent()]
+#[IsGranted('ROLE_ADMIN')]
 class GameSettingsForm extends AbstractController
 {
     use DefaultActionTrait;

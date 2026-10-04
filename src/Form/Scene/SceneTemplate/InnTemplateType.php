@@ -8,6 +8,7 @@ use LotGD2\Entity\DataObject\ValueRange;
 use LotGD2\Form\CharacterExpressionType;
 use LotGD2\Form\DataObject\InnFlirtOptionType;
 use LotGD2\Form\GroupedFormType;
+use LotGD2\Form\TabbedType;
 use LotGD2\Form\TypeProvidesDefaultDataInterface;
 use LotGD2\Game\ExpressionService;
 use LotGD2\Game\Scene\SceneTemplate\InnTemplate;
@@ -30,6 +31,11 @@ use Symfony\UX\LiveComponent\Form\Type\LiveCollectionType;
  */
 class InnTemplateType extends AbstractType implements TypeProvidesDefaultDataInterface
 {
+    public function getParent(): string
+    {
+        return TabbedType::class;
+    }
+
     public function configureOptions(OptionsResolver $resolver): void
     {
         $resolver->setDefault("inherit_data", false);

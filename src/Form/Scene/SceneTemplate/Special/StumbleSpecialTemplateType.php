@@ -7,12 +7,15 @@ use LotGD2\Entity\DataObject\Chance;
 use LotGD2\Form\CharacterExpressionType;
 use LotGD2\Form\DataObject\ChanceType;
 use LotGD2\Form\GroupedFormType;
+use LotGD2\Form\TabbedType;
 use LotGD2\Form\TypeProvidesDefaultDataInterface;
 use LotGD2\Game\Scene\SceneTemplate\Special\StumbleSpecialTemplate;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
+use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
+use Symfony\Component\Validator\Constraints\NotBlank;
 use Symfony\Component\Validator\Constraints\Valid;
 
 /**
@@ -36,32 +39,37 @@ class StumbleSpecialTemplateType extends AbstractType implements TypeProvidesDef
         $defaultData = $this->getDefaultData();
 
         $builder
-            ->add("damageChance", ChanceType::class, [
-                "help" => "Probability that the player takes damage from the event. Context will have the value 
+            ->add($builder
+                ->create("general", GroupedFormType::class, options: [
+                    "inherit_data" => true,
+                ])
+                ->add("damageChance", ChanceType::class, [
+                    "help" => "Probability that the player takes damage from the event. Context will have the value 
                     tookDamage available to adjust the text accordingly. Its 0 when no damage occured, and equals
                     to the amount of damage the character took.
                     ",
-                "required" => false,
-                "constraints" => [
-                    new Valid(),
-                ],
-                "data" => $defaultData["damageChance"],
-            ])
-            ->add("minDamage", CharacterExpressionType::class, [
-                "help" => "Minimum amount of damage. Can be an expression.",
-                "required" => false,
-                "data" => $defaultData["minDamage"],
-            ])
-            ->add("maxDamage", CharacterExpressionType::class, [
-                "help" => "Maximum amount of damage. Can be an expression.",
-                "required" => false,
-                "data" => $defaultData["maxDamage"],
-            ])
-            ->add("playerCanDie", CheckboxType::class, [
-                "help" => "If this is turned off, characters can get out of the event with 1 healthpoint left.",
-                "required" => false,
-                "data" => $defaultData["playerCanDie"],
-            ])
+                    "required" => false,
+                    "constraints" => [
+                        new Valid(),
+                    ],
+                    "data" => $defaultData["damageChance"],
+                ])
+                ->add("minDamage", CharacterExpressionType::class, [
+                    "help" => "Minimum amount of damage. Can be an expression.",
+                    "required" => false,
+                    "data" => $defaultData["minDamage"],
+                ])
+                ->add("maxDamage", CharacterExpressionType::class, [
+                    "help" => "Maximum amount of damage. Can be an expression.",
+                    "required" => false,
+                    "data" => $defaultData["maxDamage"],
+                ])
+                ->add("playerCanDie", CheckboxType::class, [
+                    "help" => "If this is turned off, characters can get out of the event with 1 healthpoint left.",
+                    "required" => false,
+                    "data" => $defaultData["playerCanDie"],
+                ])
+            )
         ;
     }
 
@@ -77,6 +85,6 @@ class StumbleSpecialTemplateType extends AbstractType implements TypeProvidesDef
 
     public function getParent(): string
     {
-        return GroupedFormType::class;
+        return TabbedType::class;
     }
 }

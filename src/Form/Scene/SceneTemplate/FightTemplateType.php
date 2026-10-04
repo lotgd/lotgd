@@ -5,7 +5,7 @@ namespace LotGD2\Form\Scene\SceneTemplate;
 
 use LotGD2\Entity\DataObject\Chance;
 use LotGD2\Form\DataObject\ChanceType;
-use LotGD2\Form\GroupedFormType;
+use LotGD2\Form\TabbedType;
 use LotGD2\Form\TypeProvidesDefaultDataInterface;
 use LotGD2\Game\Scene\SceneTemplate\FightTemplate;
 use Symfony\Component\Form\AbstractType;
@@ -60,7 +60,7 @@ class FightTemplateType extends AbstractType implements TypeProvidesDefaultDataI
 
     public function getParent(): string
     {
-        return GroupedFormType::class;
+        return TabbedType::class;
     }
 
     public function getDefaultData(): array

@@ -1,24 +1,81 @@
-{% block grouped_form_row %}
-<div class="mb-3">
-    <div class="border-start border-5">
-        <div class="pb-3 mb-3">
-            <h2 class="bg-body-tertiary ps-3 h6 text-body-emphasis">{{ form_label(form, null, {
-                    "label_attr": {"class": "float-none"},
-                }) }}</h2>
+{% block form_row %}
+<div class="row mb-3 pb-3">
+    <div class="col col-4">
+        {{ form_label(form) }}
+    </div>
+    <div class="col col-8">
+        {{ form_errors(form) }}
+        {{ form_widget(form) }}
+        {{ form_help(form) }}
+    </div>
+</div>
+{% endblock %}
 
-            <div class="ps-3">
-                {{ form_help(form) }}
-                {{ form_errors(form) }}
+{% block grouped_form_row %}
+    <div class="row mb-3 pb-3 outset border-5">
+        <div class="col col-4">
+            {{ form_label(form) }}
+        </div>
+        <div class="col col-8">
+            {{ form_errors(form) }}
+            {{ form_widget(form) }}
+            {{ form_help(form) }}
+        </div>
+    </div>
+{% endblock %}
+
+{% block tabbed_row %}
+    <div class="row">
+        {% set tabs = [] %}
+        {% for child in form %}
+            {% if "grouped_form" in child.vars.block_prefixes %}
+                {% set tabs = tabs|merge([{
+                    id: child.vars.id,
+                    label: child.vars.label ?? child.vars.name|humanize,
+                    child: child,
+                }]) %}
+            {% endif %}
+        {% endfor %}
+
+        <div class="col-4 col-lg-3 col-xl-5 col-xxl-2 p-0">
+            <ul class="nav nav-tabs flex-column tabs-vertical">
+                {%- for tab in tabs -%}
+                    <li class="nav-item">
+                        <a class="nav-link {{ loop.index0 == 0 ? "active" : "" }}"
+                           data-bs-toggle="tab" data-bs-target="#lotgd-tab-{{ tab.id }}"
+                           {{ loop.index0 == 0 ? 'aria-current="page"' }}
+                        >{{ tab.label|raw }}</a>
+                    </li>
+                {%- endfor -%}
+            </ul>
+        </div>
+        <div class="col-6 col-lg-9 col-xl-7 col-xxl-10 p-0">
+            <div class="tab-content tab-content-vertical">
+                {%- for tab in tabs -%}
+                <div class="tab-pane fade {{ loop.index0 == 0 ? "show active" : "" }}"
+                     id="lotgd-tab-{{ tab.id }}"
+                >
+                    <h3 class="mx-3">
+                        {{ form_label(tab.child) }}
+                    </h3>
+                    <div class="text-muted mx-3">
+                        {{ form_help(tab.child) }}
+                    </div>
+                    <div class="text-danger mx-3">
+                        {{ form_errors(tab.child) }}
+                    </div>
+                    <div class="mx-3 mt-3">
+                        {{ form_widget(tab.child) }}
+                    </div>
+                </div>
+                {%- endfor -%}
             </div>
         </div>
 
-        <div class="ps-3">
-            {% for child in form.children|filter(child => not child.rendered) %}
-                {{ form_row(child) }}
-            {% endfor %}
+        <div class="mt-3">
+            {{ form_rest(form) }}
         </div>
     </div>
-</div>
 {% endblock %}
 
 {% block chance_widget %}

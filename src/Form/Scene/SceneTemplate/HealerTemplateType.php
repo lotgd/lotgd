@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace LotGD2\Form\Scene\SceneTemplate;
 
 use LotGD2\Form\GroupedFormType;
+use LotGD2\Form\TabbedType;
 use LotGD2\Form\TypeProvidesDefaultDataInterface;
 use LotGD2\Game\Scene\SceneTemplate\HealerTemplate;
 use Symfony\Component\Form\AbstractType;
@@ -34,20 +35,25 @@ class HealerTemplateType extends AbstractType implements TypeProvidesDefaultData
         $defaultData = $this->getDefaultData();
 
         $builder
-            ->add("stealHealth", CheckboxType::class, [
-                "required" => false,
-                "data" => $defaultData["stealHealth"],
-            ])
-            ->add("actionGroupPotionTitle", TextType::class, [
-                "required" => false,
-                "label" => "Action group label for potions",
-                "data" => $defaultData["actionGroupPotionTitle"],
-            ])
-            ->add("actionCompleteHealingTitle", TextType::class, [
-                "required" => false,
-                "label" => "Action name for complete healing",
-                "data" => $defaultData["actionCompleteHealingTitle"],
-            ])
+            ->add($builder
+                ->create("general", GroupedFormType::class, options: [
+                    "inherit_data" => true,
+                ])
+                ->add("stealHealth", CheckboxType::class, [
+                    "required" => false,
+                    "data" => $defaultData["stealHealth"],
+                ])
+                ->add("actionGroupPotionTitle", TextType::class, [
+                    "required" => false,
+                    "label" => "Action group label for potions",
+                    "data" => $defaultData["actionGroupPotionTitle"],
+                ])
+                ->add("actionCompleteHealingTitle", TextType::class, [
+                    "required" => false,
+                    "label" => "Action name for complete healing",
+                    "data" => $defaultData["actionCompleteHealingTitle"],
+                ])
+            )
             ->add($builder
                 ->create("text", GroupedFormType::class, [
                     "required" => false,
@@ -108,7 +114,7 @@ class HealerTemplateType extends AbstractType implements TypeProvidesDefaultData
 
     public function getParent(): string
     {
-        return GroupedFormType::class;
+        return TabbedType::class;
     }
 
     public function getDefaultData(): array

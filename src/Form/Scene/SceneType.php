@@ -5,6 +5,7 @@ namespace LotGD2\Form\Scene;
 
 use LotGD2\Attribute\TemplateType;
 use LotGD2\Entity\Mapped\Scene;
+use LotGD2\Form\TabbedType;
 use LotGD2\Form\TypeProvidesDefaultDataInterface;
 use LotGD2\Game\Scene\SceneTemplate\BankTemplate;
 use LotGD2\Game\Scene\SceneTemplate\DragonTemplate;

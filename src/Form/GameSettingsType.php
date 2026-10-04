@@ -31,4 +31,9 @@ class GameSettingsType extends AbstractType {
     {
 
     }
+
+    public function getParent(): string
+    {
+        return TabbedType::class;
+    }
 }

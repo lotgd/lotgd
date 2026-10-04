@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace LotGD2\Form\Scene\SceneTemplate;
 
+use LotGD2\Form\TabbedType;
 use LotGD2\Game\Scene\SceneTemplate\SimpleShopTemplate;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\IntegerType;

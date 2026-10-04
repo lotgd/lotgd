@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace LotGD2\Form\Scene\SceneTemplate;
 
 use LotGD2\Form\GroupedFormType;
+use LotGD2\Form\TabbedType;
 use LotGD2\Form\TypeProvidesDefaultDataInterface;
 use LotGD2\Game\Scene\SceneTemplate\TrainingTemplate;
 use Symfony\Component\Form\AbstractType;
@@ -26,14 +27,19 @@ class TrainingTemplateType extends AbstractType implements TypeProvidesDefaultDa
         $defaultData = $this->getDefaultData();
 
         $builder
-            ->add("campLeader", TextType::class, options: [
-                "required" => true,
-                "help" => "The name of the camp leader. Can be referenced within texts as campLeader.",
-                "data" => $defaultData["campLeader"],
-                "constraints" => [
-                    new NotBlank(),
-                ]
-            ])
+            ->add($builder
+                ->create("general", GroupedFormType::class, options: [
+                    "inherit_data" => true,
+                ])
+                ->add("campLeader", TextType::class, options: [
+                    "required" => true,
+                    "help" => "The name of the camp leader. Can be referenced within texts as campLeader.",
+                    "data" => $defaultData["campLeader"],
+                    "constraints" => [
+                        new NotBlank(),
+                    ]
+                ])
+            )
             ->add(
                 $builder->create("text", GroupedFormType::class, options: [
                     "inherit_data" => false,
@@ -124,6 +130,6 @@ class TrainingTemplateType extends AbstractType implements TypeProvidesDefaultDa
 
     public function getParent(): string
     {
-        return GroupedFormType::class;
+        return TabbedType::class;
     }
 }

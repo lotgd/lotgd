@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace LotGD2\Form\Scene\SceneTemplate;
 
 use LotGD2\Form\GroupedFormType;
+use LotGD2\Form\TabbedType;
 use LotGD2\Form\TypeProvidesDefaultDataInterface;
 use LotGD2\Game\Scene\SceneTemplate\DragonTemplate;
 use Symfony\Component\Form\AbstractType;
@@ -25,14 +26,19 @@ class DragonTemplateType extends AbstractType implements TypeProvidesDefaultData
         $defaultData = $this->getDefaultData();
 
         $builder
-            ->add("dragonName", TextType::class, options: [
-                "required" => true,
-                "data" => $defaultData["dragonName"],
-            ])
-            ->add("dragonWeapon", TextType::class, options: [
-                "required" => true,
-                "data" => $defaultData["dragonWeapon"],
-            ])
+            ->add($builder
+                ->create("general", GroupedFormType::class, options: [
+                    "inherit_data" => true,
+                ])
+                ->add("dragonName", TextType::class, options: [
+                    "required" => true,
+                    "data" => $defaultData["dragonName"],
+                ])
+                ->add("dragonWeapon", TextType::class, options: [
+                    "required" => true,
+                    "data" => $defaultData["dragonWeapon"],
+                ])
+            )
             ->add($builder
                 ->create("text", GroupedFormType::class, [
                     "required" => false,
@@ -59,7 +65,7 @@ class DragonTemplateType extends AbstractType implements TypeProvidesDefaultData
 
     public function getParent(): string
     {
-        return GroupedFormType::class;
+        return TabbedType::class;
     }
 
     public function getDefaultData(): array
