@@ -6,8 +6,8 @@ namespace LotGD2\Entity\DataObject;
 class ValueRange
 {
     public function __construct(
-        public ?int $minimum,
-        public ?int $maximum,
+        public ?int $minimum = null,
+        public ?int $maximum = null,
     ) {
         // Switch values if maximum is smaller than minimum
         if ($this->maximum !== null and $this->minimum !== null and $this->maximum < $this->minimum) {
@@ -18,6 +18,8 @@ class ValueRange
     public function isWithin(int $value): bool
     {
         if ($this->minimum === null and $this->maximum === null) {
+            return true;
+        } elseif ($this->minimum === $this->maximum and $this->minimum === $value) {
             return true;
         } elseif ($this->minimum === null) {
             return $value <= $this->maximum;
