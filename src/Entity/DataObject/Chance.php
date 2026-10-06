@@ -9,7 +9,7 @@ class Chance
 {
     public function __construct(
         #[Range(min: 0)]
-        public null|int $numerator {
+        public null|int $numerator = 0 {
             get => $this->numerator;
             set => $value;
         },

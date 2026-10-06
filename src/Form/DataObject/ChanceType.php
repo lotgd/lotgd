@@ -9,6 +9,7 @@ use Symfony\Component\Form\CallbackTransformer;
 use Symfony\Component\Form\Extension\Core\Type\NumberType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
+use Symfony\Component\Validator\Constraints\NotBlank;
 use Symfony\Component\Validator\Constraints\Range;
 
 /**
@@ -30,15 +31,8 @@ class ChanceType extends AbstractType
 
                     return new Chance($numerator, $denominator);
                 },
-                function (Chance|int|float $chance): Chance {
-                    if ($chance instanceof Chance) {
-                        return $chance;
-                    }
-
-                    $numerator = (int)$chance;
-                    $denominator = 100;
-
-                    return new Chance($numerator, $denominator);
+                function (Chance $chance): Chance {
+                    return $chance;
                 }
             ))
         ;
@@ -47,11 +41,14 @@ class ChanceType extends AbstractType
             ->add("numerator", NumberType::class, [
                 "constraints" => [
                     new Range(min: 0),
+                    new NotBlank(),
                 ]
             ])
             ->add("denominator", NumberType::class, [
+                "required" => true,
                 "constraints" => [
                     new Range(min: 1),
+                    new NotBlank(),
                 ]
             ])
         ;
