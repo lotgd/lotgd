@@ -37,10 +37,10 @@ use Symfony\Component\EventDispatcher\Attribute\AsEventListener;
 class StandardRace implements RaceInterface
 {
     public function __construct(
-        private LoggerInterface $logger,
-        private StatsHandler $stats,
-        private HealthHandler $health,
-        private RaceHandler $race,
+        private readonly LoggerInterface $logger,
+        private readonly StatsHandler $stats,
+        private readonly HealthHandler $health,
+        private readonly RaceHandler $race,
     ) {
     }
 
