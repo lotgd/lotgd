@@ -6,14 +6,24 @@ namespace LotGD2\Entity\Character;
 use LotGD2\Game\Random\DiceBag;
 use LotGD2\Game\Random\DiceBagInterface;
 
+/**
+ * LootBag is a collection of LootPosition objects.
+ *
+ * A LootBag can be created once an enemy is defeated. There are always two rounds of events:
+ *   One where loot positions are added, and
+ *   one where loot positions are claimed.
+ *
+ * During the claim round, the LootBag is locked and no new loot positions can be added. For each individual
+ *   loot position, a new, locked copy of that position is created.
+ */
 class LootBag
 {
     /** @var array<string, LootPosition> */
-    private array $positions = [];
+    private(set) array $positions = [];
 
     public function __construct(
-        private bool $locked = false,
-        protected(set) DiceBagInterface $diceBag = new DiceBag(),
+        private(set) bool $locked = false,
+        private(set) DiceBagInterface $diceBag = new DiceBag(),
     ) {
 
     }
