@@ -7,6 +7,7 @@ use LotGD2\Entity\Mapped\Character;
 use LotGD2\Entity\Mapped\Stage;
 use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\TestWith;
 use PHPUnit\Framework\MockObject\Runtime\PropertyHook;
 use PHPUnit\Framework\TestCase;
 
@@ -350,5 +351,23 @@ class CharacterTest extends TestCase
         $this->assertSame(100, $character->getProperty('mana'));
         $this->assertSame(18, $character->getProperty('strength'));
         $this->assertSame(16, $character->getProperty('dexterity'));
+    }
+
+    #[TestWith([1, "Arthus", "<Character#1, Arthus>"])]
+    #[TestWith([1337, "L33thor", "<Character#1337, L33thor>"])]
+    #[TestWith([-2, "Minus Two", "<Character#-2, Minus Two>"])]
+    #[TestWith([2026, "Henri B. Kagan", "<Character#2026, Henri B. Kagan>"])]
+    #[TestWith([2026, "Kensō Soai", "<Character#2026, Kensō Soai>"])]
+    public function testIfCharacterCanBeConvertedToString($id, $name, $expected)
+    {
+        $character = $this->getStubBuilder(Character::class)
+            ->disableOriginalConstructor()
+            ->onlyMethods([])
+            ->getStub();
+
+        $character->method(PropertyHook::get("id"))->willReturn($id);
+        $character->method(PropertyHook::get("name"))->willReturn($name);
+
+        $this->assertSame($expected, (string) $character);
     }
 }
