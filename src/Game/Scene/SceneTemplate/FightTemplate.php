@@ -14,7 +14,7 @@ use LotGD2\Form\Scene\SceneTemplate\FightTemplateType;
 use LotGD2\Game\Battle\Battle;
 use LotGD2\Game\Error\SpecialNotFoundError;
 use LotGD2\Game\GameStateService;
-use LotGD2\Game\Handler\GoldHandler;
+use LotGD2\Game\Handler\WealthHandler;
 use LotGD2\Game\Handler\HealthHandler;
 use LotGD2\Game\Handler\StatsHandler;
 use LotGD2\Game\Random\DiceBagInterface;
@@ -46,18 +46,18 @@ class FightTemplate implements SceneTemplateInterface
     const string ActionGroupSearch = "lotgd2.actionGroup.fightTemplate.search";
 
     public function __construct(
-        private readonly Security $security,
-        private readonly LoggerInterface $logger,
+        private readonly Security                 $security,
+        private readonly LoggerInterface          $logger,
         private readonly EventDispatcherInterface $eventDispatcher,
-        private readonly AttachmentRepository $attachmentRepository,
-        private readonly DiceBagInterface $diceBag,
-        private readonly CreatureRepository $creatureRepository,
-        private readonly Battle $battle,
-        private readonly HealthHandler $health,
-        private readonly StatsHandler $stats,
-        private readonly GoldHandler $gold,
-        private readonly SpecialService $specialService,
-        private readonly GameStateService $gameStateService,
+        private readonly AttachmentRepository     $attachmentRepository,
+        private readonly DiceBagInterface         $diceBag,
+        private readonly CreatureRepository       $creatureRepository,
+        private readonly Battle                   $battle,
+        private readonly HealthHandler            $health,
+        private readonly StatsHandler             $stats,
+        private readonly WealthHandler            $gold,
+        private readonly SpecialService           $specialService,
+        private readonly GameStateService         $gameStateService,
     ) {
     }
 

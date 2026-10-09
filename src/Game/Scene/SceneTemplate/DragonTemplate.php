@@ -17,7 +17,7 @@ use LotGD2\Form\Scene\SceneTemplate\DragonTemplateType;
 use LotGD2\Game\Battle\Battle;
 use LotGD2\Game\GameStateService;
 use LotGD2\Game\Handler\DragonCounterHandler;
-use LotGD2\Game\Handler\GoldHandler;
+use LotGD2\Game\Handler\WealthHandler;
 use LotGD2\Game\Handler\StatsHandler;
 use LotGD2\Game\GameTime\NewDay;
 use LotGD2\Game\Scene\SceneAttachment\BattleAttachment;
@@ -50,17 +50,17 @@ class DragonTemplate implements SceneTemplateInterface
     const string OnCharacterResetDragonCounterParameter = 'lotgd2.event.DragonTemplate.characterReset.dk';
 
     public function __construct(
-        readonly private LoggerInterface $logger,
+        readonly private LoggerInterface          $logger,
         readonly private EventDispatcherInterface $eventDispatcher,
-        readonly private AttachmentRepository $attachmentRepository,
-        readonly private SceneRepository $sceneRepository,
-        readonly private Battle $battle,
-        readonly private NewDay $newDay,
-        readonly private GoldHandler $gold,
-        readonly private StatsHandler $stats,
-        readonly private DragonCounterHandler $dragonCounter,
-        readonly private ActionService $actionService,
-        readonly private GameStateService $gameStateService,
+        readonly private AttachmentRepository     $attachmentRepository,
+        readonly private SceneRepository          $sceneRepository,
+        readonly private Battle                   $battle,
+        readonly private NewDay                   $newDay,
+        readonly private WealthHandler            $gold,
+        readonly private StatsHandler             $stats,
+        readonly private DragonCounterHandler     $dragonCounter,
+        readonly private ActionService            $actionService,
+        readonly private GameStateService         $gameStateService,
     ) {
 
     }

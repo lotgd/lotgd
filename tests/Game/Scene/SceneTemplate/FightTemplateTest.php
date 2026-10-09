@@ -15,7 +15,7 @@ use LotGD2\Entity\Mapped\Stage;
 use LotGD2\Entity\Paragraph;
 use LotGD2\Game\Battle\Battle;
 use LotGD2\Game\GameStateService;
-use LotGD2\Game\Handler\GoldHandler;
+use LotGD2\Game\Handler\WealthHandler;
 use LotGD2\Game\Handler\HealthHandler;
 use LotGD2\Game\Handler\StatsHandler;
 use LotGD2\Game\Random\DiceBag;
@@ -54,7 +54,7 @@ class FightTemplateTest extends TestCase
     private CreatureRepository&MockObject $creatureRepository;
     private Battle&MockObject $battle;
     private HealthHandler&MockObject $health;
-    private GoldHandler&MockObject $gold;
+    private WealthHandler&MockObject $gold;
     private EventDispatcherInterface&MockObject $eventDispatcher;
     private SpecialService&Stub $specialService;
 
@@ -68,7 +68,7 @@ class FightTemplateTest extends TestCase
         $this->creatureRepository = $this->createMock(CreatureRepository::class);
         $this->battle = $this->createMock(Battle::class);
         $this->health = $this->createMock(HealthHandler::class);
-        $this->gold = $this->createMock(GoldHandler::class);
+        $this->gold = $this->createMock(WealthHandler::class);
         $this->eventDispatcher = $this->createMock(EventDispatcherInterface::class);
         $this->specialService = $this->createStub(SpecialService::class);
 

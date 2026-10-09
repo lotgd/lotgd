@@ -11,7 +11,7 @@ use LotGD2\Entity\Paragraph;
 use LotGD2\Event\LootBagEvent;
 use LotGD2\Event\StageChangeEvent;
 use LotGD2\Form\Race\StandardRaceType;
-use LotGD2\Game\Handler\GoldHandler;
+use LotGD2\Game\Handler\WealthHandler;
 use LotGD2\Game\Handler\HealthHandler;
 use LotGD2\Game\Handler\RaceHandler as RaceHandler;
 use LotGD2\Game\Handler\StatsHandler;
@@ -154,7 +154,7 @@ class StandardRace implements RaceInterface
             return;
         }
 
-        $lootPosition = $lootBag->get(GoldHandler::GoldLoot);
+        $lootPosition = $lootBag->get(WealthHandler::GoldLoot);
 
         if ($lootPosition === null) {
             $this->logger->info("The LootBag does not have a gold position. Cannot change gold reward.");

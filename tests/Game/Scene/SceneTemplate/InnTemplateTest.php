@@ -21,7 +21,7 @@ use LotGD2\Game\GameStateService;
 use LotGD2\Game\Handler\BuffHandler;
 use LotGD2\Game\Handler\CharmHandler;
 use LotGD2\Game\Handler\GenderHandler;
-use LotGD2\Game\Handler\GoldHandler;
+use LotGD2\Game\Handler\WealthHandler;
 use LotGD2\Game\Handler\HealthHandler;
 use LotGD2\Game\Random\DiceBag;
 use LotGD2\Game\Random\DiceBagInterface;
@@ -1537,7 +1537,7 @@ class InnTemplateTest extends TestCase
             ->with($character, "character.level*10")
             ->willReturn(40);
 
-        $goldHandler = $this->createMock(GoldHandler::class);
+        $goldHandler = $this->createMock(WealthHandler::class);
         $goldHandler->expects($this->never())->method("getGold");
         $goldHandler->expects($this->never())->method("removeGold");
 
@@ -1593,7 +1593,7 @@ class InnTemplateTest extends TestCase
             ->with($character, "character.level*10")
             ->willReturn(50);
 
-        $goldHandler = $this->createMock(GoldHandler::class);
+        $goldHandler = $this->createMock(WealthHandler::class);
         $goldHandler->expects($this->once())
             ->method("getGold")
             ->with($character)
@@ -1653,7 +1653,7 @@ class InnTemplateTest extends TestCase
             ->with($character, "character.level*10")
             ->willReturn(25);
 
-        $goldHandler = $this->createMock(GoldHandler::class);
+        $goldHandler = $this->createMock(WealthHandler::class);
         $goldHandler->expects($this->once())->method("getGold")->with($character)->willReturn(100);
         $goldHandler->expects($this->once())->method("removeGold")->with($character, 25);
 
@@ -1739,7 +1739,7 @@ class InnTemplateTest extends TestCase
             ->with($character, "character.level*10")
             ->willReturn(30);
 
-        $goldHandler = $this->createMock(GoldHandler::class);
+        $goldHandler = $this->createMock(WealthHandler::class);
         $goldHandler->expects($this->once())->method("getGold")->with($character)->willReturn(50);
         $goldHandler->expects($this->once())->method("removeGold")->with($character, 30);
 
@@ -1999,7 +1999,7 @@ class InnTemplateTest extends TestCase
      * @param GenderHandler|null $genderHandler
      * @param CharmHandler|null $charmHandler
      * @param HealthHandler|null $healthHandler
-     * @param GoldHandler|null $goldHandler
+     * @param WealthHandler|null $goldHandler
      * @param BuffHandler|null $buffHandler
      * @param Action|null $action
      * @param Scene|null $scene
@@ -2009,20 +2009,20 @@ class InnTemplateTest extends TestCase
      * @throws Exception
      */
     private function getPartiallyMockedInnTemplate(
-        array $mockedMethods = [],
-        ?LoggerInterface $logger = null,
-        ?DiceBagInterface $diceBag = null,
+        array              $mockedMethods = [],
+        ?LoggerInterface   $logger = null,
+        ?DiceBagInterface  $diceBag = null,
         ?ExpressionService $expressionService = null,
-        ?GameStateService $gameStateService = null,
-        ?GenderHandler $genderHandler = null,
-        ?CharmHandler $charmHandler = null,
-        ?HealthHandler $healthHandler = null,
-        ?GoldHandler $goldHandler = null,
-        ?BuffHandler $buffHandler = null,
-        ?Action $action = null,
-        ?Scene $scene = null,
-        ?Character $character = null,
-        ?Stage $stage = null,
+        ?GameStateService  $gameStateService = null,
+        ?GenderHandler     $genderHandler = null,
+        ?CharmHandler      $charmHandler = null,
+        ?HealthHandler     $healthHandler = null,
+        ?WealthHandler     $goldHandler = null,
+        ?BuffHandler       $buffHandler = null,
+        ?Action            $action = null,
+        ?Scene             $scene = null,
+        ?Character         $character = null,
+        ?Stage             $stage = null,
     ): InnTemplate {
         if ($gameStateService === null) {
             $gameStateService = $this->createStub(GameStateService::class);
@@ -2037,7 +2037,7 @@ class InnTemplateTest extends TestCase
             $genderHandler ?? $this->createStub(GenderHandler::class),
             $charmHandler ?? $this->createStub(CharmHandler::class),
             $healthHandler ?? $this->createStub(HealthHandler::class),
-            $goldHandler ?? $this->createStub(GoldHandler::class),
+            $goldHandler ?? $this->createStub(WealthHandler::class),
             $buffHandler ?? $this->createStub(BuffHandler::class),
         ];
 

@@ -14,7 +14,7 @@ use LotGD2\Entity\Mapped\Stage;
 use LotGD2\Entity\Paragraph;
 use LotGD2\Game\ExpressionService;
 use LotGD2\Game\Handler\EquipmentHandler;
-use LotGD2\Game\Handler\GoldHandler;
+use LotGD2\Game\Handler\WealthHandler;
 use LotGD2\Game\Handler\HealthHandler;
 use LotGD2\Game\Handler\StatsHandler;
 use LotGD2\Game\Random\DiceBag;
@@ -41,7 +41,7 @@ use Psr\Log\LoggerInterface;
 #[UsesClass(DiceBag::class)]
 #[UsesClass(Action::class)]
 #[UsesClass(EquipmentHandler::class)]
-#[UsesClass(GoldHandler::class)]
+#[UsesClass(WealthHandler::class)]
 #[UsesClass(HealthHandler::class)]
 #[UsesClass(StatsHandler::class)]
 #[UsesClass(ExpressionService::class)]

@@ -13,16 +13,18 @@ use LotGD2\Entity\Paragraph;
 use LotGD2\Game\Scene\SceneAttachment\SceneAttachmentInterface;
 use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\UsesClass;
 use PHPUnit\Framework\MockObject\Runtime\PropertyHook;
 use PHPUnit\Framework\TestCase;
 use TypeError;
 use ValueError;
 
 #[CoversClass(Stage::class)]
+#[UsesClass(Paragraph::class)]
 #[AllowMockObjectsWithoutExpectations]
 class StageTest extends TestCase
 {
-    public function testEmptyConstructor()
+    public function testEmptyConstructor(): void
     {
         $stage = new Stage();
 
@@ -36,7 +38,7 @@ class StageTest extends TestCase
         $this->assertEmpty($stage->paragraphs);
     }
 
-    public function testConstructorWithAllParameters()
+    public function testConstructorWithAllParameters(): void
     {
         $owner = $this->createMock(Character::class);
         $scene = $this->createMock(Scene::class);
@@ -67,7 +69,7 @@ class StageTest extends TestCase
         $this->assertSame(["id-1" => $paragraphs[0]], $stage->paragraphs);
     }
 
-    public function testIdProperty()
+    public function testIdProperty(): void
     {
         $stage = new Stage();
         $this->assertNull($stage->id);
@@ -75,7 +77,7 @@ class StageTest extends TestCase
         // Note: ID would be set by Doctrine ORM in real usage
     }
 
-    public function testOwnerProperty()
+    public function testOwnerProperty(): void
     {
         $stage = new Stage();
         $owner = $this->createMock(Character::class);
@@ -94,7 +96,7 @@ class StageTest extends TestCase
         $this->assertNull($stage->owner);
     }
 
-    public function testTitleProperty()
+    public function testTitleProperty(): void
     {
         $stage = new Stage();
 
@@ -129,7 +131,7 @@ class StageTest extends TestCase
         }
     }
 
-    public function testSceneProperty()
+    public function testSceneProperty(): void
     {
         $stage = new Stage();
         $scene = $this->createMock(Scene::class);
@@ -148,7 +150,7 @@ class StageTest extends TestCase
         $this->assertNull($stage->scene);
     }
 
-    public function testActionGroupsProperty()
+    public function testActionGroupsProperty(): void
     {
         $stage = new Stage();
 
@@ -168,7 +170,7 @@ class StageTest extends TestCase
         $this->assertEquals($actionGroups, $stage2->actionGroups);
     }
 
-    public function testAddActionGroup()
+    public function testAddActionGroup(): void
     {
         $stage = new Stage();
         $actionGroup = $this->createMock(ActionGroup::class);
@@ -181,7 +183,7 @@ class StageTest extends TestCase
         $this->assertSame($actionGroup, $stage->actionGroups['combat-actions']);
     }
 
-    public function testAddMultipleActionGroups()
+    public function testAddMultipleActionGroups(): void
     {
         $stage = new Stage();
 
@@ -204,7 +206,7 @@ class StageTest extends TestCase
         $this->assertArrayHasKey('special', $stage->actionGroups);
     }
 
-    public function testAddActionGroup_ReplacesExisting()
+    public function testAddActionGroup_ReplacesExisting(): void
     {
         $stage = new Stage();
 
@@ -221,13 +223,13 @@ class StageTest extends TestCase
         $this->assertSame($actionGroup2, $stage->actionGroups['test-group']);
     }
 
-    public function testAddAction()
+    public function testAddAction(): void
     {
         $stage = new Stage();
         $actionGroup = $this->createMock(ActionGroup::class);
+        $actionGroup->method('getId')->willReturn('test-group');
         $action = $this->createMock(Action::class);
 
-        $actionGroup->method('getId')->willReturn('test-group');
         $actionGroup->expects($this->once())
             ->method('addAction')
             ->with($action);
@@ -239,13 +241,13 @@ class StageTest extends TestCase
         $this->assertSame($stage, $result); // Test fluent interface
     }
 
-    public function testAddActionWithActionGroupObject()
+    public function testAddActionWithActionGroupObject(): void
     {
         $stage = new Stage();
         $actionGroup = $this->createMock(ActionGroup::class);
+        $actionGroup->method('getId')->willReturn('test-group');
         $action = $this->createMock(Action::class);
 
-        $actionGroup->method('getId')->willReturn('test-group');
         $actionGroup->expects($this->once())
             ->method('addAction')
             ->with($action);
@@ -257,7 +259,7 @@ class StageTest extends TestCase
         $this->assertSame($stage, $result);
     }
 
-    public function testAddActionToNonExistentGroup()
+    public function testAddActionToNonExistentGroup(): void
     {
         $stage = new Stage();
         $action = $this->createMock(Action::class);
@@ -269,7 +271,7 @@ class StageTest extends TestCase
         $this->assertSame($stage, $result);
     }
 
-    public function testClearActionGroups()
+    public function testClearActionGroups(): void
     {
         $stage = new Stage();
         $actionGroup = $this->createMock(ActionGroup::class);
@@ -284,7 +286,7 @@ class StageTest extends TestCase
         $this->assertEquals([], $stage->actionGroups);
     }
 
-    public function testAttachmentsProperty()
+    public function testAttachmentsProperty(): void
     {
         $stage = new Stage();
 
@@ -304,7 +306,7 @@ class StageTest extends TestCase
         $this->assertNull($stage->attachments);
     }
 
-    public function testAttachmentsSetterWithValidAttachments()
+    public function testAttachmentsSetterWithValidAttachments(): void
     {
         $stage = new Stage();
         $attachment = $this->createMock(Attachment::class);
@@ -321,7 +323,7 @@ class StageTest extends TestCase
         $this->assertEquals($attachments, $stage->attachments);
     }
 
-    public function testAttachmentsSetterWithInvalidAttachments()
+    public function testAttachmentsSetterWithInvalidAttachments(): void
     {
         $this->expectException(TypeError::class);
         $this->expectExceptionMessage("Attachment argument must be an instance of Attachment");
@@ -335,10 +337,11 @@ class StageTest extends TestCase
             ]
         ];
 
+        // @phpstan-ignore assign.propertyType
         $stage->attachments = $invalidAttachments;
     }
 
-    public function testAddAttachment()
+    public function testAddAttachment(): void
     {
         $stage = new Stage();
         $attachment = $this->createMock(Attachment::class);
@@ -357,7 +360,7 @@ class StageTest extends TestCase
         $this->assertSame($stage, $result);
     }
 
-    public function testAddAttachmentWithDefaults()
+    public function testAddAttachmentWithDefaults(): void
     {
         $stage = new Stage();
         $attachment = $this->createMock(Attachment::class);
@@ -370,7 +373,7 @@ class StageTest extends TestCase
         $this->assertEquals([], $addedAttachment['data']);
     }
 
-    public function testAddMultipleAttachments()
+    public function testAddMultipleAttachments(): void
     {
         $stage = new Stage();
         $attachment1 = $this->createMock(Attachment::class);
@@ -384,7 +387,7 @@ class StageTest extends TestCase
         $this->assertSame($attachment2, $stage->attachments[1]['attachment']);
     }
 
-    public function testAddAttachmentToNullAttachments()
+    public function testAddAttachmentToNullAttachments(): void
     {
         $stage = new Stage();
         $this->assertNull($stage->attachments);
@@ -392,10 +395,11 @@ class StageTest extends TestCase
         $attachment = $this->createMock(Attachment::class);
         $stage->addAttachment($attachment);
 
+        $this->assertNotNull($stage->attachments);
         $this->assertCount(1, $stage->attachments);
     }
 
-    public function testClearAttachments()
+    public function testClearAttachments(): void
     {
         $stage = new Stage();
         $attachment = $this->createMock(Attachment::class);
@@ -409,7 +413,7 @@ class StageTest extends TestCase
         $this->assertEquals([], $stage->attachments);
     }
 
-    public function testPreUpdateHook()
+    public function testPreUpdateHook(): void
     {
         $actionGroup1 = $this->createMock(ActionGroup::class);
         $actionGroup2 = $this->createMock(ActionGroup::class);
@@ -436,7 +440,7 @@ class StageTest extends TestCase
         $this->assertNotSame($originalActionGroups['group2'], $stage->actionGroups['group2']);
     }
 
-    public function testCompleteStageScenario()
+    public function testCompleteStageScenario(): void
     {
         // Create a complete stage scenario
         $owner = $this->createMock(Character::class);
@@ -494,10 +498,9 @@ class StageTest extends TestCase
         $this->assertSame($paragraph2, $stage->paragraphs["id-2"]);
     }
 
-    public function testFluentInterfaceChaining()
+    public function testFluentInterfaceChaining(): void
     {
         $stage = new Stage();
-        $owner = $this->createMock(Character::class);
         $actionGroup = $this->createMock(ActionGroup::class);
         $actionGroup->method('getId')->willReturn('test');
         $attachment = $this->createStub(Attachment::class);
@@ -516,5 +519,73 @@ class StageTest extends TestCase
         $this->assertEquals([], $stage->actionGroups);
         $this->assertEquals([], $stage->attachments);
         $this->assertEquals([], $stage->paragraphs);
+    }
+
+    public function testParagraphsSetterWithNull(): void
+    {
+        $stage = new Stage();
+        $stage->paragraphs = null;
+        $this->assertSame([], $stage->paragraphs);
+    }
+
+    public function testPropertiesAndPropertyTrait(): void
+    {
+        $stage = new Stage(properties: ["theme" => "dark"]);
+        $this->assertSame(["theme" => "dark"], $stage->properties);
+
+        $stage->properties = ["volume" => 80];
+        $this->assertSame(["volume" => 80], $stage->properties);
+
+        $this->assertSame(80, $stage->getProperty("volume"));
+        $this->assertSame("default_val", $stage->getProperty("non_existent", "default_val"));
+        $this->assertNull($stage->getProperty("non_existent"));
+
+        $result = $stage->setProperty("music", "epic.mp3");
+        $this->assertSame($stage, $result);
+        $this->assertSame("epic.mp3", $stage->getProperty("music"));
+        $this->assertSame(["volume" => 80, "music" => "epic.mp3"], $stage->getProperties());
+
+        $result2 = $stage->setProperties(["volume" => 90, "difficulty" => "hard"]);
+        $this->assertSame($stage, $result2);
+        $this->assertSame(90, $stage->getProperty("volume"));
+        $this->assertSame("hard", $stage->getProperty("difficulty"));
+    }
+
+    public function testClearMethod(): void
+    {
+        $stage = new Stage();
+        $actionGroup = $this->createMock(ActionGroup::class);
+        $actionGroup->method("getId")->willReturn("action_1");
+        $attachment = $this->createMock(Attachment::class);
+        $paragraph = new Paragraph(id: "p1", text: "Text here");
+
+        $stage->addActionGroup($actionGroup)
+            ->addAttachment($attachment)
+            ->addParagraph($paragraph);
+
+        $this->assertCount(1, $stage->actionGroups);
+        $this->assertCount(1, $stage->attachments);
+        $this->assertCount(1, $stage->paragraphs);
+
+        $result = $stage->clear();
+        $this->assertSame($stage, $result);
+        $this->assertSame([], $stage->actionGroups);
+        $this->assertSame([], $stage->attachments);
+        $this->assertSame([], $stage->paragraphs);
+    }
+
+    public function testPreUpdateClonesParagraphs(): void
+    {
+        $stage = new Stage();
+        $paragraph = new Paragraph(id: "p1", text: "Some scene text");
+        $stage->addParagraph($paragraph);
+
+        $originalParagraph = $stage->paragraphs["p1"];
+        $stage->preUpdate();
+
+        $this->assertCount(1, $stage->paragraphs);
+        $this->assertNotSame($originalParagraph, $stage->paragraphs["p1"]);
+        $this->assertSame($originalParagraph->id, $stage->paragraphs["p1"]->id);
+        $this->assertSame($originalParagraph->text, $stage->paragraphs["p1"]->text);
     }
 }

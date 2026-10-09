@@ -8,7 +8,7 @@ use LotGD2\Entity\Mapped\Character;
 use LotGD2\Game\Handler\CharmHandler;
 use LotGD2\Game\Handler\EquipmentHandler;
 use LotGD2\Game\Handler\GenderHandler;
-use LotGD2\Game\Handler\GoldHandler;
+use LotGD2\Game\Handler\WealthHandler;
 use LotGD2\Game\Handler\HealthHandler;
 use LotGD2\Game\Handler\StatsHandler;
 use Psr\Log\LoggerInterface;
@@ -218,7 +218,7 @@ class ExpressionService
         $healthHandler = new HealthHandler($this->gameStateService, $this->logger, $character);
         $equipmentHandler = new EquipmentHandler($this->logger, $character);
         $statsHandler = new StatsHandler($this->logger, $equipmentHandler, $character);
-        $goldHandler = new GoldHandler($this->gameStateService, $this->logger, $character);
+        $goldHandler = new WealthHandler($this->gameStateService, $this->logger, $character);
         $genderHandler = new GenderHandler();
         $charmHandler = new CharmHandler($this->logger);
 

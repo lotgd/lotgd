@@ -15,7 +15,7 @@ use LotGD2\Event\FormExtensionEvent;
 use LotGD2\Event\LootBagEvent;
 use LotGD2\Event\NewEntityEvent;
 use LotGD2\Game\GameStateService;
-use LotGD2\Game\Handler\GoldHandler;
+use LotGD2\Game\Handler\WealthHandler;
 use LotGD2\Game\Random\DiceBag;
 use LotGD2\Game\Scene\SceneTemplate\DragonTemplate;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -28,7 +28,7 @@ use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Form\FormBuilderInterface;
 
-#[CoversClass(GoldHandler::class)]
+#[CoversClass(WealthHandler::class)]
 #[UsesClass(Character::class)]
 #[UsesClass(BattleState::class)]
 #[UsesClass(LootPosition::class)]
@@ -39,7 +39,7 @@ use Symfony\Component\Form\FormBuilderInterface;
 #[UsesClass(FormExtensionEvent::class)]
 #[UsesClass(CharacterChangeEvent::class)]
 #[UsesClass(NewEntityEvent::class)]
-class GoldHandlerTest extends TestCase
+class WealthHandlerTest extends TestCase
 {
     public function testGetGoldWithPropertyNotSetAndGameSettingIsNull(): void
     {
@@ -47,85 +47,65 @@ class GoldHandlerTest extends TestCase
         $gameStateService = $this->createStub(GameStateService::class);
         $loggerMock = $this->createStub(LoggerInterface::class);
 
-        $gold = new GoldHandler($gameStateService, $loggerMock, $character);
+        $gold = new WealthHandler($gameStateService, $loggerMock, $character);
 
         $this->assertEquals(50, $gold->getGold(null));
     }
 
-    public static function getGoldProvider(): array
-    {
-        return [
-            "no gold" => [0],
-            "a bit gold" => [100],
-            "a lot of gold" => [100_000_000],
-        ];
-    }
-
-    #[DataProvider("getGoldProvider")]
+    #[TestWith([0], "no gold")]
+    #[TestWith([100], "a bit of gold")]
+    #[TestWith([100_000_000], "a lot of gold")]
+    #[TestWith([PHP_INT_MAX], "all of the gold")]
     public function testGetGold(int $goldAmount): void
     {
         $character = new Character();
         $character->properties = [
-            GoldHandler::PropertyName => $goldAmount,
+            WealthHandler::PropertyName => $goldAmount,
         ];
 
         $gameStateService = $this->createStub(GameStateService::class);
         $loggerMock = $this->createStub(LoggerInterface::class);
 
-        $gold = new GoldHandler($gameStateService, $loggerMock, $character);
+        $gold = new WealthHandler($gameStateService, $loggerMock, $character);
 
         $this->assertEquals($goldAmount, $gold->getGold(null));
     }
 
-    public static function setGoldProvider(): array
-    {
-        return [
-            [0, 100],
-            [100, 0],
-            [0, -100],
-        ];
-    }
-
-    #[DataProvider("setGoldProvider")]
+    #[TestWith([0, 100])]
+    #[TestWith([100, 0])]
+    #[TestWith([0, -100])]
     public function testSetGold(int $initialGoldAmount, int $setGoldAmount): void
     {
         $character = new Character();
         $character->properties = [
-            GoldHandler::PropertyName => $initialGoldAmount,
+            WealthHandler::PropertyName => $initialGoldAmount,
         ];
 
         $gameStateService = $this->createStub(GameStateService::class);
         $loggerMock = $this->createMock(LoggerInterface::class);
         $loggerMock->expects($this->once())->method("debug");
 
-        $gold = new GoldHandler($gameStateService, $loggerMock, $character);
+        $gold = new WealthHandler($gameStateService, $loggerMock, $character);
 
         $gold->setGold(null, $setGoldAmount);
         $this->assertEquals($setGoldAmount, $gold->getGold(null));
     }
 
-    public static function addGoldProvider(): array
-    {
-        return [
-            [0, 100, 100],
-            [100, 0, 100],
-            [50, -100, -50],
-        ];
-    }
-
-    #[DataProvider("addGoldProvider")]
+    #[TestWith([0, 100, 100])]
+    #[TestWith([100, 0, 100])]
+    #[TestWith([50, -100, -50])]
     public function testAddGold(int $initialGoldAmount, int $setGoldAmount, int $finalGoldAmount): void
     {
         $character = new Character();
         $character->properties = [
-            GoldHandler::PropertyName => $initialGoldAmount,
+            WealthHandler::PropertyName => $initialGoldAmount,
         ];
 
         $gameStateService = $this->createStub(GameStateService::class);
         $loggerMock = $this->createMock(LoggerInterface::class);
         $loggerMock->expects($this->once())->method("debug");
 
-        $gold = new GoldHandler($gameStateService, $loggerMock, $character);
+        $gold = new WealthHandler($gameStateService, $loggerMock, $character);
 
         $gold->addGold(null, $setGoldAmount);
         $this->assertEquals($finalGoldAmount, $gold->getGold(null));
@@ -135,14 +115,14 @@ class GoldHandlerTest extends TestCase
     {
         $character = new Character();
         $character->properties = [
-            GoldHandler::PropertyName => 100,
+            WealthHandler::PropertyName => 100,
         ];
 
         $gameStateService = $this->createStub(GameStateService::class);
         $loggerMock = $this->createMock(LoggerInterface::class);
         $loggerMock->expects($this->once())->method("debug");
 
-        $gold = new GoldHandler($gameStateService, $loggerMock, $character);
+        $gold = new WealthHandler($gameStateService, $loggerMock, $character);
 
         $gold->removeGold(null, 40);
         $this->assertEquals(60, $gold->getGold(null));
@@ -159,7 +139,7 @@ class GoldHandlerTest extends TestCase
         $loggerMock = $this->createStub(LoggerInterface::class);
         $character = $this->createStub(Character::class);
 
-        $goldHandler = new GoldHandler($gameStateService, $loggerMock, $character);
+        $goldHandler = new WealthHandler($gameStateService, $loggerMock, $character);
 
         $badGuy = $this->createStub(FighterInterface::class);
         $badGuy->method(PropertyHook::get("kwargs"))->willReturn([
@@ -177,7 +157,7 @@ class GoldHandlerTest extends TestCase
         $lootBag->expects($this->once())
             ->method("add")
             ->willReturnCallback(function (LootPosition $position) use ($maxValueExpected) {
-               $this->assertSame(GoldHandler::GoldLoot, $position->id);
+               $this->assertSame(WealthHandler::GoldLoot, $position->id);
                $this->assertSame(0, $position->loot["minValue"]);
                $this->assertSame($maxValueExpected, $position->loot["maxValue"]);
             });
@@ -191,7 +171,7 @@ class GoldHandlerTest extends TestCase
         $logger = $this->createMock(LoggerInterface::class);
         $character = $this->createStub(Character::class);
 
-        $goldHandler = new GoldHandler($gameStateService, $logger, $character);
+        $goldHandler = new WealthHandler($gameStateService, $logger, $character);
 
         $lootBag = $this->createMock(LootBag::class);
 
@@ -203,7 +183,7 @@ class GoldHandlerTest extends TestCase
         // Set assertions
         $lootBag->expects($this->once())
             ->method("get")
-            ->with(GoldHandler::GoldLoot)
+            ->with(WealthHandler::GoldLoot)
             ->willReturn(null);
 
         $logger->expects($this->once())
@@ -219,7 +199,7 @@ class GoldHandlerTest extends TestCase
         $logger = $this->createStub(LoggerInterface::class);
         $character = $this->createStub(Character::class);
 
-        $goldHandler = $this->getMockBuilder(GoldHandler::class)
+        $goldHandler = $this->getMockBuilder(WealthHandler::class)
             ->setConstructorArgs([$gameStateService, $logger, $character])
             ->onlyMethods(["addGold"])
             ->getMock();
@@ -239,14 +219,14 @@ class GoldHandlerTest extends TestCase
         );
 
         $lootPosition = new LootPosition(
-            id: GoldHandler::GoldLoot,
+            id: WealthHandler::GoldLoot,
             loot: ["minValue" => 0, "maxValue" => 100],
         );
 
         // Set assertions
         $lootBag->expects($this->once())
             ->method("get")
-            ->with(GoldHandler::GoldLoot)
+            ->with(WealthHandler::GoldLoot)
             ->willReturn($lootPosition);
 
         $diceBag->expects($this->once())
@@ -261,7 +241,7 @@ class GoldHandlerTest extends TestCase
         $stage->expects($this->once())
             ->method("addParagraph")
             ->willReturnCallback(function (Paragraph $paragraph) use ($stage) {
-                $this->assertSame(GoldHandler::GoldLootClaimParagraph, $paragraph->id);
+                $this->assertSame(WealthHandler::GoldLootClaimParagraph, $paragraph->id);
                 $this->assertSame(13, $paragraph->context["gold"]);
                 return $stage;
             });
@@ -275,7 +255,7 @@ class GoldHandlerTest extends TestCase
         $logger = $this->createMock(LoggerInterface::class);
         $character = $this->createStub(Character::class);
 
-        $goldHandler = $this->getMockBuilder(GoldHandler::class)
+        $goldHandler = $this->getMockBuilder(WealthHandler::class)
             ->setConstructorArgs([$gameStateService, $logger, $character])
             ->onlyMethods(["addGold"])
             ->getMock();
@@ -295,14 +275,14 @@ class GoldHandlerTest extends TestCase
         );
 
         $lootPosition = new LootPosition(
-            id: GoldHandler::GoldLoot,
+            id: WealthHandler::GoldLoot,
             loot: [],
         );
 
         // Set assertions
         $lootBag->expects($this->once())
             ->method("get")
-            ->with(GoldHandler::GoldLoot)
+            ->with(WealthHandler::GoldLoot)
             ->willReturn($lootPosition);
 
         $diceBag->expects($this->once())
@@ -359,7 +339,7 @@ class GoldHandlerTest extends TestCase
         $logger = $this->createStub(LoggerInterface::class);
         $character = $this->createStub(Character::class);
 
-        $goldHandler = new GoldHandler($gameStateService, $logger, $character);
+        $goldHandler = new WealthHandler($gameStateService, $logger, $character);
 
         $builder = $this->createMock(FormBuilderInterface::class);
         $innerBuilder = $this->createStub(FormBuilderInterface::class);
@@ -372,7 +352,7 @@ class GoldHandlerTest extends TestCase
         $builder->expects($this->atLeastOnce())
             ->method("create")
             ->willReturnCallback(function ($name, $type, $options) use ($innerBuilder) {
-                $this->assertSame(GoldHandler::PropertyName, $name);
+                $this->assertSame(WealthHandler::PropertyName, $name);
                 return $innerBuilder;
             })
         ;
@@ -406,7 +386,7 @@ class GoldHandlerTest extends TestCase
         $logger = $this->createStub(LoggerInterface::class);
         $character = $this->createStub(Character::class);
 
-        $goldHandler = $this->getMockBuilder(GoldHandler::class)
+        $goldHandler = $this->getMockBuilder(WealthHandler::class)
             ->setConstructorArgs([$gameStateService, $logger, $character])
             ->onlyMethods(["setGold"])
             ->getMock()
@@ -425,9 +405,9 @@ class GoldHandlerTest extends TestCase
             ->method("getSetting")
             ->willReturnCallback(function (string $name) use ($matcher, $startGold, $startGoldDoesScale, $maxStartGold) {
                 match ($matcher->numberOfInvocations()) {
-                    1 => $this->assertSame(GoldHandler::StartGoldScalesWithDragonKillGameSetting, $name),
-                    2 => $this->assertSame(GoldHandler::DefaultGoldGameSetting, $name),
-                    3 => $this->assertSame(GoldHandler::MaxStartGoldGameSetting, $name),
+                    1 => $this->assertSame(WealthHandler::StartGoldScalesWithDragonKillGameSetting, $name),
+                    2 => $this->assertSame(WealthHandler::DefaultGoldGameSetting, $name),
+                    3 => $this->assertSame(WealthHandler::MaxStartGoldGameSetting, $name),
                 };
 
                 return match ($matcher->numberOfInvocations()) {
@@ -457,7 +437,7 @@ class GoldHandlerTest extends TestCase
         $logger = $this->createStub(LoggerInterface::class);
         $character = $this->createStub(Character::class);
 
-        $goldHandler = $this->getMockBuilder(GoldHandler::class)
+        $goldHandler = $this->getMockBuilder(WealthHandler::class)
             ->setConstructorArgs([$gameStateService, $logger, $character])
             ->onlyMethods(["setGold"])
             ->getMock()
@@ -473,7 +453,7 @@ class GoldHandlerTest extends TestCase
         $gameStateService
             ->expects($this->once())
             ->method("getSetting")
-            ->with(GoldHandler::DefaultGoldGameSetting)
+            ->with(WealthHandler::DefaultGoldGameSetting)
             ->willReturn($startGold)
         ;
 
@@ -491,7 +471,7 @@ class GoldHandlerTest extends TestCase
         $logger = $this->createStub(LoggerInterface::class);
         $character = $this->createStub(Character::class);
 
-        $goldHandler = $this->getMockBuilder(GoldHandler::class)
+        $goldHandler = $this->getMockBuilder(WealthHandler::class)
             ->setConstructorArgs([$gameStateService, $logger, $character])
             ->onlyMethods(["setGold"])
             ->getMock()

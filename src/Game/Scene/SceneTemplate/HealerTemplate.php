@@ -9,7 +9,7 @@ use LotGD2\Entity\ActionGroup;
 use LotGD2\Entity\Mapped\Character;
 use LotGD2\Entity\Paragraph;
 use LotGD2\Form\Scene\SceneTemplate\HealerTemplateType;
-use LotGD2\Game\Handler\GoldHandler;
+use LotGD2\Game\Handler\WealthHandler;
 use LotGD2\Game\Handler\HealthHandler;
 use Psr\Log\LoggerInterface;
 use Symfony\Bundle\SecurityBundle\Security;
@@ -42,9 +42,9 @@ class HealerTemplate implements SceneTemplateInterface
 
     public function __construct(
         private readonly LoggerInterface $logger,
-        private readonly Security $security,
-        private readonly HealthHandler $health,
-        private readonly GoldHandler $gold,
+        private readonly Security        $security,
+        private readonly HealthHandler   $health,
+        private readonly WealthHandler   $gold,
     ) {
 
     }

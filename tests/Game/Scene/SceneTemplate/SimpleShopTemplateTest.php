@@ -13,7 +13,7 @@ use LotGD2\Entity\Mapped\Stage;
 use LotGD2\Entity\Paragraph;
 use LotGD2\Form\Scene\SceneTemplate\SimpleShopTemplateType;
 use LotGD2\Game\Handler\EquipmentHandler;
-use LotGD2\Game\Handler\GoldHandler;
+use LotGD2\Game\Handler\WealthHandler;
 use LotGD2\Game\Random\DiceBag;
 use LotGD2\Game\Scene\SceneAttachment\SimpleShopAttachment;
 use LotGD2\Game\Scene\SceneTemplate\SimpleShopTemplate;
@@ -114,16 +114,16 @@ class SimpleShopTemplateTest extends TestCase
      * @throws Exception
      */
     private function getPartiallyMockedSimpleShopTemplate(
-        array $mockedMethods = [],
+        array                 $mockedMethods = [],
         ?AttachmentRepository $attachmentRepository = null,
-        ?LoggerInterface $logger = null,
-        ?ActionService $actionService = null,
-        ?EquipmentHandler $equipment = null,
-        ?GoldHandler $gold = null,
-        ?Scene $scene = null,
-        ?Stage $stage = null,
-        ?Action $action = null,
-        ?Character $character = null,
+        ?LoggerInterface      $logger = null,
+        ?ActionService        $actionService = null,
+        ?EquipmentHandler     $equipment = null,
+        ?WealthHandler        $gold = null,
+        ?Scene                $scene = null,
+        ?Stage                $stage = null,
+        ?Action               $action = null,
+        ?Character            $character = null,
     ): SimpleShopTemplate {
         if (count($mockedMethods) > 0) {
             $simpleShopTemplate = $this->getMockBuilder(SimpleShopTemplate::class)
@@ -133,7 +133,7 @@ class SimpleShopTemplateTest extends TestCase
                     $logger ?? $this->createStub(LoggerInterface::class),
                     $actionService ?? $this->createStub(ActionService::class),
                     $equipment ?? $this->createStub(EquipmentHandler::class),
-                    $gold ?? $this->createStub(GoldHandler::class),
+                    $gold ?? $this->createStub(WealthHandler::class),
                 ])
                 ->getMock();
         } else {
@@ -144,7 +144,7 @@ class SimpleShopTemplateTest extends TestCase
                     $logger ?? $this->createStub(LoggerInterface::class),
                     $actionService ?? $this->createStub(ActionService::class),
                     $equipment ?? $this->createStub(EquipmentHandler::class),
-                    $gold ?? $this->createStub(GoldHandler::class),
+                    $gold ?? $this->createStub(WealthHandler::class),
                 ])
                 ->getStub();
         }
@@ -594,7 +594,7 @@ class SimpleShopTemplateTest extends TestCase
                 })
             );
 
-        $gold = $this->createMock(GoldHandler::class);
+        $gold = $this->createMock(WealthHandler::class);
         $gold->expects($this->once())
             ->method("getGold")
             ->with(null)
@@ -679,7 +679,7 @@ class SimpleShopTemplateTest extends TestCase
 
         // Trade-in is round(40 * 0.75) = 30. Item price is 50. Character gold is 25. 25 + 30 = 55 >= 50.
         // Gold to deduct: -(50 - 30) = -20.
-        $gold = $this->createMock(GoldHandler::class);
+        $gold = $this->createMock(WealthHandler::class);
         $gold->expects($this->once())
             ->method("getGold")
             ->with(null)
@@ -750,7 +750,7 @@ class SimpleShopTemplateTest extends TestCase
 
         $equipment->expects($this->never())->method("setItemInSlot");
 
-        $gold = $this->createMock(GoldHandler::class);
+        $gold = $this->createMock(WealthHandler::class);
         $gold->expects($this->once())
             ->method("getGold")
             ->with(null)

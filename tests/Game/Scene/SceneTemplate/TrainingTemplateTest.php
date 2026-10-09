@@ -18,7 +18,7 @@ use LotGD2\Event\SimpleStageParameterEvent;
 use LotGD2\Game\Battle\Battle;
 use LotGD2\Game\GameStateService;
 use LotGD2\Game\Handler\EquipmentHandler;
-use LotGD2\Game\Handler\GoldHandler;
+use LotGD2\Game\Handler\WealthHandler;
 use LotGD2\Game\Handler\HealthHandler;
 use LotGD2\Game\Handler\StatsHandler;
 use LotGD2\Game\Random\DiceBag;
@@ -70,7 +70,7 @@ class TrainingTemplateTest extends TestCase
                 $equipmentHandler,
                 $statsHandler,
                 $this->createStub(HealthHandler::class),
-                $this->createStub(GoldHandler::class),
+                $this->createStub(WealthHandler::class),
                 $this->createStub(GameStateService::class),
             ])
             ->onlyMethods([])
@@ -107,7 +107,7 @@ class TrainingTemplateTest extends TestCase
                 $this->createStub(EquipmentHandler::class),
                 $this->createStub(StatsHandler::class),
                 $this->createStub(HealthHandler::class),
-                $this->createStub(GoldHandler::class),
+                $this->createStub(WealthHandler::class),
                 $this->createStub(GameStateService::class),
             ])
             ->onlyMethods(["defaultAction", "askAction", "challengeAction", "handleCheats"])
@@ -143,7 +143,7 @@ class TrainingTemplateTest extends TestCase
                 $this->createStub(EquipmentHandler::class),
                 $this->createStub(StatsHandler::class),
                 $this->createStub(HealthHandler::class),
-                $this->createStub(GoldHandler::class),
+                $this->createStub(WealthHandler::class),
                 $this->createStub(GameStateService::class),
             ])
             ->onlyMethods(["defaultAction", "askAction", "challengeAction", "handleCheats"])
@@ -188,7 +188,7 @@ class TrainingTemplateTest extends TestCase
             $this->createStub(EquipmentHandler::class),
             $this->createStub(StatsHandler::class),
             $healthHandler,
-            $this->createStub(GoldHandler::class),
+            $this->createStub(WealthHandler::class),
             $this->createStub(GameStateService::class),
         );
 
@@ -234,7 +234,7 @@ class TrainingTemplateTest extends TestCase
                 $this->createStub(EquipmentHandler::class),
                 $this->createStub(StatsHandler::class),
                 $healthHandler,
-                $this->createStub(GoldHandler::class),
+                $this->createStub(WealthHandler::class),
                 $this->createStub(GameStateService::class),
             ])
             ->getMock();
@@ -301,7 +301,7 @@ class TrainingTemplateTest extends TestCase
                 $this->createStub(EquipmentHandler::class),
                 $this->createStub(StatsHandler::class),
                 $healthHandler,
-                $this->createStub(GoldHandler::class),
+                $this->createStub(WealthHandler::class),
                 $this->createStub(GameStateService::class),
             ])
             ->getMock();
@@ -377,7 +377,7 @@ class TrainingTemplateTest extends TestCase
                 $this->createStub(EquipmentHandler::class),
                 $this->createStub(StatsHandler::class),
                 $this->createStub(HealthHandler::class),
-                $this->createStub(GoldHandler::class),
+                $this->createStub(WealthHandler::class),
                 $this->createStub(GameStateService::class),
             ])
             ->getMock();
@@ -1473,7 +1473,7 @@ class TrainingTemplateTest extends TestCase
      * @param EquipmentHandler|null $equipment
      * @param StatsHandler|null $stats
      * @param HealthHandler|null $health
-     * @param GoldHandler|null $gold
+     * @param WealthHandler|null $gold
      * @param Scene|null $scene
      * @param Stage|null $stage
      * @param Action|null $action
@@ -1482,21 +1482,21 @@ class TrainingTemplateTest extends TestCase
      * @throws Exception
      */
     private function getPartiallyMockedTrainingTemplate(
-        array $mockedMethods = [],
-        ?Security $security = null,
-        ?LoggerInterface $logger = null,
+        array                     $mockedMethods = [],
+        ?Security                 $security = null,
+        ?LoggerInterface          $logger = null,
         ?EventDispatcherInterface $eventDispatcher = null,
-        ?AttachmentRepository $attachmentRepository = null,
-        ?MasterRepository $masterRepository = null,
-        ?Battle $battle = null,
-        ?EquipmentHandler $equipment = null,
-        ?StatsHandler $stats = null,
-        ?HealthHandler $health = null,
-        ?GoldHandler $gold = null, // @phpstan-ignore property.onlyWritten
-        ?Scene $scene = null,
-        ?Stage $stage = null,
-        ?Action $action = null,
-        ?Character $character = null,
+        ?AttachmentRepository     $attachmentRepository = null,
+        ?MasterRepository         $masterRepository = null,
+        ?Battle                   $battle = null,
+        ?EquipmentHandler         $equipment = null,
+        ?StatsHandler             $stats = null,
+        ?HealthHandler            $health = null,
+        ?WealthHandler            $gold = null, // @phpstan-ignore property.onlyWritten
+        ?Scene                    $scene = null,
+        ?Stage                    $stage = null,
+        ?Action                   $action = null,
+        ?Character                $character = null,
     ): TrainingTemplate {
         if (count($mockedMethods) > 0) {
             $trainingTemplate = $this->getMockBuilder(TrainingTemplate::class)
@@ -1511,7 +1511,7 @@ class TrainingTemplateTest extends TestCase
                     $equipment ?? $this->createStub(EquipmentHandler::class),
                     $stats ?? $this->createStub(StatsHandler::class),
                     $health ?? $this->createStub(HealthHandler::class),
-                    $gold ?? $this->createStub(GoldHandler::class),
+                    $gold ?? $this->createStub(WealthHandler::class),
                     $this->createStub(GameStateService::class),
                 ])
                 ->getMock();
@@ -1528,7 +1528,7 @@ class TrainingTemplateTest extends TestCase
                     $equipment ?? $this->createStub(EquipmentHandler::class),
                     $stats ?? $this->createStub(StatsHandler::class),
                     $health ?? $this->createStub(HealthHandler::class),
-                    $gold ?? $this->createStub(GoldHandler::class),
+                    $gold ?? $this->createStub(WealthHandler::class),
                     $this->createStub(GameStateService::class),
                 ])
                 ->getStub();

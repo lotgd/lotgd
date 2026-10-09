@@ -13,7 +13,7 @@ use LotGD2\Entity\Paragraph;
 use LotGD2\Event\StageChangeEvent;
 use LotGD2\Form\Scene\SceneTemplate\BankTemplateType;
 use LotGD2\Game\GameStateService;
-use LotGD2\Game\Handler\GoldHandler;
+use LotGD2\Game\Handler\WealthHandler;
 use LotGD2\Game\Handler\HealthHandler;
 use LotGD2\Game\GameTime\NewDay;
 use LotGD2\Game\Random\DiceBagInterface;
@@ -52,14 +52,14 @@ class BankTemplate implements SceneTemplateInterface
     const string DefaultBankAccountName = "defaults";
 
     public function __construct(
-        private LoggerInterface $logger,
-        private Stopwatch $stopwatch,
+        private LoggerInterface      $logger,
+        private Stopwatch            $stopwatch,
         private AttachmentRepository $attachmentRepository,
-        private SceneRepository $sceneRepository,
-        private DiceBagInterface $diceBag,
-        private ActionService $actionService,
-        private GoldHandler $gold,
-        private GameStateService $gameStateService,
+        private SceneRepository      $sceneRepository,
+        private DiceBagInterface     $diceBag,
+        private ActionService        $actionService,
+        private WealthHandler        $gold,
+        private GameStateService     $gameStateService,
     ) {
     }
 

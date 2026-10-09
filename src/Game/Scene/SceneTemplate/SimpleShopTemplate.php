@@ -12,7 +12,7 @@ use LotGD2\Entity\Mapped\Stage;
 use LotGD2\Entity\Paragraph;
 use LotGD2\Form\Scene\SceneTemplate\SimpleShopTemplateType;
 use LotGD2\Game\Handler\EquipmentHandler;
-use LotGD2\Game\Handler\GoldHandler;
+use LotGD2\Game\Handler\WealthHandler;
 use LotGD2\Game\Scene\SceneAttachment\SimpleShopAttachment;
 use LotGD2\Game\Stage\ActionService;
 use LotGD2\Repository\AttachmentRepository;
@@ -49,10 +49,10 @@ class SimpleShopTemplate implements SceneTemplateInterface
 
     public function __construct(
         private readonly AttachmentRepository $attachmentRepository,
-        private readonly LoggerInterface $logger,
-        private readonly ActionService $actionService,
-        private readonly EquipmentHandler $equipment,
-        private readonly GoldHandler $gold,
+        private readonly LoggerInterface      $logger,
+        private readonly ActionService        $actionService,
+        private readonly EquipmentHandler     $equipment,
+        private readonly WealthHandler        $gold,
     ) {
     }
 

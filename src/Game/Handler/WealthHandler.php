@@ -31,11 +31,12 @@ use Symfony\Component\Validator\Constraints\Range;
 /**
  * @phpstan-import-type GameSettingsDataType from GameSettings
  */
-readonly class GoldHandler
+readonly class WealthHandler
 {
     const string PropertyName = 'gold';
-    const string GoldLoot = "lotgd2.loot.Gold";
-    const string GoldLootClaimParagraph = "lotgd2.paragraph.Gold.LootBagClaim";
+    const string GoldLoot = "lotgd2_loot_Gold";
+    const string GoldLootClaimParagraph = "lotgd2_paragraph_Gold_LootBagClaim";
+
     const string DefaultGoldGameSetting = "lotgd2_gameSetting_defaultGold";
     const string MaxStartGoldGameSetting = "lotgd2_gameSetting_maxGold";
     const string StartGoldScalesWithDragonKillGameSetting = "lotgd2_gameSetting_defaultGoldDkScaling";

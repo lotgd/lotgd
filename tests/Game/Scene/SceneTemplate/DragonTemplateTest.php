@@ -21,7 +21,7 @@ use LotGD2\Game\Battle\Battle;
 use LotGD2\Game\GameStateService;
 use LotGD2\Game\GameTime\NewDay;
 use LotGD2\Game\Handler\DragonCounterHandler;
-use LotGD2\Game\Handler\GoldHandler;
+use LotGD2\Game\Handler\WealthHandler;
 use LotGD2\Game\Handler\StatsHandler;
 use LotGD2\Game\Random\DiceBag;
 use LotGD2\Game\Scene\SceneAttachment\BattleAttachment;
@@ -64,7 +64,7 @@ class DragonTemplateTest extends TestCase
                 $this->createStub(SceneRepository::class),
                 $this->createStub(Battle::class),
                 $this->createStub(NewDay::class),
-                $this->createStub(GoldHandler::class),
+                $this->createStub(WealthHandler::class),
                 $this->createStub(StatsHandler::class),
                 $this->createStub(DragonCounterHandler::class),
                 $this->createStub(ActionService::class),
@@ -95,7 +95,7 @@ class DragonTemplateTest extends TestCase
                 $this->createStub(SceneRepository::class),
                 $this->createStub(Battle::class),
                 $this->createStub(NewDay::class),
-                $this->createStub(GoldHandler::class),
+                $this->createStub(WealthHandler::class),
                 $this->createStub(StatsHandler::class),
                 $this->createStub(DragonCounterHandler::class),
                 $this->createStub(ActionService::class),
@@ -144,7 +144,7 @@ class DragonTemplateTest extends TestCase
                 $this->createStub(SceneRepository::class),
                 $this->createStub(Battle::class),
                 $this->createStub(NewDay::class),
-                $this->createStub(GoldHandler::class),
+                $this->createStub(WealthHandler::class),
                 $this->createStub(StatsHandler::class),
                 $this->createStub(DragonCounterHandler::class),
                 $this->createStub(ActionService::class),
@@ -184,7 +184,7 @@ class DragonTemplateTest extends TestCase
             $this->createStub(SceneRepository::class),
             $battle,
             $this->createStub(NewDay::class),
-            $this->createStub(GoldHandler::class),
+            $this->createStub(WealthHandler::class),
             $this->createStub(StatsHandler::class),
             $this->createStub(DragonCounterHandler::class),
             $this->createStub(ActionService::class),
@@ -266,7 +266,7 @@ class DragonTemplateTest extends TestCase
                 $this->createStub(SceneRepository::class),
                 $battle,
                 $this->createStub(NewDay::class),
-                $this->createStub(GoldHandler::class),
+                $this->createStub(WealthHandler::class),
                 $this->createStub(StatsHandler::class),
                 $this->createStub(DragonCounterHandler::class),
                 $this->createStub(ActionService::class),
@@ -356,7 +356,7 @@ class DragonTemplateTest extends TestCase
                 $this->createStub(SceneRepository::class),
                 $this->createStub(Battle::class),
                 $this->createStub(NewDay::class),
-                $this->createStub(GoldHandler::class),
+                $this->createStub(WealthHandler::class),
                 $this->createStub(StatsHandler::class),
                 $this->createStub(DragonCounterHandler::class),
                 $actionService,
@@ -430,7 +430,7 @@ class DragonTemplateTest extends TestCase
             $sceneRepository,
             $this->createStub(Battle::class),
             $this->createStub(NewDay::class),
-            $this->createStub(GoldHandler::class),
+            $this->createStub(WealthHandler::class),
             $this->createStub(StatsHandler::class),
             $this->createStub(DragonCounterHandler::class),
             $actionService,
@@ -485,7 +485,7 @@ class DragonTemplateTest extends TestCase
             $sceneRepository,
             $this->createStub(Battle::class),
             $this->createStub(NewDay::class),
-            $this->createStub(GoldHandler::class),
+            $this->createStub(WealthHandler::class),
             $this->createStub(StatsHandler::class),
             $this->createStub(DragonCounterHandler::class),
             $actionService,
@@ -547,7 +547,7 @@ class DragonTemplateTest extends TestCase
             $this->createStub(SceneRepository::class),
             $this->createStub(Battle::class),
             $this->createStub(NewDay::class),
-            $this->createStub(GoldHandler::class),
+            $this->createStub(WealthHandler::class),
             $this->createStub(StatsHandler::class),
             $this->createStub(DragonCounterHandler::class),
             $this->createStub(ActionService::class),

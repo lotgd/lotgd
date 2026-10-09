@@ -19,7 +19,7 @@ use LotGD2\Game\Battle\Battle;
 use LotGD2\Game\GameStateService;
 use LotGD2\Game\GameTime\NewDay;
 use LotGD2\Game\Handler\EquipmentHandler;
-use LotGD2\Game\Handler\GoldHandler;
+use LotGD2\Game\Handler\WealthHandler;
 use LotGD2\Game\Handler\HealthHandler;
 use LotGD2\Game\Handler\StatsHandler;
 use LotGD2\Game\Random\DiceBagInterface;
@@ -62,17 +62,17 @@ class TrainingTemplate implements SceneTemplateInterface
     const string ActionCheatSetLevelTo15 = "lotgd2.action.fightTemplate.cheats.level15";
 
     public function __construct(
-        private readonly Security $security,
-        private readonly LoggerInterface $logger,
+        private readonly Security                 $security,
+        private readonly LoggerInterface          $logger,
         private readonly EventDispatcherInterface $eventDispatcher,
-        private readonly AttachmentRepository $attachmentRepository,
-        private readonly MasterRepository $masterRepository,
-        private readonly Battle $battle,
-        private readonly EquipmentHandler $equipment,
-        private readonly StatsHandler $stats,
-        private readonly HealthHandler $health,
-        private readonly GoldHandler $gold, // @phpstan-ignore property.onlyWritten
-        private readonly GameStateService $gameStateService,
+        private readonly AttachmentRepository     $attachmentRepository,
+        private readonly MasterRepository         $masterRepository,
+        private readonly Battle                   $battle,
+        private readonly EquipmentHandler         $equipment,
+        private readonly StatsHandler             $stats,
+        private readonly HealthHandler            $health,
+        private readonly WealthHandler            $gold, // @phpstan-ignore property.onlyWritten
+        private readonly GameStateService         $gameStateService,
     ) {
     }
 

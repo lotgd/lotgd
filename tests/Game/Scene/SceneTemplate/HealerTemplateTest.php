@@ -9,7 +9,7 @@ use LotGD2\Entity\Mapped\Character;
 use LotGD2\Entity\Mapped\Scene;
 use LotGD2\Entity\Mapped\Stage;
 use LotGD2\Entity\Paragraph;
-use LotGD2\Game\Handler\GoldHandler;
+use LotGD2\Game\Handler\WealthHandler;
 use LotGD2\Game\Handler\HealthHandler;
 use LotGD2\Game\Random\DiceBag;
 use LotGD2\Game\Scene\SceneTemplate\HealerTemplate;
@@ -34,14 +34,14 @@ class HealerTemplateTest extends TestCase
     private LoggerInterface|MockObject $logger;
     private Security|MockObject $security;
     private HealthHandler|MockObject $health;
-    private GoldHandler|MockObject $gold;
+    private WealthHandler|MockObject $gold;
 
     protected function setUp(): void
     {
         $this->logger = $this->createMock(LoggerInterface::class);
         $this->security = $this->createMock(Security::class);
         $this->health = $this->createMock(HealthHandler::class);
-        $this->gold = $this->createMock(GoldHandler::class);
+        $this->gold = $this->createMock(WealthHandler::class);
 
         $this->healerTemplate = new HealerTemplate(
             $this->logger,

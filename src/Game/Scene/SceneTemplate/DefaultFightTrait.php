@@ -11,14 +11,14 @@ use LotGD2\Event\LootBagEvent;
 use LotGD2\Event\SimpleStageParameterEvent;
 use LotGD2\Game\Battle\Battle;
 use LotGD2\Game\Battle\BattleStateStatusEnum;
-use LotGD2\Game\Handler\GoldHandler;
+use LotGD2\Game\Handler\WealthHandler;
 use LotGD2\Game\Handler\StatsHandler;
 use Symfony\Component\EventDispatcher\Attribute\AsEventListener;
 use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
 
 trait DefaultFightTrait
 {
-    private readonly GoldHandler $gold;
+    private readonly WealthHandler $gold;
     private readonly StatsHandler $stats;
     private readonly EventDispatcherInterface $eventDispatcher;
 

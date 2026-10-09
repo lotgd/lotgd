@@ -7,7 +7,7 @@ use LotGD2\Entity\Mapped\Character;
 use LotGD2\Entity\Mapped\Stage;
 use LotGD2\Game\GameStateService;
 use LotGD2\Game\Handler\EquipmentHandler;
-use LotGD2\Game\Handler\GoldHandler;
+use LotGD2\Game\Handler\WealthHandler;
 use LotGD2\Game\Handler\HealthHandler;
 use LotGD2\Game\Handler\RaceHandler;
 use LotGD2\Game\Handler\StatsHandler;
@@ -52,7 +52,7 @@ class Game extends AbstractController
         $health = new HealthHandler($this->gameStateService, null, $this->character);
         $equipment = new EquipmentHandler(null, $this->character);
         $stats = new StatsHandler(null, $equipment, $this->character);
-        $gold = new GoldHandler($this->gameStateService, null, $this->character);
+        $gold = new WealthHandler($this->gameStateService, null, $this->character);
         $race = new RaceHandler(null, null, null, $this->raceRepository);
 
         return [

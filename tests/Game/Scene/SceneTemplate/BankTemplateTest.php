@@ -12,7 +12,7 @@ use LotGD2\Entity\Paragraph;
 use LotGD2\Event\StageChangeEvent;
 use LotGD2\Form\Scene\SceneTemplate\BankTemplateType;
 use LotGD2\Game\GameStateService;
-use LotGD2\Game\Handler\GoldHandler;
+use LotGD2\Game\Handler\WealthHandler;
 use LotGD2\Game\Handler\HealthHandler;
 use LotGD2\Game\Random\DiceBag;
 use LotGD2\Game\Random\DiceBagInterface;
@@ -59,7 +59,7 @@ class BankTemplateTest extends TestCase
         $sceneRepository = $this->createStub(SceneRepository::class);
         $diceBag = $this->createStub(DiceBagInterface::class);
         $actionService = $this->createStub(ActionService::class);
-        $gold = $this->createStub(GoldHandler::class);
+        $gold = $this->createStub(WealthHandler::class);
         $gameStateService = $this->createStub(GameStateService::class);
 
         $bankTemplate = new BankTemplate(
@@ -125,7 +125,7 @@ class BankTemplateTest extends TestCase
         $sceneRepository = $this->createStub(SceneRepository::class);
         $diceBag = $this->createStub(DiceBagInterface::class);
         $actionService = $this->createStub(ActionService::class);
-        $gold = $this->createStub(GoldHandler::class);
+        $gold = $this->createStub(WealthHandler::class);
         $gameStateService = $this->createStub(GameStateService::class);
 
         $bankTemplate = new BankTemplate(
@@ -190,7 +190,7 @@ class BankTemplateTest extends TestCase
         $sceneRepository = $this->createStub(SceneRepository::class);
         $diceBag = $this->createStub(DiceBagInterface::class);
         $actionService = $this->createStub(ActionService::class);
-        $gold = $this->createStub(GoldHandler::class);
+        $gold = $this->createStub(WealthHandler::class);
         $gameStateService = $this->createStub(GameStateService::class);
 
         $bankTemplate = new BankTemplate(
@@ -231,7 +231,7 @@ class BankTemplateTest extends TestCase
         $sceneRepository = $this->createStub(SceneRepository::class);
         $diceBag = $this->createStub(DiceBagInterface::class);
         $actionService = $this->createMock(ActionService::class);
-        $gold = $this->createStub(GoldHandler::class);
+        $gold = $this->createStub(WealthHandler::class);
         $gameStateService = $this->createStub(GameStateService::class);
 
         $bankTemplate = new BankTemplate(
@@ -284,7 +284,7 @@ class BankTemplateTest extends TestCase
         $sceneRepository = $this->createStub(SceneRepository::class);
         $diceBag = $this->createStub(DiceBagInterface::class);
         $actionService = $this->createStub(ActionService::class);
-        $gold = $this->createMock(GoldHandler::class);
+        $gold = $this->createMock(WealthHandler::class);
         $gameStateService = $this->createStub(GameStateService::class);
 
         $bankTemplate = new BankTemplate(
@@ -361,7 +361,7 @@ class BankTemplateTest extends TestCase
         $sceneRepository = $this->createStub(SceneRepository::class);
         $diceBag = $this->createStub(DiceBagInterface::class);
         $actionService = $this->createStub(ActionService::class);
-        $gold = $this->createMock(GoldHandler::class);
+        $gold = $this->createMock(WealthHandler::class);
         $gameStateService = $this->createStub(GameStateService::class);
 
         $bankTemplate = new BankTemplate(
@@ -438,7 +438,7 @@ class BankTemplateTest extends TestCase
         $sceneRepository = $this->createStub(SceneRepository::class);
         $diceBag = $this->createStub(DiceBagInterface::class);
         $actionService = $this->createStub(ActionService::class);
-        $gold = $this->createMock(GoldHandler::class);
+        $gold = $this->createMock(WealthHandler::class);
         $gameStateService = $this->createStub(GameStateService::class);
 
         $bankTemplate = new BankTemplate(
@@ -543,7 +543,7 @@ class BankTemplateTest extends TestCase
         $sceneRepository = $this->createMock(SceneRepository::class);
         $diceBag = $this->createStub(DiceBagInterface::class);
         $actionService = $this->createStub(ActionService::class);
-        $gold = $this->createStub(GoldHandler::class);
+        $gold = $this->createStub(WealthHandler::class);
         $gameStateService = $this->createStub(GameStateService::class);
 
         $bankTemplate = $this->getMockBuilder(BankTemplate::class)
@@ -581,7 +581,7 @@ class BankTemplateTest extends TestCase
         $sceneRepository = $this->createMock(SceneRepository::class);
         $diceBag = $this->createStub(DiceBagInterface::class);
         $actionService = $this->createStub(ActionService::class);
-        $gold = $this->createStub(GoldHandler::class);
+        $gold = $this->createStub(WealthHandler::class);
         $gameStateService = $this->createStub(GameStateService::class);
 
         $bankTemplate = $this->getMockBuilder(BankTemplate::class)
@@ -699,7 +699,7 @@ class BankTemplateTest extends TestCase
         $sceneRepository = $this->createMock(SceneRepository::class);
         $diceBag = $this->createStub(DiceBagInterface::class);
         $actionService = $this->createStub(ActionService::class);
-        $gold = $this->createStub(GoldHandler::class);
+        $gold = $this->createStub(WealthHandler::class);
         $gameStateService = $this->createStub(GameStateService::class);
 
         $bankTemplate = $this->getMockBuilder(BankTemplate::class)
@@ -794,7 +794,7 @@ class BankTemplateTest extends TestCase
         $sceneRepository = $this->createMock(SceneRepository::class);
         $diceBag = $this->createStub(DiceBagInterface::class);
         $actionService = $this->createStub(ActionService::class);
-        $gold = $this->createStub(GoldHandler::class);
+        $gold = $this->createStub(WealthHandler::class);
         $gameStateService = $this->createStub(GameStateService::class);
 
         $bankTemplate = $this->getMockBuilder(BankTemplate::class)

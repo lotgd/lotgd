@@ -21,7 +21,7 @@ use LotGD2\Game\GameTime\NewDay;
 use LotGD2\Game\Handler\BuffHandler;
 use LotGD2\Game\Handler\CharmHandler;
 use LotGD2\Game\Handler\GenderHandler;
-use LotGD2\Game\Handler\GoldHandler;
+use LotGD2\Game\Handler\WealthHandler;
 use LotGD2\Game\Handler\HealthHandler;
 use LotGD2\Game\Random\DiceBagInterface;
 use LotGD2\Twig\Component\Admin\GameSettings;
@@ -144,15 +144,15 @@ class InnTemplate implements SceneTemplateInterface
     private array $drunkennessGameSetting;
 
     public function __construct(
-        private readonly LoggerInterface $logger,
-        private readonly DiceBagInterface $diceBag,
+        private readonly LoggerInterface   $logger,
+        private readonly DiceBagInterface  $diceBag,
         private readonly ExpressionService $expressionService,
-        private readonly GameStateService $gameStateService,
-        private readonly GenderHandler $genderHandler,
-        private readonly CharmHandler $charmHandler,
-        private readonly HealthHandler $healthHandler,
-        private readonly GoldHandler $goldHandler,
-        private readonly BuffHandler $buffHandler,
+        private readonly GameStateService  $gameStateService,
+        private readonly GenderHandler     $genderHandler,
+        private readonly CharmHandler      $charmHandler,
+        private readonly HealthHandler     $healthHandler,
+        private readonly WealthHandler     $goldHandler,
+        private readonly BuffHandler       $buffHandler,
     ) {
         $this->drunkennessGameSetting = $this->gameStateService->getSetting(self::GameSettingProperty, []);
     }
