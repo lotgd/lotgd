@@ -5,6 +5,7 @@ namespace LotGD2\Tests\Game\Character;
 
 use LotGD2\Entity\Character\EquipmentItem;
 use LotGD2\Entity\Mapped\Character;
+use LotGD2\Event\CharacterChangeEvent;
 use LotGD2\Game\Handler\EquipmentHandler;
 use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -15,6 +16,7 @@ use Psr\Log\LoggerInterface;
 #[CoversClass(EquipmentHandler::class)]
 #[UsesClass(Character::class)]
 #[UsesClass(EquipmentItem::class)]
+#[UsesClass(CharacterChangeEvent::class)]
 #[AllowMockObjectsWithoutExpectations]
 class EquipmentTest extends TestCase
 {
@@ -216,5 +218,55 @@ class EquipmentTest extends TestCase
 
         $this->assertSame("Fists", $equipment->getName(EquipmentHandler::WeaponSlot));
         $this->assertSame("T-Shirt", $equipment->getName(EquipmentHandler::ArmorSlot));
+    }
+
+    public function testExplicitCharacterParameterInMethods(): void
+    {
+        $defaultCharacter = new Character();
+        $customCharacter = new Character();
+        $weapon = new EquipmentItem("Broadsword", 25, 1000);
+
+        $loggerMock = $this->createMock(LoggerInterface::class);
+        $equipment = new EquipmentHandler($loggerMock, $defaultCharacter);
+
+        $equipment->setItemInSlot(EquipmentHandler::WeaponSlot, $weapon, $customCharacter);
+
+        $this->assertNull($equipment->getItemInSlot(EquipmentHandler::WeaponSlot, $defaultCharacter));
+        $this->assertSame($weapon, $equipment->getItemInSlot(EquipmentHandler::WeaponSlot, $customCharacter));
+        $this->assertSame("Broadsword", $equipment->getName(EquipmentHandler::WeaponSlot, $customCharacter));
+        $this->assertSame("Fists", $equipment->getName(EquipmentHandler::WeaponSlot, $defaultCharacter));
+    }
+
+    public function testOnCharacterResetResetsWeaponAndArmor(): void
+    {
+        $character = new Character();
+        $weapon = new EquipmentItem("Dragon Slayer", 100, 50000);
+        $armor = new EquipmentItem("Dragon Scale Armor", 80, 40000);
+
+        $character->properties = [
+            EquipmentHandler::PropertyName => [
+                EquipmentHandler::WeaponSlot => $weapon,
+                EquipmentHandler::ArmorSlot => $armor,
+            ],
+        ];
+
+        $loggerMock = $this->createMock(LoggerInterface::class);
+        $equipment = new EquipmentHandler($loggerMock, $character);
+
+        $event = new CharacterChangeEvent($character, $character);
+        $equipment->onCharacterReset($event);
+
+        $resetWeapon = $equipment->getItemInSlot(EquipmentHandler::WeaponSlot);
+        $resetArmor = $equipment->getItemInSlot(EquipmentHandler::ArmorSlot);
+
+        $this->assertNotNull($resetWeapon);
+        $this->assertSame("Fists", $resetWeapon->getName());
+        $this->assertSame(0, $resetWeapon->getStrength());
+        $this->assertSame(0, $resetWeapon->getValue());
+
+        $this->assertNotNull($resetArmor);
+        $this->assertSame("T-Shirt", $resetArmor->getName());
+        $this->assertSame(0, $resetArmor->getStrength());
+        $this->assertSame(0, $resetArmor->getValue());
     }
 }
