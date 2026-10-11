@@ -70,30 +70,28 @@ class StatsTest extends TestCase
     private function createStatsHandler(
         ?LoggerInterface $logger = null,
         ?EquipmentHandler $equipment = null,
-        ?Character $character = null,
     ): StatsHandler {
         return new StatsHandler(
             $logger ?? $this->createStub(LoggerInterface::class),
             $equipment ?? $this->createStub(EquipmentHandler::class),
-            $character ?? $this->createCharacter(),
         );
     }
 
     public function testGetExperienceReturnsDefaultZeroWhenNotSet(): void
     {
         $character = $this->createCharacter();
-        $stats = $this->createStatsHandler(character: $character);
+        $stats = $this->createStatsHandler();
 
-        $this->assertEquals(0, $stats->getExperience());
+        $this->assertEquals(0, $stats->getExperience($character));
     }
 
     public function testGetExperienceReturnsSetValue(): void
     {
         $expectedExperience = 1000;
         $character = $this->createCharacter(experience: $expectedExperience);
-        $stats = $this->createStatsHandler(character: $character);
+        $stats = $this->createStatsHandler();
 
-        $this->assertEquals($expectedExperience, $stats->getExperience());
+        $this->assertEquals($expectedExperience, $stats->getExperience($character));
     }
 
     public function testSetExperienceCallsCharacterSetProperty(): void
@@ -104,8 +102,8 @@ class StatsTest extends TestCase
             ->method("debug")
             ->with("<Character#1, Hero>: set experience to 500");
 
-        $stats = $this->createStatsHandler(logger: $logger, character: $character);
-        $result = $stats->setExperience(500);
+        $stats = $this->createStatsHandler(logger: $logger);
+        $result = $stats->setExperience($character, 500);
 
         $this->assertSame($stats, $result);
         $this->assertSame(500, $character->getProperty(StatsHandler::ExperiencePropertyName));
@@ -113,8 +111,9 @@ class StatsTest extends TestCase
 
     public function testSetExperienceReturnsStaticForChaining(): void
     {
+        $character = $this->createCharacter();
         $stats = $this->createStatsHandler();
-        $result = $stats->setExperience(100);
+        $result = $stats->setExperience($character, 100);
 
         $this->assertInstanceOf(StatsHandler::class, $result);
         $this->assertSame($stats, $result);
@@ -123,28 +122,29 @@ class StatsTest extends TestCase
     public function testAddExperienceAddsToCurrentValue(): void
     {
         $character = $this->createCharacter(experience: 100);
-        $stats = $this->createStatsHandler(character: $character);
+        $stats = $this->createStatsHandler();
 
-        $result = $stats->addExperience(50);
+        $result = $stats->addExperience($character, 50);
 
         $this->assertSame($stats, $result);
-        $this->assertSame(150, $stats->getExperience());
+        $this->assertSame(150, $stats->getExperience($character));
     }
 
     public function testAddExperienceWithZeroCurrentValue(): void
     {
         $character = $this->createCharacter();
-        $stats = $this->createStatsHandler(character: $character);
+        $stats = $this->createStatsHandler();
 
-        $stats->addExperience(100);
+        $stats->addExperience($character, 100);
 
-        $this->assertSame(100, $stats->getExperience());
+        $this->assertSame(100, $stats->getExperience($character));
     }
 
     public function testAddExperienceReturnsStaticForChaining(): void
     {
+        $character = $this->createCharacter();
         $stats = $this->createStatsHandler();
-        $result = $stats->addExperience(50);
+        $result = $stats->addExperience($character, 50);
 
         $this->assertInstanceOf(StatsHandler::class, $result);
         $this->assertSame($stats, $result);
@@ -153,25 +153,25 @@ class StatsTest extends TestCase
     public function testGetLevelCallsCharacterGetLevel(): void
     {
         $character = $this->createCharacter(level: 5);
-        $stats = $this->createStatsHandler(character: $character);
+        $stats = $this->createStatsHandler();
 
-        $this->assertEquals(5, $stats->getLevel());
+        $this->assertEquals(5, $stats->getLevel($character));
     }
 
     public function testGetAttackReturnsDefaultValueOne(): void
     {
         $character = $this->createCharacter();
-        $stats = $this->createStatsHandler(character: $character);
+        $stats = $this->createStatsHandler();
 
-        $this->assertEquals(1, $stats->getAttack());
+        $this->assertEquals(1, $stats->getAttack($character));
     }
 
     public function testGetAttackReturnsSetValue(): void
     {
         $character = $this->createCharacter(attack: 10);
-        $stats = $this->createStatsHandler(character: $character);
+        $stats = $this->createStatsHandler();
 
-        $this->assertEquals(10, $stats->getAttack());
+        $this->assertEquals(10, $stats->getAttack($character));
     }
 
     public function testSetAttackCallsCharacterSetProperty(): void
@@ -184,11 +184,11 @@ class StatsTest extends TestCase
             ->method("debug")
             ->with("<Character#1, Hero>: attack set to 15 (was 10) before).");
 
-        $stats = $this->createStatsHandler(logger: $logger, character: $character);
-        $result = $stats->setAttack($attack);
+        $stats = $this->createStatsHandler(logger: $logger);
+        $result = $stats->setAttack($character, $attack);
 
         $this->assertSame($stats, $result);
-        $this->assertSame(15, $stats->getAttack());
+        $this->assertSame(15, $stats->getAttack($character));
     }
 
     public function testSetAttackWithNullLogger(): void
@@ -198,41 +198,40 @@ class StatsTest extends TestCase
         $statsWithNullLogger = new StatsHandler(
             null,
             $equipment,
-            $character
         );
 
         $attack = 15;
-        $result = $statsWithNullLogger->setAttack($attack);
+        $result = $statsWithNullLogger->setAttack($character, $attack);
 
         $this->assertSame($statsWithNullLogger, $result);
-        $this->assertSame(15, $statsWithNullLogger->getAttack());
+        $this->assertSame(15, $statsWithNullLogger->getAttack($character));
     }
 
     public function testAddAttackAddsToCurrentValue(): void
     {
         $character = $this->createCharacter(attack: 10);
-        $stats = $this->createStatsHandler(character: $character);
+        $stats = $this->createStatsHandler();
 
-        $result = $stats->addAttack(5);
+        $result = $stats->addAttack($character, 5);
 
         $this->assertSame($stats, $result);
-        $this->assertSame(15, $stats->getAttack());
+        $this->assertSame(15, $stats->getAttack($character));
     }
 
     public function testGetDefenseReturnsDefaultValueOne(): void
     {
         $character = $this->createCharacter();
-        $stats = $this->createStatsHandler(character: $character);
+        $stats = $this->createStatsHandler();
 
-        $this->assertEquals(1, $stats->getDefense());
+        $this->assertEquals(1, $stats->getDefense($character));
     }
 
     public function testGetDefenseReturnsSetValue(): void
     {
         $character = $this->createCharacter(defense: 8);
-        $stats = $this->createStatsHandler(character: $character);
+        $stats = $this->createStatsHandler();
 
-        $this->assertEquals(8, $stats->getDefense());
+        $this->assertEquals(8, $stats->getDefense($character));
     }
 
     public function testSetDefenseCallsCharacterSetProperty(): void
@@ -245,11 +244,11 @@ class StatsTest extends TestCase
             ->method("debug")
             ->with("<Character#1, Hero>: defense set to 12 (was 8) before).");
 
-        $stats = $this->createStatsHandler(logger: $logger, character: $character);
-        $result = $stats->setDefense($defense);
+        $stats = $this->createStatsHandler(logger: $logger);
+        $result = $stats->setDefense($character, $defense);
 
         $this->assertSame($stats, $result);
-        $this->assertSame(12, $stats->getDefense());
+        $this->assertSame(12, $stats->getDefense($character));
     }
 
     public function testSetDefenseWithNullLogger(): void
@@ -259,25 +258,24 @@ class StatsTest extends TestCase
         $statsWithNullLogger = new StatsHandler(
             null,
             $equipment,
-            $character
         );
 
         $defense = 12;
-        $result = $statsWithNullLogger->setDefense($defense);
+        $result = $statsWithNullLogger->setDefense($character, $defense);
 
         $this->assertSame($statsWithNullLogger, $result);
-        $this->assertSame(12, $statsWithNullLogger->getDefense());
+        $this->assertSame(12, $statsWithNullLogger->getDefense($character));
     }
 
     public function testAddDefenseAddsToCurrentValue(): void
     {
         $character = $this->createCharacter(defense: 8);
-        $stats = $this->createStatsHandler(character: $character);
+        $stats = $this->createStatsHandler();
 
-        $result = $stats->addDefense(3);
+        $result = $stats->addDefense($character, 3);
 
         $this->assertSame($stats, $result);
-        $this->assertSame(11, $stats->getDefense());
+        $this->assertSame(11, $stats->getDefense($character));
     }
 
     public function testGetTotalAttackWithNoWeapon(): void
@@ -290,9 +288,9 @@ class StatsTest extends TestCase
             ->with($character, EquipmentHandler::WeaponSlot)
             ->willReturn(null);
 
-        $stats = $this->createStatsHandler(equipment: $equipment, character: $character);
+        $stats = $this->createStatsHandler(equipment: $equipment);
 
-        $this->assertEquals(5, $stats->getTotalAttack());
+        $this->assertEquals(5, $stats->getTotalAttack($character));
     }
 
     public function testGetTotalAttackWithWeapon(): void
@@ -307,9 +305,9 @@ class StatsTest extends TestCase
             ->with($character, EquipmentHandler::WeaponSlot)
             ->willReturn($weapon);
 
-        $stats = $this->createStatsHandler(equipment: $equipment, character: $character);
+        $stats = $this->createStatsHandler(equipment: $equipment);
 
-        $this->assertEquals(15, $stats->getTotalAttack());
+        $this->assertEquals(15, $stats->getTotalAttack($character));
     }
 
     public function testGetTotalDefenseWithNoArmor(): void
@@ -322,9 +320,9 @@ class StatsTest extends TestCase
             ->with($character, EquipmentHandler::ArmorSlot)
             ->willReturn(null);
 
-        $stats = $this->createStatsHandler(equipment: $equipment, character: $character);
+        $stats = $this->createStatsHandler(equipment: $equipment);
 
-        $this->assertEquals(3, $stats->getTotalDefense());
+        $this->assertEquals(3, $stats->getTotalDefense($character));
     }
 
     public function testGetTotalDefenseWithArmor(): void
@@ -339,18 +337,18 @@ class StatsTest extends TestCase
             ->with($character, EquipmentHandler::ArmorSlot)
             ->willReturn($armor);
 
-        $stats = $this->createStatsHandler(equipment: $equipment, character: $character);
+        $stats = $this->createStatsHandler(equipment: $equipment);
 
-        $this->assertEquals(10, $stats->getTotalDefense());
+        $this->assertEquals(10, $stats->getTotalDefense($character));
     }
 
     public function testMultipleExperienceAdditions(): void
     {
         $character = $this->createCharacter(experience: 100);
-        $stats = $this->createStatsHandler(character: $character);
+        $stats = $this->createStatsHandler();
 
-        $stats->addExperience(50);
-        $this->assertSame(150, $stats->getExperience());
+        $stats->addExperience($character, 50);
+        $this->assertSame(150, $stats->getExperience($character));
     }
 
     public function testConstantsAreCorrectlyDefined(): void
@@ -364,12 +362,12 @@ class StatsTest extends TestCase
     public function testRequiredExperienceAlwaysIncreases(): void
     {
         $character = $this->createCharacter();
-        $stats = $this->createStatsHandler(character: $character);
+        $stats = $this->createStatsHandler();
 
         $required = 0;
         for ($level = 1; $level <= 15; $level++) {
             $character->level = $level;
-            $requiredExperience = $stats->getRequiredExperience();
+            $requiredExperience = $stats->getRequiredExperience($character);
             $this->assertNotNull($requiredExperience);
             $this->assertGreaterThan($required, $requiredExperience);
             $required = $requiredExperience;
@@ -379,34 +377,35 @@ class StatsTest extends TestCase
     public function testRequiredExperienceIsNullAboveMaxLevel(): void
     {
         $character = $this->createCharacter(level: 16);
-        $stats = $this->createStatsHandler(character: $character);
+        $stats = $this->createStatsHandler();
 
-        $this->assertNull($stats->getRequiredExperience());
+        $this->assertNull($stats->getRequiredExperience($character));
     }
 
     public function testExplicitCharacterInStatsMethods(): void
     {
-        $defaultCharacter = $this->createCharacter(defense: 0, experience: 0);
-        $stats = $this->createStatsHandler(character: $defaultCharacter);
+        $character1 = $this->createCharacter(defense: 0, experience: 0);
+        $character2 = $this->createCharacter(defense: 0, experience: 0);
+        $stats = $this->createStatsHandler();
 
-        $explicitCharacter = new Character();
-        $stats->setExperience(500, $explicitCharacter);
-        $this->assertSame(500, $stats->getExperience($explicitCharacter));
+        $stats->setExperience($character2, 500);
+        $this->assertSame(500, $stats->getExperience($character2));
+        $this->assertSame(0, $stats->getExperience($character1));
 
-        $stats->addExperience(200, $explicitCharacter);
-        $this->assertSame(200, $stats->getExperience($explicitCharacter));
+        $stats->addExperience($character2, 200);
+        $this->assertSame(700, $stats->getExperience($character2));
 
-        $stats->setAttack(12, $explicitCharacter);
-        $this->assertSame(12, $stats->getAttack($explicitCharacter));
+        $stats->setAttack($character2, 12);
+        $this->assertSame(12, $stats->getAttack($character2));
 
-        $stats->addAttack(3, $explicitCharacter);
-        $this->assertSame(15, $stats->getAttack($explicitCharacter));
+        $stats->addAttack($character2, 3);
+        $this->assertSame(15, $stats->getAttack($character2));
 
-        $stats->setDefense(8, $explicitCharacter);
-        $this->assertSame(8, $stats->getDefense($explicitCharacter));
+        $stats->setDefense($character2, 8);
+        $this->assertSame(8, $stats->getDefense($character2));
 
-        $stats->addDefense(2, $explicitCharacter);
-        $this->assertSame(2, $stats->getDefense($explicitCharacter));
+        $stats->addDefense($character2, 2);
+        $this->assertSame(10, $stats->getDefense($character2));
     }
 
     public function testOnCharacterLevelIncrease(): void
@@ -414,7 +413,7 @@ class StatsTest extends TestCase
         $character = $this->createCharacter(level: 4);
         $characterBefore = $this->createCharacter(level: 2);
 
-        $statsHandler = $this->createStatsHandler(character: $character);
+        $statsHandler = $this->createStatsHandler();
 
         $event = new CharacterChangeEvent($character, $characterBefore);
         $statsHandler->onCharacterLevelIncrease($event);
@@ -434,7 +433,7 @@ class StatsTest extends TestCase
 
         $characterBefore = $this->createCharacter(level: 10);
 
-        $statsHandler = $this->createStatsHandler(character: $character);
+        $statsHandler = $this->createStatsHandler();
 
         $event = new CharacterChangeEvent($character, $characterBefore);
         $statsHandler->onCharacterReset($event);
@@ -474,7 +473,7 @@ class StatsTest extends TestCase
 
         $event = new LootBagEvent($battleState, $lootBag);
 
-        $statsHandler = $this->createStatsHandler(character: $character);
+        $statsHandler = $this->createStatsHandler();
         $statsHandler->onLootBagFill($event);
     }
 
@@ -500,7 +499,7 @@ class StatsTest extends TestCase
 
         $event = new LootBagEvent($battleState, $lootBag);
 
-        $statsHandler = $this->createStatsHandler(logger: $logger, character: $character);
+        $statsHandler = $this->createStatsHandler(logger: $logger);
         $statsHandler->onLootBagClaim($event);
     }
 
@@ -530,7 +529,7 @@ class StatsTest extends TestCase
         $logger = $this->createMock(LoggerInterface::class);
         $logger->expects($this->exactly(5))->method("debug");
 
-        $statsHandler = $this->createStatsHandler(logger: $logger, character: $character);
+        $statsHandler = $this->createStatsHandler(logger: $logger);
         $statsHandler->onLootBagClaim($event);
 
         $this->assertSame(1, $statsHandler->getExperience($character));
@@ -566,7 +565,7 @@ class StatsTest extends TestCase
         $stage = new Stage();
         $event = new LootBagEvent($battleState, $lootBag, $stage);
 
-        $statsHandler = $this->createStatsHandler(character: $character);
+        $statsHandler = $this->createStatsHandler();
         $statsHandler->onLootBagClaim($event);
 
         // 100 + 5 (flux) + (0.25 * 100 * 2 = 50) = 155
@@ -599,7 +598,7 @@ class StatsTest extends TestCase
         $stage2 = new Stage();
         $event2 = new LootBagEvent($battleState2, $lootBag2, $stage2);
 
-        $statsHandler2 = $this->createStatsHandler(character: $character2);
+        $statsHandler2 = $this->createStatsHandler();
         $statsHandler2->onLootBagClaim($event2);
 
         // 100 + 0 - 50 = 50

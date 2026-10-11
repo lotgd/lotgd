@@ -342,8 +342,8 @@ class DragonCounterTest extends TestCase
         $health->expects($this->never())->method("addMaxHealth");
 
         $stats = $this->createMock(StatsHandler::class);
-        $stats->expects($this->once())->method("getAttack")->willReturn(10);
-        $stats->expects($this->once())->method("setAttack")->with(11, $character);
+        $stats->expects($this->once())->method("getAttack")->with($character)->willReturn(10);
+        $stats->expects($this->once())->method("setAttack")->with($character, 11);
         $stats->expects($this->never())->method("setDefense");
 
         $actionService = $this->createMock(ActionService::class);
@@ -383,8 +383,8 @@ class DragonCounterTest extends TestCase
         $health->expects($this->never())->method("addMaxHealth");
 
         $stats = $this->createMock(StatsHandler::class);
-        $stats->expects($this->once())->method("getDefense")->willReturn(10);
-        $stats->expects($this->once())->method("setDefense")->with(11, $character);
+        $stats->expects($this->once())->method("getDefense")->with($character)->willReturn(10);
+        $stats->expects($this->once())->method("setDefense")->with($character, 11);
         $stats->expects($this->never())->method("setAttack");
 
         $actionService = $this->createMock(ActionService::class);

@@ -165,7 +165,7 @@ trait DefaultFightTrait
      */
     public function onFightLost(SimpleStageParameterEvent $event, BattleState $battleState): void
     {
-        $experienceLost = (int)round(0.1 * $this->stats->getExperience());
+        $experienceLost = (int)round(0.1 * $this->stats->getExperience($event->character));
 
         $event->stage->paragraphs = [
             new Paragraph(
@@ -187,6 +187,6 @@ trait DefaultFightTrait
 
         $this->logger->debug("Character {$event->character->id} has been slain and lost {$this->gold->getGold(null)}.");
         $this->gold->setGold(null, 0);
-        $this->stats->addExperience(-$experienceLost);
+        $this->stats->addExperience($event->character, -$experienceLost);
     }
 }

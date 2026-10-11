@@ -51,7 +51,7 @@ class Game extends AbstractController
     {
         $health = new HealthHandler($this->gameStateService, null);
         $equipment = new EquipmentHandler(null);
-        $stats = new StatsHandler(null, $equipment, $this->character);
+        $stats = new StatsHandler(null, $equipment);
         $gold = new WealthHandler($this->gameStateService, null, $this->character);
         $race = new RaceHandler(null, null, null, $this->raceRepository);
 
@@ -60,12 +60,12 @@ class Game extends AbstractController
             ["Name", $this->character->name],
             ["Race", $race->getRaceName($this->character)],
             ["Level", $this->character->level],
-            ["Experience", $stats->getExperience()],
+            ["Experience", $stats->getExperience($this->character)],
             ["Turns", $health->getTurns($this->character), $health->getMaxTurns($this->character)],
             ["Health", $health->getHealth($this->character), $health->getMaxHealth($this->character)],
             ["Stats"],
-            ["Attack", $stats->getTotalAttack()],
-            ["Defense", $stats->getTotalDefense()],
+            ["Attack", $stats->getTotalAttack($this->character)],
+            ["Defense", $stats->getTotalDefense($this->character)],
             ["Inventory"],
             ["Gold in Hand", $gold->getGold($this->character)],
             ["Weapon", $equipment->getItemInSlot($this->character, EquipmentHandler::WeaponSlot)?->getName() ?? "Fists"],

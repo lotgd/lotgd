@@ -114,12 +114,12 @@ class DragonCounterHandler
                     break;
 
                 case "strength":
-                    $this->stats->setAttack($this->stats->getAttack() + 1, $character);
+                    $this->stats->setAttack($character, $this->stats->getAttack($character) + 1);
                     $success = true;
                     break;
 
                 case "defense":
-                    $this->stats->setDefense($this->stats->getDefense() + 1, $character);
+                    $this->stats->setDefense($character, $this->stats->getDefense($character) + 1);
                     $success = true;
                     break;
             }

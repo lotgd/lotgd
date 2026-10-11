@@ -502,7 +502,7 @@ class WealthHandlerTest extends TestCase
             ->getMock()
         ;
 
-        /** @var CharacterChangeEvent&Stub $event */
+        /** @var NewEntityEvent&Stub $event */
         $event = $this->getStubBuilder(NewEntityEvent::class)
             ->setConstructorArgs([$character])
             ->getStub()

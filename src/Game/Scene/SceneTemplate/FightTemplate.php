@@ -144,7 +144,7 @@ class FightTemplate implements SceneTemplateInterface
         $level = intval($this->action->getParameter("level", 0));
         $this->logger->debug("Called FightTemplate::searchAction, with level={$level}");
         $level += $this->getRandomLevelChange();
-        $level = max(1, $this->stats->getLevel() + $level); // Make sure the level is at least 1
+        $level = max(1, $this->stats->getLevel($this->character) + $level); // Make sure the level is at least 1
         $this->logger->debug("FightTemplate::searchAction, level adjusted to {$level}");
 
         // Find creature
@@ -328,7 +328,7 @@ class FightTemplate implements SceneTemplateInterface
     public function handleCheats(string $cheat): void
     {
         if ($cheat === "experience") {
-            $this->stats->addExperience(1000);
+            $this->stats->addExperience($this->character, 1000);
         } elseif ($cheat === "gold") {
             $this->gold->addGold(null, 1000);
         }

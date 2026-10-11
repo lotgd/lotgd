@@ -396,7 +396,7 @@ class FightTemplateTest extends TestCase
 
         $this->stats->expects($this->once())
             ->method('addExperience')
-            ->with(1000);
+            ->with($character, 1000);
 
         $this->logger->expects($this->atLeastOnce())
             ->method('debug')
@@ -841,9 +841,16 @@ class FightTemplateTest extends TestCase
 
     public function testHandleCheatsExperience(): void
     {
+        $stage = $this->createMock(Stage::class);
+        $action = $this->createMock(Action::class);
+        $scene = $this->createMock(Scene::class);
+        $character = $this->createStub(Character::class);
+        $stage->method(PropertyHook::get("owner"))->willReturn($character);
+        $this->fightTemplate->setSceneChangeParameter($stage, $action, $scene);
+
         $this->stats->expects($this->once())
             ->method('addExperience')
-            ->with(1000);
+            ->with($character, 1000);
 
         $this->fightTemplate->handleCheats('experience');
     }

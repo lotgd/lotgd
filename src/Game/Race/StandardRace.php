@@ -51,13 +51,13 @@ class StandardRace implements RaceInterface
         if (isset($race->configuration["attack"]) and $race->configuration["attack"] <> 0) {
             $value = $race->configuration["attack"];
             $this->logger->debug("Character $character->id: Increase attack by $value for race {$race->name}.", $loggerContext);
-            $this->stats->addAttack($value, $character);
+            $this->stats->addAttack($character, $value);
         }
 
         if (isset($race->configuration["defense"]) and $race->configuration["defense"] <> 0) {
             $value = $race->configuration["defense"];
             $this->logger->debug("Character $character->id: Increase defense by $value for race {$race->name}.", $loggerContext);
-            $this->stats->addDefense($value, $character);
+            $this->stats->addDefense($character, $value);
         }
 
         if (isset($race->configuration["health"]) && $race->configuration["health"] <> 0) {
@@ -74,13 +74,13 @@ class StandardRace implements RaceInterface
         if (isset($oldConfiguration["attack"]) && $oldConfiguration["attack"] <> 0) {
             $value = $oldConfiguration["attack"];
             $this->logger->debug("Character $character->id: Decrease attack by $value for race {$race->name}.", $loggerContext);
-            $this->stats->addAttack(-$value, $character);
+            $this->stats->addAttack($character, -$value);
         }
 
         if (isset($oldConfiguration["defense"]) && $oldConfiguration["defense"] <> 0) {
             $value = $oldConfiguration["defense"];
             $this->logger->debug("Character $character->id: Decrease defense by $value for race {$race->name}.", $loggerContext);
-            $this->stats->addDefense(-$value, $character);
+            $this->stats->addDefense($character, -$value);
         }
 
         if (isset($oldConfiguration["health"]) && $oldConfiguration["health"] <> 0) {

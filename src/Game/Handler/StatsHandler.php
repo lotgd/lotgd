@@ -12,7 +12,6 @@ use LotGD2\Game\Scene\SceneTemplate\DragonTemplate;
 use LotGD2\Game\Scene\SceneTemplate\FightTemplate;
 use LotGD2\Game\Scene\SceneTemplate\TrainingTemplate;
 use Psr\Log\LoggerInterface;
-use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\EventDispatcher\Attribute\AsEventListener;
 
 readonly class StatsHandler
@@ -27,33 +26,28 @@ readonly class StatsHandler
     public function __construct(
         private ?LoggerInterface $logger,
         private EquipmentHandler $equipment,
-        #[Autowire(expression: "service('lotgd2.game_loop').getCharacter()")]
-        private ?Character $character,
     ) {
     }
 
-    public function getExperience(?Character $character = null): int
+    public function getExperience(Character $character): int
     {
-        $character ??= $this->character;
         return $character->getProperty(self::ExperiencePropertyName, 0);
     }
 
-    public function setExperience(int $experience, ?Character $character = null): static
+    public function setExperience(Character $character, int $experience): static
     {
-        $character ??= $this->character;
-        $this->logger->debug("{$character}: set experience to {$experience}");
+        $this->logger?->debug("{$character}: set experience to {$experience}");
         $character->setProperty(self::ExperiencePropertyName, $experience);
         return $this;
     }
 
-    public function addExperience(int $experience, ?Character $character = null): static
+    public function addExperience(Character $character, int $experience): static
     {
-        $character ??= $this->character;
-        $this->setExperience($this->getExperience() + $experience, $character);
+        $this->setExperience($character, $this->getExperience($character) + $experience);
         return $this;
     }
 
-    public function getRequiredExperience(?Character $character = null): ?int
+    public function getRequiredExperience(Character $character): ?int
     {
         $requiredExperience = [
             100,
@@ -73,67 +67,57 @@ readonly class StatsHandler
             43930,
         ];
 
-        $character ??= $this->character;
         return $requiredExperience[$character->level - 1] ?? null;
     }
 
-    public function getLevel(?Character $character = null): int
+    public function getLevel(Character $character): int
     {
-        $character ??= $this->character;
         return $character->level;
     }
 
-    public function getAttack(?Character $character = null): int
+    public function getAttack(Character $character): int
     {
-        $character ??= $this->character;
         return $character->getProperty(self::AttackPropertyName, 1);
     }
 
-    public function getTotalAttack(?Character $character = null): int
+    public function getTotalAttack(Character $character): int
     {
-        $character ??= $this->character;
         return $this->getAttack($character) + ($this->equipment->getItemInSlot($character, EquipmentHandler::WeaponSlot)?->getStrength() ?? 0);
     }
 
-    public function setAttack(int $attack, ?Character $character = null): static
+    public function setAttack(Character $character, int $attack): static
     {
-        $character ??= $this->character;
         $this->logger?->debug("{$character}: attack set to {$attack} (was {$this->getAttack($character)}) before).");
         $character->setProperty(self::AttackPropertyName, $attack);
         return $this;
     }
 
-    public function addAttack(int $attack, ?Character $character = null): static
+    public function addAttack(Character $character, int $attack): static
     {
-        $character ??= $this->character;
-        $this->setAttack($this->getAttack($character) + $attack, $character);
+        $this->setAttack($character, $this->getAttack($character) + $attack);
         return $this;
     }
 
-    public function getDefense(?Character $character = null): int
+    public function getDefense(Character $character): int
     {
-        $character ??= $this->character;
         return $character->getProperty(self::DefensePropertyName, 1);
     }
 
-    public function setDefense(int $defense, ?Character $character = null): static
+    public function setDefense(Character $character, int $defense): static
     {
-        $character ??= $this->character;
         $this->logger?->debug("{$character}: defense set to {$defense} (was {$this->getDefense($character)}) before).");
         $character->setProperty(self::DefensePropertyName, $defense);
         return $this;
     }
 
-    public function addDefense(int $defense, ?Character $character = null): static
+    public function addDefense(Character $character, int $defense): static
     {
-        $character ??= $this->character;
-        $this->setDefense($this->getDefense() + $defense, $character);
+        $this->setDefense($character, $this->getDefense($character) + $defense);
         return $this;
     }
 
-    public function getTotalDefense(?Character $character = null): int
+    public function getTotalDefense(Character $character): int
     {
-        $character ??= $this->character;
         return $this->getDefense($character) + ($this->equipment->getItemInSlot($character, EquipmentHandler::ArmorSlot)?->getStrength() ?? 0);
     }
 
@@ -142,8 +126,8 @@ readonly class StatsHandler
     {
         $deltaLevel = $event->character->level - $event->characterBefore->level;
 
-        $this->addAttack(1*$deltaLevel, $event->character);
-        $this->addDefense(1*$deltaLevel, $event->character);
+        $this->addAttack($event->character, 1*$deltaLevel);
+        $this->addDefense($event->character, 1*$deltaLevel);
     }
 
     #[AsEventListener(event: DragonTemplate::OnCharacterReset)]
@@ -153,11 +137,11 @@ readonly class StatsHandler
 
         if ($deltaLevel > 0) {
             $deltaIncrease = $deltaLevel;
-            $this->addAttack(-$deltaIncrease, $event->character);
-            $this->addDefense(-$deltaIncrease, $event->character);
+            $this->addAttack($event->character, -$deltaIncrease);
+            $this->addDefense($event->character, -$deltaIncrease);
         }
 
-        $this->setExperience(0, $event->character);
+        $this->setExperience($event->character, 0);
     }
 
     #[AsEventListener(FightTemplate::OnLootBagFill)]
@@ -179,20 +163,20 @@ readonly class StatsHandler
         $position = $lootBag->get(self::ExperienceLoot);
 
         if ($position === null) {
-            $this->logger->debug("Impossible to claim experience loot: No experience loot exists.");
+            $this->logger?->debug("Impossible to claim experience loot: No experience loot exists.");
             return;
         }
 
         if (!isset($position->loot["experience"])) {
-            $this->logger->debug("There is no experience on ExperienceLoot position. It was probably removed accidentally. Set to 1.");
+            $this->logger?->debug("There is no experience on ExperienceLoot position. It was probably removed accidentally. Set to 1.");
         }
 
         if (!isset($position->loot["experienceFlux"])) {
-            $this->logger->debug("There is no experienceFlux on ExperienceLoot position. It was probably removed accidentally. Set to 0.1");
+            $this->logger?->debug("There is no experienceFlux on ExperienceLoot position. It was probably removed accidentally. Set to 0.1");
         }
 
         if (!isset($position->loot["experienceBonus"])) {
-            $this->logger->debug("There is no experienceBonus on ExperienceLoot position. It was probably removed accidentally. Set to 0.25");
+            $this->logger?->debug("There is no experienceBonus on ExperienceLoot position. It was probably removed accidentally. Set to 0.25");
         }
 
         $experience = $position->loot["experience"] ?? 1;
@@ -208,13 +192,13 @@ readonly class StatsHandler
 
         $totalExperience = (int)round($experience + $experienceFlux + $experienceBonus);
 
-        $this->logger->debug("Experience reward: {$totalExperience} total experience", [
+        $this->logger?->debug("Experience reward: {$totalExperience} total experience", [
             "experience" => $experience,
             "experienceFlux" => $experienceFlux,
             "experienceBonus" => $experienceBonus,
         ]);
 
-        $this->addExperience($totalExperience, $event->character);
+        $this->addExperience($event->character, $totalExperience);
 
         $event->stage?->addParagraph(new Paragraph(
             self::ExperienceLootClaimParagraph,
