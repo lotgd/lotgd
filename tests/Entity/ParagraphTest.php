@@ -38,7 +38,7 @@ class ParagraphTest extends TestCase
         );
 
         $this->assertSame('para_2', $paragraph->id);
-        $this->assertSame('Greetings, %character%!', $paragraph->text);
+        $this->assertSame('Greetings, {{ character }}!', $paragraph->text);
         $this->assertSame($context, $paragraph->context);
         $this->assertTrue($paragraph->translated);
         $this->assertSame($kwargs, $paragraph->kwargs);

@@ -113,4 +113,32 @@ class GenderHandlerTest extends TestCase
 
         $this->assertSame($expected, $genderHandler->getPreferredPartner($character));
     }
+
+    public function testPrefersMale(): void
+    {
+        $genderHandler = new GenderHandler();
+        $character = $this->createMock(Character::class);
+        $character->expects($this->once())
+            ->method("getProperty")
+            ->with(GenderHandler::GenderProperty)
+            ->willReturn([
+                GenderHandler::PartnerGenderProperty => "male",
+            ]);
+
+        $this->assertTrue($genderHandler->prefersMale($character));
+    }
+
+    public function testPrefersFemale(): void
+    {
+        $genderHandler = new GenderHandler();
+        $character = $this->createMock(Character::class);
+        $character->expects($this->once())
+            ->method("getProperty")
+            ->with(GenderHandler::GenderProperty)
+            ->willReturn([
+                GenderHandler::PartnerGenderProperty => "female",
+            ]);
+
+        $this->assertTrue($genderHandler->prefersFemale($character));
+    }
 }

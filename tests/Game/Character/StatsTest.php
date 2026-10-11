@@ -3,453 +3,354 @@ declare(strict_types=1);
 
 namespace LotGD2\Tests\Game\Character;
 
+use LotGD2\Entity\Battle\BattleState;
+use LotGD2\Entity\Battle\FighterInterface;
 use LotGD2\Entity\Character\EquipmentItem;
+use LotGD2\Entity\Character\LootBag;
+use LotGD2\Entity\Character\LootPosition;
 use LotGD2\Entity\Mapped\Character;
+use LotGD2\Entity\Mapped\Stage;
+use LotGD2\Entity\Paragraph;
+use LotGD2\Event\CharacterChangeEvent;
+use LotGD2\Event\LootBagEvent;
 use LotGD2\Game\Handler\EquipmentHandler;
 use LotGD2\Game\Handler\HealthHandler;
 use LotGD2\Game\Handler\StatsHandler;
+use LotGD2\Game\Random\DiceBag;
 use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\UsesClass;
 use PHPUnit\Framework\MockObject\Runtime\PropertyHook;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 
 #[CoversClass(StatsHandler::class)]
-#[AllowMockObjectsWithoutExpectations]
+#[UsesClass(Character::class)]
+#[UsesClass(EquipmentItem::class)]
+#[UsesClass(EquipmentHandler::class)]
+#[UsesClass(LootPosition::class)]
+#[UsesClass(LootBag::class)]
+#[UsesClass(LootBagEvent::class)]
+#[UsesClass(BattleState::class)]
+#[UsesClass(Stage::class)]
+#[UsesClass(Paragraph::class)]
+#[UsesClass(CharacterChangeEvent::class)]
+#[UsesClass(DiceBag::class)]
 class StatsTest extends TestCase
 {
-    private StatsHandler $stats;
-    private Character $character;
-    private EquipmentHandler $equipment;
-    private ?LoggerInterface $logger;
+    private function createCharacter(
+        ?string $name = "Hero",
+        ?int $id = 1,
+        ?int $level = null,
+        ?int $attack = null,
+        ?int $defense = null,
+        ?int $experience = null,
+    ): Character {
+        $character = new Character(name: $name);
+        if ($id !== null) {
+            $reflection = new \ReflectionProperty(Character::class, "id");
+            $reflection->setValue($character, $id);
+        }
+        if ($level !== null) {
+            $character->level = $level;
+        }
+        if ($attack !== null) {
+            $character->setProperty(StatsHandler::AttackPropertyName, $attack);
+        }
+        if ($defense !== null) {
+            $character->setProperty(StatsHandler::DefensePropertyName, $defense);
+        }
+        if ($experience !== null) {
+            $character->setProperty(StatsHandler::ExperiencePropertyName, $experience);
+        }
 
-    protected function setUp(): void
-    {
-        $this->character = $this->createMock(Character::class);
-        $this->equipment = $this->createMock(EquipmentHandler::class);
-        $this->logger = $this->createMock(LoggerInterface::class);
+        return $character;
+    }
 
-        $this->stats = new StatsHandler(
-            $this->logger,
-            $this->equipment,
-            $this->character
+    private function createStatsHandler(
+        ?LoggerInterface $logger = null,
+        ?EquipmentHandler $equipment = null,
+        ?Character $character = null,
+    ): StatsHandler {
+        return new StatsHandler(
+            $logger ?? $this->createStub(LoggerInterface::class),
+            $equipment ?? $this->createStub(EquipmentHandler::class),
+            $character ?? $this->createCharacter(),
         );
     }
 
     public function testGetExperienceReturnsDefaultZeroWhenNotSet(): void
     {
-        $this->character
-            ->expects($this->once())
-            ->method('getProperty')
-            ->with(StatsHandler::ExperiencePropertyName, 0)
-            ->willReturn(0);
+        $character = $this->createCharacter();
+        $stats = $this->createStatsHandler(character: $character);
 
-        $this->assertEquals(0, $this->stats->getExperience());
+        $this->assertEquals(0, $stats->getExperience());
     }
 
     public function testGetExperienceReturnsSetValue(): void
     {
         $expectedExperience = 1000;
-        $this->character
-            ->expects($this->once())
-            ->method('getProperty')
-            ->with(StatsHandler::ExperiencePropertyName, 0)
-            ->willReturn($expectedExperience);
+        $character = $this->createCharacter(experience: $expectedExperience);
+        $stats = $this->createStatsHandler(character: $character);
 
-        $this->assertEquals($expectedExperience, $this->stats->getExperience());
+        $this->assertEquals($expectedExperience, $stats->getExperience());
     }
 
     public function testSetExperienceCallsCharacterSetProperty(): void
     {
-        $experience = 500;
-        $this->character
-            ->expects($this->once())
-            ->method('setProperty')
-            ->with(StatsHandler::ExperiencePropertyName, $experience);
+        $character = $this->createCharacter(id: 1, name: "Hero");
+        $logger = $this->createMock(LoggerInterface::class);
+        $logger->expects($this->once())
+            ->method("debug")
+            ->with("<Character#1, Hero>: set experience to 500");
 
-        $result = $this->stats->setExperience($experience);
+        $stats = $this->createStatsHandler(logger: $logger, character: $character);
+        $result = $stats->setExperience(500);
 
-        $this->assertSame($this->stats, $result);
+        $this->assertSame($stats, $result);
+        $this->assertSame(500, $character->getProperty(StatsHandler::ExperiencePropertyName));
     }
 
     public function testSetExperienceReturnsStaticForChaining(): void
     {
-        $this->character
-            ->expects($this->once())
-            ->method('setProperty');
-
-        $result = $this->stats->setExperience(100);
+        $stats = $this->createStatsHandler();
+        $result = $stats->setExperience(100);
 
         $this->assertInstanceOf(StatsHandler::class, $result);
+        $this->assertSame($stats, $result);
     }
 
     public function testAddExperienceAddsToCurrentValue(): void
     {
-        $currentExperience = 100;
-        $addedExperience = 50;
-        $expectedTotal = 150;
+        $character = $this->createCharacter(experience: 100);
+        $stats = $this->createStatsHandler(character: $character);
 
-        $this->character
-            ->expects($this->once())
-            ->method('getProperty')
-            ->with(StatsHandler::ExperiencePropertyName, 0)
-            ->willReturn($currentExperience);
+        $result = $stats->addExperience(50);
 
-        $this->character
-            ->expects($this->once())
-            ->method('setProperty')
-            ->with(StatsHandler::ExperiencePropertyName, $expectedTotal);
-
-        $result = $this->stats->addExperience($addedExperience);
-
-        $this->assertSame($this->stats, $result);
+        $this->assertSame($stats, $result);
+        $this->assertSame(150, $stats->getExperience());
     }
 
     public function testAddExperienceWithZeroCurrentValue(): void
     {
-        $addedExperience = 100;
+        $character = $this->createCharacter();
+        $stats = $this->createStatsHandler(character: $character);
 
-        $this->character
-            ->expects($this->once())
-            ->method('getProperty')
-            ->with(StatsHandler::ExperiencePropertyName, 0)
-            ->willReturn(0);
+        $stats->addExperience(100);
 
-        $this->character
-            ->expects($this->once())
-            ->method('setProperty')
-            ->with(StatsHandler::ExperiencePropertyName, $addedExperience);
-
-        $this->stats->addExperience($addedExperience);
+        $this->assertSame(100, $stats->getExperience());
     }
 
     public function testAddExperienceReturnsStaticForChaining(): void
     {
-        $this->character
-            ->expects($this->once())
-            ->method('getProperty')
-            ->willReturn(0);
-
-        $this->character
-            ->expects($this->once())
-            ->method('setProperty');
-
-        $result = $this->stats->addExperience(50);
+        $stats = $this->createStatsHandler();
+        $result = $stats->addExperience(50);
 
         $this->assertInstanceOf(StatsHandler::class, $result);
+        $this->assertSame($stats, $result);
     }
 
     public function testGetLevelCallsCharacterGetLevel(): void
     {
-        $expectedLevel = 5;
-        $this->character
-            ->expects($this->once())
-            ->method(PropertyHook::get("level"))
-            ->willReturn($expectedLevel);
+        $character = $this->createCharacter(level: 5);
+        $stats = $this->createStatsHandler(character: $character);
 
-        $this->assertEquals($expectedLevel, $this->stats->getLevel());
+        $this->assertEquals(5, $stats->getLevel());
     }
 
     public function testGetAttackReturnsDefaultValueOne(): void
     {
-        $this->character
-            ->expects($this->once())
-            ->method('getProperty')
-            ->with(StatsHandler::AttackPropertyName, 1)
-            ->willReturn(1);
+        $character = $this->createCharacter();
+        $stats = $this->createStatsHandler(character: $character);
 
-        $this->assertEquals(1, $this->stats->getAttack());
+        $this->assertEquals(1, $stats->getAttack());
     }
 
     public function testGetAttackReturnsSetValue(): void
     {
-        $expectedAttack = 10;
-        $this->character
-            ->expects($this->once())
-            ->method('getProperty')
-            ->with(StatsHandler::AttackPropertyName, 1)
-            ->willReturn($expectedAttack);
+        $character = $this->createCharacter(attack: 10);
+        $stats = $this->createStatsHandler(character: $character);
 
-        $this->assertEquals($expectedAttack, $this->stats->getAttack());
+        $this->assertEquals(10, $stats->getAttack());
     }
 
     public function testSetAttackCallsCharacterSetProperty(): void
     {
         $attack = 15;
-        $currentAttack = 10;
+        $character = $this->createCharacter(id: 1, name: "Hero", attack: 10);
 
-        $this->character
-            ->expects($this->once())
-            ->method('getProperty')
-            ->with(StatsHandler::AttackPropertyName, 1)
-            ->willReturn($currentAttack);
+        $logger = $this->createMock(LoggerInterface::class);
+        $logger->expects($this->once())
+            ->method("debug")
+            ->with("<Character#1, Hero>: attack set to 15 (was 10) before).");
 
-        $this->character
-            ->expects($this->once())
-            ->method('setProperty')
-            ->with(StatsHandler::AttackPropertyName, $attack);
+        $stats = $this->createStatsHandler(logger: $logger, character: $character);
+        $result = $stats->setAttack($attack);
 
-
-        $this->character
-            ->expects($this->once())
-            ->method("__toString")
-            ->willReturn("<Character 1>");
-
-        $this->logger
-            ->expects($this->once())
-            ->method('debug')
-            ->with('<Character 1>: attack set to 15 (was 10) before).');
-
-        $result = $this->stats->setAttack($attack);
-
-        $this->assertSame($this->stats, $result);
+        $this->assertSame($stats, $result);
+        $this->assertSame(15, $stats->getAttack());
     }
 
     public function testSetAttackWithNullLogger(): void
     {
+        $character = $this->createCharacter();
+        $equipment = $this->createStub(EquipmentHandler::class);
         $statsWithNullLogger = new StatsHandler(
             null,
-            $this->equipment,
-            $this->character
+            $equipment,
+            $character
         );
 
         $attack = 15;
-
-        $this->character
-            ->expects($this->once())
-            ->method('setProperty')
-            ->with(StatsHandler::AttackPropertyName, $attack);
-
         $result = $statsWithNullLogger->setAttack($attack);
 
         $this->assertSame($statsWithNullLogger, $result);
+        $this->assertSame(15, $statsWithNullLogger->getAttack());
     }
 
     public function testAddAttackAddsToCurrentValue(): void
     {
-        $currentAttack = 10;
-        $addedAttack = 5;
-        $expectedTotal = 15;
+        $character = $this->createCharacter(attack: 10);
+        $stats = $this->createStatsHandler(character: $character);
 
-        $this->character
-            ->expects($this->exactly(2))
-            ->method('getProperty')
-            ->with(StatsHandler::AttackPropertyName, 1)
-            ->willReturn($currentAttack, $currentAttack); // Called twice: once in getAttack, once in setAttack debug
+        $result = $stats->addAttack(5);
 
-        $this->character
-            ->expects($this->once())
-            ->method('setProperty')
-            ->with(StatsHandler::AttackPropertyName, $expectedTotal);
-
-        $result = $this->stats->addAttack($addedAttack);
-
-        $this->assertSame($this->stats, $result);
+        $this->assertSame($stats, $result);
+        $this->assertSame(15, $stats->getAttack());
     }
 
     public function testGetDefenseReturnsDefaultValueOne(): void
     {
-        $this->character
-            ->expects($this->once())
-            ->method('getProperty')
-            ->with(StatsHandler::DefensePropertyName, 1)
-            ->willReturn(1);
+        $character = $this->createCharacter();
+        $stats = $this->createStatsHandler(character: $character);
 
-        $this->assertEquals(1, $this->stats->getDefense());
+        $this->assertEquals(1, $stats->getDefense());
     }
 
     public function testGetDefenseReturnsSetValue(): void
     {
-        $expectedDefense = 8;
-        $this->character
-            ->expects($this->once())
-            ->method('getProperty')
-            ->with(StatsHandler::DefensePropertyName, 1)
-            ->willReturn($expectedDefense);
+        $character = $this->createCharacter(defense: 8);
+        $stats = $this->createStatsHandler(character: $character);
 
-        $this->assertEquals($expectedDefense, $this->stats->getDefense());
+        $this->assertEquals(8, $stats->getDefense());
     }
 
     public function testSetDefenseCallsCharacterSetProperty(): void
     {
         $defense = 12;
-        $currentDefense = 8;
+        $character = $this->createCharacter(id: 1, name: "Hero", defense: 8);
 
-        $this->character
-            ->expects($this->once())
-            ->method('getProperty')
-            ->with(StatsHandler::DefensePropertyName, 1)
-            ->willReturn($currentDefense);
+        $logger = $this->createMock(LoggerInterface::class);
+        $logger->expects($this->once())
+            ->method("debug")
+            ->with("<Character#1, Hero>: defense set to 12 (was 8) before).");
 
-        $this->character
-            ->expects($this->once())
-            ->method('setProperty')
-            ->with(StatsHandler::DefensePropertyName, $defense);
+        $stats = $this->createStatsHandler(logger: $logger, character: $character);
+        $result = $stats->setDefense($defense);
 
-        $this->character
-            ->expects($this->once())
-            ->method("__toString")
-            ->willReturn("<Character 1>");
-
-        $this->logger
-            ->expects($this->once())
-            ->method('debug')
-            ->with('<Character 1>: defense set to 12 (was 8) before).');
-
-        $result = $this->stats->setDefense($defense);
-
-        $this->assertSame($this->stats, $result);
+        $this->assertSame($stats, $result);
+        $this->assertSame(12, $stats->getDefense());
     }
 
     public function testSetDefenseWithNullLogger(): void
     {
+        $character = $this->createCharacter();
+        $equipment = $this->createStub(EquipmentHandler::class);
         $statsWithNullLogger = new StatsHandler(
             null,
-            $this->equipment,
-            $this->character
+            $equipment,
+            $character
         );
 
         $defense = 12;
-
-        $this->character
-            ->expects($this->once())
-            ->method('setProperty')
-            ->with(StatsHandler::DefensePropertyName, $defense);
-
         $result = $statsWithNullLogger->setDefense($defense);
 
         $this->assertSame($statsWithNullLogger, $result);
+        $this->assertSame(12, $statsWithNullLogger->getDefense());
     }
 
     public function testAddDefenseAddsToCurrentValue(): void
     {
-        $currentDefense = 8;
-        $addedDefense = 3;
+        $character = $this->createCharacter(defense: 8);
+        $stats = $this->createStatsHandler(character: $character);
 
-        // Note: There's a bug in the original code - addDefense calls setAttack instead of setDefense
-        // This test reflects the current (buggy) behavior
-        $this->character
-            ->expects($this->exactly(2))
-            ->method('getProperty')
-            ->willReturnMap([
-                [StatsHandler::DefensePropertyName, 1, $currentDefense],
-                [StatsHandler::DefensePropertyName, 1, 10]
-            ]);
+        $result = $stats->addDefense(3);
 
-        $this->character
-            ->expects($this->once())
-            ->method('setProperty')
-            ->with(StatsHandler::DefensePropertyName, 11);
-
-        $result = $this->stats->addDefense($addedDefense);
-
-        $this->assertSame($this->stats, $result);
+        $this->assertSame($stats, $result);
+        $this->assertSame(11, $stats->getDefense());
     }
 
     public function testGetTotalAttackWithNoWeapon(): void
     {
-        $baseAttack = 5;
-        $this->character
-            ->expects($this->once())
-            ->method('getProperty')
-            ->with(StatsHandler::AttackPropertyName, 1)
-            ->willReturn($baseAttack);
-
-        $this->equipment
+        $character = $this->createCharacter(attack: 5);
+        $equipment = $this->createMock(EquipmentHandler::class);
+        $equipment
             ->expects($this->once())
             ->method('getItemInSlot')
-            ->with(EquipmentHandler::WeaponSlot)
+            ->with(EquipmentHandler::WeaponSlot, $character)
             ->willReturn(null);
 
-        $this->assertEquals($baseAttack, $this->stats->getTotalAttack());
+        $stats = $this->createStatsHandler(equipment: $equipment, character: $character);
+
+        $this->assertEquals(5, $stats->getTotalAttack());
     }
 
     public function testGetTotalAttackWithWeapon(): void
     {
-        $baseAttack = 5;
-        $weaponValue = 10;
-        $expectedTotal = 15;
+        $character = $this->createCharacter(attack: 5);
+        $weapon = new EquipmentItem("Sword", 10, 100);
 
-        $this->character
-            ->expects($this->once())
-            ->method('getProperty')
-            ->with(StatsHandler::AttackPropertyName, 1)
-            ->willReturn($baseAttack);
-
-        $weapon = $this->createMock(EquipmentItem::class);
-        $weapon
-            ->expects($this->once())
-            ->method('getStrength')
-            ->willReturn($weaponValue);
-
-        $this->equipment
+        $equipment = $this->createMock(EquipmentHandler::class);
+        $equipment
             ->expects($this->once())
             ->method('getItemInSlot')
-            ->with(EquipmentHandler::WeaponSlot)
+            ->with(EquipmentHandler::WeaponSlot, $character)
             ->willReturn($weapon);
 
-        $this->assertEquals($expectedTotal, $this->stats->getTotalAttack());
+        $stats = $this->createStatsHandler(equipment: $equipment, character: $character);
+
+        $this->assertEquals(15, $stats->getTotalAttack());
     }
 
     public function testGetTotalDefenseWithNoArmor(): void
     {
-        $baseDefense = 3;
-        $this->character
-            ->expects($this->once())
-            ->method('getProperty')
-            ->with(StatsHandler::DefensePropertyName, 1)
-            ->willReturn($baseDefense);
-
-        $this->equipment
+        $character = $this->createCharacter(defense: 3);
+        $equipment = $this->createMock(EquipmentHandler::class);
+        $equipment
             ->expects($this->once())
             ->method('getItemInSlot')
-            ->with(EquipmentHandler::ArmorSlot)
+            ->with(EquipmentHandler::ArmorSlot, $character)
             ->willReturn(null);
 
-        $this->assertEquals($baseDefense, $this->stats->getTotalDefense());
+        $stats = $this->createStatsHandler(equipment: $equipment, character: $character);
+
+        $this->assertEquals(3, $stats->getTotalDefense());
     }
 
     public function testGetTotalDefenseWithArmor(): void
     {
-        $baseDefense = 3;
-        $armorValue = 7;
-        $expectedTotal = 10;
+        $character = $this->createCharacter(defense: 3);
+        $armor = new EquipmentItem("Shield", 7, 100);
 
-        $this->character
-            ->expects($this->once())
-            ->method('getProperty')
-            ->with(StatsHandler::DefensePropertyName, 1)
-            ->willReturn($baseDefense);
-
-        $armor = $this->createMock(EquipmentItem::class);
-        $armor
-            ->expects($this->once())
-            ->method('getStrength')
-            ->willReturn($armorValue);
-
-        $this->equipment
+        $equipment = $this->createMock(EquipmentHandler::class);
+        $equipment
             ->expects($this->once())
             ->method('getItemInSlot')
-            ->with(EquipmentHandler::ArmorSlot)
+            ->with(EquipmentHandler::ArmorSlot, $character)
             ->willReturn($armor);
 
-        $this->assertEquals($expectedTotal, $this->stats->getTotalDefense());
+        $stats = $this->createStatsHandler(equipment: $equipment, character: $character);
+
+        $this->assertEquals(10, $stats->getTotalDefense());
     }
 
     public function testMultipleExperienceAdditions(): void
     {
-        $this->character
-            ->expects($this->once())
-            ->method('getProperty')
-            ->with(StatsHandler::ExperiencePropertyName, 0)
-            ->willReturn(100);
+        $character = $this->createCharacter(experience: 100);
+        $stats = $this->createStatsHandler(character: $character);
 
-        $this->character
-            ->expects($this->once())
-            ->method('setProperty')
-            ->with(StatsHandler::ExperiencePropertyName, 150);
-
-        $this->stats->addExperience(50);
+        $stats->addExperience(50);
+        $this->assertSame(150, $stats->getExperience());
     }
 
     public function testConstantsAreCorrectlyDefined(): void
@@ -462,12 +363,14 @@ class StatsTest extends TestCase
 
     public function testRequiredExperienceAlwaysIncreases(): void
     {
-        $levels = range(1, 15);
-        $this->character->method(PropertyHook::get("level"))->willReturn(...$levels);
+        $character = $this->createCharacter();
+        $stats = $this->createStatsHandler(character: $character);
 
         $required = 0;
-        foreach ($levels as $level) {
-            $requiredExperience = $this->stats->getRequiredExperience();
+        for ($level = 1; $level <= 15; $level++) {
+            $character->level = $level;
+            $requiredExperience = $stats->getRequiredExperience();
+            $this->assertNotNull($requiredExperience);
             $this->assertGreaterThan($required, $requiredExperience);
             $required = $requiredExperience;
         }
@@ -475,7 +378,233 @@ class StatsTest extends TestCase
 
     public function testRequiredExperienceIsNullAboveMaxLevel(): void
     {
-        $this->character->method(PropertyHook::get("level"))->willReturn(16);
-        $this->assertNull($this->stats->getRequiredExperience());
+        $character = $this->createCharacter(level: 16);
+        $stats = $this->createStatsHandler(character: $character);
+
+        $this->assertNull($stats->getRequiredExperience());
+    }
+
+    public function testExplicitCharacterInStatsMethods(): void
+    {
+        $defaultCharacter = $this->createCharacter(defense: 0, experience: 0);
+        $stats = $this->createStatsHandler(character: $defaultCharacter);
+
+        $explicitCharacter = new Character();
+        $stats->setExperience(500, $explicitCharacter);
+        $this->assertSame(500, $stats->getExperience($explicitCharacter));
+
+        $stats->addExperience(200, $explicitCharacter);
+        $this->assertSame(200, $stats->getExperience($explicitCharacter));
+
+        $stats->setAttack(12, $explicitCharacter);
+        $this->assertSame(12, $stats->getAttack($explicitCharacter));
+
+        $stats->addAttack(3, $explicitCharacter);
+        $this->assertSame(15, $stats->getAttack($explicitCharacter));
+
+        $stats->setDefense(8, $explicitCharacter);
+        $this->assertSame(8, $stats->getDefense($explicitCharacter));
+
+        $stats->addDefense(2, $explicitCharacter);
+        $this->assertSame(2, $stats->getDefense($explicitCharacter));
+    }
+
+    public function testOnCharacterLevelIncrease(): void
+    {
+        $character = $this->createCharacter(level: 4);
+        $characterBefore = $this->createCharacter(level: 2);
+
+        $statsHandler = $this->createStatsHandler(character: $character);
+
+        $event = new CharacterChangeEvent($character, $characterBefore);
+        $statsHandler->onCharacterLevelIncrease($event);
+
+        $this->assertSame(3, $statsHandler->getAttack($character)); // 1 base + 2
+        $this->assertSame(3, $statsHandler->getDefense($character)); // 1 base + 2
+    }
+
+    public function testOnCharacterReset(): void
+    {
+        $character = $this->createCharacter(
+            level: 1,
+            attack: 10,
+            defense: 10,
+            experience: 5000,
+        );
+
+        $characterBefore = $this->createCharacter(level: 10);
+
+        $statsHandler = $this->createStatsHandler(character: $character);
+
+        $event = new CharacterChangeEvent($character, $characterBefore);
+        $statsHandler->onCharacterReset($event);
+
+        $this->assertSame(1, $statsHandler->getAttack($character));
+        $this->assertSame(1, $statsHandler->getDefense($character));
+        $this->assertSame(0, $statsHandler->getExperience($character));
+
+        // When delta level <= 0
+        $characterBefore2 = $this->createCharacter(level: 1);
+        $event2 = new CharacterChangeEvent($character, $characterBefore2);
+
+        $statsHandler->onCharacterReset($event2);
+        $this->assertSame(1, $statsHandler->getAttack($character));
+    }
+
+    public function testOnLootBagFill(): void
+    {
+        $character = $this->createCharacter();
+        $badGuy = $this->createStub(FighterInterface::class);
+        $badGuy->method(PropertyHook::get("kwargs"))->willReturn([
+            "experience" => 45,
+        ]);
+
+        $battleState = new BattleState($this->createStub(FighterInterface::class), $badGuy);
+        $battleState->setCharacter($character);
+
+        $lootBag = $this->createMock(LootBag::class);
+        $lootBag->expects($this->once())
+            ->method("add")
+            ->willReturnCallback(function (LootPosition $pos) {
+                $this->assertSame(StatsHandler::ExperienceLoot, $pos->id);
+                $this->assertSame(45, $pos->loot["experience"]);
+                $this->assertSame(0.1, $pos->loot["experienceFlux"]);
+                $this->assertSame(0.25, $pos->loot["experienceBonus"]);
+            });
+
+        $event = new LootBagEvent($battleState, $lootBag);
+
+        $statsHandler = $this->createStatsHandler(character: $character);
+        $statsHandler->onLootBagFill($event);
+    }
+
+    public function testOnLootBagClaimWhenNoLootPosition(): void
+    {
+        $character = $this->createCharacter();
+        $battleState = new BattleState(
+            $this->createStub(FighterInterface::class),
+            $this->createStub(FighterInterface::class),
+        );
+        $battleState->setCharacter($character);
+
+        $lootBag = $this->createMock(LootBag::class);
+        $lootBag->expects($this->once())
+            ->method("get")
+            ->with(StatsHandler::ExperienceLoot)
+            ->willReturn(null);
+
+        $logger = $this->createMock(LoggerInterface::class);
+        $logger->expects($this->once())
+            ->method("debug")
+            ->with("Impossible to claim experience loot: No experience loot exists.");
+
+        $event = new LootBagEvent($battleState, $lootBag);
+
+        $statsHandler = $this->createStatsHandler(logger: $logger, character: $character);
+        $statsHandler->onLootBagClaim($event);
+    }
+
+    public function testOnLootBagClaimWithMissingKeys(): void
+    {
+        $character = $this->createCharacter(level: 3);
+
+        $badGuy = $this->createStub(FighterInterface::class);
+        $badGuy->method(PropertyHook::get('level'))->willReturn(3);
+
+        $battleState = new BattleState($this->createStub(FighterInterface::class), $badGuy);
+        $battleState->setCharacter($character);
+
+        $diceBag = $this->createMock(DiceBag::class);
+        $diceBag->expects($this->once())
+            ->method("pseudoBell")
+            ->with(0, 0)
+            ->willReturn(0);
+
+        $lootBag = new LootBag(false, $diceBag);
+        $position = new LootPosition(StatsHandler::ExperienceLoot, []);
+        $lootBag->add($position);
+
+        $stage = new Stage();
+        $event = new LootBagEvent($battleState, $lootBag, $stage);
+
+        $logger = $this->createMock(LoggerInterface::class);
+        $logger->expects($this->exactly(5))->method("debug");
+
+        $statsHandler = $this->createStatsHandler(logger: $logger, character: $character);
+        $statsHandler->onLootBagClaim($event);
+
+        $this->assertSame(1, $statsHandler->getExperience($character));
+        $paragraphs = array_values($stage->paragraphs);
+        $this->assertCount(1, $paragraphs);
+        $this->assertSame(StatsHandler::ExperienceLootClaimParagraph, $paragraphs[0]->id);
+    }
+
+    public function testOnLootBagClaimWithPositiveBonusAndNegativeBonus(): void
+    {
+        $character = $this->createCharacter(level: 1);
+
+        $badGuy = $this->createStub(FighterInterface::class);
+        $badGuy->method(PropertyHook::get('level'))->willReturn(3); // stronger bad guy -> deltaLevel = +2
+
+        $battleState = new BattleState($this->createStub(FighterInterface::class), $badGuy);
+        $battleState->setCharacter($character);
+
+        $diceBag = $this->createMock(DiceBag::class);
+        $diceBag->expects($this->once())
+            ->method("pseudoBell")
+            ->with(-10, 10)
+            ->willReturn(5);
+
+        $lootBag = new LootBag(false, $diceBag);
+        $position = new LootPosition(StatsHandler::ExperienceLoot, [
+            "experience" => 100,
+            "experienceFlux" => 0.1,
+            "experienceBonus" => 0.25,
+        ]);
+        $lootBag->add($position);
+
+        $stage = new Stage();
+        $event = new LootBagEvent($battleState, $lootBag, $stage);
+
+        $statsHandler = $this->createStatsHandler(character: $character);
+        $statsHandler->onLootBagClaim($event);
+
+        // 100 + 5 (flux) + (0.25 * 100 * 2 = 50) = 155
+        $this->assertSame(155, $statsHandler->getExperience($character));
+        $paragraphs = array_values($stage->paragraphs);
+        $this->assertCount(1, $paragraphs);
+        $this->assertSame(50.0, $paragraphs[0]->context["bonusExperience"]);
+        $this->assertSame(155, $paragraphs[0]->context["experience"]);
+
+        // Negative bonus: weaker bad guy -> deltaLevel = -2
+        $character2 = $this->createCharacter(level: 5);
+        $badGuy2 = $this->createStub(FighterInterface::class);
+        $badGuy2->method(PropertyHook::get('level'))->willReturn(3);
+
+        $battleState2 = new BattleState($this->createStub(FighterInterface::class), $badGuy2);
+        $battleState2->setCharacter($character2);
+
+        $diceBag2 = $this->createMock(DiceBag::class);
+        $diceBag2->expects($this->once())
+            ->method("pseudoBell")
+            ->willReturn(0);
+
+        $lootBag2 = new LootBag(false, $diceBag2);
+        $lootBag2->add(new LootPosition(StatsHandler::ExperienceLoot, [
+            "experience" => 100,
+            "experienceFlux" => 0.1,
+            "experienceBonus" => 0.25,
+        ]));
+
+        $stage2 = new Stage();
+        $event2 = new LootBagEvent($battleState2, $lootBag2, $stage2);
+
+        $statsHandler2 = $this->createStatsHandler(character: $character2);
+        $statsHandler2->onLootBagClaim($event2);
+
+        // 100 + 0 - 50 = 50
+        $this->assertSame(50, $statsHandler2->getExperience($character2));
+        $paragraphs2 = array_values($stage2->paragraphs);
+        $this->assertSame(-50.0, $paragraphs2[0]->context["bonusExperience"]);
     }
 }
