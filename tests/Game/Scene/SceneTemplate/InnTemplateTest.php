@@ -742,8 +742,8 @@ class InnTemplateTest extends TestCase
         $charmHandler->expects($this->once())->method("addCharm")->with($character, 1);
 
         $healthHandler = $this->createMock(HealthHandler::class);
-        $healthHandler->expects($this->once())->method("getTurns")->willReturn(3);
-        $healthHandler->expects($this->once())->method("addTurns")->with(-2, $character);
+        $healthHandler->expects($this->once())->method("getTurns")->with($character)->willReturn(3);
+        $healthHandler->expects($this->once())->method("addTurns")->with($character, -2);
 
         $diceBag = $this->createMock(DiceBagInterface::class);
         $diceBag->expects($this->once())->method("pick")->willReturn(["war"]);
@@ -963,8 +963,8 @@ class InnTemplateTest extends TestCase
         $charmHandler->expects($this->once())->method("addCharm")->with($character, 1);
 
         $healthHandler = $this->createMock(HealthHandler::class);
-        $healthHandler->expects($this->once())->method("getTurns")->willReturn(2);
-        $healthHandler->expects($this->once())->method("addTurns")->with(-2, $character);
+        $healthHandler->expects($this->once())->method("getTurns")->with($character)->willReturn(2);
+        $healthHandler->expects($this->once())->method("addTurns")->with($character, -2);
 
         $diceBag = $this->createMock(DiceBagInterface::class);
         $diceBag->expects($this->once())->method("pick")->willReturn(["war"]);
@@ -999,7 +999,7 @@ class InnTemplateTest extends TestCase
         $charmHandler->expects($this->never())->method("addCharm");
 
         $healthHandler = $this->createMock(HealthHandler::class);
-        $healthHandler->expects($this->once())->method("getTurns")->willReturn(0);
+        $healthHandler->expects($this->once())->method("getTurns")->with($character)->willReturn(0);
         $healthHandler->expects($this->never())->method("addTurns");
 
         $diceBag = $this->createMock(DiceBagInterface::class);
@@ -1659,7 +1659,7 @@ class InnTemplateTest extends TestCase
 
         $healthHandler = $this->createMock(HealthHandler::class);
         $healthHandler->expects($this->once())->method("getMaxHealth")->with($character)->willReturn(80);
-        $healthHandler->expects($this->once())->method("heal")->with(8, $character);
+        $healthHandler->expects($this->once())->method("heal")->with($character, 8);
 
         $logger = $this->createMock(LoggerInterface::class);
         $logger->expects($this->exactly(2))
@@ -1744,7 +1744,7 @@ class InnTemplateTest extends TestCase
         $goldHandler->expects($this->once())->method("removeGold")->with($character, 30);
 
         $healthHandler = $this->createMock(HealthHandler::class);
-        $healthHandler->expects($this->once())->method("addTurns")->with(1, $character);
+        $healthHandler->expects($this->once())->method("addTurns")->with($character, 1);
 
         $logger = $this->createMock(LoggerInterface::class);
         $logger->expects($this->exactly(2))
@@ -1853,7 +1853,7 @@ class InnTemplateTest extends TestCase
         $healthHandler = $this->createMock(HealthHandler::class);
         $healthHandler->expects($this->once())
             ->method("addTurns")
-            ->with(-1, $character);
+            ->with($character, -1);
 
         $innTemplate = $this->getPartiallyMockedInnTemplate(healthHandler: $healthHandler);
         $innTemplate->onNewDayEvent($event);

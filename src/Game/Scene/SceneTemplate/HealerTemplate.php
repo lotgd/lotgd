@@ -57,7 +57,7 @@ class HealerTemplate implements SceneTemplateInterface
             $what = $this->action->getParameter("what") ?? null;
 
             if ($what === "heal") {
-                $this->health->heal();
+                $this->health->heal($this->character);
             }
         }
 
@@ -71,14 +71,14 @@ class HealerTemplate implements SceneTemplateInterface
     {
         $this->logger->debug("Called HealerTemplate::defaultAction");
 
-        if ($this->health->isAlive() === false) {
+        if ($this->health->isAlive($this->character) === false) {
             $this->stage->paragraphs = [
                 new Paragraph(
                     "lotgd2.paragraph.healerTemplate.isDeadMessage",
                     "You are dead and cannot get healing from the Healer's hut. Try waiting for a new day to continue playing."
                 ),
             ];
-        } elseif ($this->health->getHealth() < $this->health->getMaxHealth()) {
+        } elseif ($this->health->getHealth($this->character) < $this->health->getMaxHealth($this->character)) {
             $this->stage->addParagraph(new Paragraph(
                 id: "lotgd2.paragraph.healerTemplate.onEntryAndDamaged",
                 text: $this->scene->templateConfig["text"]["onEntryAndDamaged"],
@@ -86,7 +86,7 @@ class HealerTemplate implements SceneTemplateInterface
             ));
 
             $this->addPotionActions();
-        } elseif ($this->health->getHealth() > $this->health->getMaxHealth() && ($this->scene->templateConfig["stealHealth"] ?? true) === true) {
+        } elseif ($this->health->getHealth($this->character) > $this->health->getMaxHealth($this->character) && ($this->scene->templateConfig["stealHealth"] ?? true) === true) {
             $this->stage->addParagraph(new Paragraph(
                 id: "lotgd2.paragraph.healerTemplate.onEntryAndOverhealed",
                 text: $this->scene->templateConfig["text"]["onEntryAndOverhealed"],
@@ -119,7 +119,7 @@ class HealerTemplate implements SceneTemplateInterface
         $amount = $this->action->getParameter("amount") ?? 0;
         $price = (int)($this->action->getParameter("price") ?? 0);
 
-        if ($price === 0 or $this->gold->getGold(null) >= $price) {
+        if ($price === 0 or $this->gold->getGold($this->character) >= $price) {
             $this->logger->debug("{$this->character->id}: Healed by $amount for $price gold.");
 
             $this->stage->paragraphs = [
@@ -133,8 +133,8 @@ class HealerTemplate implements SceneTemplateInterface
                 )
             ];
 
-            $this->health->heal($amount);
-            $this->gold->addGold(null, -$price);
+            $this->health->heal($this->character, $amount);
+            $this->gold->addGold($this->character, -$price);
         } else {
             $this->stage->paragraphs = [
                 new Paragraph(
@@ -151,7 +151,7 @@ class HealerTemplate implements SceneTemplateInterface
     public function getPrice(Character $character): int
     {
         $level = max(1, $character->level);
-        $price = log($level) * ($this->health->getMaxHealth() - $this->health->getHealth() + 10);
+        $price = log($level) * ($this->health->getMaxHealth($character) - $this->health->getHealth($character) + 10);
 
         return (int)round($price);
     }
@@ -163,7 +163,7 @@ class HealerTemplate implements SceneTemplateInterface
             title: $this->scene->templateConfig["actionGroupPotionTitle"],
         );
 
-        $healthDelta = $this->health->getMaxHealth() - $this->health->getHealth();
+        $healthDelta = $this->health->getMaxHealth($this->character) - $this->health->getHealth($this->character);
         $price = $this->getPrice($this->stage->owner);
 
         $actionGroup->addAction(new Action(

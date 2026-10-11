@@ -215,9 +215,9 @@ class ExpressionService
      */
     public function getCharacterBasedNames(Character $character): array
     {
-        $healthHandler = new HealthHandler($this->gameStateService, $this->logger, $character);
-        $equipmentHandler = new EquipmentHandler($this->logger, $character);
-        $statsHandler = new StatsHandler($this->logger, $equipmentHandler, $character);
+        $healthHandler = new HealthHandler($this->gameStateService, $this->logger);
+        $equipmentHandler = new EquipmentHandler($this->logger);
+        $statsHandler = new StatsHandler($this->logger, $equipmentHandler);
         $goldHandler = new WealthHandler($this->gameStateService, $this->logger, $character);
         $genderHandler = new GenderHandler();
         $charmHandler = new CharmHandler($this->logger);
@@ -239,8 +239,8 @@ class ExpressionService
             ],
             "gold" => $goldHandler->getGold($character),
             "equipment" => (object)[
-                "weapon" => $equipmentHandler->getName(EquipmentHandler::WeaponSlot, $character),
-                "armor" => $equipmentHandler->getName(EquipmentHandler::ArmorSlot, $character),
+                "weapon" => $equipmentHandler->getName($character, EquipmentHandler::WeaponSlot),
+                "armor" => $equipmentHandler->getName($character, EquipmentHandler::ArmorSlot),
             ],
             "gender" => (object)[
                 "pronouns" => $genderHandler->getPreferredPronouns($character),

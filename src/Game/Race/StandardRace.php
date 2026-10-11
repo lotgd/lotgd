@@ -63,7 +63,7 @@ class StandardRace implements RaceInterface
         if (isset($race->configuration["health"]) && $race->configuration["health"] <> 0) {
             $value = $race->configuration["health"];
             $this->logger->debug("Character $character->id: Increase health by $value for race {$race->name}.", $loggerContext);
-            $this->health->addMaxHealth($value, $character);
+            $this->health->addMaxHealth($character, $value);
         }
     }
 
@@ -86,7 +86,7 @@ class StandardRace implements RaceInterface
         if (isset($oldConfiguration["health"]) && $oldConfiguration["health"] <> 0) {
             $value = $oldConfiguration["health"];
             $this->logger->debug("Character $character->id: Increase health by $value for race {$race->name}.", $loggerContext);
-            $this->health->addMaxHealth(-$value, $character);
+            $this->health->addMaxHealth($character, -$value);
         }
     }
 
@@ -109,7 +109,7 @@ class StandardRace implements RaceInterface
                 return;
             }
 
-            $this->health->addTurns($value, $character);
+            $this->health->addTurns($character, $value);
             $this->logger->debug("Character $character->id: Increase turns by $value for race {$race->name}.", $loggerContext);
             $event->stage->addParagraph(new Paragraph(
                 "lotgd2.paragraph.StandardRace.onNewDay",

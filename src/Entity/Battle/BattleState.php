@@ -86,8 +86,8 @@ class BattleState
         $logger->debug("BattleState: Synchronize back to the character.");
 
         if ($this->goodGuy instanceof CurrentCharacterFighter) {
-            $health = new HealthHandler($gameStateService, $logger, $this->character);
-            $health->setHealth($this->goodGuy->health);
+            $health = new HealthHandler($gameStateService, $logger);
+            $health->setHealth($this->character, $this->goodGuy->health);
 
             $expressionService = new ExpressionService($logger, $gameStateService);
 

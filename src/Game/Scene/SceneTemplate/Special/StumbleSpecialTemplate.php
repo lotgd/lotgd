@@ -59,7 +59,7 @@ class StumbleSpecialTemplate extends SpecialTemplate
                 $damage = min($this->healthHandler->getHealth($this->character) - 1, $damage);
             }
 
-            $this->healthHandler->heal(-$damage, $this->character);
+            $this->healthHandler->heal($this->character, -$damage);
 
             $this->stage->paragraphs[Stage::SceneText]?->addContext("damage", $damage);
 

@@ -682,7 +682,7 @@ class BankTemplateTest extends TestCase
         );
 
         $stageChangeEvent = $this->createMock(StageChangeEvent::class);
-        $stageChangeEvent->expects($this->atLeastOnce())->method(PropertyHook::get("characterBefore"))->willReturn($character);
+        $stageChangeEvent->method(PropertyHook::get("characterBefore"))->willReturn($character);
         $stageChangeEvent->expects($this->exactly(2))->method(PropertyHook::get("stage"))->willReturn($stage);
 
         $bankTemplate->onNewDayEvent($stageChangeEvent);
@@ -772,7 +772,7 @@ class BankTemplateTest extends TestCase
         );
 
         $stageChangeEvent = $this->createMock(StageChangeEvent::class);
-        $stageChangeEvent->expects($this->once())->method(PropertyHook::get("characterBefore"))->willReturn($character);
+        $stageChangeEvent->method(PropertyHook::get("characterBefore"))->willReturn($character);
         $stageChangeEvent->expects($this->once())->method(PropertyHook::get("stage"))->willReturn($stage);
 
         $bankTemplate->onNewDayEvent($stageChangeEvent);
@@ -869,7 +869,7 @@ class BankTemplateTest extends TestCase
         );
 
         $stageChangeEvent = $this->createMock(StageChangeEvent::class);
-        $stageChangeEvent->expects($this->once())->method(PropertyHook::get("characterBefore"))->willReturn($character);
+        $stageChangeEvent->method(PropertyHook::get("characterBefore"))->willReturn($character);
         $stageChangeEvent->expects($this->once())->method(PropertyHook::get("stage"))->willReturn($stage);
 
         $bankTemplate->onNewDayEvent($stageChangeEvent);

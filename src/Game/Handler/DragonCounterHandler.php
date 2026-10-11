@@ -109,7 +109,7 @@ class DragonCounterHandler
 
             switch ($event->action->parameters["dk"]) {
                 case "health":
-                    $this->health->addMaxHealth(5, $character);
+                    $this->health->addMaxHealth($character, 5);
                     $success = true;
                     break;
 

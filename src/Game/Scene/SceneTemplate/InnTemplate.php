@@ -241,8 +241,8 @@ class InnTemplate implements SceneTemplateInterface
                             ));
 
                             $this->healthHandler->heal(
-                                (int)round($this->healthHandler->getMaxHealth($this->character)*0.1, 0),
-                                $this->character
+                                $this->character,
+                                (int)round($this->healthHandler->getMaxHealth($this->character) * 0.1, 0)
                             );
                         } else {
                             $this->logger->debug("{$this->character} drunk alcohol and feels vigorous");
@@ -251,7 +251,7 @@ class InnTemplate implements SceneTemplateInterface
                                text:  "You feel vigorous!"
                             ));
 
-                            $this->healthHandler->addTurns(1, $this->character);
+                            $this->healthHandler->addTurns($this->character, 1);
                         }
 
                         // Buff
@@ -620,8 +620,8 @@ class InnTemplate implements SceneTemplateInterface
         }
 
         if ($turnChange > 0) {
-            if ($this->healthHandler->getTurns() > 0) {
-                $this->healthHandler->addTurns(-$turnChange, $this->character);
+            if ($this->healthHandler->getTurns($this->character) > 0) {
+                $this->healthHandler->addTurns($this->character, -$turnChange);
 
                 // @phpstan-ignore offsetAccess.notFound
                 $this->stage->paragraphs[self::Paragraphs["femaleBanter"]]->addContext("consumedTurns", $turnChange);
@@ -777,7 +777,7 @@ class InnTemplate implements SceneTemplateInterface
     public function onNewDayEvent(StageChangeEvent $event): void
     {
         if ($this->getDrunkenness($event->character) > 66) {
-            $this->healthHandler->addTurns(-1, $event->character);
+            $this->healthHandler->addTurns($event->character, -1);
             $event->stage->addParagraph(new Paragraph(
                 id: self::Paragraphs["hangover"],
                 text: "You wake up with a hangover.",

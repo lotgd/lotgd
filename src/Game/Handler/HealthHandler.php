@@ -36,20 +36,16 @@ readonly class HealthHandler
     public function __construct(
         private GameStateService $gameStateService,
         private ?LoggerInterface $logger,
-        #[Autowire(expression: "service('lotgd2.game_loop').getCharacter()")]
-        private ?Character $character,
     ) {
     }
 
-    public function getHealth(?Character $character = null): int
+    public function getHealth(Character $character): int
     {
-        $character = $character ?? $this->character;
         return $character->getProperty(static::HealthPropertyName, $character->level * 10);
     }
 
-    public function setHealth(int $health, ?Character $character = null): static
+    public function setHealth(Character $character, int $health): static
     {
-        $character = $character ?? $this->character;
         $this->logger?->debug("{$character->id}: health set to {$health} (was {$this->getHealth($character)}) before).");
         $character->setProperty(static::HealthPropertyName, $health);
         return $this;
@@ -63,9 +59,8 @@ readonly class HealthHandler
      * @param int|null $health The amount to heal the character. If null is given, character is healed completely.
      * @return $this
      */
-    public function heal(?int $health = null, ?Character $character = null): static
+    public function heal(Character $character, ?int $health = null): static
     {
-        $character = $character ?? $this->character;
         if ($health === null) {
             $health = $this->getMaxHealth($character);
         }
@@ -86,65 +81,57 @@ readonly class HealthHandler
         return $this;
     }
 
-    public function getMaxHealth(?Character $character = null): int
+    public function getMaxHealth(Character $character): int
     {
-        $character = $character ?? $this->character;
         return $character->getProperty(static::MaxHealthPropertyName, $character->level * 10);
     }
 
-    public function setMaxHealth(int $maxHealth, ?Character $character = null): static
+    public function setMaxHealth(Character $character, int $maxHealth): static
     {
-        $character = $character ?? $this->character;
         $this->logger?->debug("{$character->id}: health set to {$maxHealth} (was {$this->getMaxHealth($character)}) before).");
         $character->setProperty(static::MaxHealthPropertyName, $maxHealth);
         return $this;
     }
 
-    public function addMaxHealth(int $maxHealth, ?Character $character = null): static
+    public function addMaxHealth(Character $character, int $maxHealth): static
     {
-        $character = $character ?? $this->character;
-        $this->setMaxHealth($this->getMaxHealth($character) + $maxHealth, $character);
+        $this->setMaxHealth($character, $this->getMaxHealth($character) + $maxHealth);
         return $this;
     }
 
-    public function isAlive(?Character $character = null): bool
+    public function isAlive(Character $character): bool
     {
-        return $this->getHealth($character ?? $this->character) > 0;
+        return $this->getHealth($character) > 0;
     }
 
-    public function getResurrections(?Character $character = null): int
+    public function getResurrections(Character $character): int
     {
-        $character = $character ?? $this->character;
         return $character->getProperty(static::Resurrections, 10);
     }
 
-    public function addResurrection(?Character $character = null): self
+    public function addResurrection(Character $character): self
     {
-        $character = $character ?? $this->character;
         $character->setProperty(self::Resurrections, $this->getResurrections($character) + 1);
 
         $this->logger?->debug("{$character->id}: resurrections incremented to {$this->getTurns($character)}.");
         return $this;
     }
 
-    public function getAge(?Character $character = null): int
+    public function getAge(Character $character): int
     {
-        $character = $character ?? $this->character;
         return $character->getProperty(static::Age, 0);
     }
 
-    public function addAge(?Character $character = null): self
+    public function addAge(Character $character): self
     {
-        $character = $character ?? $this->character;
         $character->setProperty(self::Age, $this->getAge($character) + 1);
 
         $this->logger?->debug("{$character->id}: age incremented to {$this->getTurns($character)}.");
         return $this;
     }
 
-    public function getTurns(?Character $character = null): int
+    public function getTurns(Character $character): int
     {
-        $character = $character ?? $this->character;
         return (int)(
                 $character->getProperty(static::Turns)
                 ?? $this->gameStateService->getSetting(self::DefaultTurnsGameSetting)
@@ -152,9 +139,8 @@ readonly class HealthHandler
         );
     }
 
-    public function setTurns(?int $turns = null, ?Character $character = null): self
+    public function setTurns(Character $character, ?int $turns = null): self
     {
-        $character = $character ?? $this->character;
         $turns = $turns ?? $this->getMaxTurns($character);
 
         // Prevent turns from getting less than 0
@@ -166,24 +152,20 @@ readonly class HealthHandler
         return $this;
     }
 
-    public function addTurns(int $turns, ?Character $character): self
+    public function addTurns(Character $character, int $turns): self
     {
-        $character = $character ?? $this->character;
         $character->setProperty(self::Turns, $this->getTurns($character) + $turns);
         return $this;
     }
 
-    public function decrementTurns(?Character $character = null): self
+    public function decrementTurns(Character $character): self
     {
-        $character = $character ?? $this->character;
         $character->setProperty(static::Turns, $this->getTurns($character) - 1);
         return $this;
     }
 
-    public function getMaxTurns(?Character $character = null): int
+    public function getMaxTurns(Character $character): int
     {
-        $character = $character ?? $this->character;
-
         return (int)($this->gameStateService->getSetting(self::DefaultTurnsGameSetting)
             ?? 30);
     }
@@ -236,8 +218,8 @@ readonly class HealthHandler
         $deltaLevel = $event->character->level - $event->characterBefore->level;
 
         if ($deltaLevel > 0) {
-            $this->addMaxHealth($deltaLevel * 10, $event->character);
-            $this->heal(null, $event->character);
+            $this->addMaxHealth($event->character, $deltaLevel * 10);
+            $this->heal($event->character, null);
         }
     }
 
@@ -248,8 +230,8 @@ readonly class HealthHandler
 
         if ($deltaLevel > 0) {
             $deltaHealth = $deltaLevel * 10;
-            $this->addMaxHealth(-$deltaHealth, $event->character);
-            $this->heal(-$deltaHealth, $event->character);
+            $this->addMaxHealth($event->character, -$deltaHealth);
+            $this->heal($event->character, -$deltaHealth);
         }
     }
 

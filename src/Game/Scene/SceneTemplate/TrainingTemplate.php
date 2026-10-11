@@ -117,7 +117,7 @@ class TrainingTemplate implements SceneTemplateInterface
 
     public function defaultAction(): void
     {
-        if ($this->health->isAlive() === false) {
+        if ($this->health->isAlive($this->character) === false) {
             $this->stage->paragraphs = [
                 new Paragraph(
                     id: "lotgd2.paragraph.trainingTemplate.isDead",
@@ -218,7 +218,7 @@ class TrainingTemplate implements SceneTemplateInterface
                 $healed = false;
 
                 if ($this->health->getHealth($character) < $this->health->getMaxHealth($character)) {
-                    $this->health->heal(character: $character);
+                    $this->health->heal($character);
                     $healed = true;
                 }
 
@@ -300,7 +300,7 @@ class TrainingTemplate implements SceneTemplateInterface
                 context: [
                     "campLeader" => $event->scene->templateConfig["campLeader"],
                     "badGuy" => $battleState->badGuy,
-                    "maxHealth" => $this->health->getMaxHealth(),
+                    "maxHealth" => $this->health->getMaxHealth($event->character),
                 ]
             )
         ];
@@ -331,13 +331,13 @@ class TrainingTemplate implements SceneTemplateInterface
                 context: [
                     "campLeader" => $event->scene->templateConfig["campLeader"],
                     "badGuy" => $battleState->badGuy,
-                    "maxHealth" => $this->health->getMaxHealth(),
+                    "maxHealth" => $this->health->getMaxHealth($event->character),
                     "textLost" => $battleState->badGuy->kwargs["textLost"] ?? null,
                 ]
             )
         ];
 
-        $this->health->heal();
+        $this->health->heal($event->character);
         $this->setSeenMaster($event->character);
         $this->logger->debug("Character {$event->character->id} lost against his master.");
     }

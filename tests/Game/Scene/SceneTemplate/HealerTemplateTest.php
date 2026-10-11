@@ -189,11 +189,11 @@ class HealerTemplateTest extends TestCase
 
         $this->health->expects($this->once())
             ->method('heal')
-            ->with(50);
+            ->with($character, 50);
 
         $this->gold->expects($this->once())
             ->method('addGold')
-            ->with(null, -100);
+            ->with($character, -100);
 
         $this->healerTemplate->setSceneChangeParameter($stage, $action, $scene);
         $this->healerTemplate->onSceneChange();
@@ -216,7 +216,7 @@ class HealerTemplateTest extends TestCase
 
         $this->health->expects($this->once())
             ->method('heal')
-            ->with();
+            ->with($character);
 
         $this->logger->expects($this->once())
             ->method('debug')
@@ -582,11 +582,11 @@ class HealerTemplateTest extends TestCase
 
         $this->health->expects($this->once())
             ->method('heal')
-            ->with(30);
+            ->with($character, 30);
 
         $this->gold->expects($this->once())
             ->method('addGold')
-            ->with(null, -50);
+            ->with($character, -50);
 
         $this->healerTemplate->setSceneChangeParameter($stage, $action, $scene);
         $this->healerTemplate->healAction();
@@ -697,11 +697,11 @@ class HealerTemplateTest extends TestCase
 
         $this->health->expects($this->once())
             ->method('heal')
-            ->with(30);
+            ->with($character, 30);
 
         $this->gold->expects($this->once())
             ->method('addGold')
-            ->with(0);
+            ->with($character, 0);
 
         $this->healerTemplate->setSceneChangeParameter($stage, $action, $scene);
         $this->healerTemplate->healAction();

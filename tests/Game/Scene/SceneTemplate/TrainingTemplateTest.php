@@ -662,7 +662,7 @@ class TrainingTemplateTest extends TestCase
             requiredCharacter: $character,
         );
 
-        $healthHandler->expects($this->once())->method("heal")->with(null, $character);
+        $healthHandler->expects($this->once())->method("heal")->with($character);
 
         [$attachmentRepository, $attachment] = $this->getAttachmentRepositoryAndAttachment(
             repositoryAsMock: true,

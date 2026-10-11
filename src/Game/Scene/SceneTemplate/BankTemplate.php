@@ -205,7 +205,7 @@ class BankTemplate implements SceneTemplateInterface
         $this->stopwatch->start("lotgd2.BankTemplate.onNewDayEvent");
         $defaultConfig = new BankTemplateType()->getDefaultData();
 
-        $oldHealth = new HealthHandler($this->gameStateService, null, $event->characterBefore);
+        $oldHealth = new HealthHandler($this->gameStateService, null);
 
         $scenes = $this->sceneRepository->findBy(["templateClass" => self::class], ["id" => "ASC"]);
         $bankAccounts = [];
@@ -249,7 +249,7 @@ class BankTemplate implements SceneTemplateInterface
                     // Character has more gold than the maximum; the bank does not pay out interest.
                     $interest = 0;
                     $text = "The bank <.{{ bankName }}.> does not pay out your interest to retain solvency. You have already enough savings.";
-                } elseif ($turnsLeftBeforeInterest >= 0 && $turnsLeftBeforeInterest <= $oldHealth->getTurns()) {
+                } elseif ($turnsLeftBeforeInterest >= 0 && $turnsLeftBeforeInterest <= $oldHealth->getTurns($event->characterBefore)) {
                     $interest = 0;
                     $text = "The bank <.{{ bankName }}.>'s interest rate today is {{ bankInterestRate }}%, but you will not earn interest. This bank only gives interest to those who work.";
                 } else {

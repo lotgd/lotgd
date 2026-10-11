@@ -284,7 +284,7 @@ class DragonCounterTest extends TestCase
         $stopwatch->expects($this->once())->method("stop")->with("lotgd2.DragonCounter.onNewDay");
 
         $health = $this->createMock(HealthHandler::class);
-        $health->expects($this->once())->method("addMaxHealth")->with(5, $character);
+        $health->expects($this->once())->method("addMaxHealth")->with($character, 5);
 
         $stats = $this->createMock(StatsHandler::class);
         $stats->expects($this->never())->method("setAttack");

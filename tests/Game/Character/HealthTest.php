@@ -37,15 +37,8 @@ use Symfony\Component\Form\FormBuilderInterface;
 #[AllowMockObjectsWithoutExpectations]
 final class HealthTest extends TestCase
 {
-    public static function getHealthProvider(): array
-    {
-        return [
-            [0],
-            [10],
-        ];
-    }
-
-    #[DataProvider("getHealthProvider")]
+    #[TestWith([0])]
+    #[TestWith([10])]
     public function testGetHealth(int $isHealth): void
     {
         $character = new Character();
@@ -56,10 +49,9 @@ final class HealthTest extends TestCase
         $health = new HealthHandler(
             $this->createStub(GameStateService::class),
             $this->createMock(LoggerInterface::class),
-            $character,
         );
 
-        $this->assertEquals($isHealth, $health->getHealth());
+        $this->assertEquals($isHealth, $health->getHealth($character));
     }
 
     public function testGetHealthDefaultFallbackToLevel(): void
@@ -70,21 +62,13 @@ final class HealthTest extends TestCase
         $health = new HealthHandler(
             $this->createStub(GameStateService::class),
             $this->createStub(LoggerInterface::class),
-            $character,
         );
 
-        $this->assertSame(40, $health->getHealth());
+        $this->assertSame(40, $health->getHealth($character));
     }
 
-    public static function setHealthProvider(): array
-    {
-        return [
-            [0, 5, 5],
-            [10, 20, 20],
-        ];
-    }
-
-    #[DataProvider("setHealthProvider")]
+    #[TestWith([0, 5, 5])]
+    #[TestWith([10, 20, 20])]
     public function testSetHealth(int $isHealth, int $setHealth, int $isNewHealth): void
     {
         $character = new Character();
@@ -98,47 +82,19 @@ final class HealthTest extends TestCase
         $health = new HealthHandler(
             $this->createStub(GameStateService::class),
             $loggerMock,
-            $character,
         );
 
-        $health->setHealth($setHealth);
+        $health->setHealth($character, $setHealth);
 
-        $this->assertEquals($isNewHealth, $health->getHealth());
+        $this->assertEquals($isNewHealth, $health->getHealth($character));
     }
 
-    public function testSetHealthWithExplicitCharacter(): void
-    {
-        $defaultCharacter = new Character();
-        $explicitCharacter = new Character();
-
-        $loggerMock = $this->createMock(LoggerInterface::class);
-        $loggerMock->expects($this->once())->method("debug");
-
-        $health = new HealthHandler(
-            $this->createStub(GameStateService::class),
-            $loggerMock,
-            $defaultCharacter,
-        );
-
-        $health->setHealth(42, $explicitCharacter);
-
-        $this->assertSame(42, $health->getHealth($explicitCharacter));
-        $this->assertSame(10, $health->getHealth($defaultCharacter));
-    }
-
-    public static function healProvider(): array
-    {
-        return [
-            [10, 20, 5, 15],
-            [10, 20, 10, 20],
-            [10, 20, 15, 20],
-            [10, 20, -5, 5],
-            [10, 20, -10, 0],
-            [10, 20, -15, 0],
-        ];
-    }
-
-    #[DataProvider("healProvider")]
+    #[TestWith([10, 20, 5, 15],)]
+    #[TestWith([10, 20, 10, 20],)]
+    #[TestWith([10, 20, 15, 20],)]
+    #[TestWith([10, 20, -5, 5],)]
+    #[TestWith([10, 20, -10, 0],)]
+    #[TestWith([10, 20, -15, 0],)]
     public function testHeal(int $isHealth, int $isMaxHealth, int $healAmount, int $newHealth): void
     {
         $character = new Character();
@@ -150,11 +106,10 @@ final class HealthTest extends TestCase
         $health = new HealthHandler(
             $this->createStub(GameStateService::class),
             $this->createMock(LoggerInterface::class),
-            $character
         );
 
-        $health->heal($healAmount);
-        $this->assertEquals($newHealth, $health->getHealth());
+        $health->heal($character, $healAmount);
+        $this->assertEquals($newHealth, $health->getHealth($character));
     }
 
     #[TestWith([0, 200, 200])]
@@ -170,33 +125,15 @@ final class HealthTest extends TestCase
         $health = new HealthHandler(
             $this->createStub(GameStateService::class),
             $this->createMock(LoggerInterface::class),
-            $character,
-        );
-        $health->heal();
-
-        $this->assertEquals($expectedHealth, $health->getHealth());
-    }
-
-    public function testHealWithExplicitCharacter(): void
-    {
-        $defaultCharacter = new Character();
-        $explicitCharacter = new Character();
-        $explicitCharacter->properties = [
-            HealthHandler::HealthPropertyName => 10,
-            HealthHandler::MaxHealthPropertyName => 50,
-        ];
-
-        $health = new HealthHandler(
-            $this->createStub(GameStateService::class),
-            $this->createStub(LoggerInterface::class),
-            $defaultCharacter,
         );
 
-        $health->heal(20, $explicitCharacter);
-        $this->assertSame(30, $health->getHealth($explicitCharacter));
+        $health->heal($character);
+
+        $this->assertEquals($expectedHealth, $health->getHealth($character));
     }
 
-    #[DataProvider("getHealthProvider")]
+    #[TestWith([0])]
+    #[TestWith([10])]
     public function testGetMaxHealth(int $isHealth): void
     {
         $character = new Character();
@@ -207,10 +144,9 @@ final class HealthTest extends TestCase
         $health = new HealthHandler(
             $this->createStub(GameStateService::class),
             $this->createMock(LoggerInterface::class),
-            $character,
         );
 
-        $this->assertEquals($isHealth, $health->getMaxHealth());
+        $this->assertEquals($isHealth, $health->getMaxHealth($character));
     }
 
     public function testGetMaxHealthDefaultFallbackToLevel(): void
@@ -221,13 +157,13 @@ final class HealthTest extends TestCase
         $health = new HealthHandler(
             $this->createStub(GameStateService::class),
             $this->createStub(LoggerInterface::class),
-            $character,
         );
 
-        $this->assertSame(50, $health->getMaxHealth());
+        $this->assertSame(50, $health->getMaxHealth($character));
     }
 
-    #[DataProvider("setHealthProvider")]
+    #[TestWith([0, 5, 5])]
+    #[TestWith([10, 20, 20])]
     public function testSetMaxHealth(int $isMaxHealth, int $setMaxHealth, int $isNewMaxHealth): void
     {
         $character = new Character();
@@ -241,39 +177,15 @@ final class HealthTest extends TestCase
         $health = new HealthHandler(
             $this->createStub(GameStateService::class),
             $loggerMock,
-            $character,
         );
 
-        $health->setMaxHealth($setMaxHealth);
+        $health->setMaxHealth($character, $setMaxHealth);
 
-        $this->assertEquals($isNewMaxHealth, $health->getMaxHealth());
+        $this->assertEquals($isNewMaxHealth, $health->getMaxHealth($character));
     }
 
-    public function testSetMaxHealthWithExplicitCharacter(): void
-    {
-        $defaultCharacter = new Character();
-        $explicitCharacter = new Character();
-
-        $loggerMock = $this->createMock(LoggerInterface::class);
-        $health = new HealthHandler(
-            $this->createStub(GameStateService::class),
-            $loggerMock,
-            $defaultCharacter,
-        );
-
-        $health->setMaxHealth(75, $explicitCharacter);
-        $this->assertSame(75, $health->getMaxHealth($explicitCharacter));
-    }
-
-    public static function isAliveProvider(): array
-    {
-        return [
-            "Is Alive" => [10, true],
-            "Is Dead" => [0, false],
-        ];
-    }
-
-    #[DataProvider("isAliveProvider")]
+    #[TestWith([10, true], "Is Alive")]
+    #[TestWith([0, false], "Is Dead")]
     public function testIsAlive(int $setHealth, bool $aliveStatus): void
     {
         $character = new Character();
@@ -284,16 +196,9 @@ final class HealthTest extends TestCase
         $health = new HealthHandler(
             $this->createStub(GameStateService::class),
             $this->createStub(LoggerInterface::class),
-            $character
         );
 
-        $this->assertEquals($aliveStatus, $health->isAlive());
-
-        $explicitCharacter = new Character();
-        $explicitCharacter->properties = [
-            HealthHandler::HealthPropertyName => $setHealth,
-        ];
-        $this->assertEquals($aliveStatus, $health->isAlive($explicitCharacter));
+        $this->assertEquals($aliveStatus, $health->isAlive($character));
     }
 
     #[TestWith([10, 10, 20], "positiveAmount")]
@@ -308,19 +213,11 @@ final class HealthTest extends TestCase
         $health = new HealthHandler(
             $this->createStub(GameStateService::class),
             $this->createMock(LoggerInterface::class),
-            $character,
         );
 
-        $health->addMaxHealth($addMaxHealth);
+        $health->addMaxHealth($character, $addMaxHealth);
 
-        $this->assertEquals($expectedMaxHealth, $health->getMaxHealth());
-
-        $explicitCharacter = new Character();
-        $explicitCharacter->properties = [
-            HealthHandler::MaxHealthPropertyName => $initialMaxHealth,
-        ];
-        $health->addMaxHealth($addMaxHealth, $explicitCharacter);
-        $this->assertEquals($expectedMaxHealth, $health->getMaxHealth($explicitCharacter));
+        $this->assertEquals($expectedMaxHealth, $health->getMaxHealth($character));
     }
 
     public function testResurrections(): void
@@ -329,18 +226,12 @@ final class HealthTest extends TestCase
         $health = new HealthHandler(
             $this->createStub(GameStateService::class),
             $this->createStub(LoggerInterface::class),
-            $character,
         );
 
-        $this->assertSame(10, $health->getResurrections());
+        $this->assertSame(10, $health->getResurrections($character));
 
-        $health->addResurrection();
-        $this->assertSame(11, $health->getResurrections());
-
-        $explicitCharacter = new Character();
-        $this->assertSame(10, $health->getResurrections($explicitCharacter));
-        $health->addResurrection($explicitCharacter);
-        $this->assertSame(11, $health->getResurrections($explicitCharacter));
+        $health->addResurrection($character);
+        $this->assertSame(11, $health->getResurrections($character));
     }
 
     public function testAge(): void
@@ -349,18 +240,12 @@ final class HealthTest extends TestCase
         $health = new HealthHandler(
             $this->createStub(GameStateService::class),
             $this->createStub(LoggerInterface::class),
-            $character,
         );
 
-        $this->assertSame(0, $health->getAge());
+        $this->assertSame(0, $health->getAge($character));
 
-        $health->addAge();
-        $this->assertSame(1, $health->getAge());
-
-        $explicitCharacter = new Character();
-        $this->assertSame(0, $health->getAge($explicitCharacter));
-        $health->addAge($explicitCharacter);
-        $this->assertSame(1, $health->getAge($explicitCharacter));
+        $health->addAge($character);
+        $this->assertSame(1, $health->getAge($character));
     }
 
     public function testTurns(): void
@@ -371,15 +256,14 @@ final class HealthTest extends TestCase
         $health = new HealthHandler(
             $gameStateService,
             $this->createStub(LoggerInterface::class),
-            $character,
         );
 
         $gameStateService->method("getSetting")
             ->with(HealthHandler::DefaultTurnsGameSetting)
             ->willReturn(35);
 
-        $this->assertSame(35, $health->getMaxTurns());
-        $this->assertSame(35, $health->getTurns());
+        $this->assertSame(35, $health->getMaxTurns($character));
+        $this->assertSame(35, $health->getTurns($character));
 
         // Test with game setting returning null fallback 30
         $gameStateService2 = $this->createMock(GameStateService::class);
@@ -390,38 +274,29 @@ final class HealthTest extends TestCase
         $health2 = new HealthHandler(
             $gameStateService2,
             $this->createStub(LoggerInterface::class),
-            $character,
         );
-        $this->assertSame(30, $health2->getMaxTurns());
+
+        $this->assertSame(30, $health2->getMaxTurns($character));
 
         // Set turns explicit
-        $health->setTurns(15);
-        $this->assertSame(15, $health->getTurns());
+        $health->setTurns($character, 15);
+        $this->assertSame(15, $health->getTurns($character));
 
         // Set turns negative clamps to 0
-        $health->setTurns(-10);
-        $this->assertSame(0, $health->getTurns());
+        $health->setTurns($character, -10);
+        $this->assertSame(0, $health->getTurns($character));
 
         // Set turns null defaults to max turns
-        $health->setTurns(null);
-        $this->assertSame(35, $health->getTurns());
+        $health->setTurns($character, null);
+        $this->assertSame(35, $health->getTurns($character));
 
         // Add turns
-        $health->addTurns(5, null);
-        $this->assertSame(40, $health->getTurns());
+        $health->addTurns($character, 5);
+        $this->assertSame(40, $health->getTurns($character));
 
         // Decrement turns
-        $health->decrementTurns();
-        $this->assertSame(39, $health->getTurns());
-
-        // Operations with explicit character
-        $explicitCharacter = new Character();
-        $explicitCharacter->properties = [HealthHandler::Turns => 20];
-        $this->assertSame(20, $health->getTurns($explicitCharacter));
-        $health->decrementTurns($explicitCharacter);
-        $this->assertSame(19, $health->getTurns($explicitCharacter));
-        $health->addTurns(3, $explicitCharacter);
-        $this->assertSame(22, $health->getTurns($explicitCharacter));
+        $health->decrementTurns($character);
+        $this->assertSame(39, $health->getTurns($character));
     }
 
     public function testOnNewDayEvent(): void
@@ -541,7 +416,6 @@ final class HealthTest extends TestCase
         $health = new HealthHandler(
             $this->createStub(GameStateService::class),
             $this->createStub(LoggerInterface::class),
-            null,
         );
 
         $builder = $this->createMock(FormBuilderInterface::class);

@@ -94,7 +94,7 @@ class FightTemplate implements SceneTemplateInterface
     {
         $this->logger->debug("Called FightTemplate::defaultAction");
 
-        if ($this->health->isAlive() === false) {
+        if ($this->health->isAlive($this->character) === false) {
             $this->stage->addParagraph(new Paragraph(
                 id: "lotgd2.paragraph.fightTemplate.isDeadMessage",
                 text: "You are dead. You can't fight any more battles today.",
@@ -110,7 +110,7 @@ class FightTemplate implements SceneTemplateInterface
      */
     public function searchAction(): void
     {
-        if ($this->health->getTurns() <= 0) {
+        if ($this->health->getTurns($this->character) <= 0) {
             $this->defaultAction();
             $this->stage->paragraphs = [
                 new Paragraph(
@@ -168,7 +168,7 @@ class FightTemplate implements SceneTemplateInterface
         $attachment = $this->attachmentRepository->findOneByAttachmentClass(BattleAttachment::class);
 
         if ($attachment) {
-            $this->health->decrementTurns();
+            $this->health->decrementTurns($this->character);
             $battleState = $this->battle->start($creature, $this->gameStateService);
 
             $this->stage->addAttachment($attachment, data: [
@@ -235,7 +235,7 @@ class FightTemplate implements SceneTemplateInterface
      */
     public function addDefaultActions(Stage $stage, Scene $scene): void
     {
-        if ($this->health->isAlive()) {
+        if ($this->health->isAlive($this->character)) {
             $actionGroup = new ActionGroup(self::ActionGroupSearch, $scene->title);
 
             $actionGroup->addAction(
