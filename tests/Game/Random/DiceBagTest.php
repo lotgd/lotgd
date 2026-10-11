@@ -3,9 +3,12 @@ declare(strict_types=1);
 
 namespace LotGD2\Tests\Game\Random;
 
+use LotGD2\Entity\DataObject\Chance;
 use LotGD2\Game\Random\DiceBag;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\Attributes\TestWith;
+use PHPUnit\Framework\MockObject\Runtime\PropertyHook;
 use PHPUnit\Framework\TestCase;
 use ValueError;
 
@@ -77,6 +80,16 @@ class DiceBagTest extends TestCase
         $this->assertFalse($diceBag->chance(0.1));
     }
 
+    public function testIfChanceAcceptsChanceObjectAsArgument(): void
+    {
+        $diceBag = new DiceBag(1337);
+        $chance = $this->createMock(Chance::class);
+        $chance->expects($this->atLeastOnce())->method("chance")->willReturn(0.1);
+        $chance->expects($this->atLeastOnce())->method("precision")->willReturn(2);
+
+        $this->assertFalse($diceBag->chance($chance));
+    }
+
     public function testIfPseudoBellReturnsInputMinEqualsMax(): void
     {
         $diceBag = new DiceBag(1337);
@@ -139,5 +152,26 @@ class DiceBagTest extends TestCase
         $diceBag = new DiceBag($seed);
 
         $this->assertSame($result, $diceBag->getRandomString(... $arguments));
+    }
+
+    #[TestWith([1, [2]])]
+    #[TestWith([2, [1, 3]])]
+    #[TestWith([3, [1, 2, 3]])]
+    public function testPickMethod(int $numberOfPicks, array $expectedResult): void
+    {
+        $diceBag = new DiceBag(1337);
+
+        $inputArray = [
+            "one" => 1,
+            "two" => 2,
+            "three" => 3,
+        ];
+
+        $picks = $diceBag->pick($inputArray, $numberOfPicks);
+
+        $this->assertIsArray($picks);
+        $this->assertCount($numberOfPicks, $picks);
+        // This is expected given the random seed
+        $this->assertSame($expectedResult, $picks);
     }
 }

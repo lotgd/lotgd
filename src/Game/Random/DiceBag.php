@@ -99,7 +99,7 @@ readonly class DiceBag implements DiceBagInterface
 
     /**
      * Draws a random number and evaluates it together with the winChance to return true if the drawing was successful.
-     * @param int|float $winChance
+     * @param int|float|Chance $winChance
      * @param $precision
      * @return bool
      */
@@ -124,9 +124,9 @@ readonly class DiceBag implements DiceBagInterface
 
         // Get a random number and divide by the scale. If smaller than $winChance, we evaluate it as a win
         // Reason: If precision is 0, scale is 100 and maxNumber is 99.
-        //         If winChance is 20 (or 0.2), then there will be 20 results below 20 (0...19), making that 20%
-        //         If winChance is 100, then this will always be a win.
-        //         If winChance is smaller than 0, it will always be a loss.
+        //         If $winChance is 20 (or 0.2), then there will be 20 results below 20 (0...19), making that 20%
+        //         If $winChance is 100, then this will always be a win.
+        //         If $winChance is smaller than 0, it will always be a loss.
         if ($winChance >= 1) {
             return true;
         } elseif ($winChance <= 0) {
