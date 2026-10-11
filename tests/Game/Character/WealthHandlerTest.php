@@ -60,7 +60,7 @@ class WealthHandlerTest extends TestCase
     {
         $character = new Character();
         $character->properties = [
-            WealthHandler::PropertyName => $goldAmount,
+            WealthHandler::GoldPropertyName => $goldAmount,
         ];
 
         $gameStateService = $this->createStub(GameStateService::class);
@@ -78,7 +78,7 @@ class WealthHandlerTest extends TestCase
     {
         $character = new Character();
         $character->properties = [
-            WealthHandler::PropertyName => $initialGoldAmount,
+            WealthHandler::GoldPropertyName => $initialGoldAmount,
         ];
 
         $gameStateService = $this->createStub(GameStateService::class);
@@ -98,7 +98,7 @@ class WealthHandlerTest extends TestCase
     {
         $character = new Character();
         $character->properties = [
-            WealthHandler::PropertyName => $initialGoldAmount,
+            WealthHandler::GoldPropertyName => $initialGoldAmount,
         ];
 
         $gameStateService = $this->createStub(GameStateService::class);
@@ -115,7 +115,7 @@ class WealthHandlerTest extends TestCase
     {
         $character = new Character();
         $character->properties = [
-            WealthHandler::PropertyName => 100,
+            WealthHandler::GoldPropertyName => 100,
         ];
 
         $gameStateService = $this->createStub(GameStateService::class);
@@ -126,6 +126,65 @@ class WealthHandlerTest extends TestCase
 
         $gold->removeGold(null, 40);
         $this->assertEquals(60, $gold->getGold(null));
+    }
+
+    #[TestWith([0], "no gem")]
+    #[TestWith([1], "one gem")]
+    #[TestWith([5], "five gems")]
+    #[TestWith([PHP_INT_MAX], "all of the gems")]
+    public function testGetGems(int $gemAmount): void
+    {
+        $character = new Character();
+        $character->properties = [
+            WealthHandler::GemPropertyName => $gemAmount,
+        ];
+
+        $gameStateService = $this->createStub(GameStateService::class);
+        $loggerMock = $this->createStub(LoggerInterface::class);
+
+        $wealth = new WealthHandler($gameStateService, $loggerMock, $character);
+
+        $this->assertEquals($gemAmount, $wealth->getGems(null));
+    }
+
+    #[TestWith([0, 1])]
+    #[TestWith([1, 0])]
+    #[TestWith([0, -1])]
+    public function testSetGems(int $initialGems, int $setGems): void
+    {
+        $character = new Character();
+        $character->properties = [
+            WealthHandler::GemPropertyName => $initialGems,
+        ];
+
+        $gameStateService = $this->createStub(GameStateService::class);
+        $loggerMock = $this->createMock(LoggerInterface::class);
+        $loggerMock->expects($this->once())->method("debug");
+
+        $gold = new WealthHandler($gameStateService, $loggerMock, $character);
+
+        $gold->setGems(null, $setGems);
+        $this->assertEquals($setGems, $gold->getGems(null));
+    }
+
+    #[TestWith([0, 1, 1])]
+    #[TestWith([5, 1, 6])]
+    #[TestWith([8, -2, 6])]
+    public function testAddGems(int $initialGemAmount, int $addgemAmount, int $finalGemAount): void
+    {
+        $character = new Character();
+        $character->properties = [
+            WealthHandler::GemPropertyName => $initialGemAmount,
+        ];
+
+        $gameStateService = $this->createStub(GameStateService::class);
+        $loggerMock = $this->createMock(LoggerInterface::class);
+        $loggerMock->expects($this->once())->method("debug");
+
+        $gold = new WealthHandler($gameStateService, $loggerMock, $character);
+
+        $gold->addGems(null, $addgemAmount);
+        $this->assertEquals($finalGemAount, $gold->getGems(null));
     }
 
     #[TestWith([100, 100])]
@@ -352,7 +411,7 @@ class WealthHandlerTest extends TestCase
         $builder->expects($this->atLeastOnce())
             ->method("create")
             ->willReturnCallback(function ($name, $type, $options) use ($innerBuilder) {
-                $this->assertSame(WealthHandler::PropertyName, $name);
+                $this->assertSame(WealthHandler::GoldPropertyName, $name);
                 return $innerBuilder;
             })
         ;

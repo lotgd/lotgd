@@ -33,9 +33,12 @@ use Symfony\Component\Validator\Constraints\Range;
  */
 readonly class WealthHandler
 {
-    const string PropertyName = 'gold';
+    const string GoldPropertyName = 'gold';
+    const string GemPropertyName = 'gems';
     const string GoldLoot = "lotgd2_loot_Gold";
     const string GoldLootClaimParagraph = "lotgd2_paragraph_Gold_LootBagClaim";
+    const string GemLoot = "lotgd2_loot_Gem";
+    const string GemLootClaimParagraph = "lotgd2_paragraph_Gem_LootBagClaim";
 
     const string DefaultGoldGameSetting = "lotgd2_gameSetting_defaultGold";
     const string MaxStartGoldGameSetting = "lotgd2_gameSetting_maxGold";
@@ -52,7 +55,7 @@ readonly class WealthHandler
     public function getGold(?Character $character = null): int
     {
         $character = $character ?? $this->character;
-        return $character->getProperty(self::PropertyName, null) ?? 50;
+        return $character->getProperty(self::GoldPropertyName, null) ?? 50;
     }
 
     public function setGold(?Character $character, int $gold): static
@@ -60,7 +63,7 @@ readonly class WealthHandler
         $character = $character ?? $this->character;
         $this->logger->debug("{$character} set new gold amount ($gold). Was {$this->getGold($character)}.");
 
-        $character->setProperty(self::PropertyName, $gold);
+        $character->setProperty(self::GoldPropertyName, $gold);
         return $this;
     }
 
@@ -70,13 +73,38 @@ readonly class WealthHandler
         $newGoldAmount = $this->getGold($character) + $gold;
         $this->logger->debug("{$character} add gold ($gold). Was {$this->getGold($character)}, is now {$newGoldAmount}");
 
-        $character->setProperty(self::PropertyName, $newGoldAmount);
+        $character->setProperty(self::GoldPropertyName, $newGoldAmount);
         return $this;
     }
 
     public function removeGold(?Character $character, int $gold): static
     {
         return $this->addGold($character, -$gold);
+    }
+
+    public function getGems(?Character $character): int
+    {
+        $character = $character ?? $this->character;
+        return $character->getProperty(self::GemPropertyName, 0);
+    }
+
+    public function setGems(?Character $character, int $gems): static
+    {
+        $character = $character ?? $this->character;
+        $this->logger->debug("{$character} set new gem amount to $gems. Was {$this->getGems($character)}.");
+
+        $character->setProperty(self::GemPropertyName, $gems);
+        return $this;
+    }
+
+    public function addGems(?Character $character, int $gems = 1): static
+    {
+        $character = $character ?? $this->character;
+        $newGemAmount = (int)($character->getProperty(self::GemPropertyName, 0) + $gems);
+        $this->logger->debug("{$character} add gems ($gems). Was {$this->getGems($character)}, is now {$newGemAmount}");
+
+        $character->setProperty(self::GemPropertyName, $newGemAmount);
+        return $this;
     }
 
     #[AsEventListener(FightTemplate::OnLootBagFill)]
