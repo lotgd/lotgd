@@ -9,6 +9,7 @@ use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\TestWith;
 use PHPUnit\Framework\MockObject\Runtime\PropertyHook;
+use PHPUnit\Framework\MockObject\Stub;
 use PHPUnit\Framework\TestCase;
 
 #[CoversClass(Character::class)]
@@ -360,6 +361,7 @@ class CharacterTest extends TestCase
     #[TestWith([2026, "Kensō Soai", "<Character#2026, Kensō Soai>"])]
     public function testIfCharacterCanBeConvertedToString($id, $name, $expected)
     {
+        /** @var Character&Stub $character */
         $character = $this->getStubBuilder(Character::class)
             ->disableOriginalConstructor()
             ->onlyMethods([])

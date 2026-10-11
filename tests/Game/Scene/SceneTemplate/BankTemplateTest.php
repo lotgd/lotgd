@@ -526,6 +526,7 @@ class BankTemplateTest extends TestCase
             "branch" => 1000,
         ]);
 
+        /** @var BankTemplate&Stub $bankTemplate */
         $bankTemplate = $this->getStubBuilder(BankTemplate::class)
             ->onlyMethods([])
             ->disableOriginalConstructor()
