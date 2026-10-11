@@ -94,8 +94,8 @@ class TrainingTemplate implements SceneTemplateInterface
         return [
             "experience" => $this->stats->getExperience($this->character),
             "requiredExperience" => $this->stats->getRequiredExperience($this->character),
-            "weapon" => $this->equipment->getItemInSlot(EquipmentHandler::WeaponSlot, $this->character)?->getName() ?? "Fists",
-            "armor" => $this->equipment->getItemInSlot(EquipmentHandler::ArmorSlot, $this->character)?->getName() ?? "T-Shirt",
+            "weapon" => $this->equipment->getItemInSlot($this->character, EquipmentHandler::WeaponSlot)?->getName() ?? "Fists",
+            "armor" => $this->equipment->getItemInSlot($this->character, EquipmentHandler::ArmorSlot)?->getName() ?? "T-Shirt",
         ];
     }
 

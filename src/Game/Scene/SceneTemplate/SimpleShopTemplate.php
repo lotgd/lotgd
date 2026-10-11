@@ -107,7 +107,7 @@ class SimpleShopTemplate implements SceneTemplateInterface
         $buyAction = new Action($this->scene, parameters: ["op" => "buy"]);
         $this->actionService->addHiddenAction($this->stage, $buyAction);
 
-        $oldItem = $this->equipment->getItemInSlot($slot);
+        $oldItem = $this->equipment->getItemInSlot($this->character, $slot);
 
         $this->stage->paragraphs = [
             new Paragraph(
@@ -153,10 +153,10 @@ class SimpleShopTemplate implements SceneTemplateInterface
                 value: $item["price"],
             );
 
-            $oldItem = $this->equipment->getItemInSlot($slot);
+            $oldItem = $this->equipment->getItemInSlot($this->character, $slot);
 
             if ($this->gold->getGold(null) + $this->getTradeInValue($oldItem?->getValue() ?? 0) >= $equipmentItem->getValue()) {
-                $this->equipment->setItemInSlot($slot, $equipmentItem);
+                $this->equipment->setItemInSlot($this->character, $slot, $equipmentItem);
                 $this->gold->addGold(null, -($equipmentItem->getValue() - $this->getTradeInValue($oldItem?->getValue() ?? 0)));
 
                 $paragraph = new Paragraph(

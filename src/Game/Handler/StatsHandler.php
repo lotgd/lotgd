@@ -92,7 +92,7 @@ readonly class StatsHandler
     public function getTotalAttack(?Character $character = null): int
     {
         $character ??= $this->character;
-        return $this->getAttack($character) + ($this->equipment->getItemInSlot(EquipmentHandler::WeaponSlot, $character)?->getStrength() ?? 0);
+        return $this->getAttack($character) + ($this->equipment->getItemInSlot($character, EquipmentHandler::WeaponSlot)?->getStrength() ?? 0);
     }
 
     public function setAttack(int $attack, ?Character $character = null): static
@@ -134,7 +134,7 @@ readonly class StatsHandler
     public function getTotalDefense(?Character $character = null): int
     {
         $character ??= $this->character;
-        return $this->getDefense($character) + ($this->equipment->getItemInSlot(EquipmentHandler::ArmorSlot, $character)?->getStrength() ?? 0);
+        return $this->getDefense($character) + ($this->equipment->getItemInSlot($character, EquipmentHandler::ArmorSlot)?->getStrength() ?? 0);
     }
 
     #[AsEventListener(event: TrainingTemplate::OnCharacterLevelUp)]

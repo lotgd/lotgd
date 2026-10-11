@@ -50,7 +50,7 @@ class Game extends AbstractController
     public function getCharStats(): array
     {
         $health = new HealthHandler($this->gameStateService, null);
-        $equipment = new EquipmentHandler(null, $this->character);
+        $equipment = new EquipmentHandler(null);
         $stats = new StatsHandler(null, $equipment, $this->character);
         $gold = new WealthHandler($this->gameStateService, null, $this->character);
         $race = new RaceHandler(null, null, null, $this->raceRepository);
@@ -68,8 +68,8 @@ class Game extends AbstractController
             ["Defense", $stats->getTotalDefense()],
             ["Inventory"],
             ["Gold in Hand", $gold->getGold($this->character)],
-            ["Weapon", $equipment->getItemInSlot(EquipmentHandler::WeaponSlot)?->getName() ?? "Fists"],
-            ["Armor", $equipment->getItemInSlot(EquipmentHandler::ArmorSlot)?->getName() ?? "T-Shirt"],
+            ["Weapon", $equipment->getItemInSlot($this->character, EquipmentHandler::WeaponSlot)?->getName() ?? "Fists"],
+            ["Armor", $equipment->getItemInSlot($this->character, EquipmentHandler::ArmorSlot)?->getName() ?? "T-Shirt"],
         ];
     }
 

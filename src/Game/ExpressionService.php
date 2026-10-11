@@ -239,8 +239,8 @@ class ExpressionService
             ],
             "gold" => $goldHandler->getGold($character),
             "equipment" => (object)[
-                "weapon" => $equipmentHandler->getName($character, EquipmentHandler::WeaponSlot),
-                "armor" => $equipmentHandler->getName($character, EquipmentHandler::ArmorSlot),
+                "weapon" => $equipmentHandler->getName(EquipmentHandler::WeaponSlot, $character),
+                "armor" => $equipmentHandler->getName(EquipmentHandler::ArmorSlot, $character),
             ],
             "gender" => (object)[
                 "pronouns" => $genderHandler->getPreferredPronouns($character),

@@ -6,10 +6,8 @@ namespace LotGD2\Game\Handler;
 use LotGD2\Entity\Character\EquipmentItem;
 use LotGD2\Entity\Mapped\Character;
 use LotGD2\Event\CharacterChangeEvent;
-use LotGD2\Game\GameLoop;
 use LotGD2\Game\Scene\SceneTemplate\DragonTemplate;
 use Psr\Log\LoggerInterface;
-use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\EventDispatcher\Attribute\AsEventListener;
 
 readonly class EquipmentHandler
@@ -20,22 +18,18 @@ readonly class EquipmentHandler
 
     public function __construct(
         private ?LoggerInterface $logger,
-        #[Autowire(expression: "service('lotgd2.game_loop').getCharacter()")]
-        private ?Character $character,
     ) {
     }
 
-    public function getItemInSlot(string $slot, ?Character $character = null): ?EquipmentItem
+    public function getItemInSlot(Character $character, string $slot): ?EquipmentItem
     {
-        $character ??= $this->character;
         $equipment = $character->getProperty(self::PropertyName);
         return $equipment[$slot] ?? null;
     }
 
-    public function setItemInSlot(string $slot, EquipmentItem $item, ?Character $character = null): static
+    public function setItemInSlot(Character $character, string $slot, EquipmentItem $item): static
     {
-        $character ??= $this->character;
-        $this->logger->debug("{$character->id}: set new item in slot ($slot): {$item->getName()} ({$item->getStrength()})", [
+        $this->logger?->debug("{$character->id}: set new item in slot ($slot): {$item->getName()} ({$item->getStrength()})", [
             "item" => $item,
         ]);
 
@@ -58,33 +52,32 @@ readonly class EquipmentHandler
         };
     }
 
-    public function getName(string $slot, ?Character $character = null): string
+    public function getName(Character $character, string $slot): string
     {
-        $character ??= $this->character;
-        return $this->getItemInSlot($slot, $character)?->getName() ?? $this->getEmptyName($slot);
+        return $this->getItemInSlot($character, $slot)?->getName() ?? $this->getEmptyName($slot);
     }
 
     #[AsEventListener(event: DragonTemplate::OnCharacterReset)]
     public function onCharacterReset(CharacterChangeEvent $event): void
     {
         $this->setItemInSlot(
+            character: $event->character,
             slot: EquipmentHandler::WeaponSlot,
             item: new EquipmentItem(
                 name: $this->getEmptyName(EquipmentHandler::WeaponSlot),
                 strength: 0,
                 value: 0,
             ),
-            character: $event->character,
         );
 
         $this->setItemInSlot(
+            character: $event->character,
             slot: EquipmentHandler::ArmorSlot,
             item: new EquipmentItem(
                 name: $this->getEmptyName(EquipmentHandler::ArmorSlot),
                 strength: 0,
                 value: 0,
             ),
-            character: $event->character
         );
     }
 }

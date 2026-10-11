@@ -35,10 +35,10 @@ class EquipmentTest extends TestCase
 
         $loggerMock = $this->createMock(LoggerInterface::class);
 
-        $equipment = new EquipmentHandler($loggerMock, $character);
+        $equipment = new EquipmentHandler($loggerMock);
 
-        $this->assertSame($weapon, $equipment->getItemInSlot(EquipmentHandler::WeaponSlot));
-        $this->assertSame($armor, $equipment->getItemInSlot(EquipmentHandler::ArmorSlot));
+        $this->assertSame($weapon, $equipment->getItemInSlot($character, EquipmentHandler::WeaponSlot));
+        $this->assertSame($armor, $equipment->getItemInSlot($character, EquipmentHandler::ArmorSlot));
     }
 
     public function testInitialSetEquipment(): void
@@ -52,20 +52,20 @@ class EquipmentTest extends TestCase
         $loggerMock = $this->createMock(LoggerInterface::class);
         $loggerMock->expects($this->exactly(2))->method("debug");
 
-        $equipment = new EquipmentHandler($loggerMock, $character);
+        $equipment = new EquipmentHandler($loggerMock);
 
-        $equipment->setItemInSlot(EquipmentHandler::ArmorSlot, $initialArmor);
-        $equipment->setItemInSlot(EquipmentHandler::WeaponSlot, $initialWeapon);
+        $equipment->setItemInSlot($character, EquipmentHandler::ArmorSlot, $initialArmor);
+        $equipment->setItemInSlot($character, EquipmentHandler::WeaponSlot, $initialWeapon);
 
-        $this->assertSame($initialWeapon, $equipment->getItemInSlot(EquipmentHandler::WeaponSlot));
-        $this->assertSame($initialArmor, $equipment->getItemInSlot(EquipmentHandler::ArmorSlot));
+        $this->assertSame($initialWeapon, $equipment->getItemInSlot($character, EquipmentHandler::WeaponSlot));
+        $this->assertSame($initialArmor, $equipment->getItemInSlot($character, EquipmentHandler::ArmorSlot));
     }
 
     public function testSetEquipment(): void
     {
         $character = new Character();
-        $initialWeapon = $this->createStub(EquipmentItem::class);;
-        $initialArmor = $this->createStub(EquipmentItem::class);;
+        $initialWeapon = $this->createStub(EquipmentItem::class);
+        $initialArmor = $this->createStub(EquipmentItem::class);
         $newWeapon = $this->createStub(EquipmentItem::class);
         $newArmor = $this->createStub(EquipmentItem::class);
 
@@ -79,40 +79,37 @@ class EquipmentTest extends TestCase
         $loggerMock = $this->createMock(LoggerInterface::class);
         $loggerMock->expects($this->exactly(2))->method("debug");
 
-        $equipment = new EquipmentHandler($loggerMock, $character);
+        $equipment = new EquipmentHandler($loggerMock);
 
-        $equipment->setItemInSlot(EquipmentHandler::ArmorSlot, $newArmor);
-        $equipment->setItemInSlot(EquipmentHandler::WeaponSlot, $newWeapon);
+        $equipment->setItemInSlot($character, EquipmentHandler::ArmorSlot, $newArmor);
+        $equipment->setItemInSlot($character, EquipmentHandler::WeaponSlot, $newWeapon);
 
-        $this->assertNotSame($initialWeapon, $equipment->getItemInSlot(EquipmentHandler::WeaponSlot));
-        $this->assertNotSame($initialArmor, $equipment->getItemInSlot(EquipmentHandler::ArmorSlot));
-        $this->assertSame($newWeapon, $equipment->getItemInSlot(EquipmentHandler::WeaponSlot));
-        $this->assertSame($newArmor, $equipment->getItemInSlot(EquipmentHandler::ArmorSlot));
+        $this->assertNotSame($initialWeapon, $equipment->getItemInSlot($character, EquipmentHandler::WeaponSlot));
+        $this->assertNotSame($initialArmor, $equipment->getItemInSlot($character, EquipmentHandler::ArmorSlot));
+        $this->assertSame($newWeapon, $equipment->getItemInSlot($character, EquipmentHandler::WeaponSlot));
+        $this->assertSame($newArmor, $equipment->getItemInSlot($character, EquipmentHandler::ArmorSlot));
     }
 
     public function testGetEmptyNameForWeaponSlot(): void
     {
-        $character = new Character();
         $loggerMock = $this->createMock(LoggerInterface::class);
-        $equipment = new EquipmentHandler($loggerMock, $character);
+        $equipment = new EquipmentHandler($loggerMock);
 
         $this->assertSame("Fists", $equipment->getEmptyName(EquipmentHandler::WeaponSlot));
     }
 
     public function testGetEmptyNameForArmorSlot(): void
     {
-        $character = new Character();
         $loggerMock = $this->createMock(LoggerInterface::class);
-        $equipment = new EquipmentHandler($loggerMock, $character);
+        $equipment = new EquipmentHandler($loggerMock);
 
         $this->assertSame("T-Shirt", $equipment->getEmptyName(EquipmentHandler::ArmorSlot));
     }
 
     public function testGetEmptyNameForUnknownSlot(): void
     {
-        $character = new Character();
         $loggerMock = $this->createMock(LoggerInterface::class);
-        $equipment = new EquipmentHandler($loggerMock, $character);
+        $equipment = new EquipmentHandler($loggerMock);
 
         $this->assertSame("Nothing", $equipment->getEmptyName("unknown-slot"));
         $this->assertSame("Nothing", $equipment->getEmptyName("ring"));
@@ -131,9 +128,9 @@ class EquipmentTest extends TestCase
         ];
 
         $loggerMock = $this->createMock(LoggerInterface::class);
-        $equipment = new EquipmentHandler($loggerMock, $character);
+        $equipment = new EquipmentHandler($loggerMock);
 
-        $this->assertSame("Iron Sword", $equipment->getName(EquipmentHandler::WeaponSlot));
+        $this->assertSame("Iron Sword", $equipment->getName($character, EquipmentHandler::WeaponSlot));
     }
 
     public function testGetNameWithEquippedArmor(): void
@@ -148,9 +145,9 @@ class EquipmentTest extends TestCase
         ];
 
         $loggerMock = $this->createMock(LoggerInterface::class);
-        $equipment = new EquipmentHandler($loggerMock, $character);
+        $equipment = new EquipmentHandler($loggerMock);
 
-        $this->assertSame("Chain Mail", $equipment->getName(EquipmentHandler::ArmorSlot));
+        $this->assertSame("Chain Mail", $equipment->getName($character, EquipmentHandler::ArmorSlot));
     }
 
     public function testGetNameWithoutEquippedWeapon(): void
@@ -159,9 +156,9 @@ class EquipmentTest extends TestCase
         $character->properties = [];
 
         $loggerMock = $this->createMock(LoggerInterface::class);
-        $equipment = new EquipmentHandler($loggerMock, $character);
+        $equipment = new EquipmentHandler($loggerMock);
 
-        $this->assertSame("Fists", $equipment->getName(EquipmentHandler::WeaponSlot));
+        $this->assertSame("Fists", $equipment->getName($character, EquipmentHandler::WeaponSlot));
     }
 
     public function testGetNameWithoutEquippedArmor(): void
@@ -170,9 +167,9 @@ class EquipmentTest extends TestCase
         $character->properties = [];
 
         $loggerMock = $this->createMock(LoggerInterface::class);
-        $equipment = new EquipmentHandler($loggerMock, $character);
+        $equipment = new EquipmentHandler($loggerMock);
 
-        $this->assertSame("T-Shirt", $equipment->getName(EquipmentHandler::ArmorSlot));
+        $this->assertSame("T-Shirt", $equipment->getName($character, EquipmentHandler::ArmorSlot));
     }
 
     public function testGetNameForUnknownSlot(): void
@@ -181,10 +178,10 @@ class EquipmentTest extends TestCase
         $character->properties = [];
 
         $loggerMock = $this->createMock(LoggerInterface::class);
-        $equipment = new EquipmentHandler($loggerMock, $character);
+        $equipment = new EquipmentHandler($loggerMock);
 
-        $this->assertSame("Nothing", $equipment->getName("unknown-slot"));
-        $this->assertSame("Nothing", $equipment->getName("helmet"));
+        $this->assertSame("Nothing", $equipment->getName($character, "unknown-slot"));
+        $this->assertSame("Nothing", $equipment->getName($character, "helmet"));
     }
 
     public function testGetNameWithPartialEquipment(): void
@@ -200,10 +197,10 @@ class EquipmentTest extends TestCase
         ];
 
         $loggerMock = $this->createMock(LoggerInterface::class);
-        $equipment = new EquipmentHandler($loggerMock, $character);
+        $equipment = new EquipmentHandler($loggerMock);
 
-        $this->assertSame("Battle Axe", $equipment->getName(EquipmentHandler::WeaponSlot));
-        $this->assertSame("T-Shirt", $equipment->getName(EquipmentHandler::ArmorSlot));
+        $this->assertSame("Battle Axe", $equipment->getName($character, EquipmentHandler::WeaponSlot));
+        $this->assertSame("T-Shirt", $equipment->getName($character, EquipmentHandler::ArmorSlot));
     }
 
     public function testGetNameWithEmptyEquipmentProperty(): void
@@ -214,10 +211,10 @@ class EquipmentTest extends TestCase
         ];
 
         $loggerMock = $this->createMock(LoggerInterface::class);
-        $equipment = new EquipmentHandler($loggerMock, $character);
+        $equipment = new EquipmentHandler($loggerMock);
 
-        $this->assertSame("Fists", $equipment->getName(EquipmentHandler::WeaponSlot));
-        $this->assertSame("T-Shirt", $equipment->getName(EquipmentHandler::ArmorSlot));
+        $this->assertSame("Fists", $equipment->getName($character, EquipmentHandler::WeaponSlot));
+        $this->assertSame("T-Shirt", $equipment->getName($character, EquipmentHandler::ArmorSlot));
     }
 
     public function testExplicitCharacterParameterInMethods(): void
@@ -227,14 +224,14 @@ class EquipmentTest extends TestCase
         $weapon = new EquipmentItem("Broadsword", 25, 1000);
 
         $loggerMock = $this->createMock(LoggerInterface::class);
-        $equipment = new EquipmentHandler($loggerMock, $defaultCharacter);
+        $equipment = new EquipmentHandler($loggerMock);
 
-        $equipment->setItemInSlot(EquipmentHandler::WeaponSlot, $weapon, $customCharacter);
+        $equipment->setItemInSlot($customCharacter, EquipmentHandler::WeaponSlot, $weapon);
 
-        $this->assertNull($equipment->getItemInSlot(EquipmentHandler::WeaponSlot, $defaultCharacter));
-        $this->assertSame($weapon, $equipment->getItemInSlot(EquipmentHandler::WeaponSlot, $customCharacter));
-        $this->assertSame("Broadsword", $equipment->getName(EquipmentHandler::WeaponSlot, $customCharacter));
-        $this->assertSame("Fists", $equipment->getName(EquipmentHandler::WeaponSlot, $defaultCharacter));
+        $this->assertNull($equipment->getItemInSlot($defaultCharacter, EquipmentHandler::WeaponSlot));
+        $this->assertSame($weapon, $equipment->getItemInSlot($customCharacter, EquipmentHandler::WeaponSlot));
+        $this->assertSame("Broadsword", $equipment->getName($customCharacter, EquipmentHandler::WeaponSlot));
+        $this->assertSame("Fists", $equipment->getName($defaultCharacter, EquipmentHandler::WeaponSlot));
     }
 
     public function testOnCharacterResetResetsWeaponAndArmor(): void
@@ -251,13 +248,13 @@ class EquipmentTest extends TestCase
         ];
 
         $loggerMock = $this->createMock(LoggerInterface::class);
-        $equipment = new EquipmentHandler($loggerMock, $character);
+        $equipment = new EquipmentHandler($loggerMock);
 
         $event = new CharacterChangeEvent($character, $character);
         $equipment->onCharacterReset($event);
 
-        $resetWeapon = $equipment->getItemInSlot(EquipmentHandler::WeaponSlot);
-        $resetArmor = $equipment->getItemInSlot(EquipmentHandler::ArmorSlot);
+        $resetWeapon = $equipment->getItemInSlot($character, EquipmentHandler::WeaponSlot);
+        $resetArmor = $equipment->getItemInSlot($character, EquipmentHandler::ArmorSlot);
 
         $this->assertNotNull($resetWeapon);
         $this->assertSame("Fists", $resetWeapon->getName());

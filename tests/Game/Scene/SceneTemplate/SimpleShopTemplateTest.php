@@ -336,7 +336,7 @@ class SimpleShopTemplateTest extends TestCase
         $equipment = $this->createMock(EquipmentHandler::class);
         $equipment->expects($this->once())
             ->method("getItemInSlot")
-            ->with(EquipmentHandler::WeaponSlot)
+            ->with($character, EquipmentHandler::WeaponSlot)
             ->willReturn(null);
 
         $stage->expects($this->once())
@@ -414,7 +414,7 @@ class SimpleShopTemplateTest extends TestCase
         $equipment = $this->createMock(EquipmentHandler::class);
         $equipment->expects($this->once())
             ->method("getItemInSlot")
-            ->with(EquipmentHandler::ArmorSlot)
+            ->with($character, EquipmentHandler::ArmorSlot)
             ->willReturn($oldItem);
 
         $stage->expects($this->once())
@@ -579,12 +579,13 @@ class SimpleShopTemplateTest extends TestCase
         $equipment = $this->createMock(EquipmentHandler::class);
         $equipment->expects($this->once())
             ->method("getItemInSlot")
-            ->with(EquipmentHandler::WeaponSlot)
+            ->with($character, EquipmentHandler::WeaponSlot)
             ->willReturn(null);
 
         $equipment->expects($this->once())
             ->method("setItemInSlot")
             ->with(
+                $character,
                 EquipmentHandler::WeaponSlot,
                 $this->callback(function (EquipmentItem $item) {
                     $this->assertSame("Iron Sword", $item->getName());
@@ -662,12 +663,13 @@ class SimpleShopTemplateTest extends TestCase
         $equipment = $this->createMock(EquipmentHandler::class);
         $equipment->expects($this->once())
             ->method("getItemInSlot")
-            ->with(EquipmentHandler::ArmorSlot)
+            ->with($character, EquipmentHandler::ArmorSlot)
             ->willReturn($oldItem);
 
         $equipment->expects($this->once())
             ->method("setItemInSlot")
             ->with(
+                $character,
                 EquipmentHandler::ArmorSlot,
                 $this->callback(function (EquipmentItem $item) {
                     $this->assertSame("Wooden Sword", $item->getName());
@@ -745,7 +747,7 @@ class SimpleShopTemplateTest extends TestCase
         $equipment = $this->createMock(EquipmentHandler::class);
         $equipment->expects($this->once())
             ->method("getItemInSlot")
-            ->with(EquipmentHandler::WeaponSlot)
+            ->with($character, EquipmentHandler::WeaponSlot)
             ->willReturn(null);
 
         $equipment->expects($this->never())->method("setItemInSlot");

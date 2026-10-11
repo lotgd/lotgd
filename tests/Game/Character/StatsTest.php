@@ -287,7 +287,7 @@ class StatsTest extends TestCase
         $equipment
             ->expects($this->once())
             ->method('getItemInSlot')
-            ->with(EquipmentHandler::WeaponSlot, $character)
+            ->with($character, EquipmentHandler::WeaponSlot)
             ->willReturn(null);
 
         $stats = $this->createStatsHandler(equipment: $equipment, character: $character);
@@ -304,7 +304,7 @@ class StatsTest extends TestCase
         $equipment
             ->expects($this->once())
             ->method('getItemInSlot')
-            ->with(EquipmentHandler::WeaponSlot, $character)
+            ->with($character, EquipmentHandler::WeaponSlot)
             ->willReturn($weapon);
 
         $stats = $this->createStatsHandler(equipment: $equipment, character: $character);
@@ -319,7 +319,7 @@ class StatsTest extends TestCase
         $equipment
             ->expects($this->once())
             ->method('getItemInSlot')
-            ->with(EquipmentHandler::ArmorSlot, $character)
+            ->with($character, EquipmentHandler::ArmorSlot)
             ->willReturn(null);
 
         $stats = $this->createStatsHandler(equipment: $equipment, character: $character);
@@ -336,7 +336,7 @@ class StatsTest extends TestCase
         $equipment
             ->expects($this->once())
             ->method('getItemInSlot')
-            ->with(EquipmentHandler::ArmorSlot, $character)
+            ->with($character, EquipmentHandler::ArmorSlot)
             ->willReturn($armor);
 
         $stats = $this->createStatsHandler(equipment: $equipment, character: $character);
