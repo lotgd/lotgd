@@ -3,7 +3,6 @@ declare(strict_types=1);
 
 namespace LotGD2\Game\Handler;
 
-use JetBrains\PhpStorm\Deprecated;
 use LotGD2\Entity\Action;
 use LotGD2\Entity\ActionGroup;
 use LotGD2\Entity\Mapped\Character;
@@ -13,7 +12,6 @@ use LotGD2\Game\GameTime\NewDay;
 use LotGD2\Game\Random\DiceBagInterface;
 use LotGD2\Game\Stage\ActionService;
 use Psr\Log\LoggerInterface;
-use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\EventDispatcher\Attribute\AsEventListener;
 use Symfony\Component\Stopwatch\Stopwatch;
 
@@ -32,8 +30,6 @@ class DragonCounterHandler
         readonly private ?LoggerInterface $logger,
         readonly private ?DiceBagInterface $diceBag,
         readonly private ?Stopwatch $stopWatch,
-        #[Autowire(expression: "service('lotgd2.game_loop').getCharacter()")]
-        readonly private ?Character $character,
         readonly private HealthHandler $health,
         readonly private StatsHandler $stats,
         private readonly ActionService $actionService,
@@ -47,52 +43,45 @@ class DragonCounterHandler
 
     public function setDragonCounter(Character $character, int $value): void
     {
-        $this->logger->debug("{$character->id}: Set dragon counter value to {$value}.");
+        $this->logger?->debug("{$character->id}: Set dragon counter value to {$value}.");
         $character->setProperty(self::CounterPropertyName, $value);
     }
 
     public function incrementDragonCounter(Character $character): void
     {
-        $this->logger->debug("{$character->id}: Increment dragon counter by 1.");
+        $this->logger?->debug("{$character->id}: Increment dragon counter by 1.");
         $character->setProperty(self::CounterPropertyName, $this->getDragonCounter($character) + 1);
     }
 
-    #[Deprecated]
-    public int $dragonCounter {
-        get {
-            return $this->character->getProperty(self::CounterPropertyName, 0) ?? 0;
-        }
-        set(int $value) {
-            $this->logger->debug("{$this->character->id}: Set dragon counter value to {$value}.");
-            $this->character->setProperty(self::CounterPropertyName, $value);
-        }
-    }
-
     /**
-     * @var array<int, DragonPointChoice>
+     * @return array<int, DragonPointChoice>
      */
-    #[Deprecated]
-    public array $choices {
-        get {
-            return $this->character->getProperty(self::ChoicePropertyName, []) ?? [];
-        }
-        set(array $value) {
-            $this->character->setProperty(self::ChoicePropertyName, $value);
-        }
+    public function getChoices(Character $character): array
+    {
+        return $character->getProperty(self::ChoicePropertyName, []) ?? [];
     }
 
     /**
+     * @param array<int, DragonPointChoice> $value
+     */
+    public function setChoices(Character $character, array $value): void
+    {
+        $character->setProperty(self::ChoicePropertyName, $value);
+    }
+
+    /**
+     * @param Character $character
      * @param string $choice
      * @param array<string, mixed> $kwargs
      * @return $this
      */
-    public function addChoice(string $choice, array $kwargs = []): self
+    public function addChoice(Character $character, string $choice, array $kwargs = []): self
     {
-        $this->logger->debug("{$this->character->id}: Add DragonCounter choice {$choice}.", $kwargs);
+        $this->logger?->debug("{$character->id}: Add DragonCounter choice {$choice}.", $kwargs);
 
-        $choices = $this->choices;
+        $choices = $this->getChoices($character);
         $choices[] = ["choice" => $choice, ... $kwargs];
-        $this->choices = $choices;
+        $this->setChoices($character, $choices);
 
         return $this;
     }
@@ -101,7 +90,7 @@ class DragonCounterHandler
     public function onNewDayEvent(StageChangeEvent $event): void
     {
         $character = $event->character;
-        $this->stopWatch->start("lotgd2.DragonCounter.onNewDay");
+        $this->stopWatch?->start("lotgd2.DragonCounter.onNewDay");
 
         // Check if a dragon point was picked
         if (isset($event->action->parameters["dk"])) {
@@ -126,12 +115,12 @@ class DragonCounterHandler
 
             // Add the choice to the list of choices
             if ($success) {
-                $this->addChoice($event->action->parameters["dk"]);
+                $this->addChoice($character, $event->action->parameters["dk"]);
             }
         }
 
         // Now calculate how much dragon points are still left
-        $dragonPointsLeft = $this->dragonCounter - count($this->choices);
+        $dragonPointsLeft = $this->getDragonCounter($character) - count($this->getChoices($character));
 
         // If more than 0, change scene
         if ($dragonPointsLeft > 0) {
@@ -186,6 +175,6 @@ class DragonCounterHandler
         }
 
         // All done, rendering can continue
-        $this->stopWatch->stop("lotgd2.DragonCounter.onNewDay");
+        $this->stopWatch?->stop("lotgd2.DragonCounter.onNewDay");
     }
 }

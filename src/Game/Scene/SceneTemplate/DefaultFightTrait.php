@@ -177,7 +177,7 @@ trait DefaultFightTrait
                     TEXT,
                 context: [
                     "badGuy" => $battleState->badGuy,
-                    "goldLost" => $this->gold->getGold(null),
+                    "goldLost" => $this->gold->getGold($event->character),
                     "experienceLost" => $experienceLost,
                     "textDefeated" => $battleState->badGuy->kwargs["textDefeated"] ?? null,
                     "textLost" => $battleState->badGuy->kwargs["textLost"] ?? null,
@@ -185,8 +185,8 @@ trait DefaultFightTrait
             ),
         ];
 
-        $this->logger->debug("Character {$event->character->id} has been slain and lost {$this->gold->getGold(null)}.");
-        $this->gold->setGold(null, 0);
+        $this->logger->debug("Character {$event->character->id} has been slain and lost {$this->gold->getGold($event->character)}.");
+        $this->gold->setGold($event->character, 0);
         $this->stats->addExperience($event->character, -$experienceLost);
     }
 }

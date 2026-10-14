@@ -95,7 +95,7 @@ class BankTemplate implements SceneTemplateInterface
             $amount = min($amount, $this->getGoldInBank($character, $this->scene->templateConfig));
 
             $this->addGoldInBank($character, $this->scene->templateConfig, -$amount);
-            $this->gold->addGold(null, $amount);
+            $this->gold->addGold($character, $amount);
 
             $accountName = $this->scene->templateConfig['accountName'] ?? self::DefaultBankAccountName;
             $this->logger->debug("Withdrew {$amount} gold from the bank (bank account name: {$accountName})");
@@ -107,13 +107,13 @@ class BankTemplate implements SceneTemplateInterface
         } else {
             if ($amount === 0) {
                 // If amount is 0, we deposit everything
-                $amount = $this->gold->getGold(null);
+                $amount = $this->gold->getGold($character);
             }
 
-            $amount = min($amount, $this->gold->getGold(null));
+            $amount = min($amount, $this->gold->getGold($character));
 
             $this->addGoldInBank($character, $this->scene->templateConfig, $amount);
-            $this->gold->addGold(null, -$amount);
+            $this->gold->addGold($character, -$amount);
 
             $accountName = $this->scene->templateConfig['accountName'] ?? self::DefaultBankAccountName;
             $this->logger->debug("Deposited {$amount} gold to the bank (bank account name: {$accountName})");
@@ -127,7 +127,7 @@ class BankTemplate implements SceneTemplateInterface
         $paragraph->context = [
             "amount" => $amount,
             "goldInBank" => $this->getGoldInBank($character, $this->scene->templateConfig),
-            "goldInHand" => $this->gold->getGold(null),
+            "goldInHand" => $this->gold->getGold($character),
         ];
 
         $this->stage->paragraphs = [$paragraph];

@@ -598,12 +598,12 @@ class SimpleShopTemplateTest extends TestCase
         $gold = $this->createMock(WealthHandler::class);
         $gold->expects($this->once())
             ->method("getGold")
-            ->with(null)
+            ->with($character)
             ->willReturn(200);
 
         $gold->expects($this->once())
             ->method("addGold")
-            ->with(null, -150);
+            ->with($character, -150);
 
         $stage->expects($this->once())
             ->method(PropertyHook::set("paragraphs"))
@@ -684,12 +684,12 @@ class SimpleShopTemplateTest extends TestCase
         $gold = $this->createMock(WealthHandler::class);
         $gold->expects($this->once())
             ->method("getGold")
-            ->with(null)
+            ->with($character)
             ->willReturn(25);
 
         $gold->expects($this->once())
             ->method("addGold")
-            ->with(null, -20);
+            ->with($character, -20);
 
         $stage->expects($this->once())
             ->method(PropertyHook::set("paragraphs"))
@@ -755,7 +755,7 @@ class SimpleShopTemplateTest extends TestCase
         $gold = $this->createMock(WealthHandler::class);
         $gold->expects($this->once())
             ->method("getGold")
-            ->with(null)
+            ->with($character)
             ->willReturn(10); // 10 + 0 < 50
 
         $gold->expects($this->never())->method("addGold");

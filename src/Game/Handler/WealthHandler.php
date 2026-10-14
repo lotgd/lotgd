@@ -3,7 +3,6 @@ declare(strict_types=1);
 
 namespace LotGD2\Game\Handler;
 
-use JetBrains\PhpStorm\Deprecated;
 use LotGD2\Entity\Character\LootPosition;
 use LotGD2\Entity\Mapped\Character;
 use LotGD2\Entity\Paragraph;
@@ -19,7 +18,6 @@ use LotGD2\Game\Scene\SceneTemplate\DragonTemplate;
 use LotGD2\Game\Scene\SceneTemplate\FightTemplate;
 use LotGD2\Twig\Component\Admin\GameSettings;
 use Psr\Log\LoggerInterface;
-use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\EventDispatcher\Attribute\AsEventListener;
 use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
 use Symfony\Component\Form\Extension\Core\Type\FormType;
@@ -47,61 +45,53 @@ readonly class WealthHandler
     public function __construct(
         private GameStateService $gameStateService,
         private ?LoggerInterface $logger,
-        #[Autowire(expression: "service('lotgd2.game_loop').getCharacter()")]
-        private ?Character $character = null,
     ) {
     }
 
-    public function getGold(?Character $character = null): int
+    public function getGold(Character $character): int
     {
-        $character = $character ?? $this->character;
         return $character->getProperty(self::GoldPropertyName, null) ?? 50;
     }
 
-    public function setGold(?Character $character, int $gold): static
+    public function setGold(Character $character, int $gold): static
     {
-        $character = $character ?? $this->character;
-        $this->logger->debug("{$character} set new gold amount ($gold). Was {$this->getGold($character)}.");
+        $this->logger?->debug("{$character} set new gold amount ($gold). Was {$this->getGold($character)}.");
 
         $character->setProperty(self::GoldPropertyName, $gold);
         return $this;
     }
 
-    public function addGold(?Character $character, int $gold): static
+    public function addGold(Character $character, int $gold): static
     {
-        $character = $character ?? $this->character;
         $newGoldAmount = $this->getGold($character) + $gold;
-        $this->logger->debug("{$character} add gold ($gold). Was {$this->getGold($character)}, is now {$newGoldAmount}");
+        $this->logger?->debug("{$character} add gold ($gold). Was {$this->getGold($character)}, is now {$newGoldAmount}");
 
         $character->setProperty(self::GoldPropertyName, $newGoldAmount);
         return $this;
     }
 
-    public function removeGold(?Character $character, int $gold): static
+    public function removeGold(Character $character, int $gold): static
     {
         return $this->addGold($character, -$gold);
     }
 
-    public function getGems(?Character $character): int
+    public function getGems(Character $character): int
     {
-        $character = $character ?? $this->character;
         return $character->getProperty(self::GemPropertyName, 0);
     }
 
-    public function setGems(?Character $character, int $gems): static
+    public function setGems(Character $character, int $gems): static
     {
-        $character = $character ?? $this->character;
-        $this->logger->debug("{$character} set new gem amount to $gems. Was {$this->getGems($character)}.");
+        $this->logger?->debug("{$character} set new gem amount to $gems. Was {$this->getGems($character)}.");
 
         $character->setProperty(self::GemPropertyName, $gems);
         return $this;
     }
 
-    public function addGems(?Character $character, int $gems = 1): static
+    public function addGems(Character $character, int $gems = 1): static
     {
-        $character = $character ?? $this->character;
         $newGemAmount = (int)($character->getProperty(self::GemPropertyName, 0) + $gems);
-        $this->logger->debug("{$character} add gems ($gems). Was {$this->getGems($character)}, is now {$newGemAmount}");
+        $this->logger?->debug("{$character} add gems ($gems). Was {$this->getGems($character)}, is now {$newGemAmount}");
 
         $character->setProperty(self::GemPropertyName, $newGemAmount);
         return $this;

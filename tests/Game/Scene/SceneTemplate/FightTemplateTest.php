@@ -857,9 +857,16 @@ class FightTemplateTest extends TestCase
 
     public function testHandleCheatsGold(): void
     {
+        $stage = $this->createMock(Stage::class);
+        $action = $this->createMock(Action::class);
+        $scene = $this->createMock(Scene::class);
+        $character = $this->createStub(Character::class);
+        $stage->method(PropertyHook::get("owner"))->willReturn($character);
+        $this->fightTemplate->setSceneChangeParameter($stage, $action, $scene);
+
         $this->gold->expects($this->once())
             ->method('addGold')
-            ->with(null, 1000);
+            ->with($character, 1000);
 
         $this->fightTemplate->handleCheats('gold');
     }

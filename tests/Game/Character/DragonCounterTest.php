@@ -61,7 +61,6 @@ class DragonCounterTest extends TestCase
         ?LoggerInterface $logger = null,
         ?DiceBagInterface $diceBag = null,
         ?Stopwatch $stopwatch = null,
-        ?Character $character = null,
         ?HealthHandler $health = null,
         ?StatsHandler $stats = null,
         ?ActionService $actionService = null,
@@ -70,7 +69,6 @@ class DragonCounterTest extends TestCase
             $logger ?? $this->createStub(LoggerInterface::class),
             $diceBag ?? $this->createStub(DiceBagInterface::class),
             $stopwatch ?? $this->createStub(Stopwatch::class),
-            $character ?? $this->createCharacter(),
             $health ?? $this->createStub(HealthHandler::class),
             $stats ?? $this->createStub(StatsHandler::class),
             $actionService ?? $this->createStub(ActionService::class),
@@ -148,86 +146,45 @@ class DragonCounterTest extends TestCase
         $this->assertSame($expectedCounter, $handler->getDragonCounter($character));
     }
 
-    public function testDragonCounterPropertyGetterReturnsStoredValue(): void
-    {
-        $character = $this->createCharacter(dragonCounter: 5);
-        $handler = $this->createDragonCounterHandler(character: $character);
-
-        $this->assertSame(5, $handler->dragonCounter);
-    }
-
-    public function testDragonCounterPropertyGetterReturnsZeroByDefault(): void
-    {
-        $character = $this->createCharacter();
-        $handler = $this->createDragonCounterHandler(character: $character);
-
-        $this->assertSame(0, $handler->dragonCounter);
-    }
-
-    public function testDragonCounterPropertyGetterReturnsZeroWhenNull(): void
-    {
-        $character = $this->createCharacter();
-        $character->setProperty(DragonCounterHandler::CounterPropertyName, null);
-        $handler = $this->createDragonCounterHandler(character: $character);
-
-        $this->assertSame(0, $handler->dragonCounter);
-    }
-
-    public function testDragonCounterPropertySetterStoresValueAndLogs(): void
-    {
-        $character = $this->createCharacter(id: 123);
-
-        $logger = $this->createMock(LoggerInterface::class);
-        $logger->expects($this->once())
-            ->method("debug")
-            ->with("123: Set dragon counter value to 7.");
-
-        $handler = $this->createDragonCounterHandler(logger: $logger, character: $character);
-        $handler->dragonCounter = 7;
-
-        $this->assertSame(7, $character->getProperty(DragonCounterHandler::CounterPropertyName));
-        $this->assertSame(7, $handler->dragonCounter);
-    }
-
-    public function testChoicesGetterReturnsStoredChoices(): void
+    public function testGetChoicesReturnsStoredChoices(): void
     {
         $choices = [
             ["choice" => "health", "age" => 1],
             ["choice" => "strength", "age" => 2],
         ];
         $character = $this->createCharacter(choices: $choices);
-        $handler = $this->createDragonCounterHandler(character: $character);
+        $handler = $this->createDragonCounterHandler();
 
-        $this->assertSame($choices, $handler->choices);
+        $this->assertSame($choices, $handler->getChoices($character));
     }
 
-    public function testChoicesGetterReturnsEmptyArrayByDefault(): void
+    public function testGetChoicesReturnsEmptyArrayByDefault(): void
     {
         $character = $this->createCharacter();
-        $handler = $this->createDragonCounterHandler(character: $character);
+        $handler = $this->createDragonCounterHandler();
 
-        $this->assertSame([], $handler->choices);
+        $this->assertSame([], $handler->getChoices($character));
     }
 
-    public function testChoicesGetterReturnsEmptyArrayWhenNull(): void
+    public function testGetChoicesReturnsEmptyArrayWhenNull(): void
     {
         $character = $this->createCharacter();
         $character->setProperty(DragonCounterHandler::ChoicePropertyName, null);
-        $handler = $this->createDragonCounterHandler(character: $character);
+        $handler = $this->createDragonCounterHandler();
 
-        $this->assertSame([], $handler->choices);
+        $this->assertSame([], $handler->getChoices($character));
     }
 
-    public function testChoicesSetterStoresValue(): void
+    public function testSetChoicesStoresValue(): void
     {
         $choices = [["choice" => "defense"]];
         $character = $this->createCharacter();
-        $handler = $this->createDragonCounterHandler(character: $character);
+        $handler = $this->createDragonCounterHandler();
 
-        $handler->choices = $choices;
+        $handler->setChoices($character, $choices);
 
         $this->assertSame($choices, $character->getProperty(DragonCounterHandler::ChoicePropertyName));
-        $this->assertSame($choices, $handler->choices);
+        $this->assertSame($choices, $handler->getChoices($character));
     }
 
     public function testAddChoiceWithoutKwargs(): void
@@ -239,8 +196,8 @@ class DragonCounterTest extends TestCase
             ->method("debug")
             ->with("456: Add DragonCounter choice strength.", []);
 
-        $handler = $this->createDragonCounterHandler(logger: $logger, character: $character);
-        $result = $handler->addChoice("strength");
+        $handler = $this->createDragonCounterHandler(logger: $logger);
+        $result = $handler->addChoice($character, "strength");
 
         $this->assertSame($handler, $result);
         $this->assertSame([
@@ -259,8 +216,8 @@ class DragonCounterTest extends TestCase
             ->method("debug")
             ->with("789: Add DragonCounter choice defense.", $kwargs);
 
-        $handler = $this->createDragonCounterHandler(logger: $logger, character: $character);
-        $result = $handler->addChoice("defense", $kwargs);
+        $handler = $this->createDragonCounterHandler(logger: $logger);
+        $result = $handler->addChoice($character, "defense", $kwargs);
 
         $this->assertSame($handler, $result);
         $this->assertSame([
@@ -305,7 +262,6 @@ class DragonCounterTest extends TestCase
         $handler = $this->createDragonCounterHandler(
             diceBag: $diceBag,
             stopwatch: $stopwatch,
-            character: $character,
             health: $health,
             stats: $stats,
             actionService: $actionService,
@@ -354,7 +310,6 @@ class DragonCounterTest extends TestCase
 
         $handler = $this->createDragonCounterHandler(
             stopwatch: $stopwatch,
-            character: $character,
             health: $health,
             stats: $stats,
             actionService: $actionService,
@@ -395,7 +350,6 @@ class DragonCounterTest extends TestCase
 
         $handler = $this->createDragonCounterHandler(
             stopwatch: $stopwatch,
-            character: $character,
             health: $health,
             stats: $stats,
             actionService: $actionService,
@@ -447,7 +401,6 @@ class DragonCounterTest extends TestCase
         $handler = $this->createDragonCounterHandler(
             diceBag: $diceBag,
             stopwatch: $stopwatch,
-            character: $character,
             health: $health,
             stats: $stats,
             actionService: $actionService,
@@ -514,7 +467,6 @@ class DragonCounterTest extends TestCase
         $handler = $this->createDragonCounterHandler(
             diceBag: $diceBag,
             stopwatch: $stopwatch,
-            character: $character,
             health: $health,
             stats: $stats,
             actionService: $actionService,
@@ -556,7 +508,6 @@ class DragonCounterTest extends TestCase
 
         $handler = $this->createDragonCounterHandler(
             stopwatch: $stopwatch,
-            character: $character,
             health: $health,
             stats: $stats,
             actionService: $actionService,

@@ -52,7 +52,7 @@ class Game extends AbstractController
         $health = new HealthHandler($this->gameStateService, null);
         $equipment = new EquipmentHandler(null);
         $stats = new StatsHandler(null, $equipment);
-        $gold = new WealthHandler($this->gameStateService, null, $this->character);
+        $gold = new WealthHandler($this->gameStateService, null);
         $race = new RaceHandler(null, null, null, $this->raceRepository);
 
         return [

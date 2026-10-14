@@ -330,7 +330,7 @@ class FightTemplate implements SceneTemplateInterface
         if ($cheat === "experience") {
             $this->stats->addExperience($this->character, 1000);
         } elseif ($cheat === "gold") {
-            $this->gold->addGold(null, 1000);
+            $this->gold->addGold($this->character, 1000);
         }
     }
 }
