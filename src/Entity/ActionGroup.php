@@ -18,7 +18,7 @@ class ActionGroup
     public array $actionsByReference = [];
 
     /**
-     * @param Action[] $actions
+     * @param list<Action> $actions
      */
     public function __construct(
         private(set) ?string $id = null,

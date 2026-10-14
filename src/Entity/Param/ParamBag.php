@@ -4,21 +4,25 @@ declare(strict_types=1);
 namespace LotGD2\Entity\Param;
 
 use ArrayAccess;
+use ArrayIterator;
+use IteratorAggregate;
+use Traversable;
 
 /**
  * @implements ArrayAccess<string, Param>
+ * @implements IteratorAggregate<string, mixed>
  */
-class ParamBag implements ArrayAccess
+class ParamBag implements ArrayAccess, IteratorAggregate
 {
     /** @var array<string, mixed> */
     public array $params = [];
 
     /**
-     * @param int|string $offset
+     * @param string $offset
      * @param null|scalar $default
      * @return Param|null
      */
-    public function getParam(int|string $offset, null|string|float|int|bool $default = null): ?Param
+    public function getParam(string $offset, null|string|float|int|bool $default = null): ?Param
     {
         if ($this->offsetExists($offset)) {
             return $this->params[$offset];
@@ -69,5 +73,13 @@ class ParamBag implements ArrayAccess
     {
         $this->params = $paramArray;
         return $this;
+    }
+
+    /**
+     * @return Traversable<string, mixed>
+     */
+    public function getIterator(): Traversable
+    {
+        return new ArrayIterator($this->params);
     }
 }

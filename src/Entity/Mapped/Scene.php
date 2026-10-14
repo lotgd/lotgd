@@ -8,6 +8,7 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Dunglas\DoctrineJsonOdm\Type\JsonDocumentType;
+use LotGD2\Doctrine\ClassNameType;
 use LotGD2\Entity\ActionGroup;
 use LotGD2\Game\Enum\SceneConnectionType;
 use LotGD2\Game\Scene\SceneTemplate\SceneTemplateInterface;
@@ -92,8 +93,8 @@ class Scene
             set => $value;
         },
 
-        /** @var string|null  */
-        #[ORM\Column(length: 255, nullable: true)]
+        /** @var class-string|null  */
+        #[ORM\Column(type: ClassNameType::NAME, length: 255, nullable: true)]
         public ?string $templateClass = null {
             get => $this->templateClass;
             set(?string $value) {
@@ -130,9 +131,9 @@ class Scene
             set => $value;
         }
     ) {
-        $this->actionGroups = $actionGroups;
-        $this->sourcedConnections = $sourcedConnections;
-        $this->targetingConnections = $targetingConnections;
+        $this->actionGroups = new ArrayCollection(iterator_to_array($actionGroups));
+        $this->sourcedConnections = new ArrayCollection(iterator_to_array($sourcedConnections));
+        $this->targetingConnections = new ArrayCollection(iterator_to_array($targetingConnections));
     }
 
     public function connectTo(

@@ -28,7 +28,9 @@ class CriticalHitEvent extends AbstractBattleEvent
     ) {
         $resolver = new OptionsResolver();
         $resolver->define("criticalAttackValue")->allowedTypes("int")->required();
-        $this->context = $resolver->resolve($context);
+        /** @var CriticalHitContext $resolvedContext */
+        $resolvedContext = $resolver->resolve($context);
+        $this->context = $resolvedContext;
     }
 
     public function decorate(): ?BattleMessage

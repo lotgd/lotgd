@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace LotGD2\Event;
 
 use Symfony\Component\Form\FormBuilderInterface;
+use Symfony\Component\Form\FormTypeInterface;
 use Symfony\Contracts\EventDispatcher\Event;
 
 /**
@@ -24,7 +25,7 @@ class FormExtensionEvent extends Event
 
     /**
      * @param string $propertyName
-     * @param string $type
+     * @param class-string<FormTypeInterface<contravariant TData>> $type
      * @param array<string, mixed> $options
      * @return self<TData>
      */

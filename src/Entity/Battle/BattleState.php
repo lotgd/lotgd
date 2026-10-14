@@ -108,13 +108,17 @@ class BattleState
 
     /**
      * Adds battle messages to a new BattleRoundMessage container
-     * @param iterable<int, BattleMessage> $messages
+     * @param iterable<int, BattleMessage|null> $messages
      * @return void
      */
     public function addMessages(iterable $messages): void
     {
         $messageRound = new BattleRoundMessage($this->roundCounter);
         foreach ($messages as $message) {
+            if ($message === null) {
+                continue;
+            }
+
             $messageRound->add($message);
         }
 

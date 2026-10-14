@@ -28,7 +28,9 @@ class BuffMessageEvent extends AbstractBattleEvent
     ) {
         $resolver = new OptionsResolver();
         $resolver->define("message")->allowedTypes("string")->required();
-        $this->context = $resolver->resolve($context);
+        /** @var BuffMessageContext $resolvedContext */
+        $resolvedContext = $resolver->resolve($context);
+        $this->context = $resolvedContext;
     }
 
     public function decorate(): ?BattleMessage

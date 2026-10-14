@@ -20,6 +20,7 @@ trait TsvDataReaderTrait
         $file->setCsvControl("\t", enclosure: "\"", escape: "\\");
 
         $header = null;
+        /** @var false|string[] $row */
         foreach ($file as $row) {
             if (!$header) {
                 $header = $row;
@@ -27,7 +28,7 @@ trait TsvDataReaderTrait
             }
 
             // Reached end of file
-            if (count($row) === 1) {
+            if ($row === false or count($row) === 1) {
                 break;
             }
 

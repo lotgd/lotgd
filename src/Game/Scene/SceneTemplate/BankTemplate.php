@@ -211,6 +211,7 @@ class BankTemplate implements SceneTemplateInterface
         $bankAccounts = [];
 
         foreach ($scenes as $scene) {
+            /** @var BankTemplateConfiguration $config */
             $config = $scene->templateConfig;
 
             $bankAccount = $config["accountName"] ?? self::DefaultBankAccountName;

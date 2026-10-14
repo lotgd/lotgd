@@ -19,7 +19,8 @@ use Symfony\Component\Stopwatch\Stopwatch;
  * @phpstan-type DragonPointChoice array{
  *     choice: string,
  *     age?: int,
- * }&array<string, mixed>
+ *     ...,
+ * }
  */
 class DragonCounterHandler
 {
@@ -79,8 +80,10 @@ class DragonCounterHandler
     {
         $this->logger?->debug("{$character->id}: Add DragonCounter choice {$choice}.", $kwargs);
 
+        /** @var DragonPointChoice $newChoice */
+        $newChoice = array_replace($kwargs, ["choice" => $choice]);
         $choices = $this->getChoices($character);
-        $choices[] = ["choice" => $choice, ... $kwargs];
+        $choices[] = $newChoice;
         $this->setChoices($character, $choices);
 
         return $this;
@@ -115,7 +118,7 @@ class DragonCounterHandler
 
             // Add the choice to the list of choices
             if ($success) {
-                $this->addChoice($character, $event->action->parameters["dk"]);
+                $this->addChoice($character, (string)$event->action->parameters["dk"]);
             }
         }
 

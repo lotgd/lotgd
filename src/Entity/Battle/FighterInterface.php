@@ -14,7 +14,7 @@ interface FighterInterface extends BasicFighterInterface
     }
 
     /**
-     * @var array<string, mixed>
+     * @var array<string|int, mixed>
      */
     #[Groups("fighter")]
     public array $kwargs {

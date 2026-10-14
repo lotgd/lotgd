@@ -127,7 +127,7 @@ class Stage
     public function preUpdate(): void
     {
         $this->actionGroups = array_map(fn ($x) => clone $x, $this->actionGroups);
-        $this->paragraphs = array_map(fn ($x) => clone $x, $this->paragraphs);
+        $this->paragraphs = $this->paragraphs !== null ? array_map(fn ($x) => clone $x, $this->paragraphs) : null;
     }
 
     public function addActionGroup(ActionGroup $actionGroup): self

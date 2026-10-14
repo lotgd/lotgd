@@ -55,6 +55,7 @@ final class SortableLiveCollectionType extends AbstractType
         }
 
         if ($form->getConfig()->hasAttribute('button_push_up_prototype')) {
+            /** @var FormInterface<mixed> $prototype */
             $prototype = $form->getConfig()->getAttribute('button_push_up_prototype');
 
             $prototypes = [];
@@ -64,21 +65,31 @@ final class SortableLiveCollectionType extends AbstractType
             }
 
             foreach ($view as $k => $entryView) {
-                $entryView->vars['button_push_up'] = $prototypes[$k]->createView($entryView);
+                if (!isset($prototypes[$k])) {
+                    continue;
+                }
 
-                $attr = $entryView->vars['button_push_up']->vars['attr'];
+                $buttonPushUpView = $prototypes[$k]->createView($entryView);
+                $entryView->vars['button_push_up'] = $buttonPushUpView;
+
+                /** @var array<string, mixed> $attr */
+                $attr = $buttonPushUpView->vars['attr'];
                 $attr['data-action'] ??= 'live#action';
                 $attr['data-live-action-param'] ??= 'pushUpCollectionItem';
                 $attr['data-live-name-param'] ??= $view->vars['full_name'];
                 $attr['data-live-index-param'] ??= $k;
                 $attr['data-live-sort-field-name-param'] ??= $form->getConfig()->getOption("sort_field_name");
-                $entryView->vars['button_push_up']->vars['attr'] = $attr;
+                $buttonPushUpView->vars['attr'] = $attr;
 
-                array_splice($entryView->vars['button_push_up']->vars['block_prefixes'], 1, 0, 'live_collection_button_push_up');
+                /** @var list<string> $blockPrefixes */
+                $blockPrefixes = $buttonPushUpView->vars['block_prefixes'];
+                array_splice($blockPrefixes, 1, 0, 'live_collection_button_push_up');
+                $buttonPushUpView->vars['block_prefixes'] = $blockPrefixes;
             }
         }
 
         if ($form->getConfig()->hasAttribute('button_push_down_prototype')) {
+            /** @var FormInterface<mixed> $prototype */
             $prototype = $form->getConfig()->getAttribute('button_push_down_prototype');
 
             $prototypes = [];
@@ -88,17 +99,26 @@ final class SortableLiveCollectionType extends AbstractType
             }
 
             foreach ($view as $k => $entryView) {
-                $entryView->vars['button_push_down'] = $prototypes[$k]->createView($entryView);
+                if (!isset($prototypes[$k])) {
+                    continue;
+                }
 
-                $attr = $entryView->vars['button_push_down']->vars['attr'];
+                $buttonPushDownView = $prototypes[$k]->createView($entryView);
+                $entryView->vars['button_push_down'] = $buttonPushDownView;
+
+                /** @var array<string, mixed> $attr */
+                $attr = $buttonPushDownView->vars['attr'];
                 $attr['data-action'] ??= 'live#action';
                 $attr['data-live-action-param'] ??= 'pushUpCollectionItem';
                 $attr['data-live-name-param'] ??= $view->vars['full_name'];
                 $attr['data-live-index-param'] ??= $k;
                 $attr['data-live-sort-field-name-param'] ??= $form->getConfig()->getOption("sort_field_name");
-                $entryView->vars['button_push_down']->vars['attr'] = $attr;
+                $buttonPushDownView->vars['attr'] = $attr;
 
-                array_splice($entryView->vars['button_push_down']->vars['block_prefixes'], 1, 0, 'live_collection_button_push_down');
+                /** @var list<string> $blockPrefixes */
+                $blockPrefixes = $buttonPushDownView->vars['block_prefixes'];
+                array_splice($blockPrefixes, 1, 0, 'live_collection_button_push_down');
+                $buttonPushDownView->vars['block_prefixes'] = $blockPrefixes;
             }
         }
     }

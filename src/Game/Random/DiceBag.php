@@ -222,6 +222,11 @@ readonly class DiceBag implements DiceBagInterface
         return $this->randomizer->getBytesFromString($alphabet, $length);
     }
 
+    /**
+     * @param non-empty-array<mixed> $array
+     * @param int<1, max> $picks
+     * @return array|mixed[]
+     */
     public function pick(array $array, int $picks = 1): array
     {
         $arrayKeys = $this->randomizer->pickArrayKeys($array, $picks);

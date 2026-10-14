@@ -111,7 +111,7 @@ class Scenes
     /**
      * @param Scene $scene
      * @param int $depth
-     * @param array<int, bool> $sceneList
+     * @param array<int|string, bool> $sceneList
      * @param Scene|null $parent
      * @return array<int, SceneNode>
      */

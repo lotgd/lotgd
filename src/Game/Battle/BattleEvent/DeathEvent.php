@@ -30,7 +30,9 @@ class DeathEvent extends AbstractBattleEvent
     ) {
         $resolver = new OptionsResolver();
         $resolver->define("victim")->allowedTypes(FighterInterface::class)->required();
-        $this->context = $resolver->resolve($context);
+        /** @var DeathContext $resolvedContext */
+        $resolvedContext = $resolver->resolve($context);
+        $this->context = $resolvedContext;
     }
 
     public function apply(): void

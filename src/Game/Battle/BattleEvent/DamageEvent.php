@@ -32,7 +32,9 @@ class DamageEvent extends AbstractBattleEvent
     ) {
         $resolver = new OptionsResolver();
         $resolver->define("damage")->allowedTypes("int")->required();
-        $this->context = $resolver->resolve($context);
+        /** @var DamageEventContext $resolvedContext */
+        $resolvedContext = $resolver->resolve($context);
+        $this->context = $resolvedContext;
     }
 
     public function apply(): void

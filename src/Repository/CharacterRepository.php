@@ -19,7 +19,7 @@ class CharacterRepository extends ServiceEntityRepository
 
     public function countOwnedCharacters(): int
     {
-        return $this->createQueryBuilder("c")
+        return (int) $this->createQueryBuilder("c")
             ->select("COUNT(c)")
             ->getQuery()
             ->getSingleScalarResult();

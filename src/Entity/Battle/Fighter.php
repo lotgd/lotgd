@@ -15,7 +15,7 @@ class Fighter implements FighterInterface
     }
 
     /**
-     * @var array<string, mixed>
+     * @var array<string|int, mixed>
      */
     public array $kwargs = [];
 

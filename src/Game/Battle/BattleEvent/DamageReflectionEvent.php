@@ -55,7 +55,9 @@ class DamageReflectionEvent extends AbstractBattleEvent
         $resolver->define("effectSucceeds")->allowedTypes("string", "null")->default(null);
         $resolver->define("effectFails")->allowedTypes("string", "null")->default(null);
         $resolver->define("noEffect")->allowedTypes("string", "null")->default(null);
-        $this->context = $resolver->resolve($context);
+        /** @var DamageReflectionContext $resolvedContext */
+        $resolvedContext = $resolver->resolve($context);
+        $this->context = $resolvedContext;
 
         $this->damageTarget = $this->context["damageTarget"] === "attacker" ? $this->attacker : $this->defender;
         $this->reflectionTarget = $this->context["reflectionTarget"] === "attacker" ? $this->attacker : $this->defender;

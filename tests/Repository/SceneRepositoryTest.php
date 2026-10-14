@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace LotGD2\Tests\Repository;
 
+use LotGD2\Doctrine\ClassNameType;
 use LotGD2\Entity\DataObject\Chance;
 use LotGD2\Entity\DataObject\InnFlirtOption;
 use LotGD2\Entity\DataObject\ValueRange;
@@ -20,6 +21,7 @@ use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 #[UsesClass(Chance::class)]
 #[UsesClass(InnFlirtOption::class)]
 #[UsesClass(ValueRange::class)]
+#[UsesClass(ClassNameType::class)]
 class SceneRepositoryTest extends KernelTestCase
 {
     use EntityManagerSetupTrait;

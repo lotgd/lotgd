@@ -51,7 +51,9 @@ class MinionDamageEvent extends AbstractBattleEvent
         $resolver->define("effectSucceeds")->allowedTypes("string", "null")->default(null);
         $resolver->define("effectFails")->allowedTypes("string", "null")->default(null);
         $resolver->define("noEffect")->allowedTypes("string", "null")->default(null);
-        $this->context = $resolver->resolve($context);
+        /** @var MinionDamageContext $resolvedContext */
+        $resolvedContext = $resolver->resolve($context);
+        $this->context = $resolvedContext;
 
         $this->target = $this->context["target"] === "attacker" ? $this->attacker : $this->defender;
         $this->damage = $this->context["damage"];

@@ -48,10 +48,15 @@ final class TitleFixtures extends Fixture
             $this->logger->warning("There where no titles added");
         }
 
+        if (count($statistics) === 0) {
+            $this->logger->warning("There are no statistics about any title that was added.");
+        }
+
         if ($titlesAdded > count($statistics)) {
             $this->logger->warning("Number of titles added is larger than levels are covered: Duplicates exist.");
         }
 
+        /** @var non-empty-array<int, true> $statistics */
         if ($titlesAdded <= max(array_keys($statistics))) {
             $this->logger->warning("Number of titles added is smaller than highest level: There are gaps.");
         }

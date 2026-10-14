@@ -38,9 +38,11 @@ class RegenerationBuffEvent extends AbstractBattleEvent
         $resolver->define("effectSucceeds")->allowedTypes("string", "null")->default(null);
         $resolver->define("effectFails")->allowedTypes("string", "null")->default(null);
         $resolver->define("target")->allowedTypes("string")->allowedValues("attacker", "defender");
-        $this->context = $resolver->resolve($context);
+        /** @var RegenerationBuffContext $resolvedContext */
+        $resolvedContext = $resolver->resolve($context);
+        $this->context = $resolvedContext;
 
-        $this->target  = $context["target"] === "attacker" ? $this->attacker : $this->defender;
+        $this->target  = $this->context["target"] === "attacker" ? $this->attacker : $this->defender;
     }
 
     public function apply(): void

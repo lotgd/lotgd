@@ -75,7 +75,9 @@ class LifeTapEvent extends AbstractBattleEvent
         $resolver->define("effectSucceeds")->allowedTypes("string", "null")->default(null);
         $resolver->define("effectFails")->allowedTypes("string", "null")->default(null);
         $resolver->define("noEffect")->allowedTypes("string", "null")->default(null);
-        $this->context = $resolver->resolve($context);
+        /** @var LifeTapContext $resolvedContext */
+        $resolvedContext = $resolver->resolve($context);
+        $this->context = $resolvedContext;
 
         $this->damageVictim = $this->context["damageVictim"] === "attacker" ? $this->attacker : $this->defender;
         $this->healTarget = $this->context["healTarget"] === "attacker" ? $this->attacker : $this->defender;

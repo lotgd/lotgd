@@ -132,7 +132,7 @@ class SimpleShopTemplate implements SceneTemplateInterface
     {
         $this->logger->debug("Called SimpleShopTemplate::buyAction");
 
-        $itemId = $this->action->getParameters()[SimpleShopAttachment::ActionParameterName] ?? -1;
+        $itemId = (int)($this->action->getParameters()[SimpleShopAttachment::ActionParameterName] ?? -1);
         $inventory = $this->scene->templateConfig["items"]??[];
         $item = $inventory[$itemId] ?? null;
 

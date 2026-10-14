@@ -16,7 +16,7 @@ class SimpleStageParameterEvent extends Event
     protected(set) Character $character;
 
     /**
-     * @var array<string, mixed>
+     * @var array<int|string, mixed>
      */
     public array $params;
 

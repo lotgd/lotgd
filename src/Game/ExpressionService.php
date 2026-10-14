@@ -176,7 +176,7 @@ class ExpressionService
         }
 
         $result = $this->_evaluate($expression, $names);
-        return is_numeric($result) ? $result : null;
+        return is_numeric($result) ? floatval($result) : null;
     }
 
     public function evaluateMin(?string $expression): int|float|null
@@ -206,7 +206,7 @@ class ExpressionService
         }
 
         $result = $this->_evaluate($expression, $names);
-        return is_numeric($result) ? $result : null;
+        return is_numeric($result) ? floatval($result) : null;
     }
 
     /**

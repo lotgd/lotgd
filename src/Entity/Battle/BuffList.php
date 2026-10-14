@@ -69,7 +69,7 @@ class BuffList
     }
 
     /**
-     * @param Buff[] $buffs
+     * @param list<Buff> $buffs
      */
     public function __construct(
         private LoggerInterface $logger,
@@ -164,7 +164,7 @@ class BuffList
     ): array {
         $events = [];
 
-        foreach ($this->activeBuffs[$activation] as $buff) {
+        foreach ($this->activeBuffs[$activation]??[] as $buff) {
             // Add good guy regeneration
             if ($buff->goodGuyRegeneration !== 0) {
                 $events[] = new RegenerationBuffEvent(
@@ -377,7 +377,7 @@ class BuffList
 
         $buffs = $this->buffs;
         $offset = array_search($buff, $buffs, true);
-        if ($offset !== false) {
+        if ($offset !== false and isset($buffs[$offset])) {
             $this->logger->debug("Removing buff: {$buff->name}.");
             array_splice($buffs, $offset, 1);
 

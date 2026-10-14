@@ -12,25 +12,32 @@ use TypeError;
 class Param
 {
     /**
+     * @var ($paramType is ParamTypeEnum::Bag ? ParamBag : LegalTypes)
+     */
+    private int|float|bool|string|ParamBag|array $value;
+
+    /**
      * @param LegalTypes $value
      */
     public function __construct(
-        private int|float|bool|string|ParamBag|array $value,
+        int|float|bool|string|ParamBag|array $value,
         private ?ParamTypeEnum $paramType = null,
     ) {
         if ($this->paramType !== null) {
+            $this->value = $value;
             $this->assertParamType();
         } else {
-            $this->paramType = match(get_debug_type($this->value)) {
+            $this->paramType = match(get_debug_type($value)) {
                 "bool" => ParamTypeEnum::Bool,
                 "int" => ParamTypeEnum::Int,
                 "float" => ParamTypeEnum::Float,
                 "array", ParamBag::class => ParamTypeEnum::Bag,
                 default => ParamTypeEnum::String,
             };
+            $this->value = $value;
         }
 
-        if ($this->paramType === ParamTypeEnum::Bag and is_array($this->value)) {
+        if ($this->paramType === ParamTypeEnum::Bag and is_array($value)) {
             $this->value = new ParamBag();
             foreach ($value as $key => $val) {
                 $this->value[$key] = new Param($val);
@@ -50,7 +57,7 @@ class Param
     {
         $this->assertParamType($value);
 
-        if ($this->paramType === ParamTypeEnum::Bag) {
+        if ($this->paramType === ParamTypeEnum::Bag and (is_array($value) or $value instanceof ParamBag)) {
             $this->value = new ParamBag();
             foreach ($value as $key => $val) {
                 $this->value[$key] = new Param($val);
@@ -96,9 +103,9 @@ class Param
         return (bool)$this->getValue();
     }
 
-    public function getParam(string|int $param, null|bool|float|int|string $default = null): Param
+    public function getParam(string $param, null|bool|float|int|string $default = null): Param
     {
-        if ($this->paramType !== ParamTypeEnum::Bag) {
+        if ($this->paramType !== ParamTypeEnum::Bag || (!$this->value instanceof ParamBag)) {
             throw new TypeError("Parameter is not multi-dimensional.");
         }
 

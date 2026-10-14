@@ -94,7 +94,13 @@ class Battle
     ): BattleState {
         $this->logger->debug("Starting Battle");
 
-        $badGuy = new Fighter(... $this->normalizer->normalize($badGuy, context: ["groups" => ["fighter"]]));
+        $normalizedFighter = $this->normalizer->normalize($badGuy, context: ["groups" => ["fighter"]]);
+
+        if (!is_array($normalizedFighter)) {
+            throw new \InvalidArgumentException("Badguy doesn't normalize to an array.");
+        }
+
+        $badGuy = new Fighter(... $normalizedFighter);
 
         $battleState = new BattleState(
             CurrentCharacterFighter::fromCharacter($gameStateService, $this->character),

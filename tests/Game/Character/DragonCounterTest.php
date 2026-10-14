@@ -221,7 +221,7 @@ class DragonCounterTest extends TestCase
 
         $this->assertSame($handler, $result);
         $this->assertSame([
-            ["choice" => "defense", "age" => 5, "bonus" => "extra"],
+            ["age" => 5, "bonus" => "extra", "choice" => "defense"],
         ], $character->getProperty(DragonCounterHandler::ChoicePropertyName));
     }
 

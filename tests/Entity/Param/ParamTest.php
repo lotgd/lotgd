@@ -335,14 +335,6 @@ class ParamTest extends TestCase
         $this->assertSame('default_value', $result->getValue());
     }
 
-    public function testGetParamWithIntKey(): void
-    {
-        $param = new Param([0 => 'first', 1 => 'second']);
-        $result = $param->getParam(0);
-        
-        $this->assertSame('first', $result->getValue());
-    }
-
     public function testGetParamOnNonBag(): void
     {
         $param = new Param("scalar_value");

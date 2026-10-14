@@ -61,7 +61,7 @@ class SceneActionGroup
             set => $value;
         },
     ) {
-        $this->connections = $connections;
+        $this->connections = new ArrayCollection(iterator_to_array($connections));
     }
 
     public function addConnection(SceneConnection $connection): static

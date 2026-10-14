@@ -754,7 +754,10 @@ class InnTemplate implements SceneTemplateInterface
      */
     public function getDrunkenness(Character $character): int
     {
-        return (int)($character->getProperty(self::DrunkenessProperty, 0) ?? 0);
+        return max(
+            0,
+            (int)($character->getProperty(self::DrunkenessProperty, 0) ?? 0)
+        );
     }
 
     /**
@@ -768,9 +771,16 @@ class InnTemplate implements SceneTemplateInterface
         $character->setProperty(self::DrunkenessProperty, $drunkenness);
     }
 
+    /**
+     * @param Character $character
+     * @param int $drunkenness Drunkenness level of the character that should be added
+     * @return void
+     */
     public function addDrunkenness(Character $character, int $drunkenness): void
     {
-        $this->setDrunkenness($character, $this->getDrunkenness($character) + $drunkenness);
+        $this->setDrunkenness($character,
+            max(0, $this->getDrunkenness($character) + $drunkenness)
+        );
     }
 
     #[AsEventListener(event: NewDay::OnNewDayAfter, priority: -10)]
