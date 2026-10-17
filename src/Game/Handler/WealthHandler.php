@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace LotGD2\Game\Handler;
 
+use LotGD2\Attribute\PropertyHandler;
 use LotGD2\Entity\Character\LootPosition;
 use LotGD2\Entity\Mapped\Character;
 use LotGD2\Entity\Paragraph;
@@ -29,6 +30,7 @@ use Symfony\Component\Validator\Constraints\Range;
 /**
  * @phpstan-import-type GameSettingsDataType from GameSettings
  */
+#[PropertyHandler]
 readonly class WealthHandler
 {
     const string GoldPropertyName = 'gold';

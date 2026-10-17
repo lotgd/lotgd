@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace LotGD2\Game\Handler;
 
+use LotGD2\Attribute\PropertyHandler;
 use LotGD2\Entity\Action;
 use LotGD2\Entity\ActionGroup;
 use LotGD2\Entity\Battle\Buff;
@@ -29,6 +30,7 @@ use Symfony\Component\EventDispatcher\Attribute\AsEventListener;
 use Symfony\Component\Stopwatch\Stopwatch;
 use function LotGD2\array_filter_class;
 
+#[PropertyHandler]
 class SpecialtyHandler implements DiceBagAwareInterface
 {
     use DiceBagAwareTrait;

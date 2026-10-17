@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace LotGD2\Game\Handler;
 
+use LotGD2\Attribute\PropertyHandler;
 use LotGD2\Entity\Mapped\Character;
 use LotGD2\Entity\Paragraph;
 use LotGD2\Event\CharacterChangeEvent;
@@ -20,6 +21,7 @@ use Symfony\Component\EventDispatcher\Attribute\AsEventListener;
  * Listens to:
  *  - DragonTemplate::OnCharacterReset
  */
+#[PropertyHandler]
 class CharmHandler
 {
     const string PropertyName = 'charm';

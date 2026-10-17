@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace LotGD2\Game\Handler;
 
+use LotGD2\Attribute\PropertyHandler;
 use LotGD2\Entity\Character\LootPosition;
 use LotGD2\Entity\Mapped\Character;
 use LotGD2\Entity\Paragraph;
@@ -14,6 +15,7 @@ use LotGD2\Game\Scene\SceneTemplate\TrainingTemplate;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\EventDispatcher\Attribute\AsEventListener;
 
+#[PropertyHandler]
 readonly class StatsHandler
 {
     const string ExperiencePropertyName = 'experience';

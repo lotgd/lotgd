@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace LotGD2\Game\Handler;
 
+use LotGD2\Attribute\PropertyHandler;
 use LotGD2\Entity\Battle\Buff;
 use LotGD2\Entity\Battle\BuffList;
 use LotGD2\Entity\Battle\FighterInterface;
@@ -18,8 +19,10 @@ use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
 use Symfony\Component\EventDispatcher\Attribute\AsEventListener;
 
+#[PropertyHandler]
 class BuffHandler
 {
+    const string Name = "buff";
     const string BuffPropertyName = "buffs";
 
     public function __construct(

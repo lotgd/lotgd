@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace LotGD2\Game\Handler;
 
+use LotGD2\Attribute\PropertyHandler;
 use LotGD2\Entity\Action;
 use LotGD2\Entity\ActionGroup;
 use LotGD2\Entity\Mapped\Character;
@@ -22,6 +23,7 @@ use Symfony\Component\Stopwatch\Stopwatch;
  *     ...,
  * }
  */
+#[PropertyHandler]
 class DragonCounterHandler
 {
     const string CounterPropertyName = "dragonCounter";

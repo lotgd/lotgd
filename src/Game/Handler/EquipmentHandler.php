@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace LotGD2\Game\Handler;
 
+use LotGD2\Attribute\PropertyHandler;
 use LotGD2\Entity\Character\EquipmentItem;
 use LotGD2\Entity\Mapped\Character;
 use LotGD2\Event\CharacterChangeEvent;
@@ -10,6 +11,7 @@ use LotGD2\Game\Scene\SceneTemplate\DragonTemplate;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\EventDispatcher\Attribute\AsEventListener;
 
+#[PropertyHandler]
 readonly class EquipmentHandler
 {
     const string ArmorSlot = "armor";

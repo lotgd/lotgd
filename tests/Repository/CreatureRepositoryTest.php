@@ -4,6 +4,8 @@ declare(strict_types=1);
 namespace LotGD2\Tests\Repository;
 
 use Doctrine\ORM\EntityManagerInterface;
+use LotGD2\Attribute\PropertyHandler;
+use LotGD2\Compiler\HandlerCompilerPass;
 use LotGD2\Entity\Mapped\Creature;
 use LotGD2\Game\Random\DiceBag;
 use LotGD2\Game\Random\DiceBagInterface;
@@ -15,6 +17,8 @@ use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 
 #[CoversClass(CreatureRepository::class)]
 #[UsesClass(Kernel::class)]
+#[UsesClass(PropertyHandler::class)]
+#[UsesClass(HandlerCompilerPass::class)]
 class CreatureRepositoryTest extends KernelTestCase
 {
     private ?EntityManagerInterface $entityManager;

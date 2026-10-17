@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace LotGD2\Game\Handler;
 
 use Exception;
+use LotGD2\Attribute\PropertyHandler;
 use LotGD2\Entity\Action;
 use LotGD2\Entity\ActionGroup;
 use LotGD2\Entity\Character\LootPosition;
@@ -35,6 +36,7 @@ use UnexpectedValueException;
  *     configuration: array<string, mixed>,
  * }
  */
+#[PropertyHandler]
 class RaceHandler
 {
     private ?ContainerInterface $container;

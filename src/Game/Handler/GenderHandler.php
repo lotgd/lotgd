@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace LotGD2\Game\Handler;
 
+use LotGD2\Attribute\PropertyHandler;
 use LotGD2\Entity\Mapped\Character;
 use LotGD2\Event\FormExtensionEvent;
 use LotGD2\Game\Character\CharacterService;
@@ -11,6 +12,7 @@ use Symfony\Component\EventDispatcher\Attribute\AsEventListener;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\Extension\Core\Type\FormType;
 
+#[PropertyHandler]
 class GenderHandler
 {
     const string GenderProperty = "gender";
