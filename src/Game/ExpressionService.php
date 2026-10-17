@@ -8,6 +8,7 @@ use LotGD2\Entity\Mapped\Character;
 use LotGD2\Game\Handler\CharmHandler;
 use LotGD2\Game\Handler\EquipmentHandler;
 use LotGD2\Game\Handler\GenderHandler;
+use LotGD2\Game\Handler\HandlerRegistry;
 use LotGD2\Game\Handler\WealthHandler;
 use LotGD2\Game\Handler\HealthHandler;
 use LotGD2\Game\Handler\StatsHandler;
@@ -33,7 +34,7 @@ class ExpressionService
 {
     public function __construct(
         private LoggerInterface $logger,
-        private GameStateService $gameStateService,
+        private HandlerRegistry $handlerRegistry,
     ) {
 
     }
@@ -215,38 +216,31 @@ class ExpressionService
      */
     public function getCharacterBasedNames(Character $character): array
     {
-        $healthHandler = new HealthHandler($this->gameStateService, $this->logger);
-        $equipmentHandler = new EquipmentHandler($this->logger);
-        $statsHandler = new StatsHandler($this->logger, $equipmentHandler);
-        $goldHandler = new WealthHandler($this->gameStateService, $this->logger);
-        $genderHandler = new GenderHandler();
-        $charmHandler = new CharmHandler($this->logger);
-
         return [
             "character" => (object)[
                 "name" => $character->name,
                 "level" => $character->level,
             ],
             "health" => (object)[
-                "health" => $healthHandler->getHealth($character),
-                "maxHealth" => $healthHandler->getMaxHealth($character)
+                "health" => $this->handlerRegistry->get(HealthHandler::class)->getHealth($character),
+                "maxHealth" => $this->handlerRegistry->get(HealthHandler::class)->getMaxHealth($character)
             ],
             "stats" => (object)[
-                "experience" => $statsHandler->getExperience($character),
-                "required" => $statsHandler->getRequiredExperience($character),
-                "attack" => $statsHandler->getTotalAttack($character),
-                "defense" => $statsHandler->getTotalDefense($character),
+                "experience" => $this->handlerRegistry->get(StatsHandler::class)->getExperience($character),
+                "required" => $this->handlerRegistry->get(StatsHandler::class)->getRequiredExperience($character),
+                "attack" => $this->handlerRegistry->get(StatsHandler::class)->getTotalAttack($character),
+                "defense" => $this->handlerRegistry->get(StatsHandler::class)->getTotalDefense($character),
             ],
-            "gold" => $goldHandler->getGold($character),
+            "gold" => $this->handlerRegistry->get(WealthHandler::class)->getGold($character),
             "equipment" => (object)[
-                "weapon" => $equipmentHandler->getName($character, EquipmentHandler::WeaponSlot),
-                "armor" => $equipmentHandler->getName($character, EquipmentHandler::ArmorSlot),
+                "weapon" => $this->handlerRegistry->get(EquipmentHandler::class)->getName($character, EquipmentHandler::WeaponSlot),
+                "armor" => $this->handlerRegistry->get(EquipmentHandler::class)->getName($character, EquipmentHandler::ArmorSlot),
             ],
             "gender" => (object)[
-                "pronouns" => $genderHandler->getPreferredPronouns($character),
-                "partner" => $genderHandler->getPreferredPartner($character),
+                "pronouns" => $this->handlerRegistry->get(GenderHandler::class)->getPreferredPronouns($character),
+                "partner" => $this->handlerRegistry->get(GenderHandler::class)->getPreferredPartner($character),
             ],
-            "charm" => $charmHandler->getCharm($character),
+            "charm" => $this->handlerRegistry->get(CharmHandler::class)->getCharm($character),
         ];
     }
 

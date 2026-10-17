@@ -9,6 +9,7 @@ use LotGD2\Game\Battle\BattleStateStatusEnum;
 use LotGD2\Game\ExpressionService;
 use LotGD2\Game\GameStateService;
 use LotGD2\Game\Handler\BuffHandler;
+use LotGD2\Game\Handler\HandlerRegistry;
 use LotGD2\Game\Handler\HealthHandler;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Serializer\Attribute\Ignore;
@@ -74,11 +75,16 @@ class BattleState
      * Call to synchronize the damage with the current character
      * @param GameStateService $gameStateService
      * @param LoggerInterface $logger
+     * @param HandlerRegistry $handlerRegistry
      * @param BuffList $buffList
      * @return void
      */
-    public function synchronizeToCharacter(GameStateService $gameStateService, LoggerInterface $logger, BuffList $buffList): void
-    {
+    public function synchronizeToCharacter(
+        GameStateService $gameStateService,
+        LoggerInterface $logger,
+        HandlerRegistry $handlerRegistry,
+        BuffList $buffList,
+    ): void {
         if ($this->character === null) {
             throw new \LogicException("You must set the character first before synchronizing");
         }
@@ -89,7 +95,7 @@ class BattleState
             $health = new HealthHandler($gameStateService, $logger);
             $health->setHealth($this->character, $this->goodGuy->health);
 
-            $expressionService = new ExpressionService($logger, $gameStateService);
+            $expressionService = new ExpressionService($logger, $gameStateService, $handlerRegistry);
 
             // Synchronize buff list
             $buffs = new BuffHandler($logger, null, $expressionService);

@@ -7,6 +7,7 @@ use LotGD2\Entity\Mapped\Character;
 use LotGD2\Entity\Mapped\Stage;
 use LotGD2\Game\GameStateService;
 use LotGD2\Game\Handler\EquipmentHandler;
+use LotGD2\Game\Handler\HandlerRegistry;
 use LotGD2\Game\Handler\WealthHandler;
 use LotGD2\Game\Handler\HealthHandler;
 use LotGD2\Game\Handler\RaceHandler;
@@ -34,6 +35,7 @@ class Game extends AbstractController
         private readonly GameLoop $game,
         private readonly RaceRepository $raceRepository,
         private readonly GameStateService $gameStateService,
+        private readonly HandlerRegistry $handlerRegistry,
     ) {
     }
 
@@ -58,18 +60,18 @@ class Game extends AbstractController
         return [
             ["Character"],
             ["Name", $this->character->name],
-            ["Race", $race->getRaceName($this->character)],
+            ["Race", $this->handlerRegistry->get(RaceHandler::class)->getRaceName($this->character)],
             ["Level", $this->character->level],
-            ["Experience", $stats->getExperience($this->character)],
-            ["Turns", $health->getTurns($this->character), $health->getMaxTurns($this->character)],
-            ["Health", $health->getHealth($this->character), $health->getMaxHealth($this->character)],
+            ["Experience", $this->handlerRegistry->get(StatsHandler::class)->getExperience($this->character)],
+            ["Turns", $this->handlerRegistry->get(HealthHandler::class)->getTurns($this->character), $this->handlerRegistry->get(HealthHandler::class)->getMaxTurns($this->character)],
+            ["Health", $this->handlerRegistry->get(HealthHandler::class)->getHealth($this->character), $this->handlerRegistry->get(HealthHandler::class)->getMaxHealth($this->character)],
             ["Stats"],
-            ["Attack", $stats->getTotalAttack($this->character)],
-            ["Defense", $stats->getTotalDefense($this->character)],
+            ["Attack", $this->handlerRegistry->get(StatsHandler::class)->getTotalAttack($this->character)],
+            ["Defense", $this->handlerRegistry->get(StatsHandler::class)->getTotalDefense($this->character)],
             ["Inventory"],
-            ["Gold in Hand", $gold->getGold($this->character)],
-            ["Weapon", $equipment->getItemInSlot($this->character, EquipmentHandler::WeaponSlot)?->getName() ?? "Fists"],
-            ["Armor", $equipment->getItemInSlot($this->character, EquipmentHandler::ArmorSlot)?->getName() ?? "T-Shirt"],
+            ["Gold in Hand", $this->handlerRegistry->get(WealthHandler::class)->getGold($this->character)],
+            ["Weapon", $this->handlerRegistry->get(EquipmentHandler::class)->getItemInSlot($this->character, EquipmentHandler::WeaponSlot)?->getName() ?? "Fists"],
+            ["Armor", $this->handlerRegistry->get(EquipmentHandler::class)->getItemInSlot($this->character, EquipmentHandler::ArmorSlot)?->getName() ?? "T-Shirt"],
         ];
     }
 

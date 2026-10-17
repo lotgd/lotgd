@@ -25,6 +25,7 @@ use LotGD2\Game\Battle\BattleEvent\DeathEvent;
 use LotGD2\Game\GameLoop;
 use LotGD2\Game\GameStateService;
 use LotGD2\Game\Handler\BuffHandler;
+use LotGD2\Game\Handler\HandlerRegistry;
 use LotGD2\Game\Random\DiceBagInterface;
 use LotGD2\Game\Scene\SceneAttachment\BattleAttachment;
 use LotGD2\Game\Scene\SceneRenderer;
@@ -77,6 +78,7 @@ class Battle
         private readonly ActionService $actionService,
         private readonly AttachmentRepository $attachmentRepository,
         private readonly DiceBagInterface $diceBag,
+        private readonly HandlerRegistry $handlerRegistry,
         private readonly BuffHandler $buffHandler,
         #[Autowire(expression: "service('lotgd2.game_loop').getCharacter()")]
         private Character $character,
@@ -238,7 +240,12 @@ class Battle
         // Post round clean-up
         $battleState->incrementRound();
         $battleState->addMessages($eventsToAdd->map(fn (BattleEventInterface $event) => $event->decorate()));
-        $battleState->synchronizeToCharacter($this->gameStateService, $this->logger, $goodGuyBuffs);
+        $battleState->synchronizeToCharacter(
+            $this->gameStateService,
+            $this->logger,
+            $this->handlerRegistry,
+            $goodGuyBuffs,
+        );
 
         $this->stopWatch?->stop("lotgd2.Battle.fightOneRound");
     }

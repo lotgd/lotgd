@@ -7,6 +7,7 @@ use LotGD2\Attribute\TemplateType;
 use LotGD2\Entity\Action;
 use LotGD2\Entity\ActionGroup;
 use LotGD2\Entity\DataObject\Chance;
+use LotGD2\Entity\Mapped\Character;
 use LotGD2\Entity\Mapped\Scene;
 use LotGD2\Entity\Mapped\Stage;
 use LotGD2\Entity\Paragraph;
@@ -101,7 +102,7 @@ class FightTemplate implements SceneTemplateInterface
             ));
         }
 
-        $this->addDefaultActions($this->stage ,$this->scene);
+        $this->addDefaultActions($this->stage ,$this->scene, $this->character);
     }
 
     /**
@@ -151,7 +152,7 @@ class FightTemplate implements SceneTemplateInterface
         $creature = $this->creatureRepository->getRandomCreature($level);
 
         if (!$creature) {
-            $this->addDefaultActions($this->stage, $this->scene);
+            $this->addDefaultActions($this->stage, $this->scene, $this->character);
             $this->stage->paragraphs = [
                 new Paragraph(
                     id: "lotgd2.paragraph.fightTemplate.tooPeaceful",
@@ -223,7 +224,7 @@ class FightTemplate implements SceneTemplateInterface
 
             $this->logger->critical("Cannot attach attachment " . BattleAttachment::class . ": Not installed.");
 
-            $this->addDefaultActions($this->stage, $this->scene);
+            $this->addDefaultActions($this->stage, $this->scene, $this->character);
         }
     }
 
@@ -231,11 +232,15 @@ class FightTemplate implements SceneTemplateInterface
      * Adds the actions required to search for a fight. The level action parameter defines the difficulty.
      * @param Stage $stage
      * @param Scene $scene
+     * @param Character $character
      * @return void
      */
-    public function addDefaultActions(Stage $stage, Scene $scene): void
-    {
-        if ($this->health->isAlive($this->character)) {
+    public function addDefaultActions(
+        Stage $stage,
+        Scene $scene,
+        Character $character,
+    ): void {
+        if ($this->health->isAlive($character)) {
             $actionGroup = new ActionGroup(self::ActionGroupSearch, $scene->title);
 
             $actionGroup->addAction(

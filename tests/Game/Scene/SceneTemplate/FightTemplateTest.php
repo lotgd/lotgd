@@ -736,7 +736,7 @@ class FightTemplateTest extends TestCase
             ->method('addActionGroup');
 
         $this->fightTemplate->setSceneChangeParameter($stage, $action, $scene);
-        $this->fightTemplate->addDefaultActions($stage, $scene);
+        $this->fightTemplate->addDefaultActions($stage, $scene, $character);
     }
 
     public function testAddDefaultActionsLevelOne(): void
@@ -783,7 +783,7 @@ class FightTemplateTest extends TestCase
             }));
 
         $this->fightTemplate->setSceneChangeParameter($stage, $action, $scene);
-        $this->fightTemplate->addDefaultActions($stage, $scene);
+        $this->fightTemplate->addDefaultActions($stage, $scene, $character);
     }
 
     public function testGetRandomLevelChangeReturnsValidRange(): void

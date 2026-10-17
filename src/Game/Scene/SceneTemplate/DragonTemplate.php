@@ -8,6 +8,7 @@ use LotGD2\Entity\Action;
 use LotGD2\Entity\ActionGroup;
 use LotGD2\Entity\Battle\BattleState;
 use LotGD2\Entity\Battle\Fighter;
+use LotGD2\Entity\Mapped\Character;
 use LotGD2\Entity\Mapped\Scene;
 use LotGD2\Entity\Mapped\Stage;
 use LotGD2\Entity\Paragraph;
@@ -86,7 +87,7 @@ class DragonTemplate implements SceneTemplateInterface
         return $this->scene;
     }
 
-    public function addDefaultActions(Stage $stage, Scene $scene): void
+    public function addDefaultActions(Stage $stage, Scene $scene, Character $character): void
     {
         $dragonName = $scene->templateConfig["dragonName"] ?? (new DragonTemplateType()->getDefaultData()["dragonName"]);
 
@@ -104,7 +105,7 @@ class DragonTemplate implements SceneTemplateInterface
 
     public function defaultAction(): void
     {
-        $this->addDefaultActions($this->stage, $this->scene);
+        $this->addDefaultActions($this->stage, $this->scene, $this->character);
     }
 
     public function startFight(): void

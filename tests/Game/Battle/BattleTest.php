@@ -25,6 +25,7 @@ use LotGD2\Game\Battle\BattleTurn;
 use LotGD2\Game\GameStateService;
 use LotGD2\Game\Handler\BuffHandler;
 use LotGD2\Game\Handler\EquipmentHandler;
+use LotGD2\Game\Handler\HandlerRegistry;
 use LotGD2\Game\Handler\HealthHandler;
 use LotGD2\Game\Handler\StatsHandler;
 use LotGD2\Game\Random\DiceBag;
@@ -107,6 +108,7 @@ class BattleTest extends KernelTestCase
             sceneRenderer: $this->sceneRenderer,
             actionService: $this->actionService,
             attachmentRepository: $this->attachmentRepository,
+            handlerRegistry: $this->createStub(HandlerRegistry::class),
             diceBag: $this->diceBag,
             buffHandler: $this->buffHandler,
             character: $this->character,

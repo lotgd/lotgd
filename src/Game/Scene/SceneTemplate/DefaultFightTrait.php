@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace LotGD2\Game\Scene\SceneTemplate;
 
 use LotGD2\Entity\Battle\BattleState;
+use LotGD2\Entity\Mapped\Character;
 use LotGD2\Entity\Mapped\Scene;
 use LotGD2\Entity\Mapped\Stage;
 use LotGD2\Entity\Paragraph;
@@ -32,7 +33,7 @@ trait DefaultFightTrait
      */
     public function onBattleStateDisappeared(): void
     {
-        $this->addDefaultActions($this->getStage(), $this->getScene());
+        $this->addDefaultActions($this->getStage(), $this->getScene(), $this->character);
         $this->getStage()->paragraphs = [
             new Paragraph(
                 id: "lotgd2.paragraph.DefaultFightTrait.SuddenFightEnd",
@@ -49,9 +50,10 @@ trait DefaultFightTrait
      * method offers a hook to add additional default actions (besides the usual scene connections).
      * @param Stage $stage
      * @param Scene $scene
+     * @param Character $character
      * @return void
      */
-    abstract public function addDefaultActions(Stage $stage, Scene $scene): void;
+    abstract public function addDefaultActions(Stage $stage, Scene $scene, Character $character): void;
 
     #[AsEventListener(Battle::OnFightFled, priority: -50)]
     public function onFightFled(SimpleStageParameterEvent $event): void
@@ -74,7 +76,7 @@ trait DefaultFightTrait
         ];
 
         // Add standard navigation
-        $this->addDefaultActions($event->stage, $event->scene);
+        $this->addDefaultActions($event->stage, $event->scene, $event->character);
     }
 
     /**
@@ -104,7 +106,7 @@ trait DefaultFightTrait
         }
 
         // Add standard navigation if battle is over
-        $this->addDefaultActions($event->stage, $event->scene);
+        $this->addDefaultActions($event->stage, $event->scene, $event->character);
     }
 
     /**

@@ -145,7 +145,7 @@ class TrainingTemplate implements SceneTemplateInterface
                 )
             ];
         } else {
-            $this->addDefaultActions($this->stage, $this->scene);
+            $this->addDefaultActions($this->stage, $this->scene, $this->character);
 
             $sceneParagraph = $this->stage->paragraphs[Stage::SceneText] ?? null;
             $sceneParagraph->addContext("master", $master->name);
@@ -173,7 +173,7 @@ class TrainingTemplate implements SceneTemplateInterface
             )
         ];
 
-        $this->addDefaultActions($this->stage, $this->scene);
+        $this->addDefaultActions($this->stage, $this->scene, $this->character);
     }
 
     public function challengeAction(): void
@@ -352,7 +352,7 @@ class TrainingTemplate implements SceneTemplateInterface
         $character->setProperty(self::SeenMasterProperty, $seenMaster);
     }
 
-    public function addDefaultActions(Stage $stage, Scene $scene): void
+    public function addDefaultActions(Stage $stage, Scene $scene, Character $character): void
     {
         $actionGroup = new ActionGroup(self::ActionGroupTraining, "Training");
         $actionGroup->addAction(new Action(

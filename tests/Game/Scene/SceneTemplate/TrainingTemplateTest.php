@@ -932,7 +932,7 @@ class TrainingTemplateTest extends TestCase
         ;
 
         // This is what we test
-        $trainingTemplate->addDefaultActions($stage, $scene);
+        $trainingTemplate->addDefaultActions($stage, $scene, $character);
     }
 
     public function testIfAddDefaultActionsAddsCheatIfRoleIsGranted()
@@ -1004,7 +1004,7 @@ class TrainingTemplateTest extends TestCase
         );
 
         // This is what we test
-        $trainingTemplate->addDefaultActions($stage, $scene);
+        $trainingTemplate->addDefaultActions($stage, $scene, $character);
     }
 
     public function testHandleUnseeMasterCheat()
@@ -1147,7 +1147,7 @@ class TrainingTemplateTest extends TestCase
         ;
 
         // This is what we test
-        $trainingTemplate->addDefaultActions($stage, $scene);
+        $trainingTemplate->addDefaultActions($stage, $scene, $character);
     }
 
     public function testGetStage(): void
