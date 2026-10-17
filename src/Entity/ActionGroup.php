@@ -18,7 +18,7 @@ class ActionGroup
     public array $actionsByReference = [];
 
     /**
-     * @param list<Action> $actions
+     * @param Action[]$actions
      */
     public function __construct(
         private(set) ?string $id = null,
@@ -93,7 +93,7 @@ class ActionGroup
     }
 
     /**
-     * @param list<Action> $actions
+     * @param Action[] $actions
      * @return $this
      */
     public function setActions(array $actions): self

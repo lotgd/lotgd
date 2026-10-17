@@ -9,6 +9,13 @@ use LotGD2\Game\Random\DiceBag;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\UsesClass;
 use PHPUnit\Framework\TestCase;
+use Symfony\Component\PropertyInfo\Extractor\PhpDocExtractor;
+use Symfony\Component\PropertyInfo\Extractor\ReflectionExtractor;
+use Symfony\Component\PropertyInfo\PropertyInfoExtractor;
+use Symfony\Component\Serializer\Encoder\JsonEncoder;
+use Symfony\Component\Serializer\Normalizer\ArrayDenormalizer;
+use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
+use Symfony\Component\Serializer\Serializer;
 use TypeError;
 
 #[CoversClass(ActionGroup::class)]
@@ -339,5 +346,86 @@ class ActionGroupTest extends TestCase
         $this->assertTrue(property_exists($actionGroup, 'actions'));
         $reflection = new \ReflectionProperty(ActionGroup::class, 'actions');
         $this->assertTrue($reflection->isPublic());
+    }
+
+    public function testConstructorWithAssociativeActionsArray(): void
+    {
+        $action1 = new Action(title: 'The forest');
+        $action1->id = 'S77K3BTH';
+        $action2 = new Action(title: 'Warrior Training');
+        $action2->id = 'nCMjdGFd';
+        $actions = [
+            'S77K3BTH' => $action1,
+            'nCMjdGFd' => $action2,
+        ];
+
+        $actionGroup = new ActionGroup(
+            id: 'lotgd.actionGroup.custom.67',
+            title: 'Outside',
+            weight: 0,
+            actions: $actions,
+        );
+
+        $this->assertCount(2, $actionGroup->getActions());
+        $this->assertSame($action1, $actionGroup->getActionById('S77K3BTH'));
+        $this->assertSame($action2, $actionGroup->getActionById('nCMjdGFd'));
+    }
+
+    public function testSetActionsWithAssociativeArray(): void
+    {
+        $actionGroup = new ActionGroup();
+        $action1 = new Action(title: 'The forest');
+        $action1->id = 'S77K3BTH';
+        $action2 = new Action(title: 'Warrior Training');
+        $action2->id = 'nCMjdGFd';
+        $actions = [
+            'S77K3BTH' => $action1,
+            'nCMjdGFd' => $action2,
+        ];
+
+        $actionGroup->setActions($actions);
+
+        $this->assertCount(2, $actionGroup->getActions());
+        $this->assertSame($action1, $actionGroup->getActionById('S77K3BTH'));
+        $this->assertSame($action2, $actionGroup->getActionById('nCMjdGFd'));
+    }
+
+    public function testDeserializationWithAssociativeActionsKeyedByString(): void
+    {
+        $extractor = new PropertyInfoExtractor(
+            typeExtractors: [new PhpDocExtractor(), new ReflectionExtractor()]
+        );
+        $normalizers = [
+            new ArrayDenormalizer(),
+            new ObjectNormalizer(propertyTypeExtractor: $extractor),
+        ];
+        $serializer = new Serializer($normalizers, [new JsonEncoder()]);
+
+        $json = json_encode([
+            'id' => 'lotgd.actionGroup.custom.67',
+            'title' => 'Outside',
+            'weight' => 0,
+            'actions' => [
+                'S77K3BTH' => [
+                    'id' => 'S77K3BTH',
+                    'sceneId' => 134,
+                    'title' => 'The forest',
+                    'reference' => null,
+                    'parameters' => [],
+                ],
+            ],
+            'actionsByReference' => [],
+        ]);
+
+        $actionGroup = $serializer->deserialize($json, ActionGroup::class, 'json');
+
+        $this->assertInstanceOf(ActionGroup::class, $actionGroup);
+        $this->assertSame('lotgd.actionGroup.custom.67', $actionGroup->getId());
+        $this->assertSame('Outside', $actionGroup->getTitle());
+        $this->assertCount(1, $actionGroup->getActions());
+        $this->assertArrayHasKey('S77K3BTH', $actionGroup->getActions());
+        $this->assertInstanceOf(Action::class, $actionGroup->getActionById('S77K3BTH'));
+        $this->assertSame('The forest', $actionGroup->getActionById('S77K3BTH')->title);
+        $this->assertSame(134, $actionGroup->getActionById('S77K3BTH')->sceneId);
     }
 }
