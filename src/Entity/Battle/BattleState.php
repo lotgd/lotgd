@@ -73,14 +73,12 @@ class BattleState
 
     /**
      * Call to synchronize the damage with the current character
-     * @param GameStateService $gameStateService
      * @param LoggerInterface $logger
      * @param HandlerRegistry $handlerRegistry
      * @param BuffList $buffList
      * @return void
      */
     public function synchronizeToCharacter(
-        GameStateService $gameStateService,
         LoggerInterface $logger,
         HandlerRegistry $handlerRegistry,
         BuffList $buffList,
@@ -92,13 +90,13 @@ class BattleState
         $logger->debug("BattleState: Synchronize back to the character.");
 
         if ($this->goodGuy instanceof CurrentCharacterFighter) {
-            $health = new HealthHandler($gameStateService, $logger);
+            $health = $handlerRegistry->get(HealthHandler::class);
             $health->setHealth($this->character, $this->goodGuy->health);
 
-            $expressionService = new ExpressionService($logger, $gameStateService, $handlerRegistry);
+            $expressionService = new ExpressionService($logger, $handlerRegistry);
 
             // Synchronize buff list
-            $buffs = new BuffHandler($logger, null, $expressionService);
+            $buffs = $handlerRegistry->get(BuffHandler::class);
             $buffs->setBuffs($this->character, $buffList);
         }
     }

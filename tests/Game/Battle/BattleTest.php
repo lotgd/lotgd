@@ -112,7 +112,6 @@ class BattleTest extends KernelTestCase
             diceBag: $this->diceBag,
             buffHandler: $this->buffHandler,
             character: $this->character,
-            gameStateService: $this->createStub(GameStateService::class)
         );
     }
 

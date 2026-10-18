@@ -82,7 +82,6 @@ class Battle
         private readonly BuffHandler $buffHandler,
         #[Autowire(expression: "service('lotgd2.game_loop').getCharacter()")]
         private Character $character,
-        private readonly GameStateService $gameStateService,
     ) {
     }
 
@@ -241,7 +240,6 @@ class Battle
         $battleState->incrementRound();
         $battleState->addMessages($eventsToAdd->map(fn (BattleEventInterface $event) => $event->decorate()));
         $battleState->synchronizeToCharacter(
-            $this->gameStateService,
             $this->logger,
             $this->handlerRegistry,
             $goodGuyBuffs,
