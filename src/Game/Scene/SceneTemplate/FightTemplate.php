@@ -15,6 +15,7 @@ use LotGD2\Form\Scene\SceneTemplate\FightTemplateType;
 use LotGD2\Game\Battle\Battle;
 use LotGD2\Game\Error\SpecialNotFoundError;
 use LotGD2\Game\GameStateService;
+use LotGD2\Game\Handler\HandlerRegistry;
 use LotGD2\Game\Handler\WealthHandler;
 use LotGD2\Game\Handler\HealthHandler;
 use LotGD2\Game\Handler\StatsHandler;
@@ -54,9 +55,7 @@ class FightTemplate implements SceneTemplateInterface
         private readonly DiceBagInterface         $diceBag,
         private readonly CreatureRepository       $creatureRepository,
         private readonly Battle                   $battle,
-        private readonly HealthHandler            $health,
-        private readonly StatsHandler             $stats,
-        private readonly WealthHandler            $gold,
+        private readonly HandlerRegistry          $handlerRegistry,
         private readonly SpecialService           $specialService,
         private readonly GameStateService         $gameStateService,
     ) {
@@ -95,7 +94,7 @@ class FightTemplate implements SceneTemplateInterface
     {
         $this->logger->debug("Called FightTemplate::defaultAction");
 
-        if ($this->health->isAlive($this->character) === false) {
+        if ($this->handlerRegistry->get(HealthHandler::class)->isAlive($this->character) === false) {
             $this->stage->addParagraph(new Paragraph(
                 id: "lotgd2.paragraph.fightTemplate.isDeadMessage",
                 text: "You are dead. You can't fight any more battles today.",
@@ -111,7 +110,7 @@ class FightTemplate implements SceneTemplateInterface
      */
     public function searchAction(): void
     {
-        if ($this->health->getTurns($this->character) <= 0) {
+        if ($this->handlerRegistry->get(HealthHandler::class)->getTurns($this->character) <= 0) {
             $this->defaultAction();
             $this->stage->paragraphs = [
                 new Paragraph(
@@ -145,7 +144,7 @@ class FightTemplate implements SceneTemplateInterface
         $level = intval($this->action->getParameter("level", 0));
         $this->logger->debug("Called FightTemplate::searchAction, with level={$level}");
         $level += $this->getRandomLevelChange();
-        $level = max(1, $this->stats->getLevel($this->character) + $level); // Make sure the level is at least 1
+        $level = max(1, $this->handlerRegistry->get(StatsHandler::class)->getLevel($this->character) + $level); // Make sure the level is at least 1
         $this->logger->debug("FightTemplate::searchAction, level adjusted to {$level}");
 
         // Find creature
@@ -169,7 +168,7 @@ class FightTemplate implements SceneTemplateInterface
         $attachment = $this->attachmentRepository->findOneByAttachmentClass(BattleAttachment::class);
 
         if ($attachment) {
-            $this->health->decrementTurns($this->character);
+            $this->handlerRegistry->get(HealthHandler::class)->decrementTurns($this->character);
             $battleState = $this->battle->start($creature, $this->gameStateService);
 
             $this->stage->addAttachment($attachment, data: [
@@ -240,7 +239,7 @@ class FightTemplate implements SceneTemplateInterface
         Scene $scene,
         Character $character,
     ): void {
-        if ($this->health->isAlive($character)) {
+        if ($this->handlerRegistry->get(HealthHandler::class)->isAlive($character)) {
             $actionGroup = new ActionGroup(self::ActionGroupSearch, $scene->title);
 
             $actionGroup->addAction(
@@ -333,9 +332,9 @@ class FightTemplate implements SceneTemplateInterface
     public function handleCheats(string $cheat): void
     {
         if ($cheat === "experience") {
-            $this->stats->addExperience($this->character, 1000);
+            $this->handlerRegistry->get(StatsHandler::class)->addExperience($this->character, 1000);
         } elseif ($cheat === "gold") {
-            $this->gold->addGold($this->character, 1000);
+            $this->handlerRegistry->get(WealthHandler::class)->addGold($this->character, 1000);
         }
     }
 }

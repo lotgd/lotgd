@@ -19,7 +19,7 @@ use LotGD2\Game\Battle\Battle;
 use LotGD2\Game\GameStateService;
 use LotGD2\Game\GameTime\NewDay;
 use LotGD2\Game\Handler\EquipmentHandler;
-use LotGD2\Game\Handler\WealthHandler;
+use LotGD2\Game\Handler\HandlerRegistry;
 use LotGD2\Game\Handler\HealthHandler;
 use LotGD2\Game\Handler\StatsHandler;
 use LotGD2\Game\Random\DiceBagInterface;
@@ -68,10 +68,7 @@ class TrainingTemplate implements SceneTemplateInterface
         private readonly AttachmentRepository     $attachmentRepository,
         private readonly MasterRepository         $masterRepository,
         private readonly Battle                   $battle,
-        private readonly EquipmentHandler         $equipment,
-        private readonly StatsHandler             $stats,
-        private readonly HealthHandler            $health,
-        private readonly WealthHandler            $gold, // @phpstan-ignore property.onlyWritten
+        private readonly HandlerRegistry          $handlerRegistry,
         private readonly GameStateService         $gameStateService,
     ) {
     }
@@ -92,10 +89,10 @@ class TrainingTemplate implements SceneTemplateInterface
     public function getContext(): array
     {
         return [
-            "experience" => $this->stats->getExperience($this->character),
-            "requiredExperience" => $this->stats->getRequiredExperience($this->character),
-            "weapon" => $this->equipment->getItemInSlot($this->character, EquipmentHandler::WeaponSlot)?->getName() ?? "Fists",
-            "armor" => $this->equipment->getItemInSlot($this->character, EquipmentHandler::ArmorSlot)?->getName() ?? "T-Shirt",
+            "experience" => $this->handlerRegistry->get(StatsHandler::class)->getExperience($this->character),
+            "requiredExperience" => $this->handlerRegistry->get(StatsHandler::class)->getRequiredExperience($this->character),
+            "weapon" => $this->handlerRegistry->get(EquipmentHandler::class)->getItemInSlot($this->character, EquipmentHandler::WeaponSlot)?->getName() ?? "Fists",
+            "armor" => $this->handlerRegistry->get(EquipmentHandler::class)->getItemInSlot($this->character, EquipmentHandler::ArmorSlot)?->getName() ?? "T-Shirt",
         ];
     }
 
@@ -117,7 +114,7 @@ class TrainingTemplate implements SceneTemplateInterface
 
     public function defaultAction(): void
     {
-        if ($this->health->isAlive($this->character) === false) {
+        if ($this->handlerRegistry->get(HealthHandler::class)->isAlive($this->character) === false) {
             $this->stage->paragraphs = [
                 new Paragraph(
                     id: "lotgd2.paragraph.trainingTemplate.isDead",
@@ -193,7 +190,7 @@ class TrainingTemplate implements SceneTemplateInterface
                     ]
                 )
             ];
-        } elseif ($this->stats->getExperience($character) < $this->stats->getRequiredExperience($character)) {
+        } elseif ($this->handlerRegistry->get(StatsHandler::class)->getExperience($character) < $this->handlerRegistry->get(StatsHandler::class)->getRequiredExperience($character)) {
             $this->stage->paragraphs = [
                 new Paragraph(
                     id: "lotgd2.paragraph.trainingTemplate.absoluteDefeat",
@@ -217,8 +214,8 @@ class TrainingTemplate implements SceneTemplateInterface
 
                 $healed = false;
 
-                if ($this->health->getHealth($character) < $this->health->getMaxHealth($character)) {
-                    $this->health->heal($character);
+                if ($this->handlerRegistry->get(HealthHandler::class)->getHealth($character) < $this->handlerRegistry->get(HealthHandler::class)->getMaxHealth($character)) {
+                    $this->handlerRegistry->get(HealthHandler::class)->heal($character);
                     $healed = true;
                 }
 
@@ -300,7 +297,7 @@ class TrainingTemplate implements SceneTemplateInterface
                 context: [
                     "campLeader" => $event->scene->templateConfig["campLeader"],
                     "badGuy" => $battleState->badGuy,
-                    "maxHealth" => $this->health->getMaxHealth($event->character),
+                    "maxHealth" => $this->handlerRegistry->get(HealthHandler::class)->getMaxHealth($event->character),
                 ]
             )
         ];
@@ -331,13 +328,13 @@ class TrainingTemplate implements SceneTemplateInterface
                 context: [
                     "campLeader" => $event->scene->templateConfig["campLeader"],
                     "badGuy" => $battleState->badGuy,
-                    "maxHealth" => $this->health->getMaxHealth($event->character),
+                    "maxHealth" => $this->handlerRegistry->get(HealthHandler::class)->getMaxHealth($event->character),
                     "textLost" => $battleState->badGuy->kwargs["textLost"] ?? null,
                 ]
             )
         ];
 
-        $this->health->heal($event->character);
+        $this->handlerRegistry->get(HealthHandler::class)->heal($event->character);
         $this->setSeenMaster($event->character);
         $this->logger->debug("Character {$event->character->id} lost against his master.");
     }

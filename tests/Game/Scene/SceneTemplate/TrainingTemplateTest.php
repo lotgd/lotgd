@@ -18,7 +18,7 @@ use LotGD2\Event\SimpleStageParameterEvent;
 use LotGD2\Game\Battle\Battle;
 use LotGD2\Game\GameStateService;
 use LotGD2\Game\Handler\EquipmentHandler;
-use LotGD2\Game\Handler\WealthHandler;
+use LotGD2\Game\Handler\HandlerRegistry;
 use LotGD2\Game\Handler\HealthHandler;
 use LotGD2\Game\Handler\StatsHandler;
 use LotGD2\Game\Random\DiceBag;
@@ -47,6 +47,7 @@ use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
 #[UsesClass(DiceBag::class)]
 #[UsesClass(Paragraph::class)]
 #[UsesClass(SimpleStageParameterEvent::class)]
+#[UsesClass(HandlerRegistry::class)]
 class TrainingTemplateTest extends TestCase
 {
     public function testGetContext(): void
@@ -59,22 +60,10 @@ class TrainingTemplateTest extends TestCase
         $equipmentHandler->expects($this->exactly(2))->method("getItemInSlot")
             ->willReturn(null);
 
-        $trainingTemplate = $this->getStubBuilder(TrainingTemplate::class)
-            ->setConstructorArgs([
-                $this->createStub(Security::class),
-                $this->createStub(LoggerInterface::class),
-                $this->createStub(EventDispatcherInterface::class),
-                $this->createStub(AttachmentRepository::class),
-                $this->createStub(MasterRepository::class),
-                $this->createStub(Battle::class),
-                $equipmentHandler,
-                $statsHandler,
-                $this->createStub(HealthHandler::class),
-                $this->createStub(WealthHandler::class),
-                $this->createStub(GameStateService::class),
-            ])
-            ->onlyMethods([])
-            ->getStub();
+        $trainingTemplate = $this->getPartiallyMockedTrainingTemplate(
+            equipment: $equipmentHandler,
+            stats: $statsHandler,
+        );
 
         $this->assertSame([
             "experience" => 50,
@@ -96,22 +85,10 @@ class TrainingTemplateTest extends TestCase
         $security = $this->createMock(Security::class);
         $security->method("isGranted")->with("ROLE_CHEATS_ENABLED")->willReturn(false);
 
-        $trainingTemplate = $this->getMockBuilder(TrainingTemplate::class)
-            ->setConstructorArgs([
-                $security,
-                $this->createStub(LoggerInterface::class),
-                $this->createStub(EventDispatcherInterface::class),
-                $this->createStub(AttachmentRepository::class),
-                $this->createStub(MasterRepository::class),
-                $this->createStub(Battle::class),
-                $this->createStub(EquipmentHandler::class),
-                $this->createStub(StatsHandler::class),
-                $this->createStub(HealthHandler::class),
-                $this->createStub(WealthHandler::class),
-                $this->createStub(GameStateService::class),
-            ])
-            ->onlyMethods(["defaultAction", "askAction", "challengeAction", "handleCheats"])
-            ->getMock();
+        $trainingTemplate = $this->getPartiallyMockedTrainingTemplate(
+            mockedMethods: ["defaultAction", "askAction", "challengeAction", "handleCheats"],
+            security: $security,
+        );
 
         $action = $this->createMock(Action::class);
         $action->expects($this->once())->method("getParameters")->willReturn($actionParameters);
@@ -132,22 +109,10 @@ class TrainingTemplateTest extends TestCase
         $security = $this->createMock(Security::class);
         $security->method("isGranted")->with("ROLE_CHEATS_ENABLED")->willReturn(true);
 
-        $trainingTemplate = $this->getMockBuilder(TrainingTemplate::class)
-            ->setConstructorArgs([
-                $security,
-                $this->createStub(LoggerInterface::class),
-                $this->createStub(EventDispatcherInterface::class),
-                $this->createStub(AttachmentRepository::class),
-                $this->createStub(MasterRepository::class),
-                $this->createStub(Battle::class),
-                $this->createStub(EquipmentHandler::class),
-                $this->createStub(StatsHandler::class),
-                $this->createStub(HealthHandler::class),
-                $this->createStub(WealthHandler::class),
-                $this->createStub(GameStateService::class),
-            ])
-            ->onlyMethods(["defaultAction", "askAction", "challengeAction", "handleCheats"])
-            ->getMock();
+        $trainingTemplate = $this->getPartiallyMockedTrainingTemplate(
+            mockedMethods: ["defaultAction", "askAction", "challengeAction", "handleCheats"],
+            security: $security,
+        );
 
         $action = $this->createMock(Action::class);
         $action->expects($this->once())->method("getParameters")->willReturn([
@@ -178,20 +143,6 @@ class TrainingTemplateTest extends TestCase
         $masterRepository = $this->createMock(MasterRepository::class);
         $masterRepository->expects($this->never())->method("getByLevel");
 
-        $trainingTemplate = new TrainingTemplate(
-            $this->createStub(Security::class),
-            $this->createStub(LoggerInterface::class),
-            $this->createStub(EventDispatcherInterface::class),
-            $this->createStub(AttachmentRepository::class),
-            $masterRepository,
-            $this->createStub(Battle::class),
-            $this->createStub(EquipmentHandler::class),
-            $this->createStub(StatsHandler::class),
-            $healthHandler,
-            $this->createStub(WealthHandler::class),
-            $this->createStub(GameStateService::class),
-        );
-
         $character = $this->createStub(Character::class);
         $stage = $this->createMock(Stage::class);
         $stage->method(PropertyHook::get("owner"))->willReturn($character);
@@ -205,7 +156,15 @@ class TrainingTemplateTest extends TestCase
         $scene = $this->createStub(Scene::class);
         $action = $this->createStub(Action::class);
 
-        $trainingTemplate->setSceneChangeParameter($stage, $action, $scene);
+        $trainingTemplate = $this->getPartiallyMockedTrainingTemplate(
+            masterRepository: $masterRepository,
+            health: $healthHandler,
+            scene: $scene,
+            stage: $stage,
+            action: $action,
+            character: $character,
+        );
+
         $trainingTemplate->defaultAction();
     }
 
@@ -222,22 +181,11 @@ class TrainingTemplateTest extends TestCase
         $masterRepository = $this->createMock(MasterRepository::class);
         $masterRepository->expects($this->once())->method("getByLevel")->with($level)->willReturn(null);
 
-        $trainingTemplate = $this->getMockBuilder(TrainingTemplate::class)
-            ->onlyMethods(["getContext"])
-            ->setConstructorArgs([
-                $this->createStub(Security::class),
-                $this->createStub(LoggerInterface::class),
-                $this->createStub(EventDispatcherInterface::class),
-                $this->createStub(AttachmentRepository::class),
-                $masterRepository,
-                $this->createStub(Battle::class),
-                $this->createStub(EquipmentHandler::class),
-                $this->createStub(StatsHandler::class),
-                $healthHandler,
-                $this->createStub(WealthHandler::class),
-                $this->createStub(GameStateService::class),
-            ])
-            ->getMock();
+        $trainingTemplate = $this->getPartiallyMockedTrainingTemplate(
+            mockedMethods: ["getContext"],
+            masterRepository: $masterRepository,
+            health: $healthHandler,
+        );
 
         $trainingTemplate->expects($this->once())->method("getContext")->willReturn([]);
 
@@ -289,22 +237,11 @@ class TrainingTemplateTest extends TestCase
         $masterRepository = $this->createMock(MasterRepository::class);
         $masterRepository->expects($this->once())->method("getByLevel")->with($level)->willReturn($master);
 
-        $trainingTemplate = $this->getMockBuilder(TrainingTemplate::class)
-            ->onlyMethods(["getContext", "addDefaultActions"])
-            ->setConstructorArgs([
-                $this->createStub(Security::class),
-                $this->createStub(LoggerInterface::class),
-                $this->createStub(EventDispatcherInterface::class),
-                $this->createStub(AttachmentRepository::class),
-                $masterRepository,
-                $this->createStub(Battle::class),
-                $this->createStub(EquipmentHandler::class),
-                $this->createStub(StatsHandler::class),
-                $healthHandler,
-                $this->createStub(WealthHandler::class),
-                $this->createStub(GameStateService::class),
-            ])
-            ->getMock();
+        $trainingTemplate = $this->getPartiallyMockedTrainingTemplate(
+            mockedMethods: ["getContext", "addDefaultActions"],
+            masterRepository: $masterRepository,
+            health: $healthHandler,
+        );
 
         $trainingTemplate->expects($this->once())->method("getContext")->willReturn($context);
         $trainingTemplate->expects($this->once())->method("addDefaultActions");
@@ -365,22 +302,10 @@ class TrainingTemplateTest extends TestCase
         $masterRepository = $this->createMock(MasterRepository::class);
         $masterRepository->expects($this->once())->method("getByLevel")->willReturn($master);
 
-        $trainingTemplate = $this->getMockBuilder(TrainingTemplate::class)
-            ->onlyMethods(["getContext", "addDefaultActions"])
-            ->setConstructorArgs([
-                $this->createStub(Security::class),
-                $this->createStub(LoggerInterface::class),
-                $this->createStub(EventDispatcherInterface::class),
-                $this->createStub(AttachmentRepository::class),
-                $masterRepository,
-                $this->createStub(Battle::class),
-                $this->createStub(EquipmentHandler::class),
-                $this->createStub(StatsHandler::class),
-                $this->createStub(HealthHandler::class),
-                $this->createStub(WealthHandler::class),
-                $this->createStub(GameStateService::class),
-            ])
-            ->getMock();
+        $trainingTemplate = $this->getPartiallyMockedTrainingTemplate(
+            mockedMethods: ["getContext", "addDefaultActions"],
+            masterRepository: $masterRepository,
+        );
 
         $trainingTemplate->expects($this->once())->method("getContext")->willReturn([]);
         $trainingTemplate->expects($this->once())->method("addDefaultActions");
@@ -1470,10 +1395,11 @@ class TrainingTemplateTest extends TestCase
      * @param AttachmentRepository|null $attachmentRepository
      * @param MasterRepository|null $masterRepository
      * @param Battle|null $battle
+     * @param HandlerRegistry|null $handlerRegistry
      * @param EquipmentHandler|null $equipment
      * @param StatsHandler|null $stats
      * @param HealthHandler|null $health
-     * @param WealthHandler|null $gold
+     * @param GameStateService|null $gameStateService
      * @param Scene|null $scene
      * @param Stage|null $stage
      * @param Action|null $action
@@ -1489,15 +1415,23 @@ class TrainingTemplateTest extends TestCase
         ?AttachmentRepository     $attachmentRepository = null,
         ?MasterRepository         $masterRepository = null,
         ?Battle                   $battle = null,
+        ?HandlerRegistry          $handlerRegistry = null,
         ?EquipmentHandler         $equipment = null,
         ?StatsHandler             $stats = null,
         ?HealthHandler            $health = null,
-        ?WealthHandler            $gold = null, // @phpstan-ignore property.onlyWritten
+        ?GameStateService         $gameStateService = null,
         ?Scene                    $scene = null,
         ?Stage                    $stage = null,
         ?Action                   $action = null,
         ?Character                $character = null,
     ): TrainingTemplate {
+        if ($handlerRegistry === null) {
+            $handlerRegistry = new HandlerRegistry();
+            $handlerRegistry->addHandler(StatsHandler::class, $stats ?? $this->createStub(StatsHandler::class));
+            $handlerRegistry->addHandler(EquipmentHandler::class, $equipment ?? $this->createStub(EquipmentHandler::class));
+            $handlerRegistry->addHandler(HealthHandler::class, $health ?? $this->createStub(HealthHandler::class));
+        }
+
         if (count($mockedMethods) > 0) {
             $trainingTemplate = $this->getMockBuilder(TrainingTemplate::class)
                 ->onlyMethods($mockedMethods)
@@ -1508,11 +1442,8 @@ class TrainingTemplateTest extends TestCase
                     $attachmentRepository ?? $this->createStub(AttachmentRepository::class),
                     $masterRepository ?? $this->createStub(MasterRepository::class),
                     $battle ?? $this->createStub(Battle::class),
-                    $equipment ?? $this->createStub(EquipmentHandler::class),
-                    $stats ?? $this->createStub(StatsHandler::class),
-                    $health ?? $this->createStub(HealthHandler::class),
-                    $gold ?? $this->createStub(WealthHandler::class),
-                    $this->createStub(GameStateService::class),
+                    $handlerRegistry,
+                    $gameStateService ?? $this->createStub(GameStateService::class),
                 ])
                 ->getMock();
         } else {
@@ -1525,11 +1456,8 @@ class TrainingTemplateTest extends TestCase
                     $attachmentRepository ?? $this->createStub(AttachmentRepository::class),
                     $masterRepository ?? $this->createStub(MasterRepository::class),
                     $battle ?? $this->createStub(Battle::class),
-                    $equipment ?? $this->createStub(EquipmentHandler::class),
-                    $stats ?? $this->createStub(StatsHandler::class),
-                    $health ?? $this->createStub(HealthHandler::class),
-                    $gold ?? $this->createStub(WealthHandler::class),
-                    $this->createStub(GameStateService::class),
+                    $handlerRegistry,
+                    $gameStateService ?? $this->createStub(GameStateService::class),
                 ])
                 ->getStub();
         }

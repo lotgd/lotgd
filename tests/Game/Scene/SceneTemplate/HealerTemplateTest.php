@@ -9,6 +9,7 @@ use LotGD2\Entity\Mapped\Character;
 use LotGD2\Entity\Mapped\Scene;
 use LotGD2\Entity\Mapped\Stage;
 use LotGD2\Entity\Paragraph;
+use LotGD2\Game\Handler\HandlerRegistry;
 use LotGD2\Game\Handler\WealthHandler;
 use LotGD2\Game\Handler\HealthHandler;
 use LotGD2\Game\Random\DiceBag;
@@ -17,6 +18,7 @@ use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\UsesClass;
 use PHPUnit\Framework\MockObject\Runtime\PropertyHook;
+use PHPUnit\Framework\MockObject\Stub;
 use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\MockObject\MockObject;
 use Psr\Log\LoggerInterface;
@@ -30,27 +32,6 @@ use Symfony\Bundle\SecurityBundle\Security;
 #[AllowMockObjectsWithoutExpectations]
 class HealerTemplateTest extends TestCase
 {
-    private HealerTemplate $healerTemplate;
-    private LoggerInterface|MockObject $logger;
-    private Security|MockObject $security;
-    private HealthHandler|MockObject $health;
-    private WealthHandler|MockObject $gold;
-
-    protected function setUp(): void
-    {
-        $this->logger = $this->createMock(LoggerInterface::class);
-        $this->security = $this->createMock(Security::class);
-        $this->health = $this->createMock(HealthHandler::class);
-        $this->gold = $this->createMock(WealthHandler::class);
-
-        $this->healerTemplate = new HealerTemplate(
-            $this->logger,
-            $this->security,
-            $this->health,
-            $this->gold
-        );
-    }
-
     private function getDefaultTemplateConfig(): array
     {
         return [
@@ -67,48 +48,131 @@ class HealerTemplateTest extends TestCase
         ];
     }
 
-    public function testOnSceneChangeWithDefaultAction(): void
-    {
+    /**
+     * @param string[] $mockedMethods
+     * @return ($mockHealthHandler is true ? HealerTemplate&MockObject : HealerTemplate&Stub)
+     * @throws \PHPUnit\Framework\MockObject\Exception
+     */
+    private function getPartiallyMockedHealerTemplate(
+        array $mockedMethods = [],
+        bool $mockHealthHandler = false,
+        ?LoggerInterface $logger = null,
+        ?Security $security = null,
+        ?HandlerRegistry $handlerRegistry = null,
+        ?HealthHandler $healthHandler = null,
+        ?WealthHandler $wealthHandler = null,
+    ): HealerTemplate {
+        if ($handlerRegistry === null) {
+            $handlerRegistry = $this->getStubbedHandlerRegistry($healthHandler, $wealthHandler);
+        }
+
+        $constructorArgs = [
+            $logger ?? $this->createStub(LoggerInterface::class),
+            $security ?? $this->createStub(Security::class),
+            $handlerRegistry,
+        ];
+
+        if ($mockHealthHandler) {
+            return $this->getMockBuilder(HealerTemplate::class)
+                ->setConstructorArgs($constructorArgs)
+                ->onlyMethods($mockedMethods)
+                ->getMock();
+        } else {
+            /** @var HealerTemplate&Stub $stub */
+            $stub = $this->getStubBuilder(HealerTemplate::class)
+                ->setConstructorArgs($constructorArgs)
+                ->onlyMethods($mockedMethods)
+                ->getStub();
+            return $stub;
+        }
+    }
+
+    private function getStubbedHandlerRegistry(
+        ?HealthHandler $healthHandler = null,
+        ?WealthHandler $wealthHandler = null,
+    ): HandlerRegistry {
+        $handlerRegistry = $this->createStub(HandlerRegistry::class);
+        $handlerRegistry->method("get")
+            ->willReturnMap([
+                [HealthHandler::class, $healthHandler ?? $this->createStub(HealthHandler::class)],
+                [WealthHandler::class, $wealthHandler ?? $this->createStub(WealthHandler::class)],
+            ]);
+        return $handlerRegistry;
+    }
+
+    /**
+     * @param string[][]|"never" $actionMap
+     * @param array<string, mixed>|bool $templateConfig
+     * @return array{Stage&MockObject, Action&MockObject, Scene&MockObject, Character&MockObject}
+     * @throws \PHPUnit\Framework\MockObject\Exception
+     */
+    private function getStageMocks(
+        int $characterId = 123,
+        int $characterLevel = 5,
+        null|array|string $actionMap = null,
+        bool|array $templateConfig = true,
+    ): array {
         $stage = $this->createMock(Stage::class);
         $action = $this->createMock(Action::class);
         $scene = $this->createMock(Scene::class);
         $character = $this->createMock(Character::class);
 
-        $action->expects($this->once())
-            ->method('getParameter')
-            ->with('op')
-            ->willReturn(null);
+        if ($actionMap !== "never") {
+            $action->expects($this->atLeastOnce())
+                ->method('getParameter')
+                ->willReturnMap($actionMap ?? [
+                    ["op", null]
+                ]);
+        }
 
-        $this->logger->expects($this->once())
-            ->method('debug')
-            ->with('Called HealerTemplate::defaultAction');
-
-        $this->health->expects($this->once())
-            ->method('isAlive')
-            ->willReturn(true);
-
-        $this->health->expects($this->atLeastOnce())
-            ->method('getHealth')
-            ->willReturn(50);
-
-        $this->health->expects($this->atLeastOnce())
-            ->method('getMaxHealth')
-            ->willReturn(100);
-
-        $this->gold->expects($this->never())
-            ->method("getGold");
-
-        $scene->expects($this->atLeastOnce())
-            ->method(PropertyHook::get("templateConfig"))
-            ->willReturn($this->getDefaultTemplateConfig());
-
-        $character->expects($this->atLeastOnce())
-            ->method(PropertyHook::get("level"))
-            ->willReturn(5);
+        if ($templateConfig === false) {
+            $scene->expects($this->never())
+                ->method(PropertyHook::get("templateConfig"));
+        } else {
+            $config = is_array($templateConfig) ? $templateConfig : $this->getDefaultTemplateConfig();
+            $scene->expects($this->atLeastOnce())
+                ->method(PropertyHook::get("templateConfig"))
+                ->willReturn($config);
+        }
 
         $stage->expects($this->atLeastOnce())
             ->method(PropertyHook::get("owner"))
             ->willReturn($character);
+
+        $character->expects($this->atLeast(0))
+            ->method(PropertyHook::get("level"))
+            ->willReturn($characterLevel);
+
+        $character->expects($this->atLeast(0))
+            ->method(PropertyHook::get("id"))
+            ->willReturn($characterId);
+
+        return [$stage, $action, $scene, $character];
+    }
+
+    public function testOnSceneChangeWithDefaultAction(): void
+    {
+        [$stage, $action, $scene, $character] = $this->getStageMocks();
+
+        $logger = $this->createMock(LoggerInterface::class);
+        $logger->expects($this->once())
+            ->method('debug')
+            ->with('Called HealerTemplate::defaultAction');
+
+        $healthHandler = $this->createMock(HealthHandler::class);
+        $healthHandler->expects($this->once())
+            ->method('isAlive')
+            ->willReturn(true);
+        $healthHandler->expects($this->atLeastOnce())
+            ->method('getHealth')
+            ->willReturn(50);
+        $healthHandler->expects($this->atLeastOnce())
+            ->method('getMaxHealth')
+            ->willReturn(100);
+
+        $wealthHandler = $this->createMock(WealthHandler::class);
+        $wealthHandler->expects($this->never())
+            ->method("getGold");
 
         $stage->expects($this->once())
             ->method("addParagraph")
@@ -124,52 +188,41 @@ class HealerTemplateTest extends TestCase
         $stage->expects($this->once())
             ->method('addActionGroup');
 
-        $this->security->expects($this->once())
+        $security = $this->createMock(Security::class);
+        $security->expects($this->once())
             ->method('isGranted')
             ->with('ROLE_CHEATS_ENABLED')
             ->willReturn(false);
 
-        $this->healerTemplate->setSceneChangeParameter($stage, $action, $scene);
-        $this->healerTemplate->onSceneChange();
+        $healerTemplate = new HealerTemplate(
+            logger: $logger,
+            security: $security,
+            handlerRegistry: $this->getStubbedHandlerRegistry($healthHandler, $wealthHandler),
+        );
+
+        $healerTemplate->setSceneChangeParameter($stage, $action, $scene);
+        $healerTemplate->onSceneChange();
     }
 
     public function testOnSceneChangeWithHealAction(): void
     {
-        $stage = $this->createMock(Stage::class);
-        $action = $this->createMock(Action::class);
-        $scene = $this->createMock(Scene::class);
-        $character = $this->createMock(Character::class);
+        [$stage, $action, $scene, $character] = $this->getStageMocks(
+            actionMap: [
+                ['op', null, 'heal'],
+                ['amount', null, 50],
+                ['price', null, 100]
+            ]
+        );
 
-        $action->expects($this->exactly(3))
-            ->method('getParameter')
-            ->willReturnMap([
-                ['op', 'heal'],
-                ['amount', 50],
-                ['price', 100]
-            ]);
-
-        $this->logger->expects($this->exactly(2))
+        $logger = $this->createMock(LoggerInterface::class);
+        $logger->expects($this->exactly(2))
             ->method('debug')
             ->willReturnMap([
                 ['Called HealerTemplate::defaultAction'],
                 ['123: Healed by 50 for 100 gold.'],
             ]);
 
-        $character->expects($this->atLeastOnce())
-            ->method(PropertyHook::get("id"))
-            ->willReturn(123);
-
-        $stage->expects($this->atLeastOnce())
-            ->method(PropertyHook::get("owner"))
-            ->willReturn($character);
-
-        $this->gold->expects($this->once())
-            ->method('getGold')
-            ->willReturn(150);
-
-        $scene->expects($this->atLeastOnce())
-            ->method(PropertyHook::get("templateConfig"))
-            ->willReturn($this->getDefaultTemplateConfig());
+        $security = $this->createStub(Security::class);
 
         $stage->expects($this->once())
             ->method(PropertyHook::set("paragraphs"))
@@ -187,79 +240,85 @@ class HealerTemplateTest extends TestCase
                 return $stage;
             });
 
-        $this->health->expects($this->once())
+        $healthHandler = $this->createMock(HealthHandler::class);
+        $healthHandler->expects($this->once())
             ->method('heal')
             ->with($character, 50);
 
-        $this->gold->expects($this->once())
+        $wealthHandler = $this->createMock(WealthHandler::class);
+        $wealthHandler->expects($this->once())
+            ->method('getGold')
+            ->willReturn(150);
+        $wealthHandler->expects($this->once())
             ->method('addGold')
             ->with($character, -100);
 
-        $this->healerTemplate->setSceneChangeParameter($stage, $action, $scene);
-        $this->healerTemplate->onSceneChange();
+        $handlerRegistry = $this->getStubbedHandlerRegistry($healthHandler, $wealthHandler);
+
+        $healerTemplate = new HealerTemplate($logger, $security, $handlerRegistry);
+        $healerTemplate->setSceneChangeParameter($stage, $action, $scene);
+        $healerTemplate->onSceneChange();
     }
 
     public function testOnSceneChangeWithCheatAction(): void
     {
-        $stage = $this->createMock(Stage::class);
-        $action = $this->createMock(Action::class);
-        $scene = $this->createMock(Scene::class);
-        $character = $this->createMock(Character::class);
-        $stage->method(PropertyHook::get("owner"))->willReturn($character);
+        [$stage, $action, $scene, $character] = $this->getStageMocks(
+            actionMap: [
+                ['op', null, 'cheat'],
+                ['what', null, 'heal'],
+            ]
+        );
 
-        $action->expects($this->exactly(2))
-            ->method('getParameter')
-            ->willReturnMap([
-                ['op', 'cheat'],
-                ['what', 'heal']
-            ]);
-
-        $this->health->expects($this->once())
+        $healthHandler = $this->createMock(HealthHandler::class);
+        $healthHandler->expects($this->once())
             ->method('heal')
             ->with($character);
-
-        $this->logger->expects($this->once())
-            ->method('debug')
-            ->with('Called HealerTemplate::defaultAction');
-
-        $this->health->expects($this->once())
+        $healthHandler->expects($this->once())
             ->method('isAlive')
             ->willReturn(true);
-
-        $this->health->expects($this->exactly(2))
+        $healthHandler->expects($this->exactly(2))
             ->method('getHealth')
             ->willReturn(100);
-
-        $this->health->expects($this->atLeastOnce())
+        $healthHandler->expects($this->atLeastOnce())
             ->method('getMaxHealth')
             ->willReturn(100);
+
+        $logger = $this->createMock(LoggerInterface::class);
+        $logger->expects($this->once())
+            ->method('debug')
+            ->with('Called HealerTemplate::defaultAction');
 
         $scene->expects($this->atLeastOnce())
             ->method(PropertyHook::get("templateConfig"))
             ->willReturn($this->getDefaultTemplateConfig());
 
-        $this->security->expects($this->once())
+        $security = $this->createMock(Security::class);
+        $security->expects($this->once())
             ->method('isGranted')
             ->with('ROLE_CHEATS_ENABLED')
             ->willReturn(false);
 
-        $this->healerTemplate->setSceneChangeParameter($stage, $action, $scene);
-        $this->healerTemplate->onSceneChange();
+        $handlerRegistry = $this->getStubbedHandlerRegistry(healthHandler: $healthHandler);
+
+        $healerTemplate = new HealerTemplate($logger, $security, $handlerRegistry);
+        $healerTemplate->setSceneChangeParameter($stage, $action, $scene);
+        $healerTemplate->onSceneChange();
     }
 
     public function testDefaultActionWhenDead(): void
     {
-        $stage = $this->createMock(Stage::class);
-        $action = $this->createMock(Action::class);
-        $scene = $this->createMock(Scene::class);
-        $character = $this->createMock(Character::class);
-        $stage->method(PropertyHook::get("owner"))->willReturn($character);
+        [$stage, $action, $scene, $character] = $this->getStageMocks(
+            actionMap: 'never',
+            templateConfig: false,
+        );
 
-        $this->logger->expects($this->once())
+        $logger = $this->createMock(LoggerInterface::class);
+        $logger->expects($this->once())
             ->method('debug')
             ->with('Called HealerTemplate::defaultAction');
 
-        $this->health->expects($this->once())
+        $healthHandler = $this->createMock(HealthHandler::class);
+        $healthHandler->expects($this->once())
             ->method('isAlive')
             ->willReturn(false);
 
@@ -274,45 +333,44 @@ class HealerTemplateTest extends TestCase
                 $this->assertEquals([], $paragraph->context);
             });
 
-        $this->security->expects($this->once())
+        $security = $this->createMock(Security::class);
+        $security->expects($this->once())
             ->method('isGranted')
             ->with('ROLE_CHEATS_ENABLED')
             ->willReturn(false);
 
-        $this->healerTemplate->setSceneChangeParameter($stage, $action, $scene);
-        $this->healerTemplate->defaultAction();
+        $handlerRegistry = $this->getStubbedHandlerRegistry(healthHandler: $healthHandler);
+
+        $healerTemplate = new HealerTemplate($logger, $security, $handlerRegistry);
+        $healerTemplate->setSceneChangeParameter($stage, $action, $scene);
+        $healerTemplate->defaultAction();
     }
 
     public function testDefaultActionWhenHealthy(): void
     {
-        $stage = $this->createMock(Stage::class);
-        $action = $this->createStub(Action::class);
-        $scene = $this->createMock(Scene::class);
-        $character = $this->createMock(Character::class);
-        $stage->method(PropertyHook::get("owner"))->willReturn($character);
+        [$stage, $action, $scene, $character] = $this->getStageMocks(
+            actionMap: "never",
+        );
 
-        $this->logger->expects($this->once())
+        $logger = $this->createMock(LoggerInterface::class);
+        $logger->expects($this->once())
             ->method('debug')
             ->with('Called HealerTemplate::defaultAction');
 
-        $this->health->expects($this->once())
+        $healthHandler = $this->createMock(HealthHandler::class);
+        $healthHandler->expects($this->once())
             ->method('isAlive')
             ->willReturn(true);
-
-        $this->health->expects($this->atLeastOnce())
+        $healthHandler->expects($this->atLeastOnce())
             ->method('getHealth')
             ->willReturn(100);
-
-        $this->health->expects($this->atLeastOnce())
+        $healthHandler->expects($this->atLeastOnce())
             ->method('getMaxHealth')
             ->willReturn(100);
 
-        $this->gold->expects($this->never())
+        $wealthHandler = $this->createMock(WealthHandler::class);
+        $wealthHandler->expects($this->never())
             ->method('getGold');
-
-        $scene->expects($this->atLeastOnce())
-            ->method(PropertyHook::get("templateConfig"))
-            ->willReturn($this->getDefaultTemplateConfig());
 
         $stage->expects($this->once())
             ->method('addParagraph')
@@ -322,52 +380,49 @@ class HealerTemplateTest extends TestCase
                 return $stage;
             });
 
-        $this->security->expects($this->once())
+        $security = $this->createMock(Security::class);
+        $security->expects($this->once())
             ->method('isGranted')
             ->with('ROLE_CHEATS_ENABLED')
             ->willReturn(false);
 
-        $this->healerTemplate->setSceneChangeParameter($stage, $action, $scene);
-        $this->healerTemplate->defaultAction();
+        $handlerRegistry = $this->getStubbedHandlerRegistry(healthHandler: $healthHandler);
+
+        $healerTemplate = new HealerTemplate($logger, $security, $handlerRegistry);
+        $healerTemplate->setSceneChangeParameter($stage, $action, $scene);
+        $healerTemplate->defaultAction();
     }
 
     public function testDefaultActionWhenDamaged(): void
     {
-        $stage = $this->createMock(Stage::class);
-        $action = $this->createStub(Action::class);
-        $scene = $this->createMock(Scene::class);
-        $character = $this->createMock(Character::class);
+        [$stage, $action, $scene, $character] = $this->getStageMocks(
+            actionMap: "never",
+            characterLevel: 3,
+        );
 
-        $this->logger->expects($this->once())
+        $logger = $this->createMock(LoggerInterface::class);
+        $logger->expects($this->once())
             ->method('debug')
             ->with('Called HealerTemplate::defaultAction');
 
-        $this->health->expects($this->once())
+        $healthHandler = $this->createMock(HealthHandler::class);
+        $healthHandler->expects($this->once())
             ->method('isAlive')
             ->willReturn(true);
-
-        $this->health->expects($this->atLeast(1))
+        $healthHandler->expects($this->atLeast(1))
             ->method('getHealth')
             ->willReturn(50);
-
-        $this->health->expects($this->atLeast(1))
+        $healthHandler->expects($this->atLeast(1))
             ->method('getMaxHealth')
             ->willReturn(100);
 
-        $this->gold->expects($this->never())
+        $wealthHandler = $this->createMock(WealthHandler::class);
+        $wealthHandler->expects($this->never())
             ->method('getGold');
 
         $scene->expects($this->atLeastOnce())
             ->method(PropertyHook::get("templateConfig"))
             ->willReturn($this->getDefaultTemplateConfig());
-
-        $character->expects($this->atLeastOnce())
-            ->method(PropertyHook::get("level"))
-            ->willReturn(3);
-
-        $stage->expects($this->atLeastOnce())
-            ->method(PropertyHook::get("owner"))
-            ->willReturn($character);
 
         $stage->expects($this->once())
             ->method("addParagraph")
@@ -383,46 +438,44 @@ class HealerTemplateTest extends TestCase
         $stage->expects($this->once())
             ->method('addActionGroup');
 
-        $this->security->expects($this->once())
+        $security = $this->createMock(Security::class);
+        $security->expects($this->once())
             ->method('isGranted')
             ->with('ROLE_CHEATS_ENABLED')
             ->willReturn(false);
 
-        $this->healerTemplate->setSceneChangeParameter($stage, $action, $scene);
-        $this->healerTemplate->defaultAction();
+        $handlerRegistry = $this->getStubbedHandlerRegistry(healthHandler: $healthHandler);
+
+        $healerTemplate = new HealerTemplate($logger, $security, $handlerRegistry);
+        $healerTemplate->setSceneChangeParameter($stage, $action, $scene);
+        $healerTemplate->defaultAction();
     }
 
     public function testDefaultActionWhenOverhealed(): void
     {
-        $stage = $this->createMock(Stage::class);
-        $action = $this->createStub(Action::class);
-        $scene = $this->createMock(Scene::class);
-        $character = $this->createMock(Character::class);
-        $stage->method(PropertyHook::get("owner"))->willReturn($character);
+        [$stage, $action, $scene, $character] = $this->getStageMocks(
+            actionMap: 'never',
+        );
 
-        $this->logger->expects($this->once())
+        $logger = $this->createMock(LoggerInterface::class);
+        $logger->expects($this->once())
             ->method('debug')
             ->with('Called HealerTemplate::defaultAction');
 
-        $this->health->expects($this->once())
+        $healthHandler = $this->createMock(HealthHandler::class);
+        $healthHandler->expects($this->once())
             ->method('isAlive')
             ->willReturn(true);
-
-        $this->health->expects($this->exactly(2))
+        $healthHandler->expects($this->atLeastOnce())
             ->method('getHealth')
             ->willReturn(150);
-
-        $this->health->expects($this->exactly(2))
+        $healthHandler->expects($this->atLeastOnce())
             ->method('getMaxHealth')
             ->willReturn(100);
 
-        $this->gold->expects($this->never())
+        $wealthHandler = $this->createMock(WealthHandler::class);
+        $wealthHandler->expects($this->never())
             ->method('getGold');
-
-        $scene->expects($this->atLeastOnce())
-            ->method(PropertyHook::get("templateConfig"))
-            ->willReturn($this->getDefaultTemplateConfig());
-
 
         $stage->expects($this->once())
             ->method('addParagraph')
@@ -432,48 +485,48 @@ class HealerTemplateTest extends TestCase
                 return $stage;
             });
 
-        $this->security->expects($this->once())
+        $security = $this->createMock(Security::class);
+        $security->expects($this->once())
             ->method('isGranted')
             ->with('ROLE_CHEATS_ENABLED')
             ->willReturn(false);
 
-        $this->healerTemplate->setSceneChangeParameter($stage, $action, $scene);
-        $this->healerTemplate->defaultAction();
+        $handlerRegistry = $this->getStubbedHandlerRegistry($healthHandler, $wealthHandler);
+
+        $healerTemplate = new HealerTemplate($logger, $security, $handlerRegistry);
+        $healerTemplate->setSceneChangeParameter($stage, $action, $scene);
+        $healerTemplate->defaultAction();
     }
 
     public function testDefaultActionWhenOverhealedButStealHealthDisabled(): void
     {
-        $stage = $this->createMock(Stage::class);
-        $action = $this->createStub(Action::class);
-        $scene = $this->createMock(Scene::class);
-        $character = $this->createMock(Character::class);
-        $stage->method(PropertyHook::get("owner"))->willReturn($character);
-
-        $this->logger->expects($this->once())
-            ->method('debug')
-            ->with('Called HealerTemplate::defaultAction');
-
-        $this->health->expects($this->once())
-            ->method('isAlive')
-            ->willReturn(true);
-
-        $this->health->expects($this->atLeastOnce())
-            ->method('getHealth')
-            ->willReturn(150);
-
-        $this->health->expects($this->atLeastOnce())
-            ->method('getMaxHealth')
-            ->willReturn(100);
-
-        $this->gold->expects($this->never())
-            ->method('getGold');
-
         $templateConfig = $this->getDefaultTemplateConfig();
         $templateConfig["stealHealth"] = false;
 
-        $scene->expects($this->atLeastOnce())
-            ->method(PropertyHook::get("templateConfig"))
-            ->willReturn($templateConfig);
+        [$stage, $action, $scene, $character] = $this->getStageMocks(
+            actionMap: 'never',
+            templateConfig: $templateConfig,
+        );
+
+        $logger = $this->createMock(LoggerInterface::class);
+        $logger->expects($this->once())
+            ->method('debug')
+            ->with('Called HealerTemplate::defaultAction');
+
+        $healthHandler = $this->createMock(HealthHandler::class);
+        $healthHandler->expects($this->once())
+            ->method('isAlive')
+            ->willReturn(true);
+        $healthHandler->expects($this->atLeastOnce())
+            ->method('getHealth')
+            ->willReturn(150);
+        $healthHandler->expects($this->atLeastOnce())
+            ->method('getMaxHealth')
+            ->willReturn(100);
+
+        $wealthHandler = $this->createMock(WealthHandler::class);
+        $wealthHandler->expects($this->never())
+            ->method('getGold');
 
         $stage->expects($this->once())
             ->method('addParagraph')
@@ -483,31 +536,47 @@ class HealerTemplateTest extends TestCase
                 return $stage;
             });
 
-        $this->security->expects($this->once())
+        $security = $this->createMock(Security::class);
+        $security->expects($this->once())
             ->method('isGranted')
             ->with('ROLE_CHEATS_ENABLED')
             ->willReturn(false);
 
-        $this->healerTemplate->setSceneChangeParameter($stage, $action, $scene);
-        $this->healerTemplate->defaultAction();
+        $handlerRegistry = $this->getStubbedHandlerRegistry($healthHandler, $wealthHandler);
+
+        $healerTemplate = new HealerTemplate($logger, $security, $handlerRegistry);
+        $healerTemplate->setSceneChangeParameter($stage, $action, $scene);
+        $healerTemplate->defaultAction();
     }
 
     public function testDefaultActionWithCheats(): void
     {
-        $stage = $this->createMock(Stage::class);
-        $action = $this->createStub(Action::class);
-        $scene = $this->createMock(Scene::class);
-        $character = $this->createMock(Character::class);
-        $stage->method(PropertyHook::get("owner"))->willReturn($character);
+        [$stage, $action, $scene, $character] = $this->getStageMocks(
+            actionMap: 'never',
+        );
 
-        $this->logger->expects($this->once())
+        $logger = $this->createMock(LoggerInterface::class);
+        $logger->expects($this->once())
             ->method('debug')
             ->with('Called HealerTemplate::defaultAction');
 
-        $this->gold->expects($this->never())
+        $wealthHandler = $this->createMock(WealthHandler::class);
+        $wealthHandler->expects($this->never())
             ->method('getGold');
 
-        $this->security->expects($this->once())
+        $healthHandler = $this->createMock(HealthHandler::class);
+        $healthHandler->expects($this->once())
+            ->method('isAlive')
+            ->willReturn(true);
+        $healthHandler->expects($this->atLeastOnce())
+            ->method('getHealth')
+            ->willReturn(100);
+        $healthHandler->expects($this->atLeastOnce())
+            ->method('getMaxHealth')
+            ->willReturn(100);
+
+        $security = $this->createMock(Security::class);
+        $security->expects($this->once())
             ->method('isGranted')
             ->with('ROLE_CHEATS_ENABLED')
             ->willReturn(true);
@@ -520,49 +589,47 @@ class HealerTemplateTest extends TestCase
                     && count($actionGroup->getActions()) === 1;
             }));
 
-        $this->healerTemplate->setSceneChangeParameter($stage, $action, $scene);
-        $this->healerTemplate->defaultAction();
+        $handlerRegistry = $this->getStubbedHandlerRegistry($healthHandler, $wealthHandler);
+
+        $healerTemplate = new HealerTemplate($logger, $security, $handlerRegistry);
+        $healerTemplate->setSceneChangeParameter($stage, $action, $scene);
+        $healerTemplate->defaultAction();
     }
 
     public function testHealActionWithEnoughGold(): void
     {
-        $stage = $this->createMock(Stage::class);
-        $action = $this->createMock(Action::class);
-        $scene = $this->createMock(Scene::class);
-        $character = $this->createMock(Character::class);
+        [$stage, $action, $scene, $character] = $this->getStageMocks(
+            characterId: 456,
+            actionMap: [
+                ['amount', null, 30],
+                ['price', null, 50],
+            ],
+        );
 
-        $this->logger->expects($this->exactly(2))
+        $logger = $this->createMock(LoggerInterface::class);
+        $logger->expects($this->exactly(2))
             ->method('debug')
             ->willReturnMap([
                 ['456: Healed by 30 for 50 gold.'],
-                ['Called HealerTemplate::defaultAction']
+                ['Called HealerTemplate::defaultAction'],
             ]);
 
-        $this->security->expects($this->never())
+        $security = $this->createMock(Security::class);
+        $security->expects($this->never())
             ->method('isGranted');
 
-        $action->expects($this->exactly(2))
-            ->method('getParameter')
-            ->willReturnMap([
-                ['amount', 30],
-                ['price', 50]
-            ]);
-
-        $character->expects($this->atLeastOnce())
-            ->method(PropertyHook::get("id"))
-            ->willReturn(456);
-
-        $stage->expects($this->atLeastOnce())
-            ->method(PropertyHook::get("owner"))
-            ->willReturn($character);
-
-        $this->gold->expects($this->once())
+        $wealthHandler = $this->createMock(WealthHandler::class);
+        $wealthHandler->expects($this->once())
             ->method('getGold')
             ->willReturn(100);
+        $wealthHandler->expects($this->once())
+            ->method('addGold')
+            ->with($character, -50);
 
-        $scene->expects($this->atLeastOnce())
-            ->method(PropertyHook::get("templateConfig"))
-            ->willReturn($this->getDefaultTemplateConfig());
+        $healthHandler = $this->createMock(HealthHandler::class);
+        $healthHandler->expects($this->once())
+            ->method('heal')
+            ->with($character, 30);
 
         $stage->expects($this->once())
             ->method(PropertyHook::set("paragraphs"))
@@ -580,104 +647,78 @@ class HealerTemplateTest extends TestCase
                 return $stage;
             });
 
-        $this->health->expects($this->once())
-            ->method('heal')
-            ->with($character, 30);
+        $handlerRegistry = $this->getStubbedHandlerRegistry($healthHandler, $wealthHandler);
 
-        $this->gold->expects($this->once())
-            ->method('addGold')
-            ->with($character, -50);
-
-        $this->healerTemplate->setSceneChangeParameter($stage, $action, $scene);
-        $this->healerTemplate->healAction();
+        $healerTemplate = new HealerTemplate($logger, $security, $handlerRegistry);
+        $healerTemplate->setSceneChangeParameter($stage, $action, $scene);
+        $healerTemplate->healAction();
     }
 
     public function testHealActionWithNotEnoughGold(): void
     {
-        $stage = $this->createMock(Stage::class);
-        $action = $this->createMock(Action::class);
-        $scene = $this->createMock(Scene::class);
-        $character = $this->createMock(Character::class);
+        [$stage, $action, $scene, $character] = $this->getStageMocks(
+            actionMap: [
+                ['amount', null, 30],
+                ['price', null, 50],
+            ],
+        );
 
-        $this->logger->expects($this->once())
+        $logger = $this->createMock(LoggerInterface::class);
+        $logger->expects($this->once())
             ->method('debug')
             ->with('Called HealerTemplate::defaultAction');
 
-        $action->expects($this->exactly(2))
-            ->method('getParameter')
-            ->willReturnMap([
-                ['amount', 30],
-                ['price', 50]
-            ]);
-
-        $stage->expects($this->atLeastOnce())
-            ->method(PropertyHook::get("owner"))
-            ->willReturn($character);
-
-        $this->gold->expects($this->once())
+        $wealthHandler = $this->createMock(WealthHandler::class);
+        $wealthHandler->expects($this->once())
             ->method('getGold')
             ->willReturn(20);
+        $wealthHandler->expects($this->never())
+            ->method('addGold');
 
-        $scene->expects($this->atLeastOnce())
-            ->method(PropertyHook::get("templateConfig"))
-            ->willReturn($this->getDefaultTemplateConfig());
+        $healthHandler = $this->createMock(HealthHandler::class);
+        $healthHandler->expects($this->never())
+            ->method('heal');
+
+        $security = $this->createStub(Security::class);
 
         $stage->expects($this->once())
             ->method(PropertyHook::set("paragraphs"))
-            ->willReturnCallback(function ($value) use ($stage) {
-                $this->assertSame("lotgd2.paragraph.healerTemplate.onHealNotEnoughGold", $value[0]->id);
-                $this->assertSame('Not enough gold! Need {{ price }} gold.', $value[0]->text);
+            ->willReturnCallback(function (array $paragraphs) use ($stage) {
+                $this->assertSame("lotgd2.paragraph.healerTemplate.onHealNotEnoughGold", $paragraphs[0]->id);
+                $this->assertSame('Not enough gold! Need {{ price }} gold.', $paragraphs[0]->text);
                 $this->assertSame([
-                    "price" => 50
-                ], $value[0]->context);
+                    "price" => 50,
+                ], $paragraphs[0]->context);
                 return $stage;
             });
 
-        $this->health->expects($this->never())
-            ->method('heal');
+        $handlerRegistry = $this->getStubbedHandlerRegistry($healthHandler, $wealthHandler);
 
-        $this->gold->expects($this->never())
-            ->method('addGold');
-
-        $this->healerTemplate->setSceneChangeParameter($stage, $action, $scene);
-        $this->healerTemplate->healAction();
+        $healerTemplate = new HealerTemplate($logger, $security, $handlerRegistry);
+        $healerTemplate->setSceneChangeParameter($stage, $action, $scene);
+        $healerTemplate->healAction();
     }
 
     public function testHealActionWithFreeHealing(): void
     {
-        $stage = $this->createMock(Stage::class);
-        $action = $this->createMock(Action::class);
-        $scene = $this->createMock(Scene::class);
-        $character = $this->createMock(Character::class);
-        $stage->method(PropertyHook::get("owner"))->willReturn($character);
+        [$stage, $action, $scene, $character] = $this->getStageMocks(
+            characterId: 789,
+            actionMap: [
+                ['amount', null, 30],
+                ['price', null, 0],
+            ],
+        );
 
-        $this->logger->expects($this->exactly(2))
+        $logger = $this->createMock(LoggerInterface::class);
+        $logger->expects($this->exactly(2))
             ->method('debug')
             ->willReturnMap([
                 ['Called HealerTemplate::defaultAction'],
                 ['789: Healed by 30 for 0 gold.'],
             ]);
 
-        $this->security->expects($this->never())->method('isGranted');
-
-        $action->expects($this->exactly(2))
-            ->method('getParameter')
-            ->willReturnMap([
-                ['amount', 30],
-                ['price', 0]
-            ]);
-
-        $character->expects($this->atLeastOnce())
-            ->method(PropertyHook::get("id"))
-            ->willReturn(789);
-
-        $stage->expects($this->atLeastOnce())
-            ->method(PropertyHook::get("owner"))
-            ->willReturn($character);
-
-        $scene->expects($this->atLeastOnce())
-            ->method(PropertyHook::get("templateConfig"))
-            ->willReturn($this->getDefaultTemplateConfig());
+        $security = $this->createMock(Security::class);
+        $security->expects($this->never())->method('isGranted');
 
         $stage->expects($this->once())
             ->method(PropertyHook::set("paragraphs"))
@@ -695,39 +736,52 @@ class HealerTemplateTest extends TestCase
                 return $stage;
             });
 
-        $this->health->expects($this->once())
+        $healthHandler = $this->createMock(HealthHandler::class);
+        $healthHandler->expects($this->once())
             ->method('heal')
             ->with($character, 30);
 
-        $this->gold->expects($this->once())
+        $wealthHandler = $this->createMock(WealthHandler::class);
+        $wealthHandler->expects($this->once())
             ->method('addGold')
             ->with($character, 0);
 
-        $this->healerTemplate->setSceneChangeParameter($stage, $action, $scene);
-        $this->healerTemplate->healAction();
+        $handlerRegistry = $this->getStubbedHandlerRegistry($healthHandler, $wealthHandler);
+
+        $healerTemplate = new HealerTemplate($logger, $security, $handlerRegistry);
+        $healerTemplate->setSceneChangeParameter($stage, $action, $scene);
+        $healerTemplate->healAction();
     }
 
     public function testGetPriceCalculation(): void
     {
         $character = $this->createMock(Character::class);
-
-        $this->logger->expects($this->never())->method('debug');
-        $this->security->expects($this->never())->method('isGranted');
-        $this->gold->expects($this->never())->method('getGold');
-
         $character->expects($this->once())
             ->method(PropertyHook::get("level"))
             ->willReturn(5);
 
-        $this->health->expects($this->once())
+        $logger = $this->createMock(LoggerInterface::class);
+        $logger->expects($this->never())->method('debug');
+
+        $security = $this->createMock(Security::class);
+        $security->expects($this->never())->method('isGranted');
+
+        $healthHandler = $this->createMock(HealthHandler::class);
+        $healthHandler->expects($this->once())
             ->method('getMaxHealth')
             ->willReturn(100);
-
-        $this->health->expects($this->once())
+        $healthHandler->expects($this->once())
             ->method('getHealth')
             ->willReturn(60);
 
-        $price = $this->healerTemplate->getPrice($character);
+        $wealthHandler = $this->createMock(WealthHandler::class);
+        $wealthHandler->expects($this->never())->method('getGold');
+
+        $handlerRegistry = $this->getStubbedHandlerRegistry($healthHandler, $wealthHandler);
+
+        $healerTemplate = new HealerTemplate($logger, $security, $handlerRegistry);
+
+        $price = $healerTemplate->getPrice($character);
 
         $this->assertIsInt($price);
         $this->assertGreaterThanOrEqual(0, $price);
@@ -740,24 +794,32 @@ class HealerTemplateTest extends TestCase
     public function testGetPriceWithLevelZero(): void
     {
         $character = $this->createMock(Character::class);
-
-        $this->logger->expects($this->never())->method('debug');
-        $this->security->expects($this->never())->method('isGranted');
-        $this->gold->expects($this->never())->method('getGold');
-
         $character->expects($this->once())
             ->method(PropertyHook::get("level"))
             ->willReturn(0);
 
-        $this->health->expects($this->once())
+        $logger = $this->createMock(LoggerInterface::class);
+        $logger->expects($this->never())->method('debug');
+
+        $security = $this->createMock(Security::class);
+        $security->expects($this->never())->method('isGranted');
+
+        $healthHandler = $this->createMock(HealthHandler::class);
+        $healthHandler->expects($this->once())
             ->method('getMaxHealth')
             ->willReturn(100);
-
-        $this->health->expects($this->once())
+        $healthHandler->expects($this->once())
             ->method('getHealth')
             ->willReturn(50);
 
-        $price = $this->healerTemplate->getPrice($character);
+        $wealthHandler = $this->createMock(WealthHandler::class);
+        $wealthHandler->expects($this->never())->method('getGold');
+
+        $handlerRegistry = $this->getStubbedHandlerRegistry($healthHandler, $wealthHandler);
+
+        $healerTemplate = new HealerTemplate($logger, $security, $handlerRegistry);
+
+        $price = $healerTemplate->getPrice($character);
 
         // With level 0, it should be treated as level 1
         $expectedPrice = (int)round(log(1) * (100 - 50 + 10));
@@ -767,34 +829,27 @@ class HealerTemplateTest extends TestCase
 
     public function testAddPotionActionsWithFreeHealing(): void
     {
-        $stage = $this->createMock(Stage::class);
-        $scene = $this->createMock(Scene::class);
-        $action = $this->createMock(Action::class);
-        $character = $this->createMock(Character::class);
+        [$stage, $action, $scene, $character] = $this->getStageMocks(
+            characterLevel: 1,
+            actionMap: 'never',
+        );
 
-        $this->logger->expects($this->never())->method('debug');
-        $this->security->expects($this->never())->method('isGranted');
-        $this->gold->expects($this->never())->method('getGold');
+        $logger = $this->createMock(LoggerInterface::class);
+        $logger->expects($this->never())->method('debug');
 
-        $scene->expects($this->atLeastOnce())
-            ->method(PropertyHook::get("templateConfig"))
-            ->willReturn($this->getDefaultTemplateConfig());
+        $security = $this->createMock(Security::class);
+        $security->expects($this->never())->method('isGranted');
 
-        $character->expects($this->atLeastOnce())
-            ->method(PropertyHook::get("level"))
-            ->willReturn(1);
-
-        $stage->expects($this->atLeastOnce())
-            ->method(PropertyHook::get("owner"))
-            ->willReturn($character);
-
-        $this->health->expects($this->atLeastOnce())
+        $healthHandler = $this->createMock(HealthHandler::class);
+        $healthHandler->expects($this->atLeastOnce())
             ->method('getMaxHealth')
             ->willReturn(100);
-
-        $this->health->expects($this->exactly(2))
+        $healthHandler->expects($this->atLeastOnce())
             ->method('getHealth')
             ->willReturn(50);
+
+        $wealthHandler = $this->createMock(WealthHandler::class);
+        $wealthHandler->expects($this->never())->method('getGold');
 
         // For level 1, price should be 0 (free healing)
         $stage->expects($this->once())
@@ -807,40 +862,36 @@ class HealerTemplateTest extends TestCase
                     && $actionGroup->getTitle() === 'Potions';
             }));
 
-        $this->healerTemplate->setSceneChangeParameter($stage, $action, $scene);
-        $this->healerTemplate->addPotionActions();
+        $handlerRegistry = $this->getStubbedHandlerRegistry($healthHandler, $wealthHandler);
+
+        $healerTemplate = new HealerTemplate($logger, $security, $handlerRegistry);
+        $healerTemplate->setSceneChangeParameter($stage, $action, $scene);
+        $healerTemplate->addPotionActions();
     }
 
     public function testAddPotionActionsWithPaidHealing(): void
     {
-        $stage = $this->createMock(Stage::class);
-        $scene = $this->createMock(Scene::class);
-        $action = $this->createMock(Action::class);
-        $character = $this->createMock(Character::class);
+        [$stage, $action, $scene, $character] = $this->getStageMocks(
+            characterLevel: 5,
+            actionMap: 'never',
+        );
 
-        $this->logger->expects($this->never())->method('debug');
-        $this->security->expects($this->never())->method('isGranted');
-        $this->gold->expects($this->never())->method('getGold');
+        $logger = $this->createMock(LoggerInterface::class);
+        $logger->expects($this->never())->method('debug');
 
-        $scene->expects($this->atLeastOnce())
-            ->method(PropertyHook::get("templateConfig"))
-            ->willReturn($this->getDefaultTemplateConfig());
+        $security = $this->createMock(Security::class);
+        $security->expects($this->never())->method('isGranted');
 
-        $character->expects($this->atLeastOnce())
-            ->method(PropertyHook::get("level"))
-            ->willReturn(5);
-
-        $stage->expects($this->atLeastOnce())
-            ->method(PropertyHook::get("owner"))
-            ->willReturn($character);
-
-        $this->health->expects($this->atLeastOnce())
+        $healthHandler = $this->createMock(HealthHandler::class);
+        $healthHandler->expects($this->atLeastOnce())
             ->method('getMaxHealth')
             ->willReturn(100);
-
-        $this->health->expects($this->exactly(2))
+        $healthHandler->expects($this->atLeastOnce())
             ->method('getHealth')
             ->willReturn(20);
+
+        $wealthHandler = $this->createMock(WealthHandler::class);
+        $wealthHandler->expects($this->never())->method('getGold');
 
         // For level 5, price should be > 0
         $stage->expects($this->once())
@@ -853,8 +904,11 @@ class HealerTemplateTest extends TestCase
                     && $actionGroup->getTitle() === 'Potions';
             }));
 
-        $this->healerTemplate->setSceneChangeParameter($stage, $action, $scene);
-        $this->healerTemplate->addPotionActions();
+        $handlerRegistry = $this->getStubbedHandlerRegistry($healthHandler, $wealthHandler);
+
+        $healerTemplate = new HealerTemplate($logger, $security, $handlerRegistry);
+        $healerTemplate->setSceneChangeParameter($stage, $action, $scene);
+        $healerTemplate->addPotionActions();
     }
 
     public function testConstants(): void

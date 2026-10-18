@@ -15,6 +15,7 @@ use LotGD2\Entity\Mapped\Stage;
 use LotGD2\Entity\Paragraph;
 use LotGD2\Game\Battle\Battle;
 use LotGD2\Game\GameStateService;
+use LotGD2\Game\Handler\HandlerRegistry;
 use LotGD2\Game\Handler\WealthHandler;
 use LotGD2\Game\Handler\HealthHandler;
 use LotGD2\Game\Handler\StatsHandler;
@@ -43,64 +44,157 @@ use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
 #[UsesClass(Paragraph::class)]
 #[UsesClass(BattleState::class)]
 #[AllowMockObjectsWithoutExpectations]
+#[UsesClass(HandlerRegistry::class)]
 class FightTemplateTest extends TestCase
 {
-    private FightTemplate $fightTemplate;
-    private Security&MockObject $security;
-    private LoggerInterface&MockObject $logger;
-    private AttachmentRepository&MockObject $attachmentRepository;
-    private StatsHandler&MockObject $stats;
-    private DiceBagInterface&MockObject $diceBag;
-    private CreatureRepository&MockObject $creatureRepository;
-    private Battle&MockObject $battle;
-    private HealthHandler&MockObject $health;
-    private WealthHandler&MockObject $gold;
-    private EventDispatcherInterface&MockObject $eventDispatcher;
-    private SpecialService&Stub $specialService;
-
-    protected function setUp(): void
+    private function getDefaultTemplateConfig(): array
     {
-        $this->security = $this->createMock(Security::class);
-        $this->logger = $this->createMock(LoggerInterface::class);
-        $this->attachmentRepository = $this->createMock(AttachmentRepository::class);
-        $this->stats = $this->createMock(StatsHandler::class);
-        $this->diceBag = $this->createMock(DiceBagInterface::class);
-        $this->creatureRepository = $this->createMock(CreatureRepository::class);
-        $this->battle = $this->createMock(Battle::class);
-        $this->health = $this->createMock(HealthHandler::class);
-        $this->gold = $this->createMock(WealthHandler::class);
-        $this->eventDispatcher = $this->createMock(EventDispatcherInterface::class);
-        $this->specialService = $this->createStub(SpecialService::class);
-
-        $this->fightTemplate = new FightTemplate(
-            $this->security,
-            $this->logger,
-            $this->eventDispatcher,
-            $this->attachmentRepository,
-            $this->diceBag,
-            $this->creatureRepository,
-            $this->battle,
-            $this->health,
-            $this->stats,
-            $this->gold,
-            $this->specialService,
-            $this->createStub(GameStateService::class),
-        );
+        return [
+            'searchFightAction' => 'Search for a fight',
+            'searchSlummingAction' => 'Go slumming',
+            'searchThrillseekingAction' => 'Go thrillseeking',
+        ];
     }
 
-    public function testOnSceneChangeWithDefaultAction(): void
-    {
+    /**
+     * @param string[][]|"never"|null $actionMap
+     * @param array<string, mixed>|bool $templateConfig
+     * @return array{Stage&MockObject, Action&MockObject, Scene&MockObject, Character&MockObject}
+     * @throws \PHPUnit\Framework\MockObject\Exception
+     */
+    private function getStageMocks(
+        int $characterId = 123,
+        int $characterLevel = 5,
+        null|array|string $actionMap = null,
+        bool|array $templateConfig = true,
+        string $sceneTitle = 'Forest',
+    ): array {
         $stage = $this->createMock(Stage::class);
         $action = $this->createMock(Action::class);
         $scene = $this->createMock(Scene::class);
         $character = $this->createMock(Character::class);
+
+        if ($actionMap === 'never') {
+            $action->expects($this->never())
+                ->method('getParameter');
+        } elseif (is_array($actionMap)) {
+            $action->expects($this->atLeastOnce())
+                ->method('getParameter')
+                ->willReturnMap($actionMap);
+        }
+
+        if ($templateConfig === false) {
+            $scene->expects($this->never())
+                ->method(PropertyHook::get("templateConfig"));
+        } else {
+            $config = is_array($templateConfig) ? $templateConfig : $this->getDefaultTemplateConfig();
+            $scene->expects($this->atLeastOnce())
+                ->method(PropertyHook::get("templateConfig"))
+                ->willReturn($config);
+        }
+
+        $scene->method(PropertyHook::get("title"))
+            ->willReturn($sceneTitle);
+
+        $stage->expects($this->atLeastOnce())
+            ->method(PropertyHook::get("owner"))
+            ->willReturn($character);
+
+        $character->method(PropertyHook::get("id"))
+            ->willReturn($characterId);
+
+        $character->method(PropertyHook::get("level"))
+            ->willReturn($characterLevel);
+
+        return [$stage, $action, $scene, $character];
+    }
+
+    private function getStubbedHandlerRegistry(
+        ?StatsHandler $statsHandler = null,
+        ?WealthHandler $wealthHandler = null,
+        ?HealthHandler $healthHandler = null,
+    ): HandlerRegistry {
+        $handlerRegistry = $this->createStub(HandlerRegistry::class);
+        $handlerRegistry->method("get")
+            ->willReturnMap([
+                [StatsHandler::class, $statsHandler ?? $this->createStub(StatsHandler::class)],
+                [WealthHandler::class, $wealthHandler ?? $this->createStub(WealthHandler::class)],
+                [HealthHandler::class, $healthHandler ?? $this->createStub(HealthHandler::class)],
+            ]);
+        return $handlerRegistry;
+    }
+
+    /**
+     * @param string[] $onlyMethods
+     * @return ($onlyMethods is non-empty-array ? ($returnAsMock is true ? FightTemplate&MockObject : FightTemplate&Stub) : FightTemplate)
+     */
+    private function getPartialTemplate(
+        array $onlyMethods = [],
+        bool $returnAsMock = true,
+        ?Security $security = null,
+        ?LoggerInterface $logger = null,
+        ?EventDispatcherInterface $eventDispatcher = null,
+        ?AttachmentRepository $attachmentRepository = null,
+        ?DiceBagInterface $diceBag = null,
+        ?CreatureRepository $creatureRepository = null,
+        ?Battle $battle = null,
+        ?HandlerRegistry $handlerRegistry = null,
+        ?StatsHandler $stats = null,
+        ?WealthHandler $gold = null,
+        ?HealthHandler $health = null,
+        ?SpecialService $specialService = null,
+        ?GameStateService $gameStateService = null,
+    ): FightTemplate {
+        if ($handlerRegistry === null) {
+            $handlerRegistry = $this->getStubbedHandlerRegistry($stats, $gold, $health);
+        }
+
+        $constructorArgs = [
+            $security ?? $this->createStub(Security::class),
+            $logger ?? $this->createStub(LoggerInterface::class),
+            $eventDispatcher ?? $this->createStub(EventDispatcherInterface::class),
+            $attachmentRepository ?? $this->createStub(AttachmentRepository::class),
+            $diceBag ?? $this->createStub(DiceBagInterface::class),
+            $creatureRepository ?? $this->createStub(CreatureRepository::class),
+            $battle ?? $this->createStub(Battle::class),
+            $handlerRegistry,
+            $specialService ?? $this->createStub(SpecialService::class),
+            $gameStateService ?? $this->createStub(GameStateService::class),
+        ];
+
+        if (empty($onlyMethods)) {
+            return new FightTemplate(...$constructorArgs);
+        }
+
+        if ($returnAsMock) {
+            $stubOrMock = $this->getMockBuilder(FightTemplate::class);
+        } else {
+            $stubOrMock = $this->getStubBuilder(FightTemplate::class);
+        }
+
+        $stubOrMock = $stubOrMock->onlyMethods($onlyMethods)
+            ->setConstructorArgs($constructorArgs);
+
+        if ($returnAsMock) {
+            return $stubOrMock->getMock();
+        } else {
+            return $stubOrMock->getStub();
+        }
+    }
+
+    public function testOnSceneChangeWithDefaultAction(): void
+    {
+        [$stage, $action, $scene, $character] = $this->getStageMocks(
+            characterLevel: 5,
+        );
 
         $action->expects($this->once())
             ->method('getParameter')
             ->with('op')
             ->willReturn('unknown');
 
-        $this->logger->expects($this->exactly(2))
+        $logger = $this->createMock(LoggerInterface::class);
+        $logger->expects($this->exactly(2))
             ->method('debug')
             ->willReturnCallback(function (string $message) {
                 return match ($message) {
@@ -108,53 +202,37 @@ class FightTemplateTest extends TestCase
                     'Called FightTemplate::defaultAction' => true,
                     default => throw new \Exception(),
                 };
-            })
-        ;
+            });
 
-        $this->health->expects($this->atLeastOnce())
+        $health = $this->createMock(HealthHandler::class);
+        $health->expects($this->atLeastOnce())
             ->method('isAlive')
             ->willReturn(true);
-
-        $scene->expects($this->atLeastOnce())
-            ->method(PropertyHook::get("templateConfig"))
-            ->willReturn([
-                'searchFightAction' => 'Search for a fight',
-                'searchSlummingAction' => 'Go slumming',
-                'searchThrillseekingAction' => 'Go thrillseeking'
-            ]);
-
-        $scene->expects($this->atLeastOnce())
-            ->method(PropertyHook::get("title"))
-            ->willReturn('Forest');
-
-        $character->expects($this->atLeastOnce())
-            ->method(PropertyHook::get("level"))
-            ->willReturn(5);
-
-        $stage->expects($this->atLeastOnce())
-            ->method(PropertyHook::get("owner"))
-            ->willReturn($character);
 
         $stage->expects($this->once())
             ->method('addActionGroup');
 
-        $this->security->expects($this->once())
+        $security = $this->createMock(Security::class);
+        $security->expects($this->once())
             ->method('isGranted')
             ->with('ROLE_CHEATS_ENABLED')
             ->willReturn(false);
 
-        $this->fightTemplate->setSceneChangeParameter($stage, $action, $scene);
-        $this->fightTemplate->onSceneChange();
+        $fightTemplate = $this->getPartialTemplate(
+            security: $security,
+            logger: $logger,
+            health: $health,
+        );
+
+        $fightTemplate->setSceneChangeParameter($stage, $action, $scene);
+        $fightTemplate->onSceneChange();
     }
 
     public function testOnSceneChangeWithSearchAction(): void
     {
-        $stage = $this->createMock(Stage::class);
-        $action = $this->createMock(Action::class);
-        $scene = $this->createMock(Scene::class);
+        [$stage, $action, $scene, $character] = $this->getStageMocks();
         $creature = $this->createMock(Creature::class);
         $attachment = $this->createMock(Attachment::class);
-        $character = $this->createStub(Character::class);
         $battleStateGoodGuy = $this->createMock(FighterInterface::class);
         $battleStateBadGuy = $this->createMock(FighterInterface::class);
         $battleState = $this->getMockBuilder(BattleState::class)
@@ -162,38 +240,38 @@ class FightTemplateTest extends TestCase
             ->setConstructorArgs([$battleStateGoodGuy, $battleStateBadGuy])
             ->getMock();
 
-        $stage->expects($this->atLeastOnce())
-            ->method(PropertyHook::get("owner"))
-            ->willReturn($character);
-
         $action->expects($this->exactly(2))
             ->method('getParameter')
             ->willReturnMap([
                 ['op', null, 'search'],
                 ['level', 0, 2],
-                ['level', 0, 2]
             ]);
 
-        $this->logger->expects($this->exactly(4))
+        $logger = $this->createMock(LoggerInterface::class);
+        $logger->expects($this->exactly(4))
             ->method('debug');
 
-        $this->health->expects($this->once())
+        $health = $this->createMock(HealthHandler::class);
+        $health->expects($this->once())
             ->method('getTurns')
             ->willReturn(10);
 
-        $this->health->expects($this->once())
+        $health->expects($this->once())
             ->method('decrementTurns')
-            ->willReturn($this->health);
+            ->willReturn($health);
 
-        $this->stats->expects($this->once())
+        $stats = $this->createMock(StatsHandler::class);
+        $stats->expects($this->once())
             ->method('getLevel')
             ->willReturn(5);
 
-        $this->diceBag->expects($this->exactly(4))
+        $diceBag = $this->createMock(DiceBagInterface::class);
+        $diceBag->expects($this->exactly(4))
             ->method('chance')
             ->willReturnOnConsecutiveCalls(false, false, false, false); // No special, No random level change, no surprise attack
 
-        $this->creatureRepository->expects($this->once())
+        $creatureRepository = $this->createMock(CreatureRepository::class);
+        $creatureRepository->expects($this->once())
             ->method('getRandomCreature')
             ->with(7) // base level 5 + action level 2 = 7
             ->willReturn($creature);
@@ -210,12 +288,14 @@ class FightTemplateTest extends TestCase
             ->method(PropertyHook::get("health"))
             ->willReturn(50);
 
-        $this->attachmentRepository->expects($this->once())
+        $attachmentRepository = $this->createMock(AttachmentRepository::class);
+        $attachmentRepository->expects($this->once())
             ->method("__call")
             ->with("findOneByAttachmentClass", [BattleAttachment::class])
             ->willReturn($attachment);
 
-        $this->battle->expects($this->once())
+        $battle = $this->createMock(Battle::class);
+        $battle->expects($this->once())
             ->method('start')
             ->with($creature)
             ->willReturn($battleState);
@@ -227,7 +307,7 @@ class FightTemplateTest extends TestCase
         $stage->expects($this->once())
             ->method('clearActionGroups');
 
-        $this->battle->expects($this->once())
+        $battle->expects($this->once())
             ->method('addFightActions')
             ->with($stage, $scene, $battleState, ['op' => 'fight', 'surprise' => true]);
 
@@ -242,18 +322,25 @@ class FightTemplateTest extends TestCase
                 $this->assertSame($battleStateBadGuy, $value[0]->context["badGuy"]);
             });
 
-        $this->fightTemplate->setSceneChangeParameter($stage, $action, $scene);
-        $this->fightTemplate->onSceneChange();
+        $fightTemplate = $this->getPartialTemplate(
+            logger: $logger,
+            attachmentRepository: $attachmentRepository,
+            diceBag: $diceBag,
+            creatureRepository: $creatureRepository,
+            battle: $battle,
+            stats: $stats,
+            health: $health,
+        );
+
+        $fightTemplate->setSceneChangeParameter($stage, $action, $scene);
+        $fightTemplate->onSceneChange();
     }
 
     public function testOnSceneChangeWithSearchActionWithCharacterGettingSurprised(): void
     {
-        $stage = $this->createMock(Stage::class);
-        $action = $this->createMock(Action::class);
-        $scene = $this->createMock(Scene::class);
+        [$stage, $action, $scene, $character] = $this->getStageMocks();
         $creature = $this->createMock(Creature::class);
         $attachment = $this->createMock(Attachment::class);
-        $character = $this->createStub(Character::class);
         $battleStateGoodGuy = $this->createMock(FighterInterface::class);
         $battleStateBadGuy = $this->createMock(FighterInterface::class);
         $battleState = $this->getMockBuilder(BattleState::class)
@@ -261,34 +348,34 @@ class FightTemplateTest extends TestCase
             ->setConstructorArgs([$battleStateGoodGuy, $battleStateBadGuy])
             ->getMock();
 
-        $stage->expects($this->atLeastOnce())
-            ->method(PropertyHook::get("owner"))
-            ->willReturn($character);
-
         $action->expects($this->exactly(2))
             ->method('getParameter')
             ->willReturnMap([
                 ['op', null, 'search'],
                 ['level', 0, 2],
-                ['level', 0, 2]
             ]);
 
-        $this->logger->expects($this->exactly(4))
+        $logger = $this->createMock(LoggerInterface::class);
+        $logger->expects($this->exactly(4))
             ->method('debug');
 
-        $this->health->expects($this->once())
+        $health = $this->createMock(HealthHandler::class);
+        $health->expects($this->once())
             ->method('getTurns')
             ->willReturn(10);
 
-        $this->stats->expects($this->once())
+        $stats = $this->createMock(StatsHandler::class);
+        $stats->expects($this->once())
             ->method('getLevel')
             ->willReturn(5);
 
-        $this->diceBag->expects($this->exactly(4))
+        $diceBag = $this->createMock(DiceBagInterface::class);
+        $diceBag->expects($this->exactly(4))
             ->method('chance')
-            ->willReturnOnConsecutiveCalls(false, false, false, true); // No special, No random level change, no surprise attack
+            ->willReturnOnConsecutiveCalls(false, false, false, true); // No special, No random level change, surprise attack
 
-        $this->creatureRepository->expects($this->once())
+        $creatureRepository = $this->createMock(CreatureRepository::class);
+        $creatureRepository->expects($this->once())
             ->method('getRandomCreature')
             ->with(7) // base level 5 + action level 2 = 7
             ->willReturn($creature);
@@ -305,12 +392,14 @@ class FightTemplateTest extends TestCase
             ->method(PropertyHook::get("health"))
             ->willReturn(50);
 
-        $this->attachmentRepository->expects($this->once())
+        $attachmentRepository = $this->createMock(AttachmentRepository::class);
+        $attachmentRepository->expects($this->once())
             ->method("__call")
             ->with("findOneByAttachmentClass", [BattleAttachment::class])
             ->willReturn($attachment);
 
-        $this->battle->expects($this->once())
+        $battle = $this->createMock(Battle::class);
+        $battle->expects($this->once())
             ->method('start')
             ->with($creature)
             ->willReturn($battleState);
@@ -322,7 +411,7 @@ class FightTemplateTest extends TestCase
         $stage->expects($this->once())
             ->method('clearActionGroups');
 
-        $this->battle->expects($this->once())
+        $battle->expects($this->once())
             ->method('addFightActions')
             ->with($stage, $scene, $battleState, ['op' => 'fight']);
 
@@ -337,28 +426,36 @@ class FightTemplateTest extends TestCase
                 $this->assertSame($battleStateBadGuy, $value[0]->context["badGuy"]);
             });
 
-        $this->fightTemplate->setSceneChangeParameter($stage, $action, $scene);
-        $this->fightTemplate->onSceneChange();
+        $fightTemplate = $this->getPartialTemplate(
+            logger: $logger,
+            attachmentRepository: $attachmentRepository,
+            diceBag: $diceBag,
+            creatureRepository: $creatureRepository,
+            battle: $battle,
+            stats: $stats,
+            health: $health,
+        );
+
+        $fightTemplate->setSceneChangeParameter($stage, $action, $scene);
+        $fightTemplate->onSceneChange();
     }
 
     public function testOnSceneChangeWithFightAction(): void
     {
-        $stage = $this->createMock(Stage::class);
-        $action = $this->createMock(Action::class);
-        $scene = $this->createMock(Scene::class);
-        $character = $this->createStub(Character::class);
-
-        $stage->method(PropertyHook::get("owner"))->willReturn($character);
+        [$stage, $action, $scene, $character] = $this->getStageMocks(
+            templateConfig: false,
+        );
 
         $action->expects($this->atLeastOnce())
             ->method('getParameter')
             ->willReturnMap([
-                ["op", "fight"],
-                ["how", null],
+                ["op", null, "fight"],
+                ["how", null, null],
             ]);
 
         $found = false;
-        $this->logger->expects($this->atLeastOnce())
+        $logger = $this->createMock(LoggerInterface::class);
+        $logger->expects($this->atLeastOnce())
             ->method('debug')
             ->willReturnCallback(function (string $message, array $context) use (&$found) {
                 if ($message === 'Called FightTemplate::onSceneChange, op=fight') {
@@ -366,87 +463,77 @@ class FightTemplateTest extends TestCase
                 }
             });
 
-        // Mock the fightAction method by expecting it to be called
-        // Since fightAction is likely implemented in DefaultFightTrait, 
-        // we just verify the method dispatch works correctly
-        $this->fightTemplate->setSceneChangeParameter($stage, $action, $scene);
-        $this->fightTemplate->onSceneChange();
+        $fightTemplate = $this->getPartialTemplate(
+            logger: $logger,
+        );
+
+        $fightTemplate->setSceneChangeParameter($stage, $action, $scene);
+        $fightTemplate->onSceneChange();
 
         $this->assertTrue($found);
     }
 
     public function testOnSceneChangeWithCheats(): void
     {
-        $stage = $this->createMock(Stage::class);
-        $action = $this->createMock(Action::class);
-        $scene = $this->createMock(Scene::class);
-        $character = $this->createMock(Character::class);
+        [$stage, $action, $scene, $character] = $this->getStageMocks(
+            characterLevel: 1,
+        );
 
         $action->expects($this->exactly(2))
             ->method('getParameter')
             ->willReturnMap([
                 ['op', null, 'cheat'],
-                ['what', null, 'experience']
+                ['what', null, 'experience'],
             ]);
 
-        $this->security->expects($this->atLeastOnce())
+        $security = $this->createMock(Security::class);
+        $security->expects($this->atLeastOnce())
             ->method('isGranted')
             ->with('ROLE_CHEATS_ENABLED')
             ->willReturn(true);
 
-        $this->stats->expects($this->once())
+        $stats = $this->createMock(StatsHandler::class);
+        $stats->expects($this->once())
             ->method('addExperience')
             ->with($character, 1000);
 
-        $this->logger->expects($this->atLeastOnce())
+        $logger = $this->createMock(LoggerInterface::class);
+        $logger->expects($this->atLeastOnce())
             ->method('debug')
             ->withAnyParameters();
 
-        $this->health->expects($this->atLeastOnce())
+        $health = $this->createMock(HealthHandler::class);
+        $health->expects($this->atLeastOnce())
             ->method('isAlive')
             ->willReturn(true);
-
-        $scene->expects($this->atLeastOnce())
-            ->method(PropertyHook::get("templateConfig"))
-            ->willReturn([
-                'searchFightAction' => 'Search for a fight',
-                'searchSlummingAction' => 'Go slumming',
-                'searchThrillseekingAction' => 'Go thrillseeking'
-            ]);
-
-        $scene->expects($this->atLeastOnce())
-            ->method(PropertyHook::get("title"))
-            ->willReturn('Forest');
-
-        $character->expects($this->atLeastOnce())
-            ->method(PropertyHook::get("level"))
-            ->willReturn(1); // Level 1 - no slumming option
-
-        $stage->expects($this->atLeastOnce())
-            ->method(PropertyHook::get("owner"))
-            ->willReturn($character);
 
         $stage->expects($this->exactly(2))
             ->method('addActionGroup');
 
-        $this->fightTemplate->setSceneChangeParameter($stage, $action, $scene);
-        $this->fightTemplate->onSceneChange();
+        $fightTemplate = $this->getPartialTemplate(
+            security: $security,
+            logger: $logger,
+            stats: $stats,
+            health: $health,
+        );
+
+        $fightTemplate->setSceneChangeParameter($stage, $action, $scene);
+        $fightTemplate->onSceneChange();
     }
 
     public function testDefaultActionWhenDead(): void
     {
-        $stage = $this->createMock(Stage::class);
-        $action = $this->createMock(Action::class);
-        $scene = $this->createMock(Scene::class);
-        $character = $this->createStub(Character::class);
+        [$stage, $action, $scene, $character] = $this->getStageMocks(
+            templateConfig: false,
+        );
 
-        $stage->method(PropertyHook::get("owner"))->willReturn($character);
-
-        $this->logger->expects($this->once())
+        $logger = $this->createMock(LoggerInterface::class);
+        $logger->expects($this->once())
             ->method('debug')
             ->with('Called FightTemplate::defaultAction');
 
-        $this->health->expects($this->atLeastOnce())
+        $health = $this->createMock(HealthHandler::class);
+        $health->expects($this->atLeastOnce())
             ->method('isAlive')
             ->willReturn(false);
 
@@ -458,57 +545,48 @@ class FightTemplateTest extends TestCase
                 return $stage;
             });
 
-        $this->security->expects($this->once())
+        $security = $this->createMock(Security::class);
+        $security->expects($this->once())
             ->method('isGranted')
             ->with('ROLE_CHEATS_ENABLED')
             ->willReturn(false);
 
-        $this->fightTemplate->setSceneChangeParameter($stage, $action, $scene);
-        $this->fightTemplate->defaultAction();
+        $fightTemplate = $this->getPartialTemplate(
+            security: $security,
+            logger: $logger,
+            health: $health,
+        );
+
+        $fightTemplate->setSceneChangeParameter($stage, $action, $scene);
+        $fightTemplate->defaultAction();
     }
 
     public function testSearchActionWhenTired(): void
     {
-        $stage = $this->createMock(Stage::class);
-        $action = $this->createMock(Action::class);
-        $scene = $this->createMock(Scene::class);
-        $character = $this->createMock(Character::class);
+        $templateConfig = [
+            'searchFightAction' => 'Search for a fight',
+        ];
+        [$stage, $action, $scene, $character] = $this->getStageMocks(
+            characterLevel: 1,
+            templateConfig: $templateConfig,
+        );
 
-        $stage->method(PropertyHook::get("owner"))->willReturn($character);
-
-        $this->health->expects($this->once())
+        $health = $this->createMock(HealthHandler::class);
+        $health->expects($this->once())
             ->method('getTurns')
             ->willReturn(0);
 
-        $this->health->expects($this->never())
-            ->method('decrementTurns')
-            ->willReturn($this->health);
+        $health->expects($this->never())
+            ->method('decrementTurns');
 
-        $this->logger->expects($this->once())
+        $logger = $this->createMock(LoggerInterface::class);
+        $logger->expects($this->once())
             ->method('debug')
             ->with('Called FightTemplate::defaultAction');
 
-        $this->health->expects($this->atLeastOnce())
+        $health->expects($this->atLeastOnce())
             ->method('isAlive')
             ->willReturn(true);
-
-        $scene->expects($this->atLeastOnce())
-            ->method(PropertyHook::get("templateConfig"))
-            ->willReturn([
-                'searchFightAction' => 'Search for a fight'
-            ]);
-
-        $scene->expects($this->atLeastOnce())
-            ->method(PropertyHook::get("title"))
-            ->willReturn('Forest');
-
-        $character->expects($this->atLeastOnce())
-            ->method(PropertyHook::get("level"))
-            ->willReturn(1); // Level 1 - no slumming option
-
-        $stage->expects($this->atLeastOnce())
-            ->method(PropertyHook::get("owner"))
-            ->willReturn($character);
 
         $stage->expects($this->once())
             ->method(PropertyHook::set("paragraphs"))
@@ -521,43 +599,65 @@ class FightTemplateTest extends TestCase
         $stage->expects($this->once())
             ->method('addActionGroup');
 
-        $this->security->expects($this->once())
+        $security = $this->createMock(Security::class);
+        $security->expects($this->once())
             ->method('isGranted')
             ->with('ROLE_CHEATS_ENABLED')
             ->willReturn(false);
 
-        $this->fightTemplate->setSceneChangeParameter($stage, $action, $scene);
-        $this->fightTemplate->searchAction();
+        $fightTemplate = $this->getPartialTemplate(
+            security: $security,
+            logger: $logger,
+            health: $health,
+        );
+
+        $fightTemplate->setSceneChangeParameter($stage, $action, $scene);
+        $fightTemplate->searchAction();
     }
 
     public function testSearchActionNoCreatureFound(): void
     {
-        $stage = $this->createMock(Stage::class);
-        $action = $this->createMock(Action::class);
-        $scene = $this->createMock(Scene::class);
-        $character = $this->createMock(Character::class);
+        $templateConfig = [
+            'searchFightAction' => 'Search for a fight',
+        ];
+        [$stage, $action, $scene, $character] = $this->getStageMocks(
+            characterId: 123,
+            characterLevel: 5,
+            templateConfig: $templateConfig,
+        );
 
-        $this->health->expects($this->once())
+        $health = $this->createMock(HealthHandler::class);
+        $health->expects($this->once())
             ->method('getTurns')
             ->willReturn(10);
+        $health->expects($this->once())
+            ->method('isAlive')
+            ->willReturn(true);
 
         $action->expects($this->exactly(1))
             ->method('getParameter')
             ->with('level', 0)
             ->willReturn(0);
 
-        $this->logger->expects($this->exactly(2))
+        $logger = $this->createMock(LoggerInterface::class);
+        $logger->expects($this->exactly(2))
             ->method('debug');
+        $logger->expects($this->once())
+            ->method('critical')
+            ->with('Character 123 did not find any creatures');
 
-        $this->stats->expects($this->once())
+        $stats = $this->createMock(StatsHandler::class);
+        $stats->expects($this->once())
             ->method('getLevel')
             ->willReturn(5);
 
-        $this->diceBag->expects($this->exactly(3))
+        $diceBag = $this->createMock(DiceBagInterface::class);
+        $diceBag->expects($this->exactly(3))
             ->method('chance')
             ->willReturn(false);
 
-        $this->creatureRepository->expects($this->once())
+        $creatureRepository = $this->createMock(CreatureRepository::class);
+        $creatureRepository->expects($this->once())
             ->method('getRandomCreature')
             ->willReturn(null);
 
@@ -567,71 +667,63 @@ class FightTemplateTest extends TestCase
                 $this->assertSame('This place looks very peaceful.', $value[0]->text);
             });
 
-        $character
-            ->expects($this->atLeastOnce())
-            ->method(PropertyHook::get("id"))
-            ->willReturn(123);
-
-        $stage->expects($this->atLeastOnce())
-            ->method(PropertyHook::get("owner"))
-            ->willReturn($character);
-
-        $this->logger->expects($this->once())
-            ->method('critical')
-            ->with('Character 123 did not find any creatures');
-
-        $this->health->expects($this->once())
-            ->method('isAlive')
-            ->willReturn(true);
-
-        $scene->expects($this->atLeastOnce())
-            ->method(PropertyHook::get("templateConfig"))
-            ->willReturn([
-                'searchFightAction' => 'Search for a fight'
-            ]);
-
-        $scene->expects($this->atLeastOnce())
-            ->method(PropertyHook::get("title"))
-            ->willReturn('Forest');
-
         $stage->expects($this->once())
             ->method('addActionGroup');
 
-        $this->security->expects($this->once())
+        $security = $this->createMock(Security::class);
+        $security->expects($this->once())
             ->method('isGranted')
             ->with('ROLE_CHEATS_ENABLED')
             ->willReturn(false);
 
-        $this->fightTemplate->setSceneChangeParameter($stage, $action, $scene);
-        $this->fightTemplate->searchAction();
+        $fightTemplate = $this->getPartialTemplate(
+            security: $security,
+            logger: $logger,
+            diceBag: $diceBag,
+            creatureRepository: $creatureRepository,
+            stats: $stats,
+            health: $health,
+        );
+
+        $fightTemplate->setSceneChangeParameter($stage, $action, $scene);
+        $fightTemplate->searchAction();
     }
 
     public function testSearchActionNoAttachment(): void
     {
-        $stage = $this->createMock(Stage::class);
-        $action = $this->createMock(Action::class);
-        $scene = $this->createMock(Scene::class);
+        $templateConfig = [
+            'searchFightAction' => 'Search for a fight',
+        ];
+        [$stage, $action, $scene, $character] = $this->getStageMocks(
+            templateConfig: $templateConfig,
+        );
         $creature = $this->createMock(Creature::class);
-        $character = $this->createMock(Character::class);
 
-        $this->health->expects($this->once())
+        $health = $this->createMock(HealthHandler::class);
+        $health->expects($this->once())
             ->method('getTurns')
             ->willReturn(10);
+        $health->expects($this->once())
+            ->method('isAlive')
+            ->willReturn(true);
 
         $action->expects($this->exactly(1))
             ->method('getParameter')
             ->with('level', 0)
             ->willReturn(0);
 
-        $this->stats->expects($this->once())
+        $stats = $this->createMock(StatsHandler::class);
+        $stats->expects($this->once())
             ->method('getLevel')
             ->willReturn(5);
 
-        $this->diceBag->expects($this->exactly(3))
+        $diceBag = $this->createMock(DiceBagInterface::class);
+        $diceBag->expects($this->exactly(3))
             ->method('chance')
             ->willReturn(false);
 
-        $this->creatureRepository->expects($this->once())
+        $creatureRepository = $this->createMock(CreatureRepository::class);
+        $creatureRepository->expects($this->once())
             ->method('getRandomCreature')
             ->willReturn($creature);
 
@@ -647,7 +739,8 @@ class FightTemplateTest extends TestCase
             ->method(PropertyHook::get("health"))
             ->willReturn(50);
 
-        $this->attachmentRepository->expects($this->once())
+        $attachmentRepository = $this->createMock(AttachmentRepository::class);
+        $attachmentRepository->expects($this->once())
             ->method('__call')
             ->with("findOneByAttachmentClass", [BattleAttachment::class])
             ->willReturn(null);
@@ -665,68 +758,45 @@ class FightTemplateTest extends TestCase
                 );
             });
 
-        $this->logger->expects($this->once())
+        $logger = $this->createMock(LoggerInterface::class);
+        $logger->expects($this->once())
             ->method('critical')
             ->with('Cannot attach attachment ' . BattleAttachment::class . ': Not installed.');
-
-        $this->health->expects($this->once())
-            ->method('isAlive')
-            ->willReturn(true);
-
-        $scene->expects($this->atLeastOnce())
-            ->method(PropertyHook::get("templateConfig"))
-            ->willReturn([
-                'searchFightAction' => 'Search for a fight'
-            ]);
-
-        $scene->expects($this->atLeastOnce())
-            ->method(PropertyHook::get("title"))
-            ->willReturn('Forest');
-
-        $stage->expects($this->atLeastOnce())
-            ->method(PropertyHook::get("owner"))
-            ->willReturn($character);
 
         $stage->expects($this->once())
             ->method('addActionGroup');
 
-        $this->security->expects($this->once())
+        $security = $this->createMock(Security::class);
+        $security->expects($this->once())
             ->method('isGranted')
             ->with('ROLE_CHEATS_ENABLED')
             ->willReturn(false);
 
-        $this->fightTemplate->setSceneChangeParameter($stage, $action, $scene);
-        $this->fightTemplate->searchAction();
+        $fightTemplate = $this->getPartialTemplate(
+            security: $security,
+            logger: $logger,
+            attachmentRepository: $attachmentRepository,
+            diceBag: $diceBag,
+            creatureRepository: $creatureRepository,
+            stats: $stats,
+            health: $health,
+        );
+
+        $fightTemplate->setSceneChangeParameter($stage, $action, $scene);
+        $fightTemplate->searchAction();
     }
 
     public function testAddDefaultActionsWithCheats(): void
     {
-        $stage = $this->createMock(Stage::class);
-        $action = $this->createMock(Action::class);
-        $scene = $this->createMock(Scene::class);
-        $character = $this->createStub(Character::class);
+        [$stage, $action, $scene, $character] = $this->getStageMocks();
 
-        $this->health->expects($this->once())
+        $health = $this->createMock(HealthHandler::class);
+        $health->expects($this->once())
             ->method('isAlive')
             ->willReturn(true);
 
-        $scene->expects($this->atLeastOnce())
-            ->method(PropertyHook::get("templateConfig"))
-            ->willReturn([
-                'searchFightAction' => 'Search for a fight',
-                'searchSlummingAction' => 'Go slumming',
-                'searchThrillseekingAction' => 'Go thrillseeking'
-            ]);
-
-        $scene->expects($this->atLeastOnce())
-            ->method(PropertyHook::get("title"))
-            ->willReturn("Forest");
-
-        $stage->expects($this->atLeastOnce())
-            ->method(PropertyHook::get("owner"))
-            ->willReturn($character);
-
-        $this->security->expects($this->once())
+        $security = $this->createMock(Security::class);
+        $security->expects($this->once())
             ->method('isGranted')
             ->with('ROLE_CHEATS_ENABLED')
             ->willReturn(true);
@@ -735,43 +805,33 @@ class FightTemplateTest extends TestCase
         $stage->expects($this->exactly(2))
             ->method('addActionGroup');
 
-        $this->fightTemplate->setSceneChangeParameter($stage, $action, $scene);
-        $this->fightTemplate->addDefaultActions($stage, $scene, $character);
+        $fightTemplate = $this->getPartialTemplate(
+            security: $security,
+            health: $health,
+        );
+
+        $fightTemplate->setSceneChangeParameter($stage, $action, $scene);
+        $fightTemplate->addDefaultActions($stage, $scene, $character);
     }
 
     public function testAddDefaultActionsLevelOne(): void
     {
-        $stage = $this->createMock(Stage::class);
-        $action = $this->createMock(Action::class);
-        $scene = $this->createMock(Scene::class);
-        $character = $this->createMock(Character::class);
+        $templateConfig = [
+            'searchFightAction' => 'Search for a fight',
+            'searchThrillseekingAction' => 'Go thrillseeking',
+        ];
+        [$stage, $action, $scene, $character] = $this->getStageMocks(
+            characterLevel: 1,
+            templateConfig: $templateConfig,
+        );
 
-        $this->health->expects($this->once())
+        $health = $this->createMock(HealthHandler::class);
+        $health->expects($this->once())
             ->method('isAlive')
             ->willReturn(true);
 
-        $scene->expects($this->atLeastOnce())
-            ->method(PropertyHook::get("templateConfig"))
-            ->willReturn([
-                'searchFightAction' => 'Search for a fight',
-                'searchThrillseekingAction' => 'Go thrillseeking'
-            ])
-        ;
-
-        $scene->expects($this->atLeastOnce())
-            ->method(PropertyHook::get("title"))
-            ->willReturn("Forest")
-        ;
-
-        $character->expects($this->atLeastOnce())
-            ->method(PropertyHook::get("level"))
-            ->willReturn(1); // Level 1 - no slumming option
-
-        $stage->expects($this->atLeastOnce())
-            ->method(PropertyHook::get("owner"))
-            ->willReturn($character);
-
-        $this->security->expects($this->once())
+        $security = $this->createMock(Security::class);
+        $security->expects($this->once())
             ->method('isGranted')
             ->with('ROLE_CHEATS_ENABLED')
             ->willReturn(false);
@@ -782,105 +842,138 @@ class FightTemplateTest extends TestCase
                 return count($actionGroup->getActions()) === 2; // Only search and thrillseeking, no slumming
             }));
 
-        $this->fightTemplate->setSceneChangeParameter($stage, $action, $scene);
-        $this->fightTemplate->addDefaultActions($stage, $scene, $character);
+        $fightTemplate = $this->getPartialTemplate(
+            security: $security,
+            health: $health,
+        );
+
+        $fightTemplate->setSceneChangeParameter($stage, $action, $scene);
+        $fightTemplate->addDefaultActions($stage, $scene, $character);
     }
 
     public function testGetRandomLevelChangeReturnsValidRange(): void
     {
         // Test multiple iterations to ensure we get expected range
         $results = [];
-        
+
         for ($i = 0; $i < 100; $i++) {
-            // Mock dice bag to return predictable results
-            $this->diceBag->expects($this->exactly(2))
+            $diceBag = $this->createMock(DiceBagInterface::class);
+            $diceBag->expects($this->exactly(2))
                 ->method('chance')
                 ->willReturnOnConsecutiveCalls(false, false); // No level change
-            
-            $result = $this->fightTemplate->getRandomLevelChange();
+
+            $fightTemplate = $this->getPartialTemplate(
+                diceBag: $diceBag,
+            );
+
+            $result = $fightTemplate->getRandomLevelChange();
             $this->assertIsInt($result);
             $this->assertGreaterThanOrEqual(-1, $result);
             $this->assertLessThanOrEqual(1, $result);
-            
+
             $results[] = $result;
-            
-            // Reset the mock for next iteration
-            $this->setUp();
         }
     }
 
     public function testGetRandomLevelChangePositive(): void
     {
-        $this->diceBag->expects($this->exactly(2))
+        $diceBag = $this->createMock(DiceBagInterface::class);
+        $diceBag->expects($this->exactly(2))
             ->method('chance')
             ->willReturnOnConsecutiveCalls(true, false); // Positive increment, no negative
 
-        $result = $this->fightTemplate->getRandomLevelChange();
+        $fightTemplate = $this->getPartialTemplate(
+            diceBag: $diceBag,
+        );
+
+        $result = $fightTemplate->getRandomLevelChange();
         $this->assertEquals(1, $result);
     }
 
     public function testGetRandomLevelChangeNegative(): void
     {
-        $this->diceBag->expects($this->exactly(2))
+        $diceBag = $this->createMock(DiceBagInterface::class);
+        $diceBag->expects($this->exactly(2))
             ->method('chance')
             ->willReturnOnConsecutiveCalls(false, true); // No positive, negative increment
 
-        $result = $this->fightTemplate->getRandomLevelChange();
+        $fightTemplate = $this->getPartialTemplate(
+            diceBag: $diceBag,
+        );
+
+        $result = $fightTemplate->getRandomLevelChange();
         $this->assertEquals(-1, $result);
     }
 
     public function testGetRandomLevelChangeBoth(): void
     {
-        $this->diceBag->expects($this->exactly(2))
+        $diceBag = $this->createMock(DiceBagInterface::class);
+        $diceBag->expects($this->exactly(2))
             ->method('chance')
             ->willReturnOnConsecutiveCalls(true, true); // Both increments cancel out
 
-        $result = $this->fightTemplate->getRandomLevelChange();
+        $fightTemplate = $this->getPartialTemplate(
+            diceBag: $diceBag,
+        );
+
+        $result = $fightTemplate->getRandomLevelChange();
         $this->assertEquals(0, $result);
     }
 
     public function testHandleCheatsExperience(): void
     {
-        $stage = $this->createMock(Stage::class);
-        $action = $this->createMock(Action::class);
-        $scene = $this->createMock(Scene::class);
-        $character = $this->createStub(Character::class);
-        $stage->method(PropertyHook::get("owner"))->willReturn($character);
-        $this->fightTemplate->setSceneChangeParameter($stage, $action, $scene);
+        [$stage, $action, $scene, $character] = $this->getStageMocks(
+            templateConfig: false,
+        );
 
-        $this->stats->expects($this->once())
+        $stats = $this->createMock(StatsHandler::class);
+        $stats->expects($this->once())
             ->method('addExperience')
             ->with($character, 1000);
 
-        $this->fightTemplate->handleCheats('experience');
+        $fightTemplate = $this->getPartialTemplate(
+            stats: $stats,
+        );
+        $fightTemplate->setSceneChangeParameter($stage, $action, $scene);
+
+        $fightTemplate->handleCheats('experience');
     }
 
     public function testHandleCheatsGold(): void
     {
-        $stage = $this->createMock(Stage::class);
-        $action = $this->createMock(Action::class);
-        $scene = $this->createMock(Scene::class);
-        $character = $this->createStub(Character::class);
-        $stage->method(PropertyHook::get("owner"))->willReturn($character);
-        $this->fightTemplate->setSceneChangeParameter($stage, $action, $scene);
+        [$stage, $action, $scene, $character] = $this->getStageMocks(
+            templateConfig: false,
+        );
 
-        $this->gold->expects($this->once())
+        $gold = $this->createMock(WealthHandler::class);
+        $gold->expects($this->once())
             ->method('addGold')
             ->with($character, 1000);
 
-        $this->fightTemplate->handleCheats('gold');
+        $fightTemplate = $this->getPartialTemplate(
+            gold: $gold,
+        );
+        $fightTemplate->setSceneChangeParameter($stage, $action, $scene);
+
+        $fightTemplate->handleCheats('gold');
     }
 
     public function testHandleCheatsInvalidCheat(): void
     {
-        // No expectations - invalid cheat should do nothing
-        $this->stats->expects($this->never())
+        $stats = $this->createMock(StatsHandler::class);
+        $stats->expects($this->never())
             ->method('addExperience');
 
-        $this->gold->expects($this->never())
+        $gold = $this->createMock(WealthHandler::class);
+        $gold->expects($this->never())
             ->method('addGold');
 
-        $this->fightTemplate->handleCheats('invalid');
+        $fightTemplate = $this->getPartialTemplate(
+            stats: $stats,
+            gold: $gold,
+        );
+
+        $fightTemplate->handleCheats('invalid');
     }
 
     public function testActionGroupSearchConstant(): void

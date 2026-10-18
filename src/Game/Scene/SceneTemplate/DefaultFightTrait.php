@@ -12,6 +12,7 @@ use LotGD2\Event\LootBagEvent;
 use LotGD2\Event\SimpleStageParameterEvent;
 use LotGD2\Game\Battle\Battle;
 use LotGD2\Game\Battle\BattleStateStatusEnum;
+use LotGD2\Game\Handler\HandlerRegistry;
 use LotGD2\Game\Handler\WealthHandler;
 use LotGD2\Game\Handler\StatsHandler;
 use Symfony\Component\EventDispatcher\Attribute\AsEventListener;
@@ -19,8 +20,7 @@ use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
 
 trait DefaultFightTrait
 {
-    private readonly WealthHandler $gold;
-    private readonly StatsHandler $stats;
+    private readonly HandlerRegistry $handlerRegistry;
     private readonly EventDispatcherInterface $eventDispatcher;
 
     const string OnLootBagFill = "lotgd2.event.DefaultFight.lootBagFill";
@@ -167,7 +167,7 @@ trait DefaultFightTrait
      */
     public function onFightLost(SimpleStageParameterEvent $event, BattleState $battleState): void
     {
-        $experienceLost = (int)round(0.1 * $this->stats->getExperience($event->character));
+        $experienceLost = (int)round(0.1 * $this->handlerRegistry->get(StatsHandler::class)->getExperience($event->character));
 
         $event->stage->paragraphs = [
             new Paragraph(
@@ -179,7 +179,7 @@ trait DefaultFightTrait
                     TEXT,
                 context: [
                     "badGuy" => $battleState->badGuy,
-                    "goldLost" => $this->gold->getGold($event->character),
+                    "goldLost" => $this->handlerRegistry->get(WealthHandler::class)->getGold($event->character),
                     "experienceLost" => $experienceLost,
                     "textDefeated" => $battleState->badGuy->kwargs["textDefeated"] ?? null,
                     "textLost" => $battleState->badGuy->kwargs["textLost"] ?? null,
@@ -187,8 +187,8 @@ trait DefaultFightTrait
             ),
         ];
 
-        $this->logger->debug("Character {$event->character->id} has been slain and lost {$this->gold->getGold($event->character)}.");
-        $this->gold->setGold($event->character, 0);
-        $this->stats->addExperience($event->character, -$experienceLost);
+        $this->logger->debug("Character {$event->character->id} has been slain and lost {$this->handlerRegistry->get(WealthHandler::class)->getGold($event->character)}.");
+        $this->handlerRegistry->get(WealthHandler::class)->setGold($event->character, 0);
+        $this->handlerRegistry->get(StatsHandler::class)->addExperience($event->character, -$experienceLost);
     }
 }

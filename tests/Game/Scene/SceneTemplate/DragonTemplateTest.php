@@ -21,8 +21,7 @@ use LotGD2\Game\Battle\Battle;
 use LotGD2\Game\GameStateService;
 use LotGD2\Game\GameTime\NewDay;
 use LotGD2\Game\Handler\DragonCounterHandler;
-use LotGD2\Game\Handler\WealthHandler;
-use LotGD2\Game\Handler\StatsHandler;
+use LotGD2\Game\Handler\HandlerRegistry;
 use LotGD2\Game\Random\DiceBag;
 use LotGD2\Game\Scene\SceneAttachment\BattleAttachment;
 use LotGD2\Game\Scene\SceneTemplate\DragonTemplate;
@@ -33,7 +32,9 @@ use LotGD2\Repository\SceneRepository;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\TestWith;
 use PHPUnit\Framework\Attributes\UsesClass;
+use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\MockObject\Runtime\PropertyHook;
+use PHPUnit\Framework\MockObject\Stub\Stub;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
@@ -47,30 +48,75 @@ use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
 #[UsesClass(BattleState::class)]
 #[UsesClass(SimpleStageParameterEvent::class)]
 #[UsesClass(CharacterChangeEvent::class)]
+#[UsesClass(HandlerRegistry::class)]
 class DragonTemplateTest extends TestCase
 {
+    /**
+     * @param string[] $onlyMethods
+     * @return ($onlyMethods is non-empty-array ? ($returnAsMock is true ? DragonTemplate&MockObject : DragonTemplate&Stub) : DragonTemplate)
+     */
+    private function getPartialTemplate(
+        array $onlyMethods = [],
+        bool $returnAsMock = true,
+        ?LoggerInterface $logger = null,
+        ?EventDispatcherInterface $eventDispatcher = null,
+        ?AttachmentRepository $attachmentRepository = null,
+        ?SceneRepository $sceneRepository = null,
+        ?Battle $battle = null,
+        ?NewDay $newDay = null,
+        ?HandlerRegistry $handlerRegistry = null,
+        ?ActionService $actionService = null,
+        ?GameStateService $gameStateService = null,
+    ): DragonTemplate {
+        if (empty($onlyMethods)) {
+            return new DragonTemplate(
+                $logger ?? $this->createStub(LoggerInterface::class),
+                $eventDispatcher ?? $this->createStub(EventDispatcherInterface::class),
+                $attachmentRepository ?? $this->createStub(AttachmentRepository::class),
+                $sceneRepository ?? $this->createStub(SceneRepository::class),
+                $battle ?? $this->createStub(Battle::class),
+                $newDay ?? $this->createStub(NewDay::class),
+                $handlerRegistry ?? $this->createStub(HandlerRegistry::class),
+                $actionService ?? $this->createStub(ActionService::class),
+                $gameStateService ?? $this->createStub(GameStateService::class),
+            );
+        }
+
+        if ($returnAsMock) {
+            $stubOrMock = $this->getMockBuilder(DragonTemplate::class);
+        } else {
+            $stubOrMock = $this->getStubBuilder(DragonTemplate::class);
+        }
+
+        $stubOrMock = $stubOrMock->onlyMethods($onlyMethods)
+            ->setConstructorArgs([
+                $logger ?? $this->createStub(LoggerInterface::class),
+                $eventDispatcher ?? $this->createStub(EventDispatcherInterface::class),
+                $attachmentRepository ?? $this->createStub(AttachmentRepository::class),
+                $sceneRepository ?? $this->createStub(SceneRepository::class),
+                $battle ?? $this->createStub(Battle::class),
+                $newDay ?? $this->createStub(NewDay::class),
+                $handlerRegistry ?? $this->createStub(HandlerRegistry::class),
+                $actionService ?? $this->createStub(ActionService::class),
+                $gameStateService ?? $this->createStub(GameStateService::class),
+            ]);
+
+        if ($returnAsMock) {
+            return $stubOrMock->getMock();
+        } else {
+            return $stubOrMock->getStub();
+        }
+    }
+
     #[TestWith([null, 1, 0, 0])]
     #[TestWith(["something", 1, 0, 0])]
     #[TestWith(["start", 0, 1, 0])]
     #[TestWith(["epilogue", 0, 0, 1])]
     public function testOnSceneChange(?string $op, int $defaultActionCalls, int $startFightCalls, int $epilogeActionCalls)
     {
-        $template = $this->getMockBuilder(DragonTemplate::class)
-            ->onlyMethods(["defaultAction", "startFight", "epilogueAction"])
-            ->setConstructorArgs([
-                $this->createStub(LoggerInterface::class),
-                $this->createStub(EventDispatcherInterface::class),
-                $this->createStub(AttachmentRepository::class),
-                $this->createStub(SceneRepository::class),
-                $this->createStub(Battle::class),
-                $this->createStub(NewDay::class),
-                $this->createStub(WealthHandler::class),
-                $this->createStub(StatsHandler::class),
-                $this->createStub(DragonCounterHandler::class),
-                $this->createStub(ActionService::class),
-                $this->createStub(GameStateService::class),
-            ])
-            ->getMock();
+        $template = $this->getPartialTemplate(
+            ["defaultAction", "startFight", "epilogueAction"],
+        );
 
         $action = $this->createMock(Action::class);
         $action->expects($this->atLeastOnce())->method("getParameter")->with("op")->willReturn($op);
@@ -86,22 +132,9 @@ class DragonTemplateTest extends TestCase
 
     public function testIfDefaultActionAddsActionToSeekOutTheDragon()
     {
-        $template = $this->getStubBuilder(DragonTemplate::class)
-            ->onlyMethods([])
-            ->setConstructorArgs([
-                $this->createStub(LoggerInterface::class),
-                $this->createStub(EventDispatcherInterface::class),
-                $this->createStub(AttachmentRepository::class),
-                $this->createStub(SceneRepository::class),
-                $this->createStub(Battle::class),
-                $this->createStub(NewDay::class),
-                $this->createStub(WealthHandler::class),
-                $this->createStub(StatsHandler::class),
-                $this->createStub(DragonCounterHandler::class),
-                $this->createStub(ActionService::class),
-                $this->createStub(GameStateService::class),
-            ])
-            ->getStub();
+        $template = $this->getPartialTemplate(
+            [],
+        );
 
         $stage = $this->createMock(Stage::class);
         $action = $this->createStub(Action::class);
@@ -119,9 +152,7 @@ class DragonTemplateTest extends TestCase
             }
         );
 
-        $template->method(PropertyHook::get("scene"))->willReturn($scene);
-        $template->method(PropertyHook::get("stage"))->willReturn($stage);
-        $template->method(PropertyHook::get("action"))->willReturn($action);
+        $template->setSceneChangeParameter($stage, $action, $scene);
 
         $template->defaultAction();
     }
@@ -135,31 +166,20 @@ class DragonTemplateTest extends TestCase
             ->with(["attachmentClass" => BattleAttachment::class])
             ->willReturn(null);
 
-        $template = $this->getStubBuilder(DragonTemplate::class)
-            ->onlyMethods([])
-            ->setConstructorArgs([
-                $this->createStub(LoggerInterface::class),
-                $this->createStub(EventDispatcherInterface::class),
-                $attachmentRepository,
-                $this->createStub(SceneRepository::class),
-                $this->createStub(Battle::class),
-                $this->createStub(NewDay::class),
-                $this->createStub(WealthHandler::class),
-                $this->createStub(StatsHandler::class),
-                $this->createStub(DragonCounterHandler::class),
-                $this->createStub(ActionService::class),
-                $this->createStub(GameStateService::class),
-            ])
-            ->getStub();
+        $template = $this->getPartialTemplate(
+            [],
+            attachmentRepository: $attachmentRepository,
+        );
 
         $stage = $this->createMock(Stage::class);
+        $stage->method(PropertyHook::get("owner"))->willReturn($this->createStub(Character::class));
         $stage->expects($this->once())->method(PropertyHook::set("paragraphs"))->willReturnCallback(
             function (array $paragraphs) {
                 $this->assertCount(1, $paragraphs);
                 $this->assertSame("lotgd2.paragraph.dragonTemplate.startFightFailed", $paragraphs[0]->id);
             }
         );
-        $template->method(PropertyHook::get("stage"))->willReturn($stage);
+        $template->setSceneChangeParameter($stage, $this->createStub(Action::class), $this->createStub(Scene::class));
 
         $template->startFight();
     }
@@ -177,18 +197,10 @@ class DragonTemplateTest extends TestCase
 
         $battle = $this->createMock(Battle::class);
 
-    $template = new DragonTemplate(
-            $this->createStub(LoggerInterface::class),
-            $this->createStub(EventDispatcherInterface::class),
-            $attachmentRepository,
-            $this->createStub(SceneRepository::class),
-            $battle,
-            $this->createStub(NewDay::class),
-            $this->createStub(WealthHandler::class),
-            $this->createStub(StatsHandler::class),
-            $this->createStub(DragonCounterHandler::class),
-            $this->createStub(ActionService::class),
-            $this->createStub(GameStateService::class),
+        $template = $this->getPartialTemplate(
+            [],
+            attachmentRepository: $attachmentRepository,
+            battle: $battle,
         );
 
         $stage = $this->createMock(Stage::class);
@@ -257,24 +269,15 @@ class DragonTemplateTest extends TestCase
 
         $battle = $this->createMock(Battle::class);
 
-        $template = $this->getStubBuilder(DragonTemplate::class)
-            ->onlyMethods([])
-            ->setConstructorArgs([
-                $this->createStub(LoggerInterface::class),
-                $this->createStub(EventDispatcherInterface::class),
-                $attachmentRepository,
-                $this->createStub(SceneRepository::class),
-                $battle,
-                $this->createStub(NewDay::class),
-                $this->createStub(WealthHandler::class),
-                $this->createStub(StatsHandler::class),
-                $this->createStub(DragonCounterHandler::class),
-                $this->createStub(ActionService::class),
-                $this->createStub(GameStateService::class),
-            ])
-            ->getStub();
+        $template = $this->getPartialTemplate(
+            [],
+            returnAsMock: false,
+            attachmentRepository: $attachmentRepository,
+            battle: $battle,
+        );
 
         $stage = $this->createMock(Stage::class);
+        $stage->method(PropertyHook::get("owner"))->willReturn($this->createStub(Character::class));
         $stage
             ->expects($this->once())
             ->method("addAttachment")
@@ -337,8 +340,7 @@ class DragonTemplateTest extends TestCase
                 }
             );
 
-        $template->method(PropertyHook::get("stage"))->willReturn($stage);
-        $template->method(PropertyHook::get("scene"))->willReturn($scene);
+        $template->setSceneChangeParameter($stage, $this->createStub(Action::class), $scene);
 
         $template->startFight();
     }
@@ -347,22 +349,11 @@ class DragonTemplateTest extends TestCase
     {
         $actionService = $this->createMock(ActionService::class);
 
-        $template = $this->getStubBuilder(DragonTemplate::class)
-            ->onlyMethods([])
-            ->setConstructorArgs([
-                $this->createStub(LoggerInterface::class),
-                $this->createStub(EventDispatcherInterface::class),
-                $this->createStub(AttachmentRepository::class),
-                $this->createStub(SceneRepository::class),
-                $this->createStub(Battle::class),
-                $this->createStub(NewDay::class),
-                $this->createStub(WealthHandler::class),
-                $this->createStub(StatsHandler::class),
-                $this->createStub(DragonCounterHandler::class),
-                $actionService,
-                $this->createStub(GameStateService::class),
-            ])
-            ->getStub();
+        $template = $this->getPartialTemplate(
+            [],
+            returnAsMock: false,
+            actionService: $actionService,
+        );
 
 
         $character = $this->createStub(Character::class);
@@ -423,18 +414,16 @@ class DragonTemplateTest extends TestCase
         $actionService = $this->createMock(ActionService::class);
         $sceneRepository = $this->createMock(SceneRepository::class);
 
-        $template = new DragonTemplate(
-            $this->createStub(LoggerInterface::class),
-            $this->createStub(EventDispatcherInterface::class),
-            $this->createStub(AttachmentRepository::class),
-            $sceneRepository,
-            $this->createStub(Battle::class),
-            $this->createStub(NewDay::class),
-            $this->createStub(WealthHandler::class),
-            $this->createStub(StatsHandler::class),
-            $this->createStub(DragonCounterHandler::class),
-            $actionService,
-            $this->createStub(GameStateService::class),
+        $dragonCounter = $this->createMock(DragonCounterHandler::class);
+        $dragonCounter->expects($this->once())->method("incrementDragonCounter");
+        $handlerRegistry = new HandlerRegistry();
+        $handlerRegistry->addHandler(DragonCounterHandler::class, $dragonCounter);
+
+        $template = $this->getPartialTemplate(
+            [],
+            sceneRepository: $sceneRepository,
+            handlerRegistry: $handlerRegistry,
+            actionService: $actionService,
         );
 
         $defaultScene = $this->createStub(Scene::class);
@@ -478,18 +467,15 @@ class DragonTemplateTest extends TestCase
         $actionService = $this->createMock(ActionService::class);
         $sceneRepository = $this->createMock(SceneRepository::class);
 
-        $template = new DragonTemplate(
-            $this->createStub(LoggerInterface::class),
-            $this->createStub(EventDispatcherInterface::class),
-            $this->createStub(AttachmentRepository::class),
-            $sceneRepository,
-            $this->createStub(Battle::class),
-            $this->createStub(NewDay::class),
-            $this->createStub(WealthHandler::class),
-            $this->createStub(StatsHandler::class),
-            $this->createStub(DragonCounterHandler::class),
-            $actionService,
-            $this->createStub(GameStateService::class),
+        $dragonCounter = $this->createStub(DragonCounterHandler::class);
+        $handlerRegistry = new HandlerRegistry();
+        $handlerRegistry->addHandler(DragonCounterHandler::class, $dragonCounter);
+
+        $template = $this->getPartialTemplate(
+            [],
+            sceneRepository: $sceneRepository,
+            handlerRegistry: $handlerRegistry,
+            actionService: $actionService,
         );
 
         $defaultScene = $this->createStub(Scene::class);
@@ -540,18 +526,15 @@ class DragonTemplateTest extends TestCase
     {
         $eventDispatcher = $this->createMock(EventDispatcherInterface::class);
 
-        $template = new DragonTemplate(
-            $this->createStub(LoggerInterface::class),
-            $eventDispatcher,
-            $this->createStub(AttachmentRepository::class),
-            $this->createStub(SceneRepository::class),
-            $this->createStub(Battle::class),
-            $this->createStub(NewDay::class),
-            $this->createStub(WealthHandler::class),
-            $this->createStub(StatsHandler::class),
-            $this->createStub(DragonCounterHandler::class),
-            $this->createStub(ActionService::class),
-            $this->createStub(GameStateService::class),
+        $dragonCounter = $this->createMock(DragonCounterHandler::class);
+        $dragonCounter->expects($this->once())->method("getDragonCounter")->willReturn(5);
+        $handlerRegistry = new HandlerRegistry();
+        $handlerRegistry->addHandler(DragonCounterHandler::class, $dragonCounter);
+
+        $template = $this->getPartialTemplate(
+            [],
+            eventDispatcher: $eventDispatcher,
+            handlerRegistry: $handlerRegistry,
         );
 
         $stage = $this->createStub(Stage::class);
@@ -575,6 +558,7 @@ class DragonTemplateTest extends TestCase
             ->willReturnCallback(function (CharacterChangeEvent $event, $eventName) use ($character) {
                 $this->assertSame($event->character, $character);
                 $this->assertSame(15, $event->characterBefore->level);
+                $this->assertSame(5, $event->parameters[DragonTemplate::OnCharacterResetDragonCounterParameter]);
                 return $event;
             });
 

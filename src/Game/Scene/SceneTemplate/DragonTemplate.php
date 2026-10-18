@@ -18,8 +18,7 @@ use LotGD2\Form\Scene\SceneTemplate\DragonTemplateType;
 use LotGD2\Game\Battle\Battle;
 use LotGD2\Game\GameStateService;
 use LotGD2\Game\Handler\DragonCounterHandler;
-use LotGD2\Game\Handler\WealthHandler;
-use LotGD2\Game\Handler\StatsHandler;
+use LotGD2\Game\Handler\HandlerRegistry;
 use LotGD2\Game\GameTime\NewDay;
 use LotGD2\Game\Scene\SceneAttachment\BattleAttachment;
 use LotGD2\Game\Stage\ActionService;
@@ -57,9 +56,7 @@ class DragonTemplate implements SceneTemplateInterface
         readonly private SceneRepository          $sceneRepository,
         readonly private Battle                   $battle,
         readonly private NewDay                   $newDay,
-        readonly private WealthHandler            $gold,
-        readonly private StatsHandler             $stats,
-        readonly private DragonCounterHandler     $dragonCounter,
+        readonly private HandlerRegistry          $handlerRegistry,
         readonly private ActionService            $actionService,
         readonly private GameStateService         $gameStateService,
     ) {
@@ -208,7 +205,7 @@ class DragonTemplate implements SceneTemplateInterface
             title: "Continue",
         ));
 
-        $this->dragonCounter->incrementDragonCounter($this->character);
+        $this->handlerRegistry->get(DragonCounterHandler::class)->incrementDragonCounter($this->character);
         $this->newDay->resetNewDay($this->character);
 
         if ($description !== null) {
@@ -238,7 +235,7 @@ class DragonTemplate implements SceneTemplateInterface
                 $characterBefore,
                 $this->stage,
                 parameters: [
-                    self::OnCharacterResetDragonCounterParameter => $this->dragonCounter->getDragonCounter($this->character)
+                    self::OnCharacterResetDragonCounterParameter => $this->handlerRegistry->get(DragonCounterHandler::class)->getDragonCounter($this->character)
                 ]
             ),
             eventName: self::OnCharacterReset
