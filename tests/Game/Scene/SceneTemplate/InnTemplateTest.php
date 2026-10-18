@@ -21,6 +21,7 @@ use LotGD2\Game\GameStateService;
 use LotGD2\Game\Handler\BuffHandler;
 use LotGD2\Game\Handler\CharmHandler;
 use LotGD2\Game\Handler\GenderHandler;
+use LotGD2\Game\Handler\HandlerRegistry;
 use LotGD2\Game\Handler\WealthHandler;
 use LotGD2\Game\Handler\HealthHandler;
 use LotGD2\Game\Random\DiceBag;
@@ -51,6 +52,7 @@ use Symfony\Component\Validator\Constraints\Range;
 #[UsesClass(Buff::class)]
 #[UsesClass(DiceBag::class)]
 #[UsesClass(FormExtensionEvent::class)]
+#[UsesClass(HandlerRegistry::class)]
 #[UsesClass(InnFlirtOption::class)]
 #[UsesClass(InnTemplateType::class)]
 #[UsesClass(Paragraph::class)]
@@ -696,6 +698,9 @@ class InnTemplateTest extends TestCase
         $this->assertCount(2, $friendGroup->getActions());
     }
 
+    /**
+     * @param "female"|"male" $patron
+     */
     #[TestWith(["female"])]
     #[TestWith(["male"])]
     public function testFlirtActionWithMissingOptionLogsCriticalAndReturnsEarly(string $patron): void
@@ -1990,12 +1995,32 @@ class InnTemplateTest extends TestCase
         $this->assertArrayHasKey(InnTemplate::ActionGroup["innKeeper"], $stage->actionGroups);
     }
 
+    private function getStubbedHandlerRegistry(
+        ?GenderHandler $genderHandler = null,
+        ?CharmHandler $charmHandler = null,
+        ?HealthHandler $healthHandler = null,
+        ?WealthHandler $goldHandler = null,
+        ?BuffHandler $buffHandler = null,
+    ): HandlerRegistry {
+        $handlerRegistry = $this->createStub(HandlerRegistry::class);
+        $handlerRegistry->method("get")
+            ->willReturnMap([
+                [GenderHandler::class, $genderHandler ?? $this->createStub(GenderHandler::class)],
+                [CharmHandler::class, $charmHandler ?? $this->createStub(CharmHandler::class)],
+                [HealthHandler::class, $healthHandler ?? $this->createStub(HealthHandler::class)],
+                [WealthHandler::class, $goldHandler ?? $this->createStub(WealthHandler::class)],
+                [BuffHandler::class, $buffHandler ?? $this->createStub(BuffHandler::class)],
+            ]);
+        return $handlerRegistry;
+    }
+
     /**
-     * @param array<string> $mockedMethods
+     * @param list<non-empty-string> $mockedMethods
      * @param LoggerInterface|null $logger
      * @param DiceBagInterface|null $diceBag
      * @param ExpressionService|null $expressionService
      * @param GameStateService|null $gameStateService
+     * @param HandlerRegistry|null $handlerRegistry
      * @param GenderHandler|null $genderHandler
      * @param CharmHandler|null $charmHandler
      * @param HealthHandler|null $healthHandler
@@ -2014,6 +2039,7 @@ class InnTemplateTest extends TestCase
         ?DiceBagInterface  $diceBag = null,
         ?ExpressionService $expressionService = null,
         ?GameStateService  $gameStateService = null,
+        ?HandlerRegistry   $handlerRegistry = null,
         ?GenderHandler     $genderHandler = null,
         ?CharmHandler      $charmHandler = null,
         ?HealthHandler     $healthHandler = null,
@@ -2029,16 +2055,22 @@ class InnTemplateTest extends TestCase
             $gameStateService->method("getSetting")->willReturn([]);
         }
 
+        if ($handlerRegistry === null) {
+            $handlerRegistry = $this->getStubbedHandlerRegistry(
+                $genderHandler,
+                $charmHandler,
+                $healthHandler,
+                $goldHandler,
+                $buffHandler,
+            );
+        }
+
         $constructorArgs = [
             $logger ?? $this->createStub(LoggerInterface::class),
             $diceBag ?? $this->createStub(DiceBagInterface::class),
             $expressionService ?? $this->createStub(ExpressionService::class),
             $gameStateService,
-            $genderHandler ?? $this->createStub(GenderHandler::class),
-            $charmHandler ?? $this->createStub(CharmHandler::class),
-            $healthHandler ?? $this->createStub(HealthHandler::class),
-            $goldHandler ?? $this->createStub(WealthHandler::class),
-            $buffHandler ?? $this->createStub(BuffHandler::class),
+            $handlerRegistry,
         ];
 
         if (count($mockedMethods) > 0) {

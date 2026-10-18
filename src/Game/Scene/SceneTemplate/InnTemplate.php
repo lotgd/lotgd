@@ -21,6 +21,7 @@ use LotGD2\Game\GameTime\NewDay;
 use LotGD2\Game\Handler\BuffHandler;
 use LotGD2\Game\Handler\CharmHandler;
 use LotGD2\Game\Handler\GenderHandler;
+use LotGD2\Game\Handler\HandlerRegistry;
 use LotGD2\Game\Handler\WealthHandler;
 use LotGD2\Game\Handler\HealthHandler;
 use LotGD2\Game\Random\DiceBagInterface;
@@ -148,11 +149,7 @@ class InnTemplate implements SceneTemplateInterface
         private readonly DiceBagInterface  $diceBag,
         private readonly ExpressionService $expressionService,
         private readonly GameStateService  $gameStateService,
-        private readonly GenderHandler     $genderHandler,
-        private readonly CharmHandler      $charmHandler,
-        private readonly HealthHandler     $healthHandler,
-        private readonly WealthHandler     $goldHandler,
-        private readonly BuffHandler       $buffHandler,
+        private readonly HandlerRegistry   $handlerRegistry,
     ) {
         $this->drunkennessGameSetting = $this->gameStateService->getSetting(self::GameSettingProperty, []);
     }
@@ -227,9 +224,9 @@ class InnTemplate implements SceneTemplateInterface
                     // Only do something when drunkenness is below or equal to limit
                     // The configured text should do something about when above the drunkenness level.
 
-                    if ($this->goldHandler->getGold($this->character) >= $alcoholPrice) {
+                    if ($this->handlerRegistry->get(WealthHandler::class)->getGold($this->character) >= $alcoholPrice) {
                         // And only do something when the character has enough gold
-                        $this->goldHandler->removeGold($this->character, $alcoholPrice);
+                        $this->handlerRegistry->get(WealthHandler::class)->removeGold($this->character, $alcoholPrice);
                         $this->addDrunkenness($this->character, $drunkennessIncrease);
 
                         //
@@ -240,9 +237,9 @@ class InnTemplate implements SceneTemplateInterface
                                 text: "You feel healthy!"
                             ));
 
-                            $this->healthHandler->heal(
+                            $this->handlerRegistry->get(HealthHandler::class)->heal(
                                 $this->character,
-                                (int)round($this->healthHandler->getMaxHealth($this->character) * 0.1, 0)
+                                (int)round($this->handlerRegistry->get(HealthHandler::class)->getMaxHealth($this->character) * 0.1, 0)
                             );
                         } else {
                             $this->logger->debug("{$this->character} drunk alcohol and feels vigorous");
@@ -251,11 +248,11 @@ class InnTemplate implements SceneTemplateInterface
                                text:  "You feel vigorous!"
                             ));
 
-                            $this->healthHandler->addTurns($this->character, 1);
+                            $this->handlerRegistry->get(HealthHandler::class)->addTurns($this->character, 1);
                         }
 
                         // Buff
-                        $this->buffHandler->addBuff($this->character, new Buff(
+                        $this->handlerRegistry->get(BuffHandler::class)->addBuff($this->character, new Buff(
                             id: self::DrunkennessBuffId,
                             name: "Buzz",
                             activatesAt: Buff::ACTIVATES_ON_OFFENSE_TURN,
@@ -336,7 +333,7 @@ class InnTemplate implements SceneTemplateInterface
                 break;
 
             default:
-                if ($this->genderHandler->getPreferredPartner($this->character) === 'female') {
+                if ($this->handlerRegistry->get(GenderHandler::class)->getPreferredPartner($this->character) === 'female') {
                     // Flirt options
                     if ($this->getSeenLover($this->character)) {
                         $this->stage->paragraphs = [
@@ -451,7 +448,7 @@ class InnTemplate implements SceneTemplateInterface
                 break;
 
             default:
-                if ($this->genderHandler->getPreferredPartner($this->character) === 'male') {
+                if ($this->handlerRegistry->get(GenderHandler::class)->getPreferredPartner($this->character) === 'male') {
                     // Flirt options
                     if ($this->getSeenLover($this->character)) {
                         $this->stage->paragraphs = [
@@ -547,7 +544,7 @@ class InnTemplate implements SceneTemplateInterface
         $flirtOption = $config[$configPrefix]["flirts"][$flirtOptionId] ?? null;
         $maxCharm = $config["maxCharmPoints"] ?? 25;
         $minCharm = $config["minCharmPoints"] ?? 0;
-        $characterCharm = $this->charmHandler->getCharm($this->character);
+        $characterCharm = $this->handlerRegistry->get(CharmHandler::class)->getCharm($this->character);
         $canLoseCharm = $characterCharm > $minCharm;
         $canGainCharm = $characterCharm < $maxCharm;
 
@@ -613,15 +610,15 @@ class InnTemplate implements SceneTemplateInterface
                 )
             )
         ) {
-            $this->charmHandler->addCharm($this->character, $charmChange);
+            $this->handlerRegistry->get(CharmHandler::class)->addCharm($this->character, $charmChange);
 
             // @phpstan-ignore offsetAccess.notFound
             $this->stage->paragraphs[self::Paragraphs["femaleBanter"]]->addContext("rewardedCharm", $charmChange);
         }
 
         if ($turnChange > 0) {
-            if ($this->healthHandler->getTurns($this->character) > 0) {
-                $this->healthHandler->addTurns($this->character, -$turnChange);
+            if ($this->handlerRegistry->get(HealthHandler::class)->getTurns($this->character) > 0) {
+                $this->handlerRegistry->get(HealthHandler::class)->addTurns($this->character, -$turnChange);
 
                 // @phpstan-ignore offsetAccess.notFound
                 $this->stage->paragraphs[self::Paragraphs["femaleBanter"]]->addContext("consumedTurns", $turnChange);
@@ -676,7 +673,7 @@ class InnTemplate implements SceneTemplateInterface
             actions: [
                 new Action(
                     scene: $this->scene,
-                    title: ($this->genderHandler->prefersFemale($this->character) ? 'Flirt with ' : 'Chat with ') . $femalePatron,
+                    title: ($this->handlerRegistry->get(GenderHandler::class)->prefersFemale($this->character) ? 'Flirt with ' : 'Chat with ') . $femalePatron,
                     parameters: ["op" => "femalePatron"],
                     reference: self::Action["femalePatron"],
                 ),
@@ -712,7 +709,7 @@ class InnTemplate implements SceneTemplateInterface
      */
     public function isFlirtSuccessful(Character $character, InnFlirtOption $flirtOption): bool
     {
-        $characterCharm = $this->charmHandler->getCharm($character);
+        $characterCharm = $this->handlerRegistry->get(CharmHandler::class)->getCharm($character);
         $requiredCharm = $flirtOption->charmRequirement;
         $deltaCharm = $requiredCharm - $characterCharm;
 
@@ -787,7 +784,7 @@ class InnTemplate implements SceneTemplateInterface
     public function onNewDayEvent(StageChangeEvent $event): void
     {
         if ($this->getDrunkenness($event->character) > 66) {
-            $this->healthHandler->addTurns($event->character, -1);
+            $this->handlerRegistry->get(HealthHandler::class)->addTurns($event->character, -1);
             $event->stage->addParagraph(new Paragraph(
                 id: self::Paragraphs["hangover"],
                 text: "You wake up with a hangover.",
