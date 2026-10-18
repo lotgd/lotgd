@@ -8,6 +8,7 @@ use LotGD2\Entity\Paragraph;
 use LotGD2\Event\CharacterChangeEvent;
 use LotGD2\Game\Handler\DragonCounterHandler;
 use LotGD2\Game\Handler\GenderHandler;
+use LotGD2\Game\Handler\HandlerRegistry;
 use LotGD2\Game\Scene\SceneTemplate\DragonTemplate;
 use LotGD2\Repository\TitleRepository;
 use Symfony\Component\EventDispatcher\Attribute\AsEventListener;
@@ -18,8 +19,7 @@ class CharacterTitleService
 
     public function __construct(
         private TitleRepository $titleRepository,
-        private DragonCounterHandler $dragonCounterHandler,
-        private GenderHandler $genderHandler,
+        private HandlerRegistry $handlerRegistry,
     ) {
 
     }
@@ -34,9 +34,9 @@ class CharacterTitleService
 
     public function setNextTitle(Character $character): void
     {
-        $dragonKills = $this->dragonCounterHandler->getDragonCounter($character);
+        $dragonKills = $this->handlerRegistry->get(DragonCounterHandler::class)->getDragonCounter($character);
         $title = $this->titleRepository->getForDragonCounter($dragonKills);
-        $gender = $this->genderHandler->getPreferredPronouns($character);
+        $gender = $this->handlerRegistry->get(GenderHandler::class)->getPreferredPronouns($character);
 
         if ($title) {
             $character->title = match($gender) {
