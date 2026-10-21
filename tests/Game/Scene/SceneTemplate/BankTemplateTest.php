@@ -22,6 +22,8 @@ use LotGD2\Game\Scene\SceneTemplate\DefaultSceneTemplate;
 use LotGD2\Game\Stage\ActionService;
 use LotGD2\Repository\AttachmentRepository;
 use LotGD2\Repository\SceneRepository;
+use LotGD2\Tests\TestTools\HasHandlerRegistryTrait;
+use LotGD2\Tests\TestTools\HasStageTrait;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\TestWith;
 use PHPUnit\Framework\Attributes\UsesClass;
@@ -40,6 +42,9 @@ use Symfony\Component\Stopwatch\Stopwatch;
 #[UsesClass(HealthHandler::class)]
 class BankTemplateTest extends TestCase
 {
+    use HasHandlerRegistryTrait;
+    use HasStageTrait;
+
     private function getSceneConfig(): array
     {
         return [
@@ -51,34 +56,90 @@ class BankTemplateTest extends TestCase
         ];
     }
 
+    /**
+     * @param LoggerInterface|null $logger
+     * @param Stopwatch|null $stopwatch
+     * @param AttachmentRepository|null $attachmentRepository
+     * @param SceneRepository|null $sceneRepository
+     * @param DiceBagInterface|null $diceBag
+     * @param ActionService|null $actionService
+     * @param GameStateService|null $gameStateService
+     * @param WealthHandler|null $wealthHandler
+     * @param HealthHandler|null $healthHandler
+     * @param bool $asPartialMock
+     * @param array $partialMockMethods
+     * @return ($asPartialMock is true ? BankTemplate&MockObject : BankTemplate)
+     * @throws \PHPUnit\Framework\MockObject\Exception
+     */
+    private function createBankTemplate(
+        ?LoggerInterface $logger = null,
+        ?StopWatch $stopwatch = null,
+        ?AttachmentRepository $attachmentRepository = null,
+        ?SceneRepository $sceneRepository = null,
+        ?DiceBagInterface $diceBag = null,
+        ?ActionService $actionService = null,
+        ?GameStateService $gameStateService = null,
+        ?WealthHandler $wealthHandler = null,
+        ?HealthHandler $healthHandler = null,
+        bool $asPartialMock = false,
+        array $partialMockMethods = [],
+    ) {
+        $handlerRegistry = $this->createHandlerRegistry([
+            WealthHandler::class => $wealthHandler ?? $this->createStub(WealthHandler::class),
+            HealthHandler::class => $healthHandler ?? $this->createStub(HealthHandler::class),
+        ]);
+
+        $logger ??= $this->createStub(LoggerInterface::class);
+        $stopwatch ??= $this->createStub(StopWatch::class);
+        $attachmentRepository ??= $this->createStub(AttachmentRepository::class);
+        $sceneRepository ??= $this->createStub(SceneRepository::class);
+        $diceBag ??= $this->createStub(DiceBagInterface::class);
+        $actionService ??= $this->createStub(ActionService::class);
+        $gameStateService ??= $this->createStub(GameStateService::class);
+
+        if ($asPartialMock) {
+            return $this->getMockBuilder(BankTemplate::class)
+                ->onlyMethods($partialMockMethods)
+                ->setConstructorArgs([
+                    $logger,
+                    $stopwatch,
+                    $attachmentRepository,
+                    $sceneRepository,
+                    $diceBag,
+                    $actionService,
+                    $handlerRegistry,
+                    $gameStateService,
+                ])
+                ->getMock();
+        }
+
+        return new BankTemplate(
+            logger: $logger,
+            stopwatch: $stopwatch,
+            attachmentRepository: $attachmentRepository,
+            sceneRepository: $sceneRepository,
+            diceBag: $diceBag,
+            actionService: $actionService,
+            handlerRegistry: $handlerRegistry,
+            gameStateService: $gameStateService,
+        );
+    }
+
     public function testOnSceneChange(): void
     {
         $logger = $this->createMock(LoggerInterface::class);
-        $stopwatch = $this->createStub(Stopwatch::class);
-        $attachmentRepository = $this->createStub(AttachmentRepository::class);
-        $sceneRepository = $this->createStub(SceneRepository::class);
-        $diceBag = $this->createStub(DiceBagInterface::class);
-        $actionService = $this->createStub(ActionService::class);
-        $gold = $this->createStub(WealthHandler::class);
-        $gameStateService = $this->createStub(GameStateService::class);
 
-        $bankTemplate = new BankTemplate(
-            $logger,
-            $stopwatch,
-            $attachmentRepository,
-            $sceneRepository,
-            $diceBag,
-            $actionService,
-            $gold,
-            $gameStateService
+        $bankTemplate = $this->createBankTemplate(
+            logger: $logger,
         );
 
-        $stage = $this->createMock(Stage::class);
-        $action = $this->createMock(Action::class);
-        $scene = $this->createMock(Scene::class);
-        $character = $this->createStub(Character::class);
+        [$stage, $scene, $action, $character] = $this->getDefaultStageObjects(
+            stageMock: true,
+            sceneMock: true,
+            actionMock: true,
+        );
+
         $paragraph = $this->createMock(Paragraph::class);
-        $stage->method(PropertyHook::get("owner"))->willReturn($character);
 
         $sceneConfig = $this->getSceneConfig();
 
@@ -120,38 +181,18 @@ class BankTemplateTest extends TestCase
     public function testOnSceneChangeWhenOpIsDepositOrWithdraw(): void
     {
         $logger = $this->createMock(LoggerInterface::class);
-        $stopwatch = $this->createStub(Stopwatch::class);
-        $attachmentRepository = $this->createStub(AttachmentRepository::class);
-        $sceneRepository = $this->createStub(SceneRepository::class);
-        $diceBag = $this->createStub(DiceBagInterface::class);
-        $actionService = $this->createStub(ActionService::class);
-        $gold = $this->createStub(WealthHandler::class);
-        $gameStateService = $this->createStub(GameStateService::class);
 
-        $bankTemplate = new BankTemplate(
-            $logger,
-            $stopwatch,
-            $attachmentRepository,
-            $sceneRepository,
-            $diceBag,
-            $actionService,
-            $gold,
-            $gameStateService,
+        $bankTemplate = $this->createBankTemplate(
+            logger: $logger,
         );
 
-        $stage = $this->createMock(Stage::class);
-        $action = $this->createMock(Action::class);
-        $scene = $this->createMock(Scene::class);
-        $character = $this->createStub(Character::class);
-
-        $stage
-            ->method(PropertyHook::get("owner"))
-            ->willReturn($character);
-
-        $sceneConfig = $this->getSceneConfig();
-
-        $scene->expects($this->atLeastOnce())->method(PropertyHook::get("templateConfig"))
-            ->willReturn($sceneConfig);
+        [$stage, $scene, $action, $character] = $this->getDefaultStageObjects(
+            stageMock: true,
+            sceneMock: true,
+            actionMock: true,
+            sceneConfig: $this->getSceneConfig(),
+            sceneConfigExpects: $this->atLeastOnce(),
+        );
 
         // Assert op is asked for
         $action
@@ -185,29 +226,14 @@ class BankTemplateTest extends TestCase
     public function testDefaultActionWithoutAttachment(): void
     {
         $logger = $this->createMock(LoggerInterface::class);
-        $stopwatch = $this->createStub(Stopwatch::class);
-        $attachmentRepository = $this->createStub(AttachmentRepository::class);
-        $sceneRepository = $this->createStub(SceneRepository::class);
-        $diceBag = $this->createStub(DiceBagInterface::class);
-        $actionService = $this->createStub(ActionService::class);
-        $gold = $this->createStub(WealthHandler::class);
-        $gameStateService = $this->createStub(GameStateService::class);
 
-        $bankTemplate = new BankTemplate(
-            $logger,
-            $stopwatch,
-            $attachmentRepository,
-            $sceneRepository,
-            $diceBag,
-            $actionService,
-            $gold,
-            $gameStateService,
+        $bankTemplate = $this->createBankTemplate(
+            logger: $logger,
         );
 
-        $stage = $this->createMock(Stage::class);
-        $action = $this->createStub(Action::class);
-        $scene = $this->createStub(Scene::class);
-        $character = $this->createStub(Character::class);
+        [$stage, $scene, $action, $character] = $this->getDefaultStageObjects(
+            stageMock: true,
+        );
 
         $stage->expects($this->atLeastOnce())->method(PropertyHook::get("owner"))->willReturn($character);
         $stage->method(PropertyHook::get("paragraphs"))->willReturn([]);
@@ -225,33 +251,20 @@ class BankTemplateTest extends TestCase
 
     public function testDefaultActionWithAttachmentAvailable(): void
     {
-        $logger = $this->createStub(LoggerInterface::class);
-        $stopwatch = $this->createStub(Stopwatch::class);
         $attachmentRepository = $this->createMock(AttachmentRepository::class);
-        $sceneRepository = $this->createStub(SceneRepository::class);
-        $diceBag = $this->createStub(DiceBagInterface::class);
         $actionService = $this->createMock(ActionService::class);
-        $gold = $this->createStub(WealthHandler::class);
-        $gameStateService = $this->createStub(GameStateService::class);
 
-        $bankTemplate = new BankTemplate(
-            $logger,
-            $stopwatch,
-            $attachmentRepository,
-            $sceneRepository,
-            $diceBag,
-            $actionService,
-            $gold,
-            $gameStateService,
+        $bankTemplate = $this->createBankTemplate(
+            attachmentRepository: $attachmentRepository,
+            actionService: $actionService,
         );
 
-        $stage = $this->createMock(Stage::class);
-        $action = $this->createStub(Action::class);
-        $scene = $this->createStub(Scene::class);
-        $character = $this->createStub(Character::class);
+        [$stage, $scene, $action, $character] = $this->getDefaultStageObjects(
+            stageMock: true,
+        );
+
         $attachment = $this->createStub(Attachment::class);
 
-        $stage->method(PropertyHook::get("owner"))->willReturn($character);
         $stage->method(PropertyHook::get("paragraphs"))->willReturn([]);
 
         $attachmentRepository
@@ -279,44 +292,25 @@ class BankTemplateTest extends TestCase
     public function testDepositOrWithdrawActionWhenWithdrawIsFalse(): void
     {
         $logger = $this->createMock(LoggerInterface::class);
-        $stopwatch = $this->createStub(Stopwatch::class);
-        $attachmentRepository = $this->createStub(AttachmentRepository::class);
-        $sceneRepository = $this->createStub(SceneRepository::class);
-        $diceBag = $this->createStub(DiceBagInterface::class);
-        $actionService = $this->createStub(ActionService::class);
-        $gold = $this->createMock(WealthHandler::class);
-        $gameStateService = $this->createStub(GameStateService::class);
+        $wealthHandler = $this->createMock(WealthHandler::class);
 
-        $bankTemplate = new BankTemplate(
-            $logger,
-            $stopwatch,
-            $attachmentRepository,
-            $sceneRepository,
-            $diceBag,
-            $actionService,
-            $gold,
-            $gameStateService,
+        $bankTemplate = $this->createBankTemplate(
+            logger: $logger,
+            wealthHandler: $wealthHandler,
         );
 
-        $stage = $this->createMock(Stage::class);
-        $action = $this->createMock(Action::class);
-        $scene = $this->createMock(Scene::class);
-        $character = $this->createStub(Character::class);
-        $attachment = $this->createStub(Attachment::class);
+        [$stage, $scene, $action, $character] = $this->getDefaultStageObjects(
+            stageMock: true,
+            sceneMock: true,
+            actionMock: true,
+            sceneConfig: $this->getSceneConfig(),
+            sceneConfigExpects: $this->atLeastOnce(),
+        );
 
-        $stage
-            ->method(PropertyHook::get("owner"))
-            ->willReturn($character);
-
-        $gold->expects($this->atLeast(1))
+        $wealthHandler->expects($this->atLeast(1))
             ->method("getGold")
             ->willReturn(200, 100)
         ;
-
-        $sceneConfig = $this->getSceneConfig();
-
-        $scene->expects($this->atLeastOnce())->method(PropertyHook::get("templateConfig"))
-            ->willReturn($sceneConfig);
 
         $action->
             expects($this->atLeastOnce())
@@ -356,44 +350,25 @@ class BankTemplateTest extends TestCase
     public function testDepositOrWithdrawActionWhenWithdrawIsTrue(): void
     {
         $logger = $this->createMock(LoggerInterface::class);
-        $stopwatch = $this->createStub(Stopwatch::class);
-        $attachmentRepository = $this->createStub(AttachmentRepository::class);
-        $sceneRepository = $this->createStub(SceneRepository::class);
-        $diceBag = $this->createStub(DiceBagInterface::class);
-        $actionService = $this->createStub(ActionService::class);
-        $gold = $this->createMock(WealthHandler::class);
-        $gameStateService = $this->createStub(GameStateService::class);
+        $wealthHandler = $this->createMock(WealthHandler::class);
 
-        $bankTemplate = new BankTemplate(
-            $logger,
-            $stopwatch,
-            $attachmentRepository,
-            $sceneRepository,
-            $diceBag,
-            $actionService,
-            $gold,
-            $gameStateService,
+        $bankTemplate = $this->createBankTemplate(
+            logger: $logger,
+            wealthHandler: $wealthHandler,
         );
 
-        $stage = $this->createMock(Stage::class);
-        $action = $this->createMock(Action::class);
-        $scene = $this->createMock(Scene::class);
-        $character = $this->createStub(Character::class);
-        $attachment = $this->createStub(Attachment::class);
+        [$stage, $scene, $action, $character] = $this->getDefaultStageObjects(
+            stageMock: true,
+            sceneMock: true,
+            actionMock: true,
+            sceneConfig: $this->getSceneConfig(),
+            sceneConfigExpects: $this->atLeastOnce(),
+        );
 
-        $stage
-            ->method(PropertyHook::get("owner"))
-            ->willReturn($character);
-
-        $gold->expects($this->atLeast(1))
+        $wealthHandler->expects($this->atLeast(1))
             ->method("getGold")
             ->willReturn(200)
         ;
-
-        $sceneConfig = $this->getSceneConfig();
-
-        $scene->expects($this->atLeastOnce())->method(PropertyHook::get("templateConfig"))
-            ->willReturn($sceneConfig);
 
         $action
             ->expects($this->atLeastOnce())
@@ -433,29 +408,22 @@ class BankTemplateTest extends TestCase
     public function testDepositOrWithdrawActionWhenWithdrawIsTrueAndAmountIsZero(): void
     {
         $logger = $this->createMock(LoggerInterface::class);
-        $stopwatch = $this->createStub(Stopwatch::class);
-        $attachmentRepository = $this->createStub(AttachmentRepository::class);
-        $sceneRepository = $this->createStub(SceneRepository::class);
-        $diceBag = $this->createStub(DiceBagInterface::class);
-        $actionService = $this->createStub(ActionService::class);
-        $gold = $this->createMock(WealthHandler::class);
-        $gameStateService = $this->createStub(GameStateService::class);
+        $wealthHandler = $this->createMock(WealthHandler::class);
 
-        $bankTemplate = new BankTemplate(
-            $logger,
-            $stopwatch,
-            $attachmentRepository,
-            $sceneRepository,
-            $diceBag,
-            $actionService,
-            $gold,
-            $gameStateService,
+        $bankTemplate = $this->createBankTemplate(
+            logger: $logger,
+            wealthHandler: $wealthHandler,
         );
 
-        $stage = $this->createMock(Stage::class);
-        $action = $this->createMock(Action::class);
-        $scene = $this->createMock(Scene::class);
-        $character = $this->createMock(Character::class);
+        [$stage, $scene, $action, $character] = $this->getDefaultStageObjects(
+            stageMock: true,
+            sceneMock: true,
+            actionMock: true,
+            characterMock: true,
+            sceneConfig: $this->getSceneConfig(),
+            sceneConfigExpects: $this->atLeastOnce(),
+        );
+
         $character->expects($this->atLeastOnce())
             ->method("getProperty")
             ->with("bank", [])
@@ -465,21 +433,11 @@ class BankTemplateTest extends TestCase
             ->with("bank", [
                 "defaults" => 0,
             ]);
-        $attachment = $this->createStub(Attachment::class);
 
-        $stage
-            ->method(PropertyHook::get("owner"))
-            ->willReturn($character);
-
-        $gold->expects($this->atLeast(1))
+        $wealthHandler->expects($this->atLeast(1))
             ->method("getGold")
             ->willReturn(200)
         ;
-
-        $sceneConfig = $this->getSceneConfig();
-
-        $scene->expects($this->atLeastOnce())->method(PropertyHook::get("templateConfig"))
-            ->willReturn($sceneConfig);
 
         $action
             ->expects($this->atLeastOnce())
@@ -538,19 +496,15 @@ class BankTemplateTest extends TestCase
 
     public function testNewDayEventWithoutBankScenes()
     {
-        $logger = $this->createStub(LoggerInterface::class);
         $stopwatch = $this->createMock(Stopwatch::class);
-        $attachmentRepository = $this->createStub(AttachmentRepository::class);
         $sceneRepository = $this->createMock(SceneRepository::class);
-        $diceBag = $this->createStub(DiceBagInterface::class);
-        $actionService = $this->createStub(ActionService::class);
-        $gold = $this->createStub(WealthHandler::class);
-        $gameStateService = $this->createStub(GameStateService::class);
 
-        $bankTemplate = $this->getMockBuilder(BankTemplate::class)
-            ->onlyMethods(["addGoldInBank"])
-            ->setConstructorArgs([$logger, $stopwatch, $attachmentRepository, $sceneRepository, $diceBag, $actionService, $gold, $gameStateService])
-            ->getMock();
+        $bankTemplate = $this->createBankTemplate(
+            stopwatch: $stopwatch,
+            sceneRepository: $sceneRepository,
+            asPartialMock: true,
+            partialMockMethods: ["addGoldInBank"]
+        );
 
         $bankTemplate->expects($this->never())->method("addGoldInBank");
 
@@ -576,19 +530,17 @@ class BankTemplateTest extends TestCase
 
     public function testNewDayEventWithMultipleBankScenesWithNoRounds()
     {
-        $logger = $this->createStub(LoggerInterface::class);
         $stopwatch = $this->createMock(Stopwatch::class);
-        $attachmentRepository = $this->createStub(AttachmentRepository::class);
         $sceneRepository = $this->createMock(SceneRepository::class);
         $diceBag = $this->createStub(DiceBagInterface::class);
-        $actionService = $this->createStub(ActionService::class);
-        $gold = $this->createStub(WealthHandler::class);
-        $gameStateService = $this->createStub(GameStateService::class);
 
-        $bankTemplate = $this->getMockBuilder(BankTemplate::class)
-            ->onlyMethods(["addGoldInBank", "getGoldInBank"])
-            ->setConstructorArgs([$logger, $stopwatch, $attachmentRepository, $sceneRepository, $diceBag, $actionService, $gold, $gameStateService])
-            ->getMock();
+        $bankTemplate = $this->createBankTemplate(
+            stopwatch: $stopwatch,
+            sceneRepository: $sceneRepository,
+            diceBag: $diceBag,
+            asPartialMock: true,
+            partialMockMethods: ["addGoldInBank", "getGoldInBank"],
+        );
 
         $stopwatch->expects($this->once())->method("start");
         $stopwatch->expects($this->once())->method("stop");
@@ -694,19 +646,21 @@ class BankTemplateTest extends TestCase
     #[TestWith([10, 40, 0])]
     public function testNewDayEventWithOneBankScenesWithTooManyRoundsLeft(int $roundsRequired, int $roundsLeft, int $interest)
     {
-        $logger = $this->createStub(LoggerInterface::class);
         $stopwatch = $this->createMock(Stopwatch::class);
-        $attachmentRepository = $this->createStub(AttachmentRepository::class);
         $sceneRepository = $this->createMock(SceneRepository::class);
         $diceBag = $this->createStub(DiceBagInterface::class);
-        $actionService = $this->createStub(ActionService::class);
-        $gold = $this->createStub(WealthHandler::class);
-        $gameStateService = $this->createStub(GameStateService::class);
 
-        $bankTemplate = $this->getMockBuilder(BankTemplate::class)
-            ->onlyMethods(["addGoldInBank", "getGoldInBank"])
-            ->setConstructorArgs([$logger, $stopwatch, $attachmentRepository, $sceneRepository, $diceBag, $actionService, $gold, $gameStateService])
-            ->getMock();
+        $healthHandler = $this->createStub(HealthHandler::class);
+        $healthHandler->method("getTurns")->willReturn($roundsLeft);
+
+        $bankTemplate = $this->createBankTemplate(
+            stopwatch: $stopwatch,
+            sceneRepository: $sceneRepository,
+            diceBag: $diceBag,
+            healthHandler: $healthHandler,
+            asPartialMock: true,
+            partialMockMethods: ["addGoldInBank", "getGoldInBank"],
+        );
 
         $stopwatch->expects($this->once())->method("start");
         $stopwatch->expects($this->once())->method("stop");
@@ -789,19 +743,19 @@ class BankTemplateTest extends TestCase
     #[TestWith([10000, -1000, -50])]
     public function testNewDayEventWithOneBankScenesWithTooMuchMoneyInBank(int $moneyBorder, int $moneyInAccount, int $interest)
     {
-        $logger = $this->createStub(LoggerInterface::class);
         $stopwatch = $this->createMock(Stopwatch::class);
-        $attachmentRepository = $this->createStub(AttachmentRepository::class);
         $sceneRepository = $this->createMock(SceneRepository::class);
         $diceBag = $this->createStub(DiceBagInterface::class);
-        $actionService = $this->createStub(ActionService::class);
-        $gold = $this->createStub(WealthHandler::class);
-        $gameStateService = $this->createStub(GameStateService::class);
+        $healthHandler = $this->createStub(HealthHandler::class);
 
-        $bankTemplate = $this->getMockBuilder(BankTemplate::class)
-            ->onlyMethods(["addGoldInBank", "getGoldInBank"])
-            ->setConstructorArgs([$logger, $stopwatch, $attachmentRepository, $sceneRepository, $diceBag, $actionService, $gold, $gameStateService])
-            ->getMock();
+        $bankTemplate = $this->createBankTemplate(
+            stopwatch: $stopwatch,
+            sceneRepository: $sceneRepository,
+            diceBag: $diceBag,
+            healthHandler: $healthHandler,
+            asPartialMock: true,
+            partialMockMethods: ["addGoldInBank", "getGoldInBank"],
+        );
 
         $stopwatch->expects($this->once())->method("start");
         $stopwatch->expects($this->once())->method("stop");

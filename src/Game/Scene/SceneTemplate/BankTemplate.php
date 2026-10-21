@@ -6,13 +6,12 @@ namespace LotGD2\Game\Scene\SceneTemplate;
 use LotGD2\Attribute\TemplateType;
 use LotGD2\Entity\Action;
 use LotGD2\Entity\Mapped\Character;
-use LotGD2\Entity\Mapped\GameState;
-use LotGD2\Entity\Mapped\Scene;
 use LotGD2\Entity\Mapped\Stage;
 use LotGD2\Entity\Paragraph;
 use LotGD2\Event\StageChangeEvent;
 use LotGD2\Form\Scene\SceneTemplate\BankTemplateType;
 use LotGD2\Game\GameStateService;
+use LotGD2\Game\Handler\HandlerRegistry;
 use LotGD2\Game\Handler\WealthHandler;
 use LotGD2\Game\Handler\HealthHandler;
 use LotGD2\Game\GameTime\NewDay;
@@ -52,14 +51,14 @@ class BankTemplate implements SceneTemplateInterface
     const string DefaultBankAccountName = "defaults";
 
     public function __construct(
-        private LoggerInterface      $logger,
-        private Stopwatch            $stopwatch,
-        private AttachmentRepository $attachmentRepository,
-        private SceneRepository      $sceneRepository,
-        private DiceBagInterface     $diceBag,
-        private ActionService        $actionService,
-        private WealthHandler        $gold,
-        private GameStateService     $gameStateService,
+        private readonly LoggerInterface      $logger,
+        private readonly Stopwatch            $stopwatch,
+        private readonly AttachmentRepository $attachmentRepository,
+        private readonly SceneRepository      $sceneRepository,
+        private readonly DiceBagInterface     $diceBag,
+        private readonly ActionService        $actionService,
+        private readonly HandlerRegistry      $handlerRegistry,
+        private readonly GameStateService     $gameStateService,
     ) {
     }
 
@@ -95,7 +94,7 @@ class BankTemplate implements SceneTemplateInterface
             $amount = min($amount, $this->getGoldInBank($character, $this->scene->templateConfig));
 
             $this->addGoldInBank($character, $this->scene->templateConfig, -$amount);
-            $this->gold->addGold($character, $amount);
+            $this->handlerRegistry->get(WealthHandler::class)->addGold($character, $amount);
 
             $accountName = $this->scene->templateConfig['accountName'] ?? self::DefaultBankAccountName;
             $this->logger->debug("Withdrew {$amount} gold from the bank (bank account name: {$accountName})");
@@ -107,13 +106,13 @@ class BankTemplate implements SceneTemplateInterface
         } else {
             if ($amount === 0) {
                 // If amount is 0, we deposit everything
-                $amount = $this->gold->getGold($character);
+                $amount = $this->handlerRegistry->get(WealthHandler::class)->getGold($character);
             }
 
-            $amount = min($amount, $this->gold->getGold($character));
+            $amount = min($amount, $this->handlerRegistry->get(WealthHandler::class)->getGold($character));
 
             $this->addGoldInBank($character, $this->scene->templateConfig, $amount);
-            $this->gold->addGold($character, -$amount);
+            $this->handlerRegistry->get(WealthHandler::class)->addGold($character, -$amount);
 
             $accountName = $this->scene->templateConfig['accountName'] ?? self::DefaultBankAccountName;
             $this->logger->debug("Deposited {$amount} gold to the bank (bank account name: {$accountName})");
@@ -127,7 +126,7 @@ class BankTemplate implements SceneTemplateInterface
         $paragraph->context = [
             "amount" => $amount,
             "goldInBank" => $this->getGoldInBank($character, $this->scene->templateConfig),
-            "goldInHand" => $this->gold->getGold($character),
+            "goldInHand" => $this->handlerRegistry->get(WealthHandler::class)->getGold($character),
         ];
 
         $this->stage->paragraphs = [$paragraph];
@@ -205,8 +204,6 @@ class BankTemplate implements SceneTemplateInterface
         $this->stopwatch->start("lotgd2.BankTemplate.onNewDayEvent");
         $defaultConfig = new BankTemplateType()->getDefaultData();
 
-        $oldHealth = new HealthHandler($this->gameStateService, null);
-
         $scenes = $this->sceneRepository->findBy(["templateClass" => self::class], ["id" => "ASC"]);
         $bankAccounts = [];
 
@@ -250,7 +247,7 @@ class BankTemplate implements SceneTemplateInterface
                     // Character has more gold than the maximum; the bank does not pay out interest.
                     $interest = 0;
                     $text = "The bank <.{{ bankName }}.> does not pay out your interest to retain solvency. You have already enough savings.";
-                } elseif ($turnsLeftBeforeInterest >= 0 && $turnsLeftBeforeInterest <= $oldHealth->getTurns($event->characterBefore)) {
+                } elseif ($turnsLeftBeforeInterest >= 0 && $turnsLeftBeforeInterest <= $this->handlerRegistry->get(HealthHandler::class)->getTurns($event->characterBefore)) {
                     $interest = 0;
                     $text = "The bank <.{{ bankName }}.>'s interest rate today is {{ bankInterestRate }}%, but you will not earn interest. This bank only gives interest to those who work.";
                 } else {
