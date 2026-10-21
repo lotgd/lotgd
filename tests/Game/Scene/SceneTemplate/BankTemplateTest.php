@@ -63,7 +63,6 @@ class BankTemplateTest extends TestCase
      * @param SceneRepository|null $sceneRepository
      * @param DiceBagInterface|null $diceBag
      * @param ActionService|null $actionService
-     * @param GameStateService|null $gameStateService
      * @param WealthHandler|null $wealthHandler
      * @param HealthHandler|null $healthHandler
      * @param bool $asPartialMock
@@ -78,7 +77,6 @@ class BankTemplateTest extends TestCase
         ?SceneRepository $sceneRepository = null,
         ?DiceBagInterface $diceBag = null,
         ?ActionService $actionService = null,
-        ?GameStateService $gameStateService = null,
         ?WealthHandler $wealthHandler = null,
         ?HealthHandler $healthHandler = null,
         bool $asPartialMock = false,
@@ -95,7 +93,6 @@ class BankTemplateTest extends TestCase
         $sceneRepository ??= $this->createStub(SceneRepository::class);
         $diceBag ??= $this->createStub(DiceBagInterface::class);
         $actionService ??= $this->createStub(ActionService::class);
-        $gameStateService ??= $this->createStub(GameStateService::class);
 
         if ($asPartialMock) {
             return $this->getMockBuilder(BankTemplate::class)
@@ -108,7 +105,6 @@ class BankTemplateTest extends TestCase
                     $diceBag,
                     $actionService,
                     $handlerRegistry,
-                    $gameStateService,
                 ])
                 ->getMock();
         }
@@ -121,7 +117,6 @@ class BankTemplateTest extends TestCase
             diceBag: $diceBag,
             actionService: $actionService,
             handlerRegistry: $handlerRegistry,
-            gameStateService: $gameStateService,
         );
     }
 

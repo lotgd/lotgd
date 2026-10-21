@@ -58,7 +58,6 @@ class BankTemplate implements SceneTemplateInterface
         private readonly DiceBagInterface     $diceBag,
         private readonly ActionService        $actionService,
         private readonly HandlerRegistry      $handlerRegistry,
-        private readonly GameStateService     $gameStateService,
     ) {
     }
 
