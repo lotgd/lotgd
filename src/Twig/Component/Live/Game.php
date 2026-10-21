@@ -33,8 +33,6 @@ class Game extends AbstractController
 
     public function __construct(
         private readonly GameLoop $game,
-        private readonly RaceRepository $raceRepository,
-        private readonly GameStateService $gameStateService,
         private readonly HandlerRegistry $handlerRegistry,
     ) {
     }
@@ -51,12 +49,6 @@ class Game extends AbstractController
     #[ExposeInTemplate]
     public function getCharStats(): array
     {
-        $health = new HealthHandler($this->gameStateService, null);
-        $equipment = new EquipmentHandler(null);
-        $stats = new StatsHandler(null, $equipment);
-        $gold = new WealthHandler($this->gameStateService, null);
-        $race = new RaceHandler(null, null, null, $this->raceRepository);
-
         return [
             ["Character"],
             ["Name", $this->character->name],
