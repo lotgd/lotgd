@@ -29,10 +29,11 @@ use LotGD2\Game\Handler\HandlerRegistry;
 use LotGD2\Game\Handler\HealthHandler;
 use LotGD2\Game\Handler\StatsHandler;
 use LotGD2\Game\Random\DiceBag;
+use LotGD2\Game\Random\DiceBagInterface;
 use LotGD2\Game\Scene\SceneRenderer;
 use LotGD2\Game\Stage\ActionService;
 use LotGD2\Repository\AttachmentRepository;
-use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
+use LotGD2\Tests\TestTools\HasHandlerRegistryTrait;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Depends;
 use PHPUnit\Framework\Attributes\UsesClass;
@@ -40,7 +41,6 @@ use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\MockObject\Runtime\PropertyHook;
 use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
-use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\Serializer\Encoder\JsonEncoder;
 use Symfony\Component\Serializer\Normalizer\DenormalizerInterface;
 use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
@@ -65,61 +65,102 @@ use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
 #[UsesClass(BattleRoundMessage::class)]
 #[UsesClass(DeathEvent::class)]
 #[UsesClass(BattleNavigationChangeEvent::class)]
-#[AllowMockObjectsWithoutExpectations]
 class BattleTest extends KernelTestCase
 {
-    private Battle $battle;
+    use HasHandlerRegistryTrait;
 
-    private Character $character;
-    private BattleTurn&MockObject $turn;
-    private NormalizerInterface&DenormalizerInterface $normalizer;
-    private LoggerInterface&MockObject $logger;
-    private BuffHandler&MockObject $buffHandler;
-    private EventDispatcherInterface&MockObject $eventDispatcher;
-    private SceneRenderer&MockObject $sceneRenderer;
-    private ActionService&MockObject $actionService;
-    private AttachmentRepository&MockObject $attachmentRepository;
-    private DiceBag&MockObject $diceBag;
-
-    public function setUp(): void
+    private function createCharacter(?string $name = "Test", int $level = 1): Character
     {
-        $this->normalizer = new Serializer(
-            [new ObjectNormalizer()],
-            [new JsonEncoder()],
-        );
+        return new Character(name: $name, level: $level);
+    }
 
-        $this->logger = $this->createMock(LoggerInterface::class);
-        $this->character = new Character(name: "Test", level: 1);
-        $this->turn = $this->createMock(BattleTurn::class);
-        $this->buffHandler = $this->createMock(BuffHandler::class);
-        $this->eventDispatcher = $this->createMock(EventDispatcherInterface::class);
-        $this->sceneRenderer = $this->createMock(SceneRenderer::class);
-        $this->actionService = $this->createMock(ActionService::class);
-        $this->attachmentRepository = $this->createMock(AttachmentRepository::class);
-        $this->diceBag = $this->createMock(DiceBag::class);
-        $stopWatch = $this->createStub(Stopwatch::class);
+    /**
+     * @param int|int[] $health
+     */
+    private function createFighter(int|array $health = 10): FighterInterface
+    {
+        $fighter = $this->createStub(FighterInterface::class);
+        if (is_array($health)) {
+            $fighter->method(PropertyHook::get("health"))->willReturn(...array_values($health));
+        } else {
+            $fighter->method(PropertyHook::get("health"))->willReturn($health);
+        }
 
-        $this->battle = new Battle(
-            logger: $this->logger,
-            stopWatch: $stopWatch,
-            eventDispatcher: $this->eventDispatcher,
-            normalizer: $this->normalizer,
-            turn: $this->turn,
-            sceneRenderer: $this->sceneRenderer,
-            actionService: $this->actionService,
-            attachmentRepository: $this->attachmentRepository,
-            handlerRegistry: $this->createStub(HandlerRegistry::class),
-            diceBag: $this->diceBag,
-            buffHandler: $this->buffHandler,
-            character: $this->character,
+        return $fighter;
+    }
+
+    private function createBattle(
+        ?LoggerInterface $logger = null,
+        ?Stopwatch $stopWatch = null,
+        ?EventDispatcherInterface $eventDispatcher = null,
+        (DenormalizerInterface&NormalizerInterface)|null $normalizer = null,
+        ?BattleTurn $turn = null,
+        ?SceneRenderer $sceneRenderer = null,
+        ?ActionService $actionService = null,
+        ?AttachmentRepository $attachmentRepository = null,
+        ?HandlerRegistry $handlerRegistry = null,
+        ?DiceBagInterface $diceBag = null,
+        ?BuffHandler $buffHandler = null,
+        ?Character $character = null,
+    ): Battle {
+        $healthHandler = $this->createStub(HealthHandler::class);
+        $healthHandler->method("getHealth")->willReturn(10);
+        $healthHandler->method("getMaxHealth")->willReturn(10);
+
+        $statsHandler = $this->createStub(StatsHandler::class);
+        $statsHandler->method("getLevel")->willReturn(1);
+        $statsHandler->method("getTotalAttack")->willReturn(1);
+        $statsHandler->method("getTotalDefense")->willReturn(1);
+
+        $equipmentHandler = $this->createStub(EquipmentHandler::class);
+
+        $handlerMap = [
+            HealthHandler::class => $healthHandler,
+            StatsHandler::class => $statsHandler,
+            EquipmentHandler::class => $equipmentHandler,
+        ];
+
+        return new Battle(
+            logger: $logger ?? $this->createStub(LoggerInterface::class),
+            stopWatch: $stopWatch ?? $this->createStub(Stopwatch::class),
+            eventDispatcher: $eventDispatcher ?? $this->createStub(EventDispatcherInterface::class),
+            normalizer: $normalizer ?? new Serializer([new ObjectNormalizer()], [new JsonEncoder()]),
+            turn: $turn ?? $this->createStub(BattleTurn::class),
+            sceneRenderer: $sceneRenderer ?? $this->createStub(SceneRenderer::class),
+            actionService: $actionService ?? $this->createStub(ActionService::class),
+            attachmentRepository: $attachmentRepository ?? $this->createStub(AttachmentRepository::class),
+            handlerRegistry: $handlerRegistry ?? $this->createHandlerRegistry($handlerMap),
+            diceBag: $diceBag ?? $this->createStub(DiceBagInterface::class),
+            buffHandler: $buffHandler ?? $this->createStub(BuffHandler::class),
+            character: $character ?? $this->createCharacter(),
         );
+    }
+
+    private function createBattleState(
+        ?FighterInterface $goodGuy = null,
+        ?FighterInterface $badGuy = null,
+        ?Character $character = null,
+    ): BattleState {
+        $character ??= $this->createCharacter();
+        $goodGuy ??= $this->createFighter(10);
+        $badGuy ??= $this->createFighter(10);
+
+        $battleState = new BattleState(
+            goodGuy: $goodGuy,
+            badGuy: $badGuy,
+        );
+        $battleState->setCharacter($character);
+
+        return $battleState;
     }
 
     public function testStartBattle(): BattleState
     {
+        $character = $this->createCharacter();
+        $battle = $this->createBattle(character: $character);
         $badGuy = new Fighter(name: null, level: null, weapon: null, health: null, attack: null, defense: null, kwargs: []);
 
-        $battleState = $this->battle->start($badGuy, gameStateService: $this->createStub(GameStateService::class));
+        $battleState = $battle->start($badGuy, gameStateService: $this->createStub(GameStateService::class));
 
         $this->assertInstanceOf(CurrentCharacterFighter::class, $battleState->goodGuy);
         $this->assertInstanceOf(Fighter::class, $battleState->badGuy);
@@ -130,18 +171,25 @@ class BattleTest extends KernelTestCase
     #[Depends("testStartBattle")]
     public function testAddsFightActionWithoutParams(BattleState $battleState): void
     {
-        $scene = $this->createMock(Scene::class);
+        $character = $battleState->character ?? $this->createCharacter();
+        $scene = $this->createStub(Scene::class);
         $stage = new Stage(
-            owner: $this->character,
+            owner: $character,
             scene: $scene,
         );
 
-        $this->eventDispatcher->expects($this->once())->method('dispatch')->willReturnCallback(function (BattleNavigationChangeEvent $event, string $eventName) {
+        $eventDispatcher = $this->createMock(EventDispatcherInterface::class);
+        $eventDispatcher->expects($this->once())->method('dispatch')->willReturnCallback(function (BattleNavigationChangeEvent $event, string $eventName) {
             $this->assertSame(Battle::OnAddFightActions, $eventName);
             return $event;
         });
 
-        $this->battle->addFightActions($stage, $scene, $battleState);
+        $battle = $this->createBattle(
+            eventDispatcher: $eventDispatcher,
+            character: $character,
+        );
+
+        $battle->addFightActions($stage, $scene, $battleState);
 
         $actionGroups = $stage->actionGroups;
         $this->assertCount(2, $actionGroups);
@@ -168,19 +216,26 @@ class BattleTest extends KernelTestCase
     #[Depends("testStartBattle")]
     public function testAddsFightActionWithParams(BattleState $battleState): void
     {
-        $scene = $this->createMock(Scene::class);
+        $character = $battleState->character ?? $this->createCharacter();
+        $scene = $this->createStub(Scene::class);
         $stage = new Stage(
-            owner: $this->character,
+            owner: $character,
             scene: $scene,
         );
         $params = ["op" => "fight"];
 
-        $this->eventDispatcher->expects($this->once())->method('dispatch')->willReturnCallback(function (BattleNavigationChangeEvent $event, string $eventName) {
+        $eventDispatcher = $this->createMock(EventDispatcherInterface::class);
+        $eventDispatcher->expects($this->once())->method('dispatch')->willReturnCallback(function (BattleNavigationChangeEvent $event, string $eventName) {
             $this->assertSame(Battle::OnAddFightActions, $eventName);
             return $event;
         });
 
-        $this->battle->addFightActions($stage, $scene, $battleState, $params);
+        $battle = $this->createBattle(
+            eventDispatcher: $eventDispatcher,
+            character: $character,
+        );
+
+        $battle->addFightActions($stage, $scene, $battleState, $params);
 
         $actionGroups = $stage->actionGroups;
         $this->assertCount(2, $actionGroups);
@@ -208,45 +263,30 @@ class BattleTest extends KernelTestCase
 
     public function testFightOneTurnWithDamageEvents(): void
     {
-        $goodGuy = $this->createStub(FighterInterface::class);
-        $goodGuy->method(PropertyHook::get("health"))->willReturn(10);
-        $badGuy = $this->createStub(FighterInterface::class);
-        $badGuy->method(PropertyHook::get("health"))->willReturn(10);
-
-        $battleState = new BattleState(
-            goodGuy: $goodGuy,
-            badGuy: $badGuy,
-        );
-        $battleState->setCharacter($this->character);
+        $battleState = $this->createBattleState();
+        $turn = $this->createMock(BattleTurn::class);
 
         $halfTurns = [
             new ArrayCollection([
-                $this->createMock(DamageEvent::class),
+                $this->createStub(DamageEvent::class),
             ]),
             new ArrayCollection([
-                $this->createMock(DamageEvent::class),
+                $this->createStub(DamageEvent::class),
             ]),
         ];
 
-        $this->turn->expects($this->once())->method("getHalfTurns")->willReturn($halfTurns);
+        $turn->expects($this->once())->method("getHalfTurns")->willReturn($halfTurns);
 
-        $this->battle->fightOneRound($battleState, BattleTurn::DamageTurnBoth);
+        $battle = $this->createBattle(turn: $turn);
+        $battle->fightOneRound($battleState, BattleTurn::DamageTurnBoth);
 
         $this->assertSame(1, $battleState->roundCounter);
     }
 
     public function testFightOneTurnWithDamageEventsForOffenseTurn(): void
     {
-        $goodGuy = $this->createStub(FighterInterface::class);
-        $goodGuy->method(PropertyHook::get("health"))->willReturn(10);
-        $badGuy = $this->createStub(FighterInterface::class);
-        $badGuy->method(PropertyHook::get("health"))->willReturn(10);
-
-        $battleState = new BattleState(
-            goodGuy: $goodGuy,
-            badGuy: $badGuy,
-        );
-        $battleState->setCharacter($this->character);
+        $battleState = $this->createBattleState();
+        $turn = $this->createMock(BattleTurn::class);
 
         $offenseDamageEvent = $this->createMock(DamageEvent::class);
         $offenseDamageEvent->expects($this->once())->method("apply");
@@ -265,25 +305,18 @@ class BattleTest extends KernelTestCase
             ]),
         ];
 
-        $this->turn->expects($this->once())->method("getHalfTurns")->willReturn($halfTurns);
+        $turn->expects($this->once())->method("getHalfTurns")->willReturn($halfTurns);
 
-        $this->battle->fightOneRound($battleState, BattleTurn::DamageTurnGoodGuy);
+        $battle = $this->createBattle(turn: $turn);
+        $battle->fightOneRound($battleState, BattleTurn::DamageTurnGoodGuy);
 
         $this->assertSame(1, $battleState->roundCounter);
     }
 
     public function testFightOneTurnWithDamageEventsForDefenseTurn(): void
     {
-        $goodGuy = $this->createStub(FighterInterface::class);
-        $goodGuy->method(PropertyHook::get("health"))->willReturn(10);
-        $badGuy = $this->createStub(FighterInterface::class);
-        $badGuy->method(PropertyHook::get("health"))->willReturn(10);
-
-        $battleState = new BattleState(
-            goodGuy: $goodGuy,
-            badGuy: $badGuy,
-        );
-        $battleState->setCharacter($this->character);
+        $battleState = $this->createBattleState();
+        $turn = $this->createMock(BattleTurn::class);
 
         $offenseDamageEvent = $this->createMock(DamageEvent::class);
         $offenseDamageEvent->expects($this->never())->method("apply");
@@ -302,25 +335,18 @@ class BattleTest extends KernelTestCase
             ]),
         ];
 
-        $this->turn->expects($this->once())->method("getHalfTurns")->willReturn($halfTurns);
+        $turn->expects($this->once())->method("getHalfTurns")->willReturn($halfTurns);
 
-        $this->battle->fightOneRound($battleState, BattleTurn::DamageTurnBadGuy);
+        $battle = $this->createBattle(turn: $turn);
+        $battle->fightOneRound($battleState, BattleTurn::DamageTurnBadGuy);
 
         $this->assertSame(1, $battleState->roundCounter);
     }
 
     public function testFightOneTurnWithNoDamageEvents(): void
     {
-        $goodGuy = $this->createStub(FighterInterface::class);
-        $goodGuy->method(PropertyHook::get("health"))->willReturn(10);
-        $badGuy = $this->createStub(FighterInterface::class);
-        $badGuy->method(PropertyHook::get("health"))->willReturn(10);
-
-        $battleState = new BattleState(
-            goodGuy: $goodGuy,
-            badGuy: $badGuy,
-        );
-        $battleState->setCharacter($this->character);
+        $battleState = $this->createBattleState();
+        $turn = $this->createMock(BattleTurn::class);
 
         $halfTurns = [
             new ArrayCollection([
@@ -329,25 +355,17 @@ class BattleTest extends KernelTestCase
             ]),
         ];
 
-        $this->turn->expects($this->once())->method("getHalfTurns")->willReturn($halfTurns);
+        $turn->expects($this->once())->method("getHalfTurns")->willReturn($halfTurns);
 
-        $this->battle->fightOneRound($battleState, BattleTurn::DamageTurnBoth);
+        $battle = $this->createBattle(turn: $turn);
+        $battle->fightOneRound($battleState, BattleTurn::DamageTurnBoth);
 
         $this->assertSame(1, $battleState->roundCounter);
     }
 
     public function testProcessBattleEventsWhenNobodyDies(): void
     {
-        $goodGuy = $this->createStub(FighterInterface::class);
-        $goodGuy->method(PropertyHook::get("health"))->willReturn(10);
-        $badGuy = $this->createStub(FighterInterface::class);
-        $badGuy->method(PropertyHook::get("health"))->willReturn(10);
-
-        $battleState = new BattleState(
-            goodGuy: $goodGuy,
-            badGuy: $badGuy,
-        );
-        $battleState->setCharacter($this->character);
+        $battleState = $this->createBattleState();
         $events = [
             $this->createMock(CriticalHitEvent::class),
             $this->createMock(DamageEvent::class),
@@ -358,7 +376,8 @@ class BattleTest extends KernelTestCase
         array_map(fn (MockObject&BattleEventInterface $o) => $o->expects($this->once())->method("apply"), $events);
         array_map(fn (MockObject&BattleEventInterface $o) => $o->expects($this->never())->method("decorate"), $events);
 
-        $processedEvents = $this->battle->processBattleEvents(new ArrayCollection($events), $battleState);
+        $battle = $this->createBattle();
+        $processedEvents = $battle->processBattleEvents(new ArrayCollection($events), $battleState);
 
         $this->assertSameSize($events, $processedEvents);
         $this->assertSame($events, $processedEvents->toArray());
@@ -366,16 +385,8 @@ class BattleTest extends KernelTestCase
 
     public function testProcessBattleEventsWhenGoodGuyDies(): void
     {
-        $goodGuy = $this->createStub(FighterInterface::class);
-        $goodGuy->method(PropertyHook::get("health"))->willReturn(10, 5, 0);
-        $badGuy = $this->createStub(FighterInterface::class);
-        $badGuy->method(PropertyHook::get("health"))->willReturn(10);
-
-        $battleState = new BattleState(
-            goodGuy: $goodGuy,
-            badGuy: $badGuy,
-        );
-        $battleState->setCharacter($this->character);
+        $goodGuy = $this->createFighter([10, 5, 0]);
+        $battleState = $this->createBattleState(goodGuy: $goodGuy);
         $events = [
             $this->createMock(DamageEvent::class),
             $this->createMock(DamageEvent::class),
@@ -390,7 +401,8 @@ class BattleTest extends KernelTestCase
         array_map(fn (MockObject&BattleEventInterface $o) => $o->expects($this->never())->method("apply"), array_slice($events, 3, 3));
         array_map(fn (MockObject&BattleEventInterface $o) => $o->expects($this->never())->method("decorate"),  $events);
 
-        $processedEvents = $this->battle->processBattleEvents(new ArrayCollection($events), $battleState);
+        $battle = $this->createBattle();
+        $processedEvents = $battle->processBattleEvents(new ArrayCollection($events), $battleState);
         $lastEntry = $processedEvents->last();
 
         $this->assertCount(4, $processedEvents);
@@ -403,16 +415,8 @@ class BattleTest extends KernelTestCase
 
     public function testProcessBattleEventsWhenBadGuyDies(): void
     {
-        $goodGuy = $this->createStub(FighterInterface::class);
-        $goodGuy->method(PropertyHook::get("health"))->willReturn(10);
-        $badGuy = $this->createStub(FighterInterface::class);
-        $badGuy->method(PropertyHook::get("health"))->willReturn(10, 5, 1, 0);
-
-        $battleState = new BattleState(
-            goodGuy: $goodGuy,
-            badGuy: $badGuy,
-        );
-        $battleState->setCharacter($this->character);
+        $badGuy = $this->createFighter([10, 5, 1, 0]);
+        $battleState = $this->createBattleState(badGuy: $badGuy);
         $events = [
             $this->createMock(DamageEvent::class),
             $this->createMock(DamageEvent::class),
@@ -427,7 +431,8 @@ class BattleTest extends KernelTestCase
         array_map(fn (MockObject&BattleEventInterface $o) => $o->expects($this->never())->method("apply"), array_slice($events, 4, 2));
         array_map(fn (MockObject&BattleEventInterface $o) => $o->expects($this->never())->method("decorate"),  $events);
 
-        $processedEvents = $this->battle->processBattleEvents(new ArrayCollection($events), $battleState);
+        $battle = $this->createBattle();
+        $processedEvents = $battle->processBattleEvents(new ArrayCollection($events), $battleState);
         $lastEntry = $processedEvents->last();
 
         $this->assertCount(5, $processedEvents);

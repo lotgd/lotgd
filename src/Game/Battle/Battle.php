@@ -104,7 +104,7 @@ class Battle
         $badGuy = new Fighter(... $normalizedFighter);
 
         $battleState = new BattleState(
-            CurrentCharacterFighter::fromCharacter($gameStateService, $this->character),
+            CurrentCharacterFighter::fromCharacter($gameStateService, $this->handlerRegistry, $this->character),
             $badGuy,
             $isLevelAdjustmentEnabled,
             $isCriticalHitEnabled,
