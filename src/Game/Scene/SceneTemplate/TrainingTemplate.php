@@ -209,7 +209,7 @@ class TrainingTemplate implements SceneTemplateInterface
             $attachment = $this->attachmentRepository->findOneBy(["attachmentClass" => BattleAttachment::class]);
 
             if ($attachment) {
-                $battleState = $this->battle->start($master, $this->gameStateService, allowFlee: false);
+                $battleState = $this->battle->start($this->character, $master, $this->gameStateService, allowFlee: false);
                 $params = ["op" => "fight"];
 
                 $healed = false;
@@ -240,7 +240,7 @@ class TrainingTemplate implements SceneTemplateInterface
 
                 $this->stage->actionGroups = [];
 
-                $this->battle->addFightActions($this->stage, $this->scene, $battleState, $params);
+                $this->battle->addFightActions($this->stage, $this->scene, $battleState, $this->character, $params);
             } else {
                 $this->stage->paragraphs = [
                     new Paragraph(

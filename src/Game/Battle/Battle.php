@@ -79,13 +79,11 @@ class Battle
         private readonly AttachmentRepository $attachmentRepository,
         private readonly DiceBagInterface $diceBag,
         private readonly HandlerRegistry $handlerRegistry,
-        private readonly BuffHandler $buffHandler,
-        #[Autowire(expression: "service('lotgd2.game_loop').getCharacter()")]
-        private Character $character,
     ) {
     }
 
     public function start(
+        Character $character,
         BasicFighterInterface $badGuy,
         GameStateService $gameStateService,
         bool $isLevelAdjustmentEnabled = true,
@@ -104,14 +102,14 @@ class Battle
         $badGuy = new Fighter(... $normalizedFighter);
 
         $battleState = new BattleState(
-            CurrentCharacterFighter::fromCharacter($gameStateService, $this->handlerRegistry, $this->character),
+            CurrentCharacterFighter::fromCharacter($gameStateService, $this->handlerRegistry, $character),
             $badGuy,
             $isLevelAdjustmentEnabled,
             $isCriticalHitEnabled,
             $isRiposteEnabled,
             $allowFlee,
         );
-        $battleState->setCharacter($this->character);
+        $battleState->setCharacter($character);
 
         return $battleState;
     }
@@ -121,11 +119,17 @@ class Battle
      * @param Stage $stage
      * @param Scene $scene
      * @param BattleState $battleState
+     * @param Character $character
      * @param array<string, mixed> $actionParams
      * @return void
      */
-    public function addFightActions(Stage $stage, Scene $scene, BattleState $battleState, array $actionParams = []): void
-    {
+    public function addFightActions(
+        Stage $stage,
+        Scene $scene,
+        BattleState $battleState,
+        Character $character,
+        array $actionParams = []
+    ): void {
         $this->logger->debug("Adding Battle Actions");
         $this->actionService->resetActionGroups($stage);
 
@@ -170,7 +174,7 @@ class Battle
             $actionGroups[0]->addAction(new Action($scene, "Flee", [... $actionParams, "how" => "flee", "battleState" => $battleState], reference: self::FightActionFlee));
         }
 
-        $battleNavigationEvent = new BattleNavigationChangeEvent($this->character, $battleState, $actionGroups, $scene, $actionParams);
+        $battleNavigationEvent = new BattleNavigationChangeEvent($character, $battleState, $actionGroups, $scene, $actionParams);
         $battleNavigationEvent = $this->eventDispatcher->dispatch($battleNavigationEvent, self::OnAddFightActions);
 
         array_map(fn (ActionGroup $actionGroup) => $stage->addActionGroup($actionGroup), $battleNavigationEvent->actionGroups);
@@ -178,18 +182,22 @@ class Battle
 
     /**
      * Fights exactly one round (1 offence and 1 defence turn)
+     * @param Character $character
      * @param BattleState $battleState
      * @param int $damageRound
      * @return void
      */
-    public function fightOneRound(BattleState $battleState, int $damageRound): void
-    {
+    public function fightOneRound(
+        Character $character,
+        BattleState $battleState,
+        int $damageRound
+    ): void {
         $this->stopWatch?->start("lotgd2.Battle.fightOneRound");
 
-        $battleState->setCharacter($this->character);
+        $battleState->setCharacter($character);
 
-        $goodGuyBuffs = $this->buffHandler->getBuffList($this->character);
-        $badGuyBuffs = $this->buffHandler->getBuffList($battleState->badGuy);
+        $goodGuyBuffs = $this->handlerRegistry->get(BuffHandler::class)->getBuffList($character);
+        $badGuyBuffs = $this->handlerRegistry->get(BuffHandler::class)->getBuffList($battleState->badGuy);
 
         // Activate on round start comes before the calculation of the half-turns
         $goodGuyBuffStartEvents = $goodGuyBuffs->activate(Buff::ACTIVATES_ON_ROUNDSTART, $battleState->goodGuy, $battleState->badGuy);
@@ -352,7 +360,7 @@ class Battle
         if ($how === self::SkillFightActionParamValue) {
             $skill = $event->action->getParameter(self::SkillActionParam);
 
-            $battleSkillActivationEvent = new BattleSkillActivationEvent($event->character, $this->buffHandler, $skill, $event->action);
+            $battleSkillActivationEvent = new BattleSkillActivationEvent($event->character, $this->handlerRegistry->get(BuffHandler::class), $skill, $event->action);
             $this->eventDispatcher->dispatch($battleSkillActivationEvent, self::OnSkillActivationEvent);
         }
 
@@ -364,7 +372,7 @@ class Battle
 
         do {
             $rounds -= 1;
-            $this->fightOneRound($battleState, $battleTurn);
+            $this->fightOneRound($event->character, $battleState, $battleTurn);
 
             if ($battleState->isOver()) {
                 break;
@@ -386,7 +394,7 @@ class Battle
             $simpleStageEvent = $this->eventDispatcher->dispatch($simpleStageEvent, self::OnFightEnds);
         } else {
             // Only add fight actions if the fight is not over
-            $this->addFightActions($event->stage, $event->scene, $battleState, ["op" => self::FightOpParamValue]);
+            $this->addFightActions($event->stage, $event->scene, $battleState, $event->character, ["op" => self::FightOpParamValue]);
         }
 
         return $event;

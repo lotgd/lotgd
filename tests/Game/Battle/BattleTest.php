@@ -101,7 +101,6 @@ class BattleTest extends KernelTestCase
         ?HandlerRegistry $handlerRegistry = null,
         ?DiceBagInterface $diceBag = null,
         ?BuffHandler $buffHandler = null,
-        ?Character $character = null,
     ): Battle {
         $healthHandler = $this->createStub(HealthHandler::class);
         $healthHandler->method("getHealth")->willReturn(10);
@@ -118,6 +117,7 @@ class BattleTest extends KernelTestCase
             HealthHandler::class => $healthHandler,
             StatsHandler::class => $statsHandler,
             EquipmentHandler::class => $equipmentHandler,
+            BuffHandler::class => $buffHandler ?? $this->createStub(BuffHandler::class),
         ];
 
         return new Battle(
@@ -129,10 +129,9 @@ class BattleTest extends KernelTestCase
             sceneRenderer: $sceneRenderer ?? $this->createStub(SceneRenderer::class),
             actionService: $actionService ?? $this->createStub(ActionService::class),
             attachmentRepository: $attachmentRepository ?? $this->createStub(AttachmentRepository::class),
-            handlerRegistry: $handlerRegistry ?? $this->createHandlerRegistry($handlerMap),
             diceBag: $diceBag ?? $this->createStub(DiceBagInterface::class),
+            handlerRegistry: $handlerRegistry ?? $this->createHandlerRegistry($handlerMap),
             buffHandler: $buffHandler ?? $this->createStub(BuffHandler::class),
-            character: $character ?? $this->createCharacter(),
         );
     }
 
@@ -157,10 +156,14 @@ class BattleTest extends KernelTestCase
     public function testStartBattle(): BattleState
     {
         $character = $this->createCharacter();
-        $battle = $this->createBattle(character: $character);
+        $battle = $this->createBattle();
         $badGuy = new Fighter(name: null, level: null, weapon: null, health: null, attack: null, defense: null, kwargs: []);
 
-        $battleState = $battle->start($badGuy, gameStateService: $this->createStub(GameStateService::class));
+        $battleState = $battle->start(
+            $character,
+            $badGuy,
+            gameStateService: $this->createStub(GameStateService::class),
+        );
 
         $this->assertInstanceOf(CurrentCharacterFighter::class, $battleState->goodGuy);
         $this->assertInstanceOf(Fighter::class, $battleState->badGuy);
@@ -186,10 +189,9 @@ class BattleTest extends KernelTestCase
 
         $battle = $this->createBattle(
             eventDispatcher: $eventDispatcher,
-            character: $character,
         );
 
-        $battle->addFightActions($stage, $scene, $battleState);
+        $battle->addFightActions($stage, $scene, $battleState, $character);
 
         $actionGroups = $stage->actionGroups;
         $this->assertCount(2, $actionGroups);
@@ -232,10 +234,9 @@ class BattleTest extends KernelTestCase
 
         $battle = $this->createBattle(
             eventDispatcher: $eventDispatcher,
-            character: $character,
         );
 
-        $battle->addFightActions($stage, $scene, $battleState, $params);
+        $battle->addFightActions($stage, $scene, $battleState, $character, $params);
 
         $actionGroups = $stage->actionGroups;
         $this->assertCount(2, $actionGroups);
@@ -263,6 +264,7 @@ class BattleTest extends KernelTestCase
 
     public function testFightOneTurnWithDamageEvents(): void
     {
+        $character = $this->createStub(Character::class);
         $battleState = $this->createBattleState();
         $turn = $this->createMock(BattleTurn::class);
 
@@ -278,13 +280,14 @@ class BattleTest extends KernelTestCase
         $turn->expects($this->once())->method("getHalfTurns")->willReturn($halfTurns);
 
         $battle = $this->createBattle(turn: $turn);
-        $battle->fightOneRound($battleState, BattleTurn::DamageTurnBoth);
+        $battle->fightOneRound($character, $battleState, BattleTurn::DamageTurnBoth);
 
         $this->assertSame(1, $battleState->roundCounter);
     }
 
     public function testFightOneTurnWithDamageEventsForOffenseTurn(): void
     {
+        $character = $this->createStub(Character::class);
         $battleState = $this->createBattleState();
         $turn = $this->createMock(BattleTurn::class);
 
@@ -308,13 +311,14 @@ class BattleTest extends KernelTestCase
         $turn->expects($this->once())->method("getHalfTurns")->willReturn($halfTurns);
 
         $battle = $this->createBattle(turn: $turn);
-        $battle->fightOneRound($battleState, BattleTurn::DamageTurnGoodGuy);
+        $battle->fightOneRound($character, $battleState, BattleTurn::DamageTurnGoodGuy);
 
         $this->assertSame(1, $battleState->roundCounter);
     }
 
     public function testFightOneTurnWithDamageEventsForDefenseTurn(): void
     {
+        $character = $this->createStub(Character::class);
         $battleState = $this->createBattleState();
         $turn = $this->createMock(BattleTurn::class);
 
@@ -338,13 +342,14 @@ class BattleTest extends KernelTestCase
         $turn->expects($this->once())->method("getHalfTurns")->willReturn($halfTurns);
 
         $battle = $this->createBattle(turn: $turn);
-        $battle->fightOneRound($battleState, BattleTurn::DamageTurnBadGuy);
+        $battle->fightOneRound($character, $battleState, BattleTurn::DamageTurnBadGuy);
 
         $this->assertSame(1, $battleState->roundCounter);
     }
 
     public function testFightOneTurnWithNoDamageEvents(): void
     {
+        $character = $this->createStub(Character::class);
         $battleState = $this->createBattleState();
         $turn = $this->createMock(BattleTurn::class);
 
@@ -358,7 +363,7 @@ class BattleTest extends KernelTestCase
         $turn->expects($this->once())->method("getHalfTurns")->willReturn($halfTurns);
 
         $battle = $this->createBattle(turn: $turn);
-        $battle->fightOneRound($battleState, BattleTurn::DamageTurnBoth);
+        $battle->fightOneRound($character, $battleState, BattleTurn::DamageTurnBoth);
 
         $this->assertSame(1, $battleState->roundCounter);
     }

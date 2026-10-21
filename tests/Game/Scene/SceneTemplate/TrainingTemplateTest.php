@@ -524,6 +524,7 @@ class TrainingTemplateTest extends TestCase
 
         [$battle, $battleState] = $this->getBattleAndBattleState(
             battleAsMock: true,
+            character: $character,
             expectBattleStartedWith: $master,
             expectFightActions: [$stage, $scene, ["op" => "fight"]],
         );
@@ -596,6 +597,7 @@ class TrainingTemplateTest extends TestCase
 
         [$battle, $battleState] = $this->getBattleAndBattleState(
             battleAsMock: true,
+            character: $character,
             expectBattleStartedWith: $master,
             expectFightActions: [$stage, $scene, ["op" => "fight"]],
         );
@@ -647,6 +649,7 @@ class TrainingTemplateTest extends TestCase
 
         [$battle, $battleState] = $this->getBattleAndBattleState(
             battleAsMock: true,
+            character: $character,
         );
 
         $battle->expects($this->never())->method("start");
@@ -1313,6 +1316,7 @@ class TrainingTemplateTest extends TestCase
         bool $battleAsMock = false,
         bool $battleStateAsMock = false,
         ?Master $expectBattleStartedWith = null,
+        ?Character $character = null,
         ?array $expectFightActions = [],
     ): array {
         $battleState = $battleStateAsMock ? $this->createMock(BattleState::class) : $this->createStub(BattleState::class);
@@ -1326,7 +1330,7 @@ class TrainingTemplateTest extends TestCase
             $battle
                 ->expects($this->once())
                 ->method("start")
-                ->with($expectBattleStartedWith, $this->anything(), $this->anything(), $this->anything())
+                ->with($character, $expectBattleStartedWith, $this->anything(), $this->anything(), $this->anything())
                 ->willReturn($battleState);
         }
 
@@ -1348,7 +1352,7 @@ class TrainingTemplateTest extends TestCase
             $battle
                 ->expects($this->once())
                 ->method("addFightActions")
-                ->with($stage, $scene, $battleState, $params);
+                ->with($stage, $scene, $battleState, $character, $params);
         }
 
         return [
@@ -1404,7 +1408,7 @@ class TrainingTemplateTest extends TestCase
      * @param Stage|null $stage
      * @param Action|null $action
      * @param Character|null $character
-     * @return ($mockedMethods is empty ? TrainingTemplate&Stub : TrainingTemplate&MockObject)
+     * @return ($mockedMethods is non-empty-array ? TrainingTemplate&MockObject : TrainingTemplate&Stub)
      * @throws Exception
      */
     private function getPartiallyMockedTrainingTemplate(

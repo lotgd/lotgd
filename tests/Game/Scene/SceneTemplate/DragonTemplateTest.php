@@ -25,10 +25,10 @@ use LotGD2\Game\Handler\HandlerRegistry;
 use LotGD2\Game\Random\DiceBag;
 use LotGD2\Game\Scene\SceneAttachment\BattleAttachment;
 use LotGD2\Game\Scene\SceneTemplate\DragonTemplate;
-use LotGD2\Game\Scene\SceneTemplate\FightTemplate;
 use LotGD2\Game\Stage\ActionService;
 use LotGD2\Repository\AttachmentRepository;
 use LotGD2\Repository\SceneRepository;
+use LotGD2\Tests\TestTools\HasStageTrait;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\TestWith;
 use PHPUnit\Framework\Attributes\UsesClass;
@@ -51,6 +51,8 @@ use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
 #[UsesClass(HandlerRegistry::class)]
 class DragonTemplateTest extends TestCase
 {
+    use HasStageTrait;
+
     /**
      * @param string[] $onlyMethods
      * @return ($onlyMethods is non-empty-array ? ($returnAsMock is true ? DragonTemplate&MockObject : DragonTemplate&Stub) : DragonTemplate)
@@ -203,7 +205,10 @@ class DragonTemplateTest extends TestCase
             battle: $battle,
         );
 
-        $stage = $this->createMock(Stage::class);
+        [$stage, $scene, $action, $character] = $this->getDefaultStageObjects(
+            stageMock: true,
+        );
+
         $stage
             ->expects($this->once())
             ->method(PropertyHook::set("paragraphs"))
@@ -225,19 +230,14 @@ class DragonTemplateTest extends TestCase
                 }
             );
 
-        $character = $this->createStub(Character::class);
-        $stage
-            ->method(PropertyHook::get("owner"))->willReturn($character);
         $stage
             ->expects($this->once())
             ->method("clearActionGroups");
 
-        $scene = $this->createStub(Scene::class);
-
         $battle
             ->expects($this->once())
             ->method("addFightActions")
-            ->with($stage, $scene, $this->isInstanceOf(BattleState::class), ["op" => "fight"]);
+            ->with($stage, $scene, $this->isInstanceOf(BattleState::class), $character, ["op" => "fight"]);
 
         $battleState = $this->createStub(BattleState::class);
 
@@ -245,7 +245,7 @@ class DragonTemplateTest extends TestCase
             ->expects($this->once())
             ->method("start")
             ->willReturnCallback(
-                function (BasicFighterInterface $d, ... $kwargs) use ($battleState) {
+                function (Character $c, BasicFighterInterface $d, ... $kwargs) use ($battleState) {
                     $this->assertFalse($kwargs[4]);
                     return $battleState;
                 }
@@ -276,8 +276,17 @@ class DragonTemplateTest extends TestCase
             battle: $battle,
         );
 
-        $stage = $this->createMock(Stage::class);
-        $stage->method(PropertyHook::get("owner"))->willReturn($this->createStub(Character::class));
+        [$stage, $scene, $action, $character] = $this->getDefaultStageObjects(
+            stageMock: true,
+            sceneMock: true,
+            sceneConfig: [
+                "text" => [
+                    "fightIntro" => "A fight intro text",
+                ]
+            ],
+            sceneConfigExpects: $this->atLeastOnce(),
+        );
+
         $stage
             ->expects($this->once())
             ->method("addAttachment")
@@ -291,13 +300,6 @@ class DragonTemplateTest extends TestCase
                 }
             );
 
-        $scene = $this->createMock(Scene::class);
-        $scene->expects($this->atLeastOnce())->method(PropertyHook::get("templateConfig"))->willReturn([
-            "text" => [
-                "fightIntro" => "A fight intro text",
-            ]
-        ]);
-
         $dragon = null;
 
         $battleState = $this->createStub(BattleState::class);
@@ -306,7 +308,7 @@ class DragonTemplateTest extends TestCase
             ->expects($this->once())
             ->method("start")
             ->willReturnCallback(
-                function (BasicFighterInterface $d, GameStateService $gameStateService, bool ... $kwargs) use (&$dragon, $battleState) {
+                function (Character $c, BasicFighterInterface $d, GameStateService $gameStateService, bool ... $kwargs) use (&$dragon, $battleState) {
                     $this->assertFalse($kwargs[3]);
                     $dragon = $d;
                     return $battleState;
@@ -317,7 +319,8 @@ class DragonTemplateTest extends TestCase
             ->expects($this->once())
             ->method("addFightActions") #$this->same(BattleState::class)
             ->willReturnCallback(
-                function (Stage $a, Scene $b, BattleState $c, array $d) use ($stage, $scene, $battleState) {
+                function (Stage $a, Scene $b, BattleState $c, Character $ch, array $d) use ($character, $stage, $scene, $battleState) {
+                    $this->assertSame($character, $ch);
                     $this->assertSame($stage, $a);
                     $this->assertSame($scene, $b);
                     $this->assertSame($battleState, $c);

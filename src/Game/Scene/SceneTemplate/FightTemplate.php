@@ -169,7 +169,7 @@ class FightTemplate implements SceneTemplateInterface
 
         if ($attachment) {
             $this->handlerRegistry->get(HealthHandler::class)->decrementTurns($this->character);
-            $battleState = $this->battle->start($creature, $this->gameStateService);
+            $battleState = $this->battle->start($this->character, $creature, $this->gameStateService);
 
             $this->stage->addAttachment($attachment, data: [
                 "battleState" => $battleState,
@@ -212,7 +212,7 @@ class FightTemplate implements SceneTemplateInterface
             }
 
             $this->stage->clearActionGroups();
-            $this->battle->addFightActions($this->stage, $this->scene, $battleState, $params);
+            $this->battle->addFightActions($this->stage, $this->scene, $battleState, $this->character, $params);
         } else {
             $this->stage->paragraphs = [
                 new Paragraph(

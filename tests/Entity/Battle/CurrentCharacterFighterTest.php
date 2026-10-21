@@ -22,6 +22,7 @@ use PHPUnit\Framework\TestCase;
 #[UsesClass(StatsHandler::class)]
 #[UsesClass(EquipmentHandler::class)]
 #[UsesClass(HandlerRegistry::class)]
+#[UsesClass(EquipmentItem::class)]
 class CurrentCharacterFighterTest extends TestCase
 {
     public function testCharacterIsClonedProperlyAsAFighter(): void

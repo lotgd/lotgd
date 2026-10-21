@@ -297,7 +297,7 @@ class FightTemplateTest extends TestCase
         $battle = $this->createMock(Battle::class);
         $battle->expects($this->once())
             ->method('start')
-            ->with($creature)
+            ->with($character, $creature)
             ->willReturn($battleState);
 
         $stage->expects($this->once())
@@ -309,7 +309,7 @@ class FightTemplateTest extends TestCase
 
         $battle->expects($this->once())
             ->method('addFightActions')
-            ->with($stage, $scene, $battleState, ['op' => 'fight', 'surprise' => true]);
+            ->with($stage, $scene, $battleState, $character, ['op' => 'fight', 'surprise' => true]);
 
         $stage->expects($this->once())
             ->method(PropertyHook::set("paragraphs"))
@@ -401,7 +401,7 @@ class FightTemplateTest extends TestCase
         $battle = $this->createMock(Battle::class);
         $battle->expects($this->once())
             ->method('start')
-            ->with($creature)
+            ->with($character, $creature)
             ->willReturn($battleState);
 
         $stage->expects($this->once())
@@ -413,7 +413,7 @@ class FightTemplateTest extends TestCase
 
         $battle->expects($this->once())
             ->method('addFightActions')
-            ->with($stage, $scene, $battleState, ['op' => 'fight']);
+            ->with($stage, $scene, $battleState, $character, ['op' => 'fight']);
 
         $stage->expects($this->once())
             ->method(PropertyHook::set("paragraphs"))

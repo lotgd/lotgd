@@ -140,9 +140,9 @@ class DragonTemplate implements SceneTemplateInterface
             defense: 15, #25,
         );
 
-        $battleState = $this->battle->start($dragon, $this->gameStateService, allowFlee: false);
+        $battleState = $this->battle->start($this->character, $dragon, $this->gameStateService, allowFlee: false);
         $params = ["op" => "fight"];
-        $this->battle->addFightActions($this->stage, $this->scene, $battleState, $params);
+        $this->battle->addFightActions($this->stage, $this->scene, $battleState, $this->character, $params);
 
         $this->stage->addAttachment($attachment, data: [
             "battleState" => $battleState,
