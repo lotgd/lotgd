@@ -1,0 +1,30 @@
+@layer components {
+    .alert {
+        @apply border rounded-xl;
+        @apply p-4;
+    }
+
+    .alert-warning {
+        @apply border-alert;
+        @apply bg-alert/25;
+        @apply text-alert;
+    }
+
+    .alert-danger {
+        @apply border-danger;
+        @apply bg-danger/25;
+        @apply text-danger;
+    }
+
+    .alert-success {
+        @apply border-success;
+        @apply bg-success/25;
+        @apply text-success;
+    }
+
+    .alert-info {
+        @apply border-info;
+        @apply bg-info/25;
+        @apply text-info;
+    }
+}

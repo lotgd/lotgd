@@ -1,0 +1,526 @@
+@import "tailwindcss";
+@import "./theme.css" layer(theme);
+@import "./form.css" layer(components);
+@import "./alert.css" layer(components);
+@import "./tabs.css" layer(components);
+@import "./progressbar.css" layer(components);
+@import "./table.css" layer(components);
+
+@source not "../../public";
+@plugin "@tailwindcss/forms";
+
+@layer components {
+    body {
+        @apply bg-black;
+        @apply text-base;
+    }
+
+    #lotgd-banner {
+        @apply flex justify-between;
+        @apply border-b-5 border-b-primary-light;
+        @apply px-3 py-2;
+
+        @apply bg-primary text-white;
+
+        h1 {
+            @apply text-xl min-lg:text-2xl font-bold;
+        }
+
+        nav {
+
+        }
+    }
+
+    #lotgd-login {
+        @apply h-full;
+        @apply bg-secondary;
+
+        .container {
+            @apply grid grid-cols-6 gap-4;
+            @apply w-full;
+            @apply mx-auto;
+            @apply pt-5;
+
+            .card {
+                /*
+                   1 2 3 4 5 6 7 8 9 A B C
+                         - - - - - -
+                */
+                @apply col-start-2 col-span-4;
+            }
+        }
+    }
+
+    #lotgd-ucp {
+        @apply grid grid-cols-12;
+        @apply h-full;
+        @apply bg-secondary;
+
+        aside {
+            @apply col-span-2;
+
+            nav {
+                @apply m-3;
+                @apply rounded-xl border-black border;
+                @apply bg-nav-bg text-white;
+
+                ul {
+                    &:first-child {
+                        @apply rounded-t-xl;
+                    }
+
+                    &:last-child {
+                        @apply rounded-b-xl;
+                    }
+
+                    li {
+                        > * {
+                            @apply p-2;
+                        }
+
+                        &:not:has(> a) {
+                            @apply p-2;
+                        }
+                    }
+
+                    .nav-item {
+                        &:first-child > a {
+                            @apply rounded-t-xl;
+                        }
+
+                        &:last-child > a {
+                            @apply rounded-b-xl;
+                        }
+
+                        a {
+                            @apply block;
+                            @apply text-tertiary-light;
+
+                            &:hover {
+                                @apply bg-nav-text;
+                                @apply text-nav-bg;
+                            }
+                        }
+                    }
+
+                    .nav-head {
+                        @apply text-nav-title text-center;
+                        @apply font-bold;
+                    }
+                }
+            }
+        }
+
+        main {
+            @apply col-span-10;
+        }
+
+        .component {
+            @apply m-3;
+
+            > div {
+                @apply p-2;
+                @apply mb-3;
+            }
+
+            .toolbar {
+                @apply flex flex-row justify-between;
+                @apply rounded-xl;
+                @apply bg-secondary-light;
+            }
+        }
+    }
+
+
+    #lotgd-game {
+        @apply relative h-full;
+        @apply bg-secondary;
+        @apply pb-10;
+        @apply border-b-5 border-b-secondary-light;
+    }
+
+    #lotgd-stage {
+        @apply h-full;
+        @apply max-w-full;
+        @apply
+            lg:grid lg:grid-cols-12 md:flex-row
+            flex flex-col gap-2
+        ;
+
+        @apply text-sm lg:text-base;
+
+        aside {
+            @apply lg:col-span-2 basis-1 shrink-0;
+        }
+
+        main {
+            @apply lg:col-span-8;
+            @apply order-1 md:order-2 basis-1 md:basis-2/3 shrink-0;
+            @apply mt-15 lg:mt-0;
+            @apply pt-3 px-3 lg:px-0;
+            @apply text-white;
+
+            h2 {
+                @apply mb-3;
+                @apply text-2xl;
+                @apply font-bold;
+            }
+
+            .lotgd-stage-paragraph {
+                @apply flex;
+                @apply mb-3;
+                @apply text-white;
+
+                .paragraph {
+                    @apply text-justify;
+                }
+
+                .debug {
+                    @apply ms-2;
+                }
+            }
+        }
+
+        aside:has(> nav) {
+            @apply
+                order-2
+                md:order-1 md:basis-1/3
+                md:mt-15 lg:mt-0;
+            ;
+        }
+
+        aside nav {
+            @apply m-3;
+            @apply rounded-xl border-black border;
+            @apply bg-nav-bg text-white;
+
+            ul {
+                &:first-child {
+                    @apply rounded-t-xl;
+                }
+
+                &:last-child {
+                    @apply rounded-b-xl;
+                }
+
+                li {
+                    > * {
+                        @apply p-2;
+                    }
+
+                    &:not:has(> a) {
+                        @apply p-2;
+                    }
+                }
+
+                .nav-item {
+                    @apply flex justify-between;
+
+                    &:first-child {
+                        @apply rounded-t-xl;
+                    }
+
+                    &:last-child {
+                        @apply rounded-b-xl;
+                    }
+
+                    @apply text-tertiary-light;
+
+                    &:hover {
+                        @apply bg-nav-text;
+                        @apply text-nav-bg;
+                    }
+
+                    a {
+                        display: block;
+                    }
+                }
+
+                .nav-head {
+                    @apply text-nav-title text-center;
+                    @apply font-bold;
+                }
+            }
+        }
+
+        aside.lotgd-charstats {
+            @apply order-3;
+            @apply absolute top-0 left-0 lg:relative;
+            @apply w-full lg:w-auto;
+            @apply lg:m-3;
+            @apply text-sm;
+
+            .lotgd-mini-stats {
+                @apply flex flex-row lg:hidden;
+                @apply shadow-lg;
+                @apply bg-secondary-light border-b-2 border-b-primary-light;
+                @apply h-12;
+                @apply text-white;
+
+                > * {
+                    @apply grow-0;
+                }
+
+                .stats-portrait {
+                    img {
+                        @apply size-16 rounded-full relative top-[-1vh] left-[-0.25vh];
+                        @apply border-[0.25vh] border-primary-light;
+                    }
+                }
+
+                .stats-stats {
+                    @apply grow flex;
+                    @apply me-2;
+
+                    > div {
+                        @apply grow flex flex-col justify-between my-1;
+                        @apply text-xs leading-[1vh];
+                        @apply me-1;
+                    }
+
+                    .stats-bars {
+                        .progressbar {
+                            @apply flex;
+                            @apply leading-[1vh];
+
+                            .label {
+                                @apply w-4 me-1;
+                                @apply text-white text-right font-bold text-xs leading-[1vh];
+                            }
+                        }
+                    }
+
+                    .stats-row {
+                        @apply flex flex-row justify-between;
+
+                        .label {
+                            @apply font-bold basis-1/2;
+                        }
+
+                        .value {
+                            @apply basis-1/2;
+                            @apply overflow-x-clip;
+                        }
+                    }
+
+                    dl {
+                        @apply grid grid-cols-2;
+                        @apply leading-[1em];
+
+                        dt {
+                            @apply col-span-1;
+                            @apply font-bold;
+                        }
+
+                        dd {
+                            @apply col-span-1;
+                        }
+                    }
+
+                    .stats-stats {
+
+                    }
+
+                    .stats-equipment {
+
+                    }
+                }
+            }
+
+            table {
+                @apply hidden lg:table;
+                @apply w-full rounded-xl;
+                @apply border-separate border-spacing-0 border-1;
+
+                tbody tr:first-child {
+                    th {
+                        @apply rounded-t-xl;
+                    }
+                }
+
+                tr {
+                    &:first-child {
+                        @apply rounded-t-xl;
+                    }
+
+                    @apply border;
+                }
+
+                tr th {
+                    @apply text-left;
+
+                    &[scope="colgroup"] {
+                        @apply text-center;
+                        @apply bg-primary-light text-stats-contrast;
+                    }
+                }
+
+                tr th:not([scope="colgroup"]), tr td {
+                    @apply bg-primary text-white;
+                }
+
+                tr td {
+                    @apply text-stats-contrast;
+                }
+
+                th {
+                    @apply p-1;
+                }
+            }
+        }
+
+        .lotgd-debug {
+            @apply text-gray-500;
+        }
+    }
+
+    .card-grid {
+        @apply grid grid-cols-1 lg:grid-cols-2 2xl:grid-cols-3 gap-4;
+    }
+
+    .card {
+        @apply rounded-xl border border-black;
+        @apply bg-secondary-light;
+
+        .card-header {
+            @apply flex flex-row;
+            @apply justify-between;
+            @apply rounded-t-xl;
+            @apply bg-card-title text-black;
+            @apply border-b-form-darkborder border-b;
+            @apply p-2;
+
+            > * {
+                @apply block;
+            }
+        }
+
+        .card-body {
+            @apply p-2;
+
+            > *:not(:last-child) {
+                @apply mb-2;
+            }
+
+            h5 {
+                @apply text-lg;
+            }
+        }
+    }
+
+    .badge {
+        @apply rounded-xl;
+        @apply px-1 py-1;
+        @apply text-sm;
+        @apply bg-primary-light;
+    }
+
+    dialog {
+        @apply fixed inset-0 z-50 overflow-x-hidden overflow-y-hidden;
+        @apply mx-auto;
+        @apply bg-transparent;
+
+        &::backdrop {
+            @apply bg-black/75;
+        }
+
+        .modal-content {
+            @apply mt-10;
+            @apply relative flex flex-col w-full xl:w-[50cqw] pointer-events-auto;
+            @apply rounded-xl border border-black;
+            @apply bg-secondary-light text-white;
+            @apply shadow-xl;
+        }
+
+        .modal-header {
+            @apply flex flex-row items-center justify-between;
+            @apply rounded-t-xl;
+            @apply bg-card-title text-secondary;
+            @apply border-b-form-darkborder border-b;
+            @apply p-3;
+
+            .modal-title {
+                @apply text-lg font-bold text-secondary;
+            }
+        }
+
+        .modal-body {
+            @apply relative flex-auto p-4;
+            @apply max-h-[75cqb] overflow-y-scroll;
+
+            > *:not(:last-child) {
+                @apply mb-3;
+            }
+        }
+
+        .modal-footer {
+            @apply flex flex-row flex-wrap items-center justify-end gap-2;
+            @apply p-3;
+            @apply border-t-form-darkborder border-t;
+            @apply rounded-b-xl;
+            @apply bg-secondary-light;
+        }
+
+        .btn-close {
+            @apply box-content inline-block w-4 h-4 p-1 opacity-50 cursor-pointer;
+            @apply rounded border-0 bg-transparent;
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%23433828'%3e%3cpath d='M.293.293a1 1 0 0 1 1.414 0L8 6.586 14.293.293a1 1 0 1 1 1.414 1.414L9.414 8l6.293 6.293a1 1 0 0 1-1.414 1.414L8 9.414l-6.293 6.293a1 1 0 0 1-1.414-1.414L6.586 8 .293 1.707a1 1 0 0 1 0-1.414z'/%3e%3c/svg%3e");
+            background-position: center;
+            background-size: 1em;
+            background-repeat: no-repeat;
+
+            &:hover {
+                @apply opacity-100;
+            }
+        }
+    }
+
+    .tooltip {
+        @apply bg-black text-white;
+        @apply rounded-xl;
+        @apply p-2;
+        @apply max-w-full;
+        @apply shadow-xl;
+    }
+
+    .tooltip.debug {
+        @apply max-w-full;
+        @apply font-mono;
+
+        dl {
+            @apply grid grid-cols-3 gap-2;
+
+            dt {
+                @apply col-span-1;
+            }
+
+            dd {
+                @apply col-span-2;
+            }
+        }
+    }
+
+    *:has(> .loading) {
+        @apply relative;
+    }
+
+    .loading {
+        @apply absolute top-0 left-0;
+        @apply z-1000;
+        @apply w-full h-full;
+        @apply bg-black/75 text-white;
+
+        .loading-text {
+            @apply absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2;
+        }
+    }
+
+    footer {
+        @apply mt-3 px-3;
+        @apply text-sm text-white;
+
+        .footer-row {
+            @apply flex gap-2 justify-between;
+        }
+    }
+}

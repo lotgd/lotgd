@@ -1,41 +1,29 @@
 {%- block live_collection_widget -%}
     {%- if button_add is defined and not button_add.rendered -%}
-        {{ form_row(button_add, { label: "+", attr: { class: 'btn-outline-primary' } }) }}
+        {{ form_row(button_add, { label: "+", attr: { class: 'btn btn-outline-primary' } }) }}
     {%- endif -%}
 
-    <div class="border-start border-5">
+    <div class="form-collection">
         {{ block('form_widget') }}
     </div>
 {% endblock %}
 
 {%- block live_collection_entry_row -%}
-    <div class="row border-bottom border-1 mb-3 ms-3">
-        <div class="col-3">
+    <div class="form-collection-entry">
+        <div class="form-collection-entry-control">
             <div class="btn-group mb-3">
-                {{- form_widget(button_delete, { label: 'X', attr: { class: 'btn-outline-danger' } }) -}}
+                {{- form_widget(button_delete, { label: 'X', attr: { class: 'btn btn-outline-danger' } }) -}}
 
                 {%- if button_push_up is defined and not button_push_up.rendered -%}
-                    {{- form_widget(button_push_up, { label: '↑', attr: { class: 'btn-outline-info' } }) -}}
+                    {{- form_widget(button_push_up, { label: '↑', attr: { class: 'btn btn-outline-info' } }) -}}
                 {%- endif -%}
                 {%- if button_push_up is defined and not button_push_up.rendered -%}
-                    {{- form_widget(button_push_down, { label: '↓', attr: { class: 'btn-outline-info' } }) -}}
+                    {{- form_widget(button_push_down, { label: '↓', attr: { class: 'btn btn-outline-info' } }) -}}
                 {%- endif -%}
             </div>
         </div>
-        <div class="col-9">
+        <div class="form-collection-entry-row">
             {% for key, child in form.children %}
-                {# <div class="mb-3">
-                    {{ form_errors(child) }}
-                    <div class="input-group mb-1">
-                        {% if "checkbox" in child.vars.block_prefixes %}
-                            {{ form_widget(child) }}
-                        {% else %}
-                            <span class="input-group-text">{{ form_label(child) }}</span>
-                            {{ form_widget(child) }}
-                        {% endif %}
-                    </div>
-                    {{ form_help(child) }}
-                </div> #}
                 {{ form_row(child) }}
             {% endfor %}
         </div>

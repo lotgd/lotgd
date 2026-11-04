@@ -1,7 +1,7 @@
 <div {{ attributes.defaults({
-    "class": "d-flex"
+    "class": "lotgd-stage-paragraph"
 }) }}>
-    <div class="flex">
+    <div class="paragraph">
         {{ paragraph.text|parse({
             "character": character,
         }|merge(paragraph.context))|raw }}
@@ -9,7 +9,7 @@
 
     {% if is_granted("ROLE_DEBUG") %}
         {%- set tooltip -%}
-            <div class="p-2 text-white text-start">
+            <div class="tooltip debug">
                 <dl>
                     <dt>id</dt>
                     <dd>{{ paragraph.id }}</dd>
@@ -38,7 +38,7 @@
             </div>
         {%- endset -%}
 
-        <div class=" flex-column flex-grow-0">
+        <div class="debug">
             <span
                     class="btn btn-outline-info"
                     data-bs-toggle="tooltip" data-bs-html="true" data-bs-title="{{ tooltip|escape("html") }}"

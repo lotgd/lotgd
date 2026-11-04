@@ -1,0 +1,14 @@
+<div {{ attributes.defaults({
+    class: "progressbar"
+}) }}>
+    {% if label %}
+    <div class="label">{{ label }}</div>
+    {% endif %}
+
+    <div class="progress">
+        <div class="bar {{ this.color }}" style="width: {{ barLength*100|round(2) }}%;">&nbsp;</div>
+        <div class="meter-text">
+            {{ text }}
+        </div>
+    </div>
+</div>

@@ -51,19 +51,19 @@ class Game extends AbstractController
     {
         return [
             ["Character"],
-            ["Name", $this->character->name],
-            ["Race", $this->handlerRegistry->get(RaceHandler::class)->getRaceName($this->character)],
-            ["Level", $this->character->level],
-            ["Experience", $this->handlerRegistry->get(StatsHandler::class)->getExperience($this->character)],
-            ["Turns", $this->handlerRegistry->get(HealthHandler::class)->getTurns($this->character), $this->handlerRegistry->get(HealthHandler::class)->getMaxTurns($this->character)],
-            ["Health", $this->handlerRegistry->get(HealthHandler::class)->getHealth($this->character), $this->handlerRegistry->get(HealthHandler::class)->getMaxHealth($this->character)],
+            "name" => ["Name", $this->character->name],
+            "race" => ["Race", $this->handlerRegistry->get(RaceHandler::class)->getRaceName($this->character)],
+            "level" => ["Level", $this->character->level],
+            "experience" => ["Experience", $this->handlerRegistry->get(StatsHandler::class)->getExperience($this->character), $this->handlerRegistry->get(StatsHandler::class)->getRequiredExperience($this->character)],
+            "turns" => ["Turns", $this->handlerRegistry->get(HealthHandler::class)->getTurns($this->character), $this->handlerRegistry->get(HealthHandler::class)->getMaxTurns($this->character)],
+            "health" => ["Health", $this->handlerRegistry->get(HealthHandler::class)->getHealth($this->character), $this->handlerRegistry->get(HealthHandler::class)->getMaxHealth($this->character)],
             ["Stats"],
-            ["Attack", $this->handlerRegistry->get(StatsHandler::class)->getTotalAttack($this->character)],
-            ["Defense", $this->handlerRegistry->get(StatsHandler::class)->getTotalDefense($this->character)],
+            "attack" => ["Attack", $this->handlerRegistry->get(StatsHandler::class)->getTotalAttack($this->character)],
+            "defense" => ["Defense", $this->handlerRegistry->get(StatsHandler::class)->getTotalDefense($this->character)],
             ["Inventory"],
-            ["Gold in Hand", $this->handlerRegistry->get(WealthHandler::class)->getGold($this->character)],
-            ["Weapon", $this->handlerRegistry->get(EquipmentHandler::class)->getItemInSlot($this->character, EquipmentHandler::WeaponSlot)?->getName() ?? "Fists"],
-            ["Armor", $this->handlerRegistry->get(EquipmentHandler::class)->getItemInSlot($this->character, EquipmentHandler::ArmorSlot)?->getName() ?? "T-Shirt"],
+            "gold" => ["Gold in Hand", $this->handlerRegistry->get(WealthHandler::class)->getGold($this->character)],
+            "weapon" => ["Weapon", $this->handlerRegistry->get(EquipmentHandler::class)->getItemInSlot($this->character, EquipmentHandler::WeaponSlot)?->getName() ?? "Fists"],
+            "armor" => ["Armor", $this->handlerRegistry->get(EquipmentHandler::class)->getItemInSlot($this->character, EquipmentHandler::ArmorSlot)?->getName() ?? "T-Shirt"],
         ];
     }
 

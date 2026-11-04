@@ -1,4 +1,4 @@
-<li class="nav-item lotgd-stage-action d-flex justify-content-between align-items-start">
+<li class="nav-item">
     <a class="nav-link"
        data-action="live#action"
        data-live-action-param="takeAction"
@@ -8,7 +8,7 @@
 
     {% if is_granted("ROLE_DEBUG") %}
         {%- set tooltip -%}
-            <div class="p-2 text-white text-start">
+            <div class="tooltip debug">
                 <dl>
                     <dt>id</dt>
                     <dd>{{ action.id }}</dd>

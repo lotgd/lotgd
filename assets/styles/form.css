@@ -1,0 +1,202 @@
+@layer components {
+    .form-grid {
+        @apply grid
+            grid-cols-12
+            gap-1 @md:gap-2 @lg:gap-3 @xl:gap-4
+        ;
+        @apply mb-3;
+
+        .form-grid {
+            @apply
+                grid-cols-6;
+        }
+
+        .form-grid .form-grid {
+            @apply mb-3;
+        }
+
+        .col-label {
+            @apply
+                col-span-6
+                md:col-span-4
+                lg:col-span-3
+                xl:col-span-2
+            ;
+
+            @apply pb-2;
+        }
+
+        .col-input {
+            @apply
+                col-span-6
+                md:col-span-8
+                lg:col-span-9
+                xl:col-span-10
+            ;
+        }
+    }
+
+    form .help-text {
+        @apply text-sm mb-3;
+    }
+
+    form label {
+        @apply inline-block align-text-bottom;
+        @apply text-form-text;
+    }
+
+    input:not([type=checkbox],[type=radio]),
+    select,
+    textarea,
+    .input
+    {
+        @apply w-full;
+
+        @apply border-1
+            border-b-form-lightborder
+            border-e-form-lightborder
+            border-t-form-darkborder
+            border-s-form-darkborder
+        ;
+        @apply px-[0.75em] py-[0.5em];
+
+        @apply bg-form-bg;
+        @apply text-form-text;
+    }
+
+    textarea {
+        @apply font-mono;
+        @apply min-h-[5lh];
+    }
+
+    input[type=checkbox]
+    {
+        @apply border-1
+            border-b-form-lightborder
+            border-e-form-lightborder
+            border-t-form-darkborder
+            border-s-form-darkborder
+        ;
+
+        @apply bg-form-bg;
+        @apply text-form-text;
+        @apply me-3;
+    }
+
+    input:focus, input:active
+    {
+        @apply outline-1 outline-primary;
+    }
+
+    .input-group {
+        @apply flex justify-items-stretch;
+        @apply table-cell;
+        @apply my-2;
+
+        > * {
+            @apply ms-[-1pt];
+        }
+
+        .input-group-text {
+            @apply inline-block;
+            @apply px-3;
+            @apply align-middle;
+
+            @apply text-form-text;
+        }
+
+        input:not([type=checkbox],[type=radio]),
+        select {
+            @apply w-auto;
+        }
+    }
+
+    .btn {
+        @apply inline-block;
+        @apply rounded-md;
+        @apply px-2 py-1;
+        @apply text-sm;
+
+        &.btn-primary, &.btn-outline-primary, .form-control {
+            @apply bg-form-bg;
+            @apply text-form-text;
+
+            @apply border-1
+                border-t-form-lightborder
+                border-s-form-lightborder
+                border-b-form-darkborder
+                border-e-form-darkborder
+            ;
+
+            &:active {
+                @apply
+                    border-b-form-lightborder
+                    border-e-form-lightborder
+                    border-s-form-darkborder
+                    border-t-form-darkborder
+                ;
+            }
+        }
+
+        &.btn-outline-info {
+            @apply border border-info text-info;
+            @apply bg-info/50;
+        }
+
+        &.btn-outline-danger {
+            @apply border border-danger text-danger;
+            @apply bg-danger/50;
+        }
+    }
+
+    .btn-close {
+        @apply box-content inline-block w-4 h-4 p-1 opacity-50 cursor-pointer;
+        @apply rounded border-0 bg-transparent;
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%23433828'%3e%3cpath d='M.293.293a1 1 0 0 1 1.414 0L8 6.586 14.293.293a1 1 0 1 1 1.414 1.414L9.414 8l6.293 6.293a1 1 0 0 1-1.414 1.414L8 9.414l-6.293 6.293a1 1 0 0 1-1.414-1.414L6.586 8 .293 1.707a1 1 0 0 1 0-1.414z'/%3e%3c/svg%3e");
+        background-position: center;
+        background-size: 1em;
+        background-repeat: no-repeat;
+
+        &:hover {
+            @apply opacity-100;
+        }
+    }
+
+    .form-collection {
+        @apply my-2;
+        @apply border-1
+            border-t-form-lightborder
+            border-s-form-lightborder
+            border-b-form-darkborder
+            border-e-form-darkborder
+        ;
+        @apply p-3;
+
+        .form-collection-entry {
+            @apply grid grid-cols-12;
+            @apply border-b border-b-form-lightborder;
+            @apply mb-3;
+
+            .form-collection-entry-control {
+                @apply col-span-1;
+            }
+
+            .form-collection-entry-row {
+                @apply col-span-11;
+                @apply mb-2;
+
+                .form-grid {
+                    @apply grid grid-cols-3;
+
+                    .col-label {
+                        @apply col-span-1;
+                    }
+
+                    .col-input {
+                        @apply col-span-2;
+                    }
+                }
+            }
+        }
+    }
+}

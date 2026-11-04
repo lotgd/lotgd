@@ -1,25 +1,32 @@
 {% extends 'base.html.twig' %}
 
 {% block body %}
-    <div class="row w-100">
-        <aside class="col-4 col-xl-3 col-xxl-2 bg-primary-subtle">
-            <nav class="nav flex-column">
-                <div class="nav-item nav-link">Characters</div>
+    <div id="lotgd-ucp">
+        <aside>
+            <nav>
+                <ul>
+                    <li class="nav-item">
+                        <a href="{{ path("lotgd_main") }}">Characters</a>
+                    </li>
 
-                {% if is_granted("ROLE_ADMIN") %}
-                    <div class="nav-item nav-link">
-                        <a href="{{ path("lotgd_admin_settings") }}">Game Settings</a>
-                    </div>
-                {% endif %}
+                    <li class="nav-head">Admin</li>
 
-                {% if is_granted("ROLE_SCENE_EDITOR") %}
-                    <div class="nav-item nav-link">
-                        <a href="{{ path("lotgd_admin_scene") }}">Scenes</a>
-                    </div>
-                {% endif %}
+                    {% if is_granted("ROLE_ADMIN") %}
+                        <li class="nav-item">
+                            <a href="{{ path("lotgd_admin_settings") }}">Game Settings</a>
+                        </li>
+                    {% endif %}
+
+                    {% if is_granted("ROLE_SCENE_EDITOR") %}
+                        <li class="nav-item">
+                            <a href="{{ path("lotgd_admin_scene") }}">Scenes</a>
+                        </li>
+                    {% endif %}
+                </ul>
             </nav>
         </aside>
-        <main class="col-8 col-xl-9 col-xxl-10 p-3">
+
+        <main>
             {{ component(component, props ?? {}) }}
         </main>
     </div>

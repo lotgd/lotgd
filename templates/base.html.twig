@@ -17,26 +17,34 @@
         {% endblock %}
     </head>
     <body>
-        <nav class="navbar navbar-expand-lg bg-body-primary text-secondary" data-bs-theme="dark">
-            <div class="container-fluid">
-                <a class="navbar-brand" href="{{ url("lotgd_main") }}">Legend of the Green Dragon 2</a>
+        <div id="lotgd-banner" class="@container/banner">
+            <h1><a href="{{ url("lotgd_main") }}">Legend of the Green Dragon 2</a></h1>
 
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
+            <nav>
+                <ul>
+                    <li>
+                        <a href="{{ path("lotgd_main") }}">Home</a>
+                    </li>
+                </ul>
+            </nav>
+        </div>
 
-                <div class="collapse navbar-collapse" id="navbarSupportedContent">
-                    <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-                        <li class="nav-item">
-                            <a class="nav-link active" aria-current="page" href="#">Home</a>
-                        </li>
-                    </ul>
-                </div>
-            </div>
-        </nav>
-        {# <div {{ vue_component('Hello', { 'name': "Blobber" }) }}></div> #}
         {% block body %}
 
         {% endblock %}
+
+        <footer>
+            <div class="footer-row">
+                <div>
+                    Design inspired by Chris Yarbrough
+                </div>
+                <div>
+
+                </div>
+                <div>
+                    LotGD 2.0, check out on <a href="https://github.com/lotgd/lotgd">GitHub</a>
+                </div>
+            </div>
+        </footer>
     </body>
 </html>

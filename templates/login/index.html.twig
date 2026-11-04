@@ -8,31 +8,49 @@
             <div>{{ error.messageKey|trans(error.messageData, 'security') }}</div>
         {% endif %}
 
-        <div class="container">
+        <div id="lotgd-login">
             <form action="{{ path('lotgd_login') }}" method="post">
-                <div class="col">
-                    <label for="username" class="form-label">Email:</label>
-                    <input type="text" id="username" class="form-control" name="_username" value="{{ last_username }}">
-                </div>
+                <div class="container @container">
+                    <div class="card">
+                        <div class="card-header">
+                            Login
+                        </div>
 
-                <div class="col">
-                    <label for="password" class="form-label">Password:</label>
-                    <input type="password" class="form-control" id="password" name="_password">
-                </div>
+                        <div class="card-body">
+                            <div class="form-grid">
+                                <div class="col-label">
+                                    <label for="username" class="form-label">Email</label>
+                                </div>
+                                <div class="col-input">
+                                    <input type="text" id="username" class="form-control" name="_username" value="{{ last_username }}">
+                                </div>
 
-                <div class="col">
-                    <div class="form-check">
-                        <input class="form-check-input" id="rememberme" type="checkbox" name="_remember_me" checked>
-                        <label class="form-check-label" for="rememberme">Keep me logged in</label>
+                                <div class="col-label">
+                                    <label for="password" class="form-label">Password</label>
+                                </div>
+                                <div class="col-input">
+                                    <input type="password" class="form-control" id="password" name="_password">
+                                </div>
+
+                                <div class="col-label">
+
+                                </div>
+                                <div class="col-input">
+                                    <input class="form-check-input" id="rememberme" type="checkbox" name="_remember_me" checked>
+                                    <label class="form-check-label" for="rememberme">Keep me logged in</label>
+                                </div>
+                            </div>
+
+                            <div class="card-footer">
+                                <input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}">
+
+                                {# If you want to control the URL the user is redirected to on success
+                    <input type="hidden" name="_target_path" value="/account"> #}
+                                <button class="btn btn-primary" type="submit">login</button>
+                            </div>
+                        </div>
                     </div>
                 </div>
-
-                <input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}">
-
-                {# If you want to control the URL the user is redirected to on success
-                    <input type="hidden" name="_target_path" value="/account"> #}
-
-                <button class="btn btn-primary" type="submit">login</button>
             </form>
         </div>
     {% endif %}

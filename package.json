@@ -9,6 +9,7 @@
         "@symfony/ux-turbo": "file:vendor/symfony/ux-turbo/assets",
         "@symfony/ux-vue": "file:vendor/symfony/ux-vue/assets",
         "@symfony/webpack-encore": "^6.0.0",
+        "@types/bootstrap": "^5.2.11",
         "core-js": "^3.23.0",
         "regenerator-runtime": "^0.13.9",
         "sass": "^1.64.2 && < 1.78",
@@ -35,7 +36,14 @@
         "@codemirror/view": "^6.43.6",
         "@lezer/highlight": "^1.2.3",
         "@popperjs/core": "^2.11.8",
+        "@tailwindcss/forms": "^0.5.11",
+        "@tailwindcss/postcss": "^4.3.3",
         "bootstrap": "^5.3.1",
-        "d3": "^7.9.0"
+        "d3": "^7.9.0",
+        "postcss": "^8.5.31",
+        "postcss-loader": "^8.2.1",
+        "tailwindcss": "^4.3.3",
+        "ts-loader": "^9.0.0",
+        "typescript": "^5.9.3"
     }
 }

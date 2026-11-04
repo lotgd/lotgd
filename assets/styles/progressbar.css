@@ -1,0 +1,39 @@
+@layer components {
+    .progressbar {
+        @apply text-sm;
+
+        .label {
+
+        }
+
+        .progress {
+            @apply relative;
+            @apply w-full;
+            @apply border border-black rounded-full;
+            @apply overflow-hidden;
+            @apply bg-black;
+
+            .bar {
+                @apply h-full;
+                @apply bg-tertiary-light;
+
+                &.danger {
+                    @apply bg-danger;
+                }
+
+                &.warning {
+                    @apply bg-alert;
+                }
+
+                &.info {
+                    @apply bg-info;
+                }
+            }
+
+            .meter-text {
+                @apply absolute top-0 w-full;
+                @apply text-xs text-center;
+            }
+        }
+    }
+}

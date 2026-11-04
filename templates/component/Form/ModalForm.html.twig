@@ -10,7 +10,7 @@
 
     <div class="modal-header">
         <h1 class="modal-title h6">{% if entity %}Edit{% else %}Create{% endif%} {{ entityName }}</h1>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        <button type="button" class="btn-close" {{ stimulus_action("modal", "close")}}></button>
     </div>
 
     <div class="modal-body">
@@ -28,7 +28,7 @@
     </div>
 
     <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-secondary"  {{ stimulus_action("modal", "close")}}>Close</button>
         <button type="submit" class="btn btn-primary">Save changes</button>
     </div>
 

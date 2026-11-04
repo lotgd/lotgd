@@ -67,5 +67,6 @@ class SceneConnectionForm extends AbstractController
     public function delete(): void
     {
         $this->emitUp("removeConnection", ["sceneConnection" => $this->sceneConnection->id]);
+        $this->dispatchBrowserEvent("modal:close");
     }
 }

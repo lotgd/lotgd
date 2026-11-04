@@ -1,0 +1,27 @@
+@layer components {
+    .table {
+        &.table-sm {
+            @apply text-sm;
+        }
+
+        td, th {
+            @apply px-[0.5em] py-[0.25em] md:px-[0.75em] md:py-[0.5em];
+        }
+
+        thead {
+            tr {
+                @apply bg-table-header;
+            }
+        }
+
+        tbody {
+            tr {
+                @apply bg-table-row-even;
+            }
+
+            tr:nth-child(odd) {
+                @apply bg-table-row-odd;
+            }
+        }
+    }
+}

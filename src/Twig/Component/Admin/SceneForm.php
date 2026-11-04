@@ -17,7 +17,7 @@ use Symfony\UX\LiveComponent\ComponentWithFormTrait;
 use Symfony\UX\LiveComponent\DefaultActionTrait;
 use Symfony\UX\LiveComponent\LiveCollectionTrait;
 
-#[AsLiveComponent]
+#[AsLiveComponent()]
 class SceneForm extends AbstractController
 {
     use DefaultActionTrait;

@@ -1,22 +1,22 @@
-{% block form_row %}
-<div class="row mb-3 pb-3">
-    <div class="col col-4">
-        {{ form_label(form) }}
-    </div>
-    <div class="col col-8">
-        {{ form_errors(form) }}
-        {{ form_widget(form) }}
-        {{ form_help(form) }}
-    </div>
-</div>
-{% endblock %}
-
-{% block grouped_form_row %}
-    <div class="row mb-3 pb-3 outset border-5">
-        <div class="col col-4">
+{%- block form_row -%}
+    <div class="form-grid">
+        <div class="col-label">
             {{ form_label(form) }}
         </div>
-        <div class="col col-8">
+        <div class="col-input">
+            {{ form_help(form) }}
+            {{ form_errors(form) }}
+            {{ form_widget(form) }}
+        </div>
+    </div>
+{%- endblock -%}
+
+{% block grouped_form_row %}
+    <div class="form-grid">
+        <div class="col-label">
+            {{ form_label(form) }}
+        </div>
+        <div class="col-input">
             {{ form_errors(form) }}
             {{ form_widget(form) }}
             {{ form_help(form) }}
@@ -25,7 +25,9 @@
 {% endblock %}
 
 {% block tabbed_row %}
-    <div class="row">
+    <div class="tabs"
+         {{ stimulus_controller("form/TabbedForm") }}
+    >
         {% set tabs = [] %}
         {% for child in form %}
             {% if "grouped_form" in child.vars.block_prefixes %}
@@ -37,23 +39,29 @@
             {% endif %}
         {% endfor %}
 
-        <div class="col-4 col-lg-3 col-xl-5 col-xxl-2 p-0">
-            <ul class="nav nav-tabs flex-column tabs-vertical">
+        <div class="tab-nav">
+            <ul>
                 {%- for tab in tabs -%}
-                    <li class="nav-item">
-                        <a class="nav-link {{ loop.index0 == 0 ? "active" : "" }}"
-                           data-bs-toggle="tab" data-bs-target="#lotgd-tab-{{ tab.id }}"
+                    <li
+                            class="nav-item {{ loop.index0 == 0 ? "active" : "" }}"
+                            {{ stimulus_target("form/TabbedForm", "tabNav") }}
+                            {{ stimulus_action("form/TabbedForm", "toggle", "click") }}
+                            data-tab-id="lotgd-tab-{{ tab.id }}"
+                    >
+                        <a class="nav-link"
                            {{ loop.index0 == 0 ? 'aria-current="page"' }}
                         >{{ tab.label|raw }}</a>
                     </li>
                 {%- endfor -%}
             </ul>
         </div>
-        <div class="col-6 col-lg-9 col-xl-7 col-xxl-10 p-0">
+
+        <div class="tab-body">
             <div class="tab-content tab-content-vertical">
                 {%- for tab in tabs -%}
                 <div class="tab-pane fade {{ loop.index0 == 0 ? "show active" : "" }}"
                      id="lotgd-tab-{{ tab.id }}"
+                     {{ stimulus_target("form/TabbedForm", "tab") }}
                 >
                     <h3 class="mx-3">
                         {{ form_label(tab.child) }}
@@ -71,10 +79,10 @@
                 {%- endfor -%}
             </div>
         </div>
+    </div>
 
-        <div class="mt-3">
-            {{ form_rest(form) }}
-        </div>
+    <div class="mt-3">
+        {{ form_rest(form) }}
     </div>
 {% endblock %}
 
@@ -101,10 +109,11 @@
         variableNamespace: namespace,
     }) }}>
         <div
-                class="d-none"
+                class="hidden"
                 {{ stimulus_target('form/CharacterExpressionType', 'widget') }}>{{ form_widget(form) }}</div>
         <div
                 data-live-ignore
+                class="input"
                 {{ stimulus_target('form/CharacterExpressionType', 'editor') }}
         ></div>
         <div class="input-group">
@@ -116,3 +125,37 @@
         </div>
     </div>
 {% endblock %}
+
+{%- block form_errors -%}
+    {%- if errors|length > 0 -%}
+        <div class="alert alert-danger mb-2">
+            <ul>
+                {%- for error in errors -%}
+                    <li class="{{ error_item_class|default('') }}" id="{{ id ~ '_error' ~ loop.index }}">{{ error.message }}</li>
+                {%- endfor -%}
+            </ul>
+        </div>
+    {%- endif -%}
+{%- endblock form_errors -%}
+
+{%- block checkbox_row -%}
+    {%- set row_attr = row_attr|merge({class: row_attr.class|default(row_class|default('mb-6'))}) -%}
+    {%- set widget_attr = {} -%}
+    {%- if help -%}
+        {%- set widget_attr = {attr: {'aria-describedby': id ~ '_help'}} -%}
+    {%- endif -%}
+
+    <div class="form-grid" {% with {attr: row_attr} %}{{ block('attributes') }}{% endwith %}>
+        <div class="col-label">
+        </div>
+        <div class="col-input">
+            {{ form_help(form) }}
+            {{- form_errors(form) -}}
+
+            <div class="inline-flex items-center">
+                {{- form_widget(form, widget_attr) -}}
+                {{- form_label(form) -}}
+            </div>
+        </div>
+    </div>
+{%- endblock checkbox_row -%}

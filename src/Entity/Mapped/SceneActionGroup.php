@@ -56,7 +56,7 @@ class SceneActionGroup
 
         #[ORM\Column(type: Types::SMALLINT)]
         #[Assert\NotNull()]
-        public int $sorting = 0 {
+        public ?int $sorting = 0 {
             get => $this->sorting;
             set => $value;
         },

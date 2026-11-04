@@ -1,0 +1,36 @@
+
+@theme {
+    --color-primary: #003300;
+    --color-primary-light: #009900;
+    --color-primary-subtle: hsl(120 35% 69%);
+    --color-secondary: #433828;
+    --color-secondary-light: #665544;
+    --color-tertiary: #003366;
+    --color-tertiary-light: #0099FF;
+
+    --color-nav-bg: var(--color-tertiary);
+    --color-nav-text: var(--color-tertiary-light);
+    --color-nav-title: #00CCFF;
+
+    --color-form-bg: #6b563f;
+    --color-form-text: #F8DB83;
+    --color-form-lightborder: #947356;
+    --color-form-darkborder: #403225;
+
+    --color-card-title: #F8DB83;
+    --color-card-title-contrast: #6b563f;
+
+    --color-danger: #C93C30;
+    --color-alert: #F2B134;
+    --color-info: #5FB0E8;
+    --color-success: #5CBF84;
+    --color-stats-contrast: #FFFF00;
+
+    --color-table-header: #990000;
+    --color-table-header-text: #FFFFFF;
+    --color-table-row-even: #000000;
+    --color-table-row-odd: #330000;
+
+    --text-base: 1em;
+    --text-base--line-height: 1.5;
+}

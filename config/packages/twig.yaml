@@ -1,7 +1,7 @@
 twig:
     default_path: '%kernel.project_dir%/templates'
     form_themes: [
-        'bootstrap_5_layout.html.twig',
+        'tailwind_2_layout.html.twig',
         '_form_theme/lotgd_layout.html.twig'
     ]
 

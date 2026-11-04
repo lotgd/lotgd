@@ -1,0 +1,68 @@
+@layer components {
+    .tabs {
+        @apply grid
+            grid-cols-12
+            gap-0
+        ;
+
+        .tab-nav {
+            @apply
+                col-span-6
+                md:col-span-4
+                lg:col-span-3
+                xl:col-span-2
+            ;
+
+            ul {
+                li {
+                    @apply bg-form-bg text-form-text;
+                    @apply border-y border-b-form-darkborder border-t-form-lightborder;
+                    @apply rounded-s-xl;
+
+                    &:hover, &.active {
+                        @apply border-t-form-darkborder border-b-form-lightborder;
+                    }
+
+                    &:not(:first-child) {
+                        @apply mt-[-1px];
+                    }
+                }
+            }
+
+            .nav-item {
+                @apply p-2;
+            }
+        }
+
+        .tab-body {
+            @apply
+                col-span-6
+                md:col-span-8
+                lg:col-span-9
+                xl:col-span-10
+            ;
+
+            @apply border
+                border-t-form-lightborder
+                border-s-form-lightborder
+                border-b-form-darkborder
+                border-e-form-darkborder
+            ;
+
+            h3 {
+                @apply text-xl font-bold;
+            }
+
+            .tab-content {
+
+                .tab-pane {
+                    @apply hidden;
+
+                    &.show {
+                        @apply block;
+                    }
+                }
+            }
+        }
+    }
+}

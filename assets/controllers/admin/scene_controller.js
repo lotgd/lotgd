@@ -1,8 +1,6 @@
-
 import { Controller } from '@hotwired/stimulus';
 import { getComponent } from '@symfony/ux-live-component';
 import * as d3 from 'd3';
-import {Modal} from 'bootstrap';
 
 export default class extends Controller {
     static values = {
@@ -23,8 +21,8 @@ export default class extends Controller {
         this.component = await getComponent(this.element);
         this.component.on('render:finished', this.render.bind(this));
 
-        this.modal = new Modal(this.modalTarget);
-        this.sceneConnectionModal = new Modal(this.sceneConnectionModalTarget);
+        this.modal = this.modalTarget;
+        this.sceneConnectionModal = this.sceneConnectionModalTarget;
     }
 
     connect()
@@ -100,19 +98,19 @@ export default class extends Controller {
 
         const sceneAdd = node.append("circle")
             .attr("data-lotgd-type", "scene-add")
-            .attr("fill", "var(--bs-info)")
+            .attr("fill", "var(--color-info)")
             .attr("r", 10)
         ;
 
         const sceneDel = node.append("circle")
             .attr("data-lotgd-type", "scene-delete")
-            .attr("fill", "var(--bs-danger)")
+            .attr("fill", "var(--color-danger)")
             .attr("r", 10)
         ;
 
         const scene = node.append("circle")
             .attr("data-lotgd-type", "scene")
-            .attr("fill", "var(--bs-secondary)")
+            .attr("fill", "var(--color-tertiary-light)")
             .attr("r", 15)
         ;
 
@@ -165,7 +163,7 @@ export default class extends Controller {
     }
 
     onNodeClick(event, data) {
-        this.component.action('showForm', {"scene": data.data.scene}).then(() => this.modal.show());
+        this.component.action('showForm', {"scene": data.data.scene}).then(() => this.modal.showModal());
     }
 
     onNodeDelClick(event, data) {
@@ -173,7 +171,7 @@ export default class extends Controller {
     }
 
     onNodeAddClick(event, data) {
-        this.component.action('addScene', {"scene": data.data.scene}).then(() => this.modal.show());
+        this.component.action('addScene', {"scene": data.data.scene}).then(() => this.modal.showModal());
     }
 
     onNodeDragStart(event, data) {
@@ -245,7 +243,7 @@ export default class extends Controller {
 
         if (this._currentDraggedNode !== null) {
             d3.select(circle).transition().duration(100)
-                .attr("fill", "var(--bs-info)");
+                .attr("fill", "var(--color-info)");
             return;
         }
 
@@ -254,7 +252,7 @@ export default class extends Controller {
         const text = event.target.parentElement.querySelector("text");
 
         d3.select(circle).transition().duration(100)
-            .attr("fill", "var(--bs-primary)");
+            .attr("fill", "var(--color-tertiary)");
 
         d3.select(text).transition().duration(100)
             .style("font-weight", "bold");
@@ -276,7 +274,7 @@ export default class extends Controller {
 
         if (this._currentDraggedNode !== null) {
             d3.select(circle).transition().duration(100)
-                .attr("fill", "var(--bs-secondary)");
+                .attr("fill", "var(--color-secondary)");
             return;
         }
 
@@ -285,7 +283,7 @@ export default class extends Controller {
         const text = d.target.parentElement.querySelector("text");
 
         d3.select(circle).transition().duration(100)
-            .attr("fill", "var(--bs-secondary)");
+            .attr("fill", "var(--color-tertiary-light)");
 
         d3.select(text).transition().duration(100)
             .style("font-weight", "normal");
@@ -306,9 +304,9 @@ export default class extends Controller {
 
         this.component.action('editSceneConnection', {
             "sceneConnection": connectionId
-        }).then(() => this.sceneConnectionModal.show());
+        }).then(() => this.sceneConnectionModal.showModal());
 
-        window.addEventListener('modal:close', () => this.sceneConnectionModal.hide());
+        window.addEventListener('modal:close', () => this.sceneConnectionModal.close());
     }
 
     onLinkHoverStart(event, data) {

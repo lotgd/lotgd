@@ -58,8 +58,10 @@ Encore
         config.corejs = '3.23';
     })
 
+    .enablePostCssLoader()
+
     // enables Sass/SCSS support
-    .enableSassLoader((options) => {
+    /*.enableSassLoader((options) => {
         options.sassOptions.silenceDeprecations = [
             'color-functions',
             'global-builtin',
@@ -67,17 +69,17 @@ Encore
             'import',
             'legacy-js-api',
         ];
-    })
+    })*/
 
     // uncomment if you use TypeScript
-    //.enableTypeScriptLoader()
+    .enableTypeScriptLoader()
 
     // uncomment if you use React
     //.enableReactPreset()
 
     // uncomment to get integrity="..." attributes on your script & link tags
     // requires WebpackEncoreBundle 1.4 or higher
-    //.enableIntegrityHashes(Encore.isProduction())
+    .enableIntegrityHashes(Encore.isProduction())
 
     // uncomment if you're having problems with a jQuery plugin
     //.autoProvidejQuery()
