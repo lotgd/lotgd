@@ -52,12 +52,16 @@
     }
 
     #lotgd-ucp {
-        @apply grid grid-cols-12;
+        @apply flex flex-col
+            md:flex-row
+            lg:grid lg:grid-cols-12
+        ;
+
         @apply h-full;
         @apply bg-secondary;
 
         aside {
-            @apply col-span-2;
+            @apply order-2 md:order-1 lg:col-span-2;
 
             nav {
                 @apply m-3;
@@ -112,7 +116,7 @@
         }
 
         main {
-            @apply col-span-10;
+            @apply order-1 md:order-2 lg:col-span-10;
         }
 
         .component {
