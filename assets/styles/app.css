@@ -23,7 +23,7 @@
         @apply bg-primary text-white;
 
         h1 {
-            @apply text-xl min-lg:text-2xl font-bold;
+            @apply text-xl lg:text-2xl font-bold;
         }
 
         nav {
@@ -334,7 +334,7 @@
             table {
                 @apply hidden lg:table;
                 @apply w-full rounded-xl;
-                @apply border-separate border-spacing-0 border-1;
+                @apply border-separate border-spacing-0 border;
 
                 tbody tr:first-child {
                     th {
